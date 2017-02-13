@@ -45,42 +45,50 @@ sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
     years <- year:(year+periodlen)
 
     if(corrigated){
-    years100 <-length(which(years%%100==0))
-    years400 <-length(which(years%%400==0))
-    years4 <- length(which(years%%4==0))
-    numberOfLeapdays <- years4-years100+years400
-    days <- periodlen*365+numberOfLeapdays
-    return(days)
+        years100 <-length(which(years%%100==0))
+        years400 <-length(which(years%%400==0))
+        years4 <- length(which(years%%4==0))
+        numberOfLeapdays <- years4-years100+years400
+        days <- periodlen*365+numberOfLeapdays
+        return(days)
     } else {
-       days <- periodlen*365
+        days <- periodlen*365
     }
 }
 
 
-musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE){
-    ##calculates a 
-
- 
-    days <- sumDaysOfPeriod(settings$startyear,settings$numyears, corrigated=corrigated)
-    dates <- matrix(rep(NA,days*3),ncol=3)
-    dates[1,] <- c(settings$startyear,1,1)
-
-    for(i in 2:days){
-        dates[i,]<-dates[(i-1),]
-        if((dates[i-1,2]==12)&(dates[i-1,3]==31)){
-            dates[i,] <-c((dates[(i-1),1]+1),1,1) 
-        } else {
-            if(dates[i-1,3]==(dayOfMonths(dates[(i-1),1],corrigated=corrigated)[dates[(i-1),2]] )){
-                dates[i,]<-c(dates[(i-1),1],(dates[(i-1),2]+1),1)
-            } else {
-                dates[i,3]<-dates[(i-1),3]+1   
-            }
-        }
-        
-    }
-
+musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, format="en"){
+    ##purpose: generate date label for muso
 
     
+    days <- sumDaysOfPeriod(settings$startyear,settings$numyears, corrigated=corrigated)
+    dates <- matrix(rep(NA,days*3),ncol=3)
+
+        dates[1,] <- c(1,1,settings$startyear)    
+        for(i in 2:days){
+            dates[i,]<-dates[(i-1),]
+            if((dates[i-1,2]==12)&(dates[i-1,1]==31)){
+                dates[i,] <-c(1,1,(dates[(i-1),3]+1)) 
+            } else {
+                
+                if(dates[i-1,1]==(dayOfMonths(dates[(i-1),3],corrigated=corrigated)[dates[(i-1),2]] )){
+                    dates[i,]<-c(1,(dates[(i-1),2]+1),dates[(i-1),3])
+                } else {
+                    dates[i,1]<-dates[(i-1),1]+1   
+                }
+            }
+            
+        }
+    if(format=="en"){
+        
+    } else {
+        if(format=="hu"){
+         dates<-dates[,c(3,2,1)]   
+        } else {
+            cat("format is coerced to english, because I don't know",format)
+        }
+    }
+
     if(combined==TRUE){
         dates <- apply(dates,1,function(x) paste(x,collapse="."))
         return(dates)
