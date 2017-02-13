@@ -1,5 +1,6 @@
 
 isLeapyear <- function(year){
+    ##This Boolean function tells us whether the given year is leapyear or not
 
     if(((year%%4==0)&(year%%100!=0))|(year%%400==0)){
         return(TRUE)
@@ -9,6 +10,7 @@ isLeapyear <- function(year){
 }
 
 dayOfMonths <- function(year){
+    ##This function tells us how many days are in the months in the choosen year.
 
     dayMonths <- c(31,28,31,30,31,30,31,31,30,31,30,31)
 
@@ -20,7 +22,8 @@ dayOfMonths <- function(year){
 }
 
 dayOfYears <- function(year){
-    
+    ##This function tells us how many days are in the given year.
+
     if(isLeapyear(year)==TRUE){
         return(366)   
     } else {
@@ -30,6 +33,8 @@ dayOfYears <- function(year){
 }
 
 sumDaysOfPeriod <- function(year, periodlen){
+    ##How many days are from the given date and given period length(periodlen)?    
+
     years <- year:(year+periodlen)
     years100 <-length(which(years%%100==0))
     years400 <-length(which(years%%400==0))
@@ -41,6 +46,7 @@ sumDaysOfPeriod <- function(year, periodlen){
 
 
 musoDate <- function(settings,timestep="d",combined=TRUE, corrigate=TRUE){
+    ##calculates a 
     
     days <- sumDaysOfPeriod(settings$startyear,settings$numyears)
     dates <- matrix(rep(NA,days*3),ncol=3)
@@ -61,16 +67,18 @@ musoDate <- function(settings,timestep="d",combined=TRUE, corrigate=TRUE){
     }
 
     if(corrigate==TRUE){
-        if(comined==TRUE){
+        if(combined==TRUE){
             dates <- apply(dates,1,function(x) paste(x,collapse="."))[1:(settings$numyears*365)]
             return(dates)
         }
         
         dates<-dates[(1:(settings$numyears*365)),]
         
+    } else {
+        
     }
     
-    if(comined==TRUE){
+    if(combined==TRUE){
         dates <- apply(dates,1,function(x) paste(x,collapse="."))
         return(dates)
     }
