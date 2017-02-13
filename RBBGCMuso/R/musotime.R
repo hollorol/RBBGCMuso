@@ -9,46 +9,59 @@ isLeapyear <- function(year){
     }
 }
 
-dayOfMonths <- function(year){
+dayOfMonths <- function(year,corrigated=TRUE){
     ##This function tells us how many days are in the months in the choosen year.
 
     dayMonths <- c(31,28,31,30,31,30,31,31,30,31,30,31)
 
-    if(isLeapyear(year)==TRUE){
-        dayMonths[2] <-29
+    if(corrigated){
+
+        if(isLeapyear(year)==TRUE){
+            dayMonths[2] <-29
+        }
     }
 
     return(dayMonths)
 }
 
-dayOfYears <- function(year){
+dayOfYears <- function(year, corrigated=TRUE){
     ##This function tells us how many days are in the given year.
 
-    if(isLeapyear(year)==TRUE){
-        return(366)   
+    if(corrigated){
+        if(isLeapyear(year)==TRUE){
+            return(366)   
+        } else {
+            return(365)
+        }
     } else {
         return(365)
     }
 
 }
 
-sumDaysOfPeriod <- function(year, periodlen){
+sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
     ##How many days are from the given date and given period length(periodlen)?    
 
     years <- year:(year+periodlen)
+
+    if(corrigated){
     years100 <-length(which(years%%100==0))
     years400 <-length(which(years%%400==0))
     years4 <- length(which(years%%4==0))
     numberOfLeapdays <- years4-years100+years400
     days <- periodlen*365+numberOfLeapdays
     return(days)
+    } else {
+       days <- periodlen*365
+    }
 }
 
 
-musoDate <- function(settings,timestep="d",combined=TRUE, corrigate=TRUE){
+musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE){
     ##calculates a 
-    
-    days <- sumDaysOfPeriod(settings$startyear,settings$numyears)
+
+ 
+    days <- sumDaysOfPeriod(settings$startyear,settings$numyears, corrigated=corrigated)
     dates <- matrix(rep(NA,days*3),ncol=3)
     dates[1,] <- c(settings$startyear,1,1)
 
@@ -57,7 +70,7 @@ musoDate <- function(settings,timestep="d",combined=TRUE, corrigate=TRUE){
         if((dates[i-1,2]==12)&(dates[i-1,3]==31)){
             dates[i,] <-c((dates[(i-1),1]+1),1,1) 
         } else {
-            if(dates[i-1,3]==(dayOfMonths(dates[(i-1),1])[dates[(i-1),2]] )){
+            if(dates[i-1,3]==(dayOfMonths(dates[(i-1),1],corrigated=corrigated)[dates[(i-1),2]] )){
                 dates[i,]<-c(dates[(i-1),1],(dates[(i-1),2]+1),1)
             } else {
                 dates[i,3]<-dates[(i-1),3]+1   
@@ -66,17 +79,7 @@ musoDate <- function(settings,timestep="d",combined=TRUE, corrigate=TRUE){
         
     }
 
-    if(corrigate==TRUE){
-        if(combined==TRUE){
-            dates <- apply(dates,1,function(x) paste(x,collapse="."))[1:(settings$numyears*365)]
-            return(dates)
-        }
-        
-        dates<-dates[(1:(settings$numyears*365)),]
-        
-    } else {
-        
-    }
+
     
     if(combined==TRUE){
         dates <- apply(dates,1,function(x) paste(x,collapse="."))
