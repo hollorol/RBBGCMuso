@@ -2,7 +2,7 @@
 #' @author Roland Hollós
 #' @param calibrationpar vector with line numbers
 #' @return No return, outputs are written to file
-setup <- function(executable=NULL,
+setupMuso <- function(executable=NULL,
                   parallel = F,
                   calibrationpar =c(1),
                   outputloc=NULL,

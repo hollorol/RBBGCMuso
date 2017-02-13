@@ -1,6 +1,6 @@
 Package: RBBGCMuso
 Title: What the Package Does (one line, title case)
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: person("Roland", "Hollos", , "hollorol@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph)
 License: GPL-2
