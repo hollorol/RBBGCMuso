@@ -1,0 +1,11 @@
+Package: RBBGCMuso
+Title: What the Package Does (one line, title case)
+Version: 0.1.7
+Authors@R: person("Roland", "Hollos", , "hollorol@gmail.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph)
+License: GPL-2
+LazyData: true
+NeedsCompilation: no
+Packaged: 2016-11-15 13:58:04 UTC; hollorol
+Author: First Last [aut, cre]
+Maintainer: First Last <first.last@example.com>

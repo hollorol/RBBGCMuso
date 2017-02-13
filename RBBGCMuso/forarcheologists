@@ -1,0 +1,88 @@
+<TRASH FROM MUSO.R>
+
+## runMuso <- function(settings, parameters=c(" ECOPHYS")){
+##                                         #changing section
+##                                         #   for(i in changeinput){
+##                                         #     changemulline(settings, parameters[[i]])
+##                                         #   }
+##     changemulline(settings,parameters)
+
+##                                         #spinup run
+##                                         # changemulline(type=1,setup(), parameters[[2]])
+##     setwd(settings$inputloc)
+##     system(paste(settings$executable,settings$ininput[1],sep=" "))
+##                                         #normal run
+##     setwd(settings$inputloc)
+##     system(paste(settings$executable,settings$ininput[2],sep=" "))
+## }
+
+## rungetMusowc <- function(settings,parameters=c(" ECOPHYS"),timee="y",logfile=FALSE,logfilename=NULL){
+##                                         #spinup run
+##                                         # changemulline(type=1,setup(), parameters[[2]])
+##     changemulline(settings,parameters)
+##     setwd(settings$inputloc)
+##     system(paste(settings$executable,settings$ininput[1],sep=" "))
+##                                         #normal run
+##     setwd(settings$inputloc)
+##     system(paste(settings$executable,settings$ininput[2],sep=" "))
+
+##     switch(timee,
+##            "d"=(Reva<-getdailyout(settings)),
+##            "m"=(Reva<-getmonthlyout(settings)),
+##            "y"=(Reva<-getyearlyout(settings))
+##            )
+##     return(Reva)
+## }
+
+<TRASH FROM OTHER_USEFULL_FUNCTIONS.R>
+
+##For this functions there is a built in dirname function in R, which do the same.
+## splitstr <- function(string, sep){
+##     return(unlist(strsplit(string,sep)))
+## }
+
+## containerdir<-function(string){
+##     return(paste(splitstr(string,"/")[1:(length(splitstr(string,"/"))-1)],collapse = "/"))
+##}
+
+<TRASH FROM CHANGECONTENT.R>
+
+## changspecline <- function(filename, line_number,content){
+##   #This function calls the UNIX(-like) sed program to change specific line to other, using the row numbers.
+##   for_command_line <- paste("sed -i '",line_number,"s/.*/",content,"/'"," ",filename, sep="")
+##   system(for_command_line)
+## }
+
+## changespecline<- function(filename,line_number,content){
+##     TOT=readLines(filename,-1)
+##     TOT[line_number]<-content
+##     writeLines(TOT,filename)
+##     }
+
+## changemulline <- function(settings,contents){
+##   #This is the function which is capable change multiple specific lines to other using their row numbers.
+##   #The function uses the previous changspecline function to operate.
+##   varnum <- length(settings$calibrationpar)
+##   if(length(contents)!=varnum)
+##   {
+##     cat("Error: number of the values is not the same as the number of the changed parameters")
+##   }
+  
+##   for(i in 1:varnum){
+##     changspecline(settings$epcinput,settings$calibrationpar[i], contents[i] )
+##   }
+## }
+
+## changmulline2 <- function(settings,contents){
+##   #This is the function which is capable change multiple specific lines to other using their row numbers.
+##   #The function uses the previous changspecline function to operate.
+##   varnum <- length(settings$calibrationpar)
+##   if(length(contents)!=varnum)
+##   {
+##     cat("Error: number of the values is not the same as the number of the changed parameters")
+##   }
+  
+##   for(i in 1:varnum){
+##     changespecline(settings$epcinput,settings$calibrationpar[i], contents[i] )
+##   }
+## }

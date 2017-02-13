@@ -1,0 +1,75 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[magyar]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\frenchspacing
+
+\title{Az RMuso csomag használata}
+%\author{Hollós Roland}
+
+
+\begin{document}
+\maketitle
+\section{A csomag alapfüggvényei}
+
+Az R-muso csomag az alábbi fő függvényeket használja:
+
+\begin{itemize}
+\item muso.R
+\item changecontent.R
+\item setup.R
+\item other\_usefull\_functions.R
+\item getOutput.R
+\end{itemize}
+\section{Tartalmazott függvény-csoportok áttekintése}
+\subsubsection*{setup.R}
+Ebben az R fileban találhatjuk a \textit{setup()} függvényt, amelyben beállíthatjuk a fő paramétereket, mint például a végrehajtható fájl(muso.exe) neve/elérési útvonala, az outputfile-ok elérési helye.
+\subsubsection*{muso.R}
+Itt olyan fügvények találhatók, mint a \textit{rungetMuso()}, valamint a \textit{spinupMuso()} és a \textit{normalMuso()}. Az előbbi bekéri a bemeneti paramétereket.  
+\subsubsection*{chagecontent.R}
+Itt definiáltuk azt a függvényt( \textit{changemulline()}), ami alkalmas arra, hogy adott fájlnak, adott sorait, adott tartalmakra cserélje.
+\subsubsection*{other\_usefull\_functions.R}
+Két függvényt tartalmaz: \textit{getyearlycum()} és \textit{getyearlymax()} Az előbbi éves összegzést végez a megfelelő változóra vonatkozóan, az utóbbi pedig meghatározza az éves maximumértéket.
+\subsubsection*{getOutput.R}
+Ez a file felelős az output adadok beolvasásáért, a \textit{getdailyout()}, a  \textit{getmonthlyout()} és a  \textit{getyearlyout()} függvények nevüknek megfelelő formátum szerint adják vissza a kimeneti értékeket.
+\section{Használat}
+
+\subsubsection*{setup()}
+A függvény, mely beállítja a környezetet a MuSo számára összesen 8 paramétert fogad el, ezek sorban: executable, parallel, calibrationpar, outputloc, inputloc, metinput, ininput, epcinput. Ezekből 11 elemű lista képződik, amit a rungetMuso igényel. Részletesebben:
+
+\begin{itemize}
+\item \textbf{executable}: A muso/muso.exe file helye és neve.
+\item \textbf{calibrationpar}: A kalibráláshoz kiválasztott változók sorszáma az epc file-ban.
+\item \textbf{inputloc}: Az .ini file-ok helye.
+\item \textbf{metinput}: A met. file-ok helye.
+\item \textbf{epcinput}: Az epc file-ok helye.
+\end{itemize}
+
+Alapértelmezés szerint a végrehatjható fájl az ini, a met, és az epc fájlokkal megegyező helyen található.\\  
+\newline \newline
+\textbf{Példa:}\\
+  settings=setup(executable = "executable", calibrationpar = c(,,,), inputloc = "inputloc", metimput = "metinput", ininput = "ininput", epcinput = "epcinput")
+\subsubsection*{rungetMuso}
+A rungetMuso az RMuso fő függvénye. 3 dolgot csinál: a felhasználó igényei alapján megváltoztatja a bemeneti paramétereket, futtatja spinup és normal módban a MuSo-t, kiírja a kimeneti fájlokat igény szerint. Elsődlegesen a képernyőre, de az könnyen átirányítható egy változóba. \par
+
+Mindehhez az alábbi 3 bemenetre van szüksége:
+
+\begin{itemize}
+\item \textbf{settings}: ez egy 11 elemű lista, amit akár a setup() függvénnyel is legenerálhatunk.
+\item \textbf{parameters}: ez a változó tartalmazza az új értékeket.
+\item \textbf{timee}: A változó tartalmazza, hogy az output milyen felbontásban érkezzen. 3 értéke lehet: "d"(napi) ,"m" (havi),"y" (évi). Az évi az alapértelmezett.
+\end{itemize}
+\newline \newline
+\textbf{Példa:}\newline \newline
+I. mód:\newline
+settings<-setup(...)\\
+rungetMuso(settings,parameters,timee="y")\\
+II.mód:\newline
+rungetMuso(setup(..),parameters,timee="y")
+
+\end{document}
