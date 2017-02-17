@@ -6,7 +6,7 @@
 
 Linuxp <-(Sys.info()[1]=="Linux")
 
-rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE){
+calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE){
 
 #############################################################
 ############################spinup run############################
@@ -33,6 +33,11 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     
     if(aggressive==TRUE){
         cleanupMuso()
+    }
+    
+    ##change the epc file if and only if there are given parameters
+    if(!is.null(parameters)){
+        changemulline(filename=epc[2],calibrationpar,parameters)
     }
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
