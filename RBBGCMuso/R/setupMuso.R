@@ -225,7 +225,7 @@ setupMuso <- function(executable=NULL,
      outputname <- unlist(strsplit(grep("output",grep("prefix",inifiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
     ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!!
     ## outputname <- unlist(strsplit(grep("prefix for output files",inifiles[[2]],value=TRUE),"[\ \t]"))[1]
-    if(outputname==NULL){
+    if(is.null(outputname)){
         cat("I cannot find outputname, in your default ini file \n Please make sure that the line wich contains the name alse contains the prefix and the outmut keywords!")
         
 }
