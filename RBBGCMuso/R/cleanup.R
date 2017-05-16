@@ -1,4 +1,4 @@
-cleanupMuso <- function(location=NULL,deep=FALSE){
+cleanupMuso <- function(location=NULL, simplicity=TRUE,deep=FALSE){
 
     whereAmI <- getwd()
     if(!is.null(location)){
@@ -44,11 +44,13 @@ cleanupMuso <- function(location=NULL,deep=FALSE){
         )
         
     }
-    
-    file.remove(
-        grep("(out$)|(endpoint$)|(log$)",
-             list.files(), value = T)
-    )
+    if(!simplicity){    
+        file.remove(
+            grep("(out$)|(endpoint$)|(log$)",
+                 list.files(), value = T)
+        )} else {
+             file.remove(grep("log$",list.files(),value = T))
+         }
 
     setwd(whereAmI)
     

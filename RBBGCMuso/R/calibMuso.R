@@ -14,6 +14,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     ##Copy the variables from settings
     inputloc <- settings$inputloc
+    outputloc <- settings$outputloc
     executable <- settings$executable
     ininput <- settings$ininput
     epc <- settings$epcinput
@@ -32,7 +33,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     }
     
     if(aggressive==TRUE){
-        cleanupMuso()
+        cleanupMuso(location=outputloc)
     }
     
     ##change the epc file if and only if there are given parameters
@@ -64,12 +65,12 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     
     
-    logspinup<-list.files(inputloc)[grep("log$",list.files(inputloc))]#load the logfiles
+    logspinup<-list.files(outputloc)[grep("log$",list.files(outputloc))]#load the logfiles
     if(length(logspinup)==0){
         return("Modell Failure")#in that case the modell did not create even a logfile
     }
     
-    spincrash<-tail(readLines(paste(inputloc,logspinup,sep=""),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
+    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
         
@@ -102,13 +103,13 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     }
 
     
-    logfiles <- list.files(inputloc)[grep("log$",list.files(inputloc))]#creating a vector for logfilenames
+    logfiles <- list.files(outputloc)[grep("log$",list.files(outputloc))]#creating a vector for logfilenames
 
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
     
-    perror<-as.numeric(as.vector(lapply(paste(inputloc,logfiles,sep=""),function(x) tail(readLines(x,-1),1)))) #vector of spinup and normalrun error
+    perror<-as.numeric(as.vector(lapply(paste(outputloc,logfiles,sep="/"),function(x) tail(readLines(x,-1),1)))) #vector of spinup and normalrun error
     
     if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
         #If log or ERROR directory does not exists create it!
@@ -186,7 +187,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                  
              }}
     
-    cleanupMuso()
+    cleanupMuso(location=outputloc)
     if(errorsign==1){
         return("Modell Failure")
     }

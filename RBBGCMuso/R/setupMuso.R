@@ -26,8 +26,7 @@ setupMuso <- function(executable=NULL,
 
     if(is.null(inputloc)){
         inputloc<- "./"
-    }
-    
+    } else {
     inp <- unlist(strsplit(inputloc,"")) #This is the charactervector of the given imput location
 
     if(inp[length(inp)]!="/"){
@@ -37,10 +36,8 @@ setupMuso <- function(executable=NULL,
     }# If inp not ends in / paste one at the end, then make a string, that will be the new inputloc
 
     ##Example: "a/b/c ==> a/b/c/"
-    
-    if(is.null(outputloc)){
-        outputloc<-inputloc
     }
+    inichangedp <- FALSE
 
     if(is.null(ininput)){
         spinups<-grep("s.ini$",list.files(inputloc),value=TRUE)
@@ -60,7 +57,9 @@ setupMuso <- function(executable=NULL,
     ##read the ini files for the further changes
 
     inifiles<-lapply(ininput, function (x) readLines(x,-1))
-
+    inifiles[[1]] <- gsub("\\","/", inifiles[[1]],fixed=TRUE) #replacing \ to /
+    inifiles[[2]] <- gsub("\\","/", inifiles[[2]],fixed=TRUE) #replacing \ to /
+    
     if(is.null(epcinput)){
         epcflag=TRUE
         epcinput[1] <-  unlist(strsplit(grep(" EPC file name",inifiles[[1]],value=TRUE),"[\ \t]"))[1]
@@ -230,6 +229,15 @@ setupMuso <- function(executable=NULL,
         
 }
 ##    outputname<-unlist(read.table(ininput[2],skip=93,nrows = 1))[1]
+
+
+    if(is.null(outputloc)){
+    ##  outputloc<-paste((rev(rev(unlist(strsplit(outputname,"/")))[-1])),collapse="/")
+        outputloc <- dirname(outputname)
+    }
+
+    
+    
     inputfiles<-c(ininput,epcinput,metinput)
     numdata<-rep(NA,3)
     numyears <-  as.numeric(unlist(strsplit(grep("simulation years",inifiles[[2]],value=TRUE),"[\ \t]"))[1])
@@ -241,6 +249,11 @@ setupMuso <- function(executable=NULL,
     numdata[2]<-numyears*numvalues*12
     numdata[3]<-numyears*numvalues
 
+    ##Writing out changed ini-file
+
+    writeLines(inifiles[[1]],ininput[1])
+    writeLines(inifiles[[2]],ininput[2])
+    
     settings = list(executable = executable,
                     calibrationpar = calibrationpar,
                     outputloc=outputloc,

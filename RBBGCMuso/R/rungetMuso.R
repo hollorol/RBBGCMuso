@@ -14,6 +14,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     ##Copy the variables from settings
     inputloc <- settings$inputloc
+    outputloc <- settings$outputloc
     executable <- settings$executable
     ininput <- settings$ininput
     epc <- settings$epcinput
@@ -32,7 +33,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     }
     
     if(aggressive==TRUE){
-        cleanupMuso()
+        cleanupMuso(location=outputloc)
     }
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
@@ -59,12 +60,12 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     
     
-    logspinup<-list.files(inputloc)[grep("log$",list.files(inputloc))]#load the logfiles
+    logspinup<-list.files(outputloc)[grep("log$",list.files(outputloc))]#load the logfiles
     if(length(logspinup)==0){
         return("Modell Failure")#in that case the modell did not create even a logfile
     }
     
-    spincrash<-tail(readLines(paste(inputloc,logspinup,sep=""),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
+    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
         
@@ -97,13 +98,13 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     }
 
     
-    logfiles <- list.files(inputloc)[grep("log$",list.files(inputloc))]#creating a vector for logfilenames
+    logfiles <- list.files(outputloc)[grep("log$",list.files(outputloc))]#creating a vector for logfilenames
 
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
     
-    perror<-as.numeric(as.vector(lapply(paste(inputloc,logfiles,sep=""),function(x) tail(readLines(x,-1),1)))) #vector of spinup and normalrun error
+    perror<-as.numeric(as.vector(lapply(paste(outputloc,logfiles,sep="/"),function(x) tail(readLines(x,-1),1)))) #vector of spinup and normalrun error
     
     if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
         #If log or ERROR directory does not exists create it!
@@ -181,7 +182,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
                  
              }}
     
-    cleanupMuso()
+    cleanupMuso(location=outputloc)
     if(errorsign==1){
         return("Modell Failure")
     }
