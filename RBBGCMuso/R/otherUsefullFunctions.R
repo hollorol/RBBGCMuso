@@ -51,3 +51,29 @@ supportedMuso <- function(x="outputs"){
         return(cat("Supported formats are ",supportedFormats,"If your fileformat is something else, we automaticle coerced it to csv.\n"))
     }
 }
+
+
+insertRow <- function(existingDF, newrow, r){
+    nr <- nrow(existingDF)
+  existingDF <- rbind(existingDF,rep(NA,ncol(existingDF)))
+  existingDF[seq(r+1,nr+1),] <- existingDF[seq(r,nr),]
+  existingDF[r,] <- newrow
+  existingDF
+}
+
+corrigMuso <- function(settings, data){
+    numdays <- nrow(data)
+    data <- data
+    numyears <- settings$numyears
+    leapyears <- musoLeapYears(settings)
+    sylvesters <- data[seq(from=365, to=numdays, by=365),]
+    ind <- 0
+    for(i in 1:numyears){
+        
+        if(leapyears[i]){
+            data <- insertRow(data,sylvesters[i],i*360+ind)
+            ind <- ind+1
+        }
+    }
+    return(data)
+}

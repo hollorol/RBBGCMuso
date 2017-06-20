@@ -56,6 +56,12 @@ sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
     }
 }
 
+musoLeapYears <- function(settings){
+    days <- 365*settings$numyears
+    years <- settings$startyear:(settings$startyear+settings$numyears-1)
+    Leapyears <-unlist(lapply(years,isLeapyear)) 
+    return(Leapyears)
+}
 
 musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, format="en"){
     ##purpose: generate date label for muso
