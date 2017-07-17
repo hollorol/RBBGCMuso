@@ -10,7 +10,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
 #############################################################
 ############################spinup run############################
-   ########################################################## 
+########################################################## 
 
     ##Copy the variables from settings
     inputloc <- settings$inputloc
@@ -29,7 +29,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
             cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
 
         }
-        
+      
     }
     
     if(aggressive==TRUE){
@@ -47,10 +47,10 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     if(silent){#silenc mode
         if(Linuxp){
-            #In this case, in linux machines
+                                        #In this case, in linux machines
             system(paste(executable,ininput[1],"> /dev/null",sep=" "))
         } else {
-            #In windows machines there is a show.output.on.console option
+                                        #In windows machines there is a show.output.on.console option
             system(paste(executable,ininput[1],sep=" "),show.output.on.console = FALSE)
         }
         
@@ -69,9 +69,9 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
         
-       ##################################################################### 
-       ###########################normal run#########################
-      #################################################################
+##################################################################### 
+###########################normal run#########################
+#################################################################
 
         ##for the sake of safe we set the location again
         setwd(inputloc)
@@ -107,7 +107,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     perror<-as.numeric(as.vector(lapply(paste(outputloc,logfiles,sep="/"),function(x) tail(readLines(x,-1),1)))) #vector of spinup and normalrun error
     
     if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
-        #If log or ERROR directory does not exists create it!
+                                        #If log or ERROR directory does not exists create it!
         dirName<-paste(inputloc,"LOG",sep="") 
         dirERROR<-paste(inputloc,"ERROR",sep="")
         
@@ -120,7 +120,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
         }
     }
 
-##if errorsign is 1 there is error, if it is 0 everything ok
+    ##if errorsign is 1 there is error, if it is 0 everything ok
     if(length(perror)>sum(perror)){
         errorsign <- 1
     } else {
@@ -196,9 +196,9 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     if(leapYear){
         Reva <- corrigMuso(settings,Reva)
-         rownames(Reva) <- musoDate(settings)
-     } else { 
-         rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+        rownames(Reva) <- musoDate(settings)
+    } else { 
+        rownames(Reva) <- musoDate(settings, corrigated=FALSE)
     }
 
     if(export!=FALSE){
@@ -208,8 +208,8 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
         ##        "csv"=(write.csv(Reva,export)),
         ##        "xlsx"=(),
         ##        "odt"=
-                  
-            
+        
+        
         ## )
         write.csv(Reva,export)
         
