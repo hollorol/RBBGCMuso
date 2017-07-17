@@ -1,4 +1,6 @@
-#' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
+#' calibMuso
+#'
+#' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
 #' @author Roland Hollós
 #' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
@@ -9,8 +11,9 @@
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
 #' @param leapyear future feature.
+#' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
 #' @return No return, outputs are written to file 
-#' @usage The function works only, if ...
+#' @usage calibMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 #' @export
 
 

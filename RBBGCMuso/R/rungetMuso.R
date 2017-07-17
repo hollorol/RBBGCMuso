@@ -1,3 +1,5 @@
+#'rungetMuso
+#'
 #' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
 #' @author Roland Hollós
@@ -9,15 +11,15 @@
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
 #' @param leapyear future feature.
-#' @return No return, outputs are written to file 
-#' @usage The function works only, if ...
+#' @return It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously
+#' @usage rungetMuso(settings, timee="d", debugging=FALSE, logfilename=NULL,
+#' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 #' @export
 
 
 
 rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
     
-    Linuxp <-(Sys.info()[1]=="Linux")
 
 
 

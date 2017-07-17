@@ -1,7 +1,32 @@
-#' This runs the BBGC-MuSo model
+#' setupMuso
+#'
+#' This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
+#'
 #' @author Roland Hollós
-#' @param calibrationpar vector with line numbers
-#' @return No return, outputs are written to file
+#' @param parallel Do you want to run multiple modell paralelly, if yes, set this variable to TRUE
+#' @param executable This parameter stores the place of the modell-executable file. In normal usage, you don't have to be set this, because a RBBgcmuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful
+#' @param calibrationpar You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)
+#' @param outputloc Where should the modell puts its outputs. You should give a location for it via this variable, for example: outputloc="/place/of/the/outputs/"
+#' @param inputloc Usually it is the root directory, where you put the inifiles for the modell
+#' @param metinput Via metinput parameter, you can tell the modell where are the meteorological files. As default it reads this from the inifiles.
+#' @param CO2input Via CO2 parameter, you can tell the modell where are the CO2 data files. As default it reads this from the inifiles.
+#' @param plantinput Via planting parameter, you can tell the modell where are the data files, which contains the planting informations. As default it reads this from the inifiles.
+#' @param thininput Via thining parameter, you can tell the modell where are the data files, which contains the thining informations. As default it reads this from the inifiles.
+#' @param mowinput Via mowing parameter, you can tell the modell where are the data files, which contains the mowing informations. As default it reads this from the inifiles.
+#' @param grazinput Via grazing parameter, you can tell the modell where are the data files, which contains the grazing informations. As default it reads this from the inifiles.
+#' @param harvinput Via harvesting parameter, you can tell the modell where are the data files, which contains the harvesting informations. As default it reads this from the inifiles.
+#' @param plouginput Via ploughing parameter, you can tell the modell where are the data files, which contains the ploughing informations. As default it reads this from the inifiles.
+#' @param fertinput Via fertilizing parameter, you can tell the modell where are the fertilizing data files, which contains the fertilizing informations. As default it reads this from the inifiles.
+#' @param irrinput Via irrigation parameter, you can tell the modell where are the data files, which contains the irrigation informations. As default it reads this from the inifiles.
+#' @param nitinput Via this parameter, you can tell the modell where are the NO2 data files. As default it reads this from the inifiles.
+#' @param ininput Via this parameter, you can tell the modell where are the ini files. As default it reads this from the inifiles.
+#' @param epcinput Via this parameter, you can tell the modell where are the epc data files. As default it reads this from the inifiles.
+#' @usage setupMuso(executable=NULL, parallel = F, calibrationpar =c(1), outputloc=NULL, inputloc=NULL,
+#' metinput=NULL, CO2input=NULL, plantinput=NULL, thininput=NULL,
+#' mowinput=NULL, grazinput=NULL, harvinput=NULL, plouginput=NULL, fertinput=NULL,
+#' irrinput=NULL, nitinput=NULL, ininput=NULL, epcinput=NULL)
+#' @return The output is a the modell setting list wich contains the following elements:
+#' executable, calibrationpar, outputloc, outputname, inputloc, ininput, metinput, epcinput,thininput,CO2input, mowinput, grazinput, harvinput, plouginput, fertinput, irrinput, nitinput, inputfiles, numdata, startyear, numyears, outputvars
 setupMuso <- function(executable=NULL,
                   parallel = F,
                   calibrationpar =c(1),
