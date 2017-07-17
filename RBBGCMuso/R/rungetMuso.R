@@ -22,7 +22,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     
     ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
-##alma    
+    
 
     if(silent!=TRUE){
         if(length(grep("(dayout$)|(log$)",list.files(inputloc)))>0){    
