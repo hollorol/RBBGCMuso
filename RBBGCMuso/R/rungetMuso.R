@@ -1,13 +1,22 @@
-#' This runs the BBGC-MuSo model
+#' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
+#' 
 #' @author Roland Hollós
-#' @param filename Name of the initialisation files
+#' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
+#' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
+#' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
+#' @param keepEpc If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.
+#' @param export if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
+#' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
+#' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
+#' @param leapyear future feature.
 #' @return No return, outputs are written to file 
 #' @usage The function works only, if ...
+#' @export
 
-Linuxp <-(Sys.info()[1]=="Linux")
+
 
 rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
-
+Linuxp <-(Sys.info()[1]=="Linux")
 #############################################################
 ############################spinup run############################
 ########################################################## 
@@ -235,3 +244,6 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
         setwd(whereAmI)
         return(Reva)}
 }
+
+
+
