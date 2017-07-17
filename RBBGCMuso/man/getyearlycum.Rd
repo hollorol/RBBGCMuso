@@ -2,7 +2,7 @@
 % Please edit documentation in R/otherUsefullFunctions.R
 \name{getyearlycum}
 \alias{getyearlycum}
-\title{'Funtion for getting cumulative yearly data from observations}
+\title{getyearlycum}
 \usage{
 getyearlycum(daily_observations)
 }
@@ -13,7 +13,7 @@ getyearlycum(daily_observations)
 A vector of yearly data
 }
 \description{
-'Funtion for getting cumulative yearly data from observations
+Funtion for getting cumulative yearly data from observations
 }
 \author{
 Roland Hollós

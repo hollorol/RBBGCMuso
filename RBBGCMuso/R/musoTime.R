@@ -1,3 +1,14 @@
+#' isLeapyear
+#'
+#'This function tells us if its argument a leapyear or not.
+#'
+#'@param year a year
+#'@usage isLeapyear(year)
+#'@examples
+#' isLeapyear(2004)
+#' isLeapyear(2000)
+#' isLeapyear(2100)
+#'@return TRUE, if leapyear, FALSE if dont.
 
 isLeapyear <- function(year){
     ##This Boolean function tells us whether the given year is leapyear or not
@@ -8,6 +19,22 @@ isLeapyear <- function(year){
         return(FALSE)
     }
 }
+
+#' dayOfMonths
+#'
+#'This function gives as a vector which contains the number of the days per each month
+#'
+#'@param year a year
+#'@param corrigated Do you want to handle the leapyears, if yes choose TRUE
+#'@usage dayOfMonths(year, corrigated=TRUE)
+#'@examples
+#' dayOfMonths(2004, corrigated=TRUE)
+#' 
+#' dayOfMonths(2004, corrigated=FALSE)
+#'
+#'@return vector with 12 element. First is January, the last is December. All of the vector element represents the number of the days in that specific month
+
+
 
 dayOfMonths <- function(year,corrigated=TRUE){
     ##This function tells us how many days are in the months in the choosen year.
@@ -23,6 +50,8 @@ dayOfMonths <- function(year,corrigated=TRUE){
 
     return(dayMonths)
 }
+
+
 
 dayOfYears <- function(year, corrigated=TRUE){
     ##This function tells us how many days are in the given year.
@@ -65,6 +94,8 @@ musoLeapYears <- function(settings){
 
 musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, format="en"){
     ##purpose: generate date label for muso
+
+    
 
     
     days <- sumDaysOfPeriod(settings$startyear,settings$numyears, corrigated=corrigated)

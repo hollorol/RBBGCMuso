@@ -22,7 +22,7 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{aggressive}{It deletes every possible modell-outputs from the previous modell runs.}
 
-\item{leapyear}{future feature.}
+\item{leapyear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
 }
 \value{
 It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously

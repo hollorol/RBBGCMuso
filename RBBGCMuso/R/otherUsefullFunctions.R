@@ -1,4 +1,6 @@
-#' 'Funtion for getting cumulative yearly data from observations
+#' getyearlycum
+#'
+#' Funtion for getting cumulative yearly data from observations
 #' @author Roland Hollós
 #' @param A vector of the daily observations.
 #' @return A vector of yearly data
@@ -17,10 +19,13 @@ getyearlycum<-function(daily_observations){
   return(yearlycum)
 }
 
-#' 'Function for getting the maximum values of the years, from daily data
+#' getyearlymax
+#'
+#' Function for getting the maximum values of the years, from daily data
 #' @author Roland Hollós
-#' @param A vector of the daily observations
+#' @param daily_observations vector of the daily observations
 #' @return A vector of yearly data
+#' @usage getyearlymax(daily_observations)
 
 getyearlymax<-function(daily_observations){
   number_of_years<-length(daily_observations)/365
@@ -35,12 +40,32 @@ getyearlymax<-function(daily_observations){
   return(yearlymax)
 }
 
-fextension <- function(x){
+#' fextension
+#'
+#' A function for extracting the extension name from the filename string
+#' @author Roland Hollós
+#' @param filename The string of the filenam
+#' @return the extension of the given file
+#' @usage fextension(filename)
+#' @example
+#' fextension(filename="file.csv")
+
+fextension <- function(filename){
     #this function gives back the given filenames extension
-    fextension <- tail(unlist(strsplit(x,"\\.")),1)
+    fextension <- tail(unlist(strsplit(filename,"\\.")),1)
 }
 
-supportedMuso <- function(x="outputs"){
+#'supportedMuso
+#'
+#' A function for getting the list of the output formats which is supported by RBBGCMuso
+#' @author Roland Hollós
+#' @param type "outputs" or "message", if you choose "outputs", it gives you a simple vector of the formats, if you choose "message", it gives you a full sentence which contains the same information. 
+#' @return if you choose "outputs", it gives you a simple vector of the formats, if you choose "message", it gives you a full sentence which contains the same information.
+#' @usage supportedMuso(type="outputs")
+#' @example
+#'  supportedMuso(type="outputs")
+
+supportedMuso <- function(type="outputs"){
     supportedFormats <- c("xls","xlsx","odt","csv","txt")
     
     if(x=="outputs"){
@@ -52,16 +77,26 @@ supportedMuso <- function(x="outputs"){
     }
 }
 
-
-insertRow <- function(existingDF, newrow, r){
-    nr <- nrow(existingDF)
-  existingDF <- rbind(existingDF,rep(NA,ncol(existingDF)))
-  existingDF[seq(r+1,nr+1),] <- existingDF[seq(r,nr),]
-  existingDF[r,] <- newrow
-  existingDF
-}
+#' corrigMuso
+#'
+#' This function leapyear-corrigate the output of the modell
+#' @author Roland Hollós
+#' @param settings This is the output of the setupMuso() function. It contains all of the RBBGCMuso settings
+#' @param data the models outputdata
+#' @return It returns the modells leapyear-corrigated output data.
+#' @usage corrigMuso(settings, data)
 
 corrigMuso <- function(settings, data){
+
+    insertRow <- function(existingDF, newrow, r){
+        nr <- nrow(existingDF)
+        existingDF <- rbind(existingDF,rep(NA,ncol(existingDF)))
+        existingDF[seq(r+1,nr+1),] <- existingDF[seq(r,nr),]
+        existingDF[r,] <- newrow
+        existingDF
+    }
+
+
     numdays <- nrow(data)
     data <- data
     numyears <- settings$numyears

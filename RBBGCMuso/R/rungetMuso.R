@@ -10,7 +10,7 @@
 #' @param export if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
-#' @param leapyear future feature.
+#' @param leapyear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled. 
 #' @return It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously
 #' @usage rungetMuso(settings, timee="d", debugging=FALSE, logfilename=NULL,
 #' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)

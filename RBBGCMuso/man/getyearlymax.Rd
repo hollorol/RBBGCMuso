@@ -2,18 +2,18 @@
 % Please edit documentation in R/otherUsefullFunctions.R
 \name{getyearlymax}
 \alias{getyearlymax}
-\title{'Function for getting the maximum values of the years, from daily data}
+\title{getyearlymax}
 \usage{
 getyearlymax(daily_observations)
 }
 \arguments{
-\item{A}{vector of the daily observations}
+\item{daily_observations}{vector of the daily observations}
 }
 \value{
 A vector of yearly data
 }
 \description{
-'Function for getting the maximum values of the years, from daily data
+Function for getting the maximum values of the years, from daily data
 }
 \author{
 Roland Hollós
