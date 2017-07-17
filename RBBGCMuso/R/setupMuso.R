@@ -1,4 +1,4 @@
-y#' This runs the BBGC-MuSo model
+#' This runs the BBGC-MuSo model
 #' @author Roland Hollós
 #' @param calibrationpar vector with line numbers
 #' @return No return, outputs are written to file
