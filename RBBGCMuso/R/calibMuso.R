@@ -6,7 +6,7 @@
 
 Linuxp <-(Sys.info()[1]=="Linux")
 
-calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE){
+calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
 
 #############################################################
 ############################spinup run############################
@@ -199,6 +199,16 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
             colnames(Reva) <- unlist(settings$outputvars[[2]])
     }
 
+
+if(leapYear){
+        Reva <- corrigMuso(settings,Reva)
+         rownames(Reva) <- musoDate(settings)
+     } else { 
+         rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+    }
+
+
+    
     if(export!=FALSE){
         setwd(whereAmI)
 
@@ -209,7 +219,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                   
             
         ## )
-
+        write.csv(Reva,export)
         
     } else{
         setwd(whereAmI)

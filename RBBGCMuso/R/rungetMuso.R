@@ -6,7 +6,7 @@
 
 Linuxp <-(Sys.info()[1]=="Linux")
 
-rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE){
+rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
 
 #############################################################
 ############################spinup run############################
@@ -194,6 +194,13 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
             colnames(Reva) <- unlist(settings$outputvars[[2]])
     }
 
+    if(leapYear){
+        Reva <- corrigMuso(settings,Reva)
+         rownames(Reva) <- musoDate(settings)
+     } else { 
+         rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+    }
+
     if(export!=FALSE){
         setwd(whereAmI)
 
@@ -204,7 +211,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
                   
             
         ## )
-
+        write.csv(Reva,export)
         
     } else{
         setwd(whereAmI)
