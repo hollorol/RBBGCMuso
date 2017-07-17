@@ -16,11 +16,16 @@
 
 
 rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
-Linuxp <-(Sys.info()[1]=="Linux")
-#############################################################
-############################spinup run############################
-########################################################## 
+    
+    Linuxp <-(Sys.info()[1]=="Linux")
 
+
+
+##########################################################################
+###########################Set local variables########################
+########################################################################
+    
+    Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
     inputloc <- settings$inputloc
     outputloc <- settings$outputloc
@@ -28,6 +33,33 @@ Linuxp <-(Sys.info()[1]=="Linux")
     ininput <- settings$ininput
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
+    whereAmI<-getwd()
+    
+    ########################################################
+###############################Preparational functions###############
+#####################################################
+
+    numcut<-function(string){
+    #This function returns only the starting numbers of a string
+    unlist(strsplit(grep("^[0-9]",string,value = TRUE),"[aAzZ-]"))[1]
+        }
+
+numcutall<-function(vector){
+    #numcall apply numcut for all elements of a string vector
+as.numeric(unlist(apply(as.matrix(vector),1,numcut)))
+}
+
+stamp<-function(path="./"){
+    #It gives back a stamp wich is the maximum number of the output numcall
+    numbers<-numcutall(list.files(path))
+    if(length(numbers)==0){
+        return (0)} else {
+                   return(max(numbers))}
+}
+    
+#############################################################
+############################spinup run############################
+########################################################## 
 
     
     ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
@@ -47,7 +79,6 @@ Linuxp <-(Sys.info()[1]=="Linux")
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-    whereAmI<-getwd()
     ## Set the working directory to the inputloc temporary.
     setwd(inputloc)
 

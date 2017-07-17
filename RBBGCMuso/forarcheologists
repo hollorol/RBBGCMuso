@@ -86,3 +86,11 @@
 ##     changespecline(settings$epcinput,settings$calibrationpar[i], contents[i] )
 ##   }
 ## }
+
+
+
+## changeSpecLine<-function(lineNumber,content,file){
+##    TOT=readLines(file,-1)
+##    TOT[lineNumber]<-content
+##    writeLines(TOT,file)
+##    }

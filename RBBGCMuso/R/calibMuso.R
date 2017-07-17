@@ -1,17 +1,27 @@
-#' This runs the BBGC-MuSo model
+#' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
+#' 
 #' @author Roland Hollós
-#' @param filename Name of the initialisation files
+#' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
+#' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
+#' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
+#' @param keepEpc If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.
+#' @param export if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
+#' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
+#' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
+#' @param leapyear future feature.
 #' @return No return, outputs are written to file 
 #' @usage The function works only, if ...
+#' @export
 
-Linuxp <-(Sys.info()[1]=="Linux")
 
 calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE){
 
-#############################################################
-############################spinup run############################
-   ########################################################## 
 
+##########################################################################
+###########################Set local variables########################
+########################################################################
+    
+    Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
     inputloc <- settings$inputloc
     outputloc <- settings$outputloc
@@ -19,7 +29,51 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     ininput <- settings$ininput
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
+    whereAmI<-getwd()
+    ########################################################
+###############################Preparational functions###############
+#####################################################
 
+    numcut<-function(string){
+    #This function returns only the starting numbers of a string
+    unlist(strsplit(grep("^[0-9]",string,value = TRUE),"[aAzZ-]"))[1]
+        }
+
+numcutall<-function(vector){
+    #numcall apply numcut for all elements of a string vector
+as.numeric(unlist(apply(as.matrix(vector),1,numcut)))
+}
+
+stamp<-function(path="./"){
+    #It gives back a stamp wich is the maximum number of the output numcall
+    numbers<-numcutall(list.files(path))
+    if(length(numbers)==0){
+        return (0)} else {
+                   return(max(numbers))}
+}
+
+
+    
+    changemulline <- function(filename,calibrationpar,contents){
+                                        #This is the function which is capable change multiple specific lines to other using their row numbers.
+                                        #The function uses the previous changspecline function to operate.
+         ##From now changespecline is in the forarcheologist file, because its no longer needed
+        varnum <- length(calibrationpar)
+        if(length(contents)!=varnum)
+        {
+            cat("Error: number of the values is not the same as the number of the changed parameters")
+        }
+
+        TOT=readLines(filename,-1)
+        TOT[calibrationpar]<-contents
+        writeLines(TOT,filename)
+    }
+    
+#############################################################
+############################spinup run############################
+   ########################################################## 
+
+    
     
     ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
 ##alma    
@@ -43,7 +97,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-    whereAmI<-getwd()
+
     ## Set the working directory to the inputloc temporary.
     setwd(inputloc)
 
