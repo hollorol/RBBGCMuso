@@ -24,7 +24,7 @@ isLeapyear <- function(year){
 #'@param corrigated Do you want to handle the leapyears, if yes choose TRUE
 #'@usage dayOfMonths(year, corrigated=TRUE)
 #'@return vector with 12 element. First is January, the last is December. All of the vector element represents the number of the days in that specific month
-#' @keywords internal
+#'@keywords internal
 
 
 

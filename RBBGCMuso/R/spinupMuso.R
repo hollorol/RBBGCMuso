@@ -78,7 +78,6 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 
     dirName<-paste(inputloc,"/LOG",sep="")
     dirERROR<-paste(inputloc,"/ERROR",sep="")
-    ERROR_EPC<-paste(inputloc,"/ERROR_EPC",sep="")
     
     if(!dir.exists(dirName)){
         dir.create(dirName)}
@@ -90,7 +89,9 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
         errorsign <- 1
     } else {
         errorsign <- 0}
-    
+
+
+
     if(keepEpc){#if keepepc option tured on
         
         if(length(unique(dirname(epc)))>1){
@@ -118,31 +119,54 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 
         }
     }
+    
+
+
+
 
     if(debugging=="stamplog"){
         stampnum<-stamp(dirName)
-        lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+        if(inputloc==outputloc){
+            lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+            
+        } else {
+            lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+        }
+        
         if(errorsign==1){
             lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",(stampnum+1),"-",x,sep=""), to=dirERROR  ))}
 
     } else { if(debugging){
                  if(is.null(logfilename)){
-                     lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName,"/", x, sep="")))
+
+                     if(inputloc==outputloc){
+                          lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName,"/", x, sep="")))
+                     } else {
+                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
+                     }
+
                      if(errorsign==1){
                          lapply( logfiles, function (x) file.rename(from=paste(dirName,"/", x, sep=""), to=dirERROR))
                      }
 
                  } else {
-                     lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))
+
+                     if(inputloc==outputloc){#These are very ugly solutions for a string problem: inputloc: "./", if outputloc equalent of inputloc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
+                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
+                     } else {
+                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
+                     }
+                     
                      if(errorsign==1){
                          lapply( logfiles, function (x) file.rename(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
                      }
                  }    
                  
              }}
+    
+    cleanupMuso(location=outputloc)
 
-
-    cleanupMuso()
+    
     if(errorsign==1){
         return("Modell Failure")
     }
