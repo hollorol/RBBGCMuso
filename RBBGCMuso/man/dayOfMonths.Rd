@@ -17,9 +17,4 @@ vector with 12 element. First is January, the last is December. All of the vecto
 \description{
 This function gives as a vector which contains the number of the days per each month
 }
-\examples{
-dayOfMonths(2004, corrigated=TRUE)
-
-dayOfMonths(2004, corrigated=FALSE)
-
-}
+\keyword{internal}

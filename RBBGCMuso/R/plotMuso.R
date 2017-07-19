@@ -2,7 +2,7 @@
 #'
 #' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly 
 #' 
-#' @author Roland Hollós
+#' @author Roland Hollos
 #' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
 #' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
 #' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
@@ -11,31 +11,34 @@
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
 #' @param variable column number of the variable which should be plottedor "all" if you have less than 10 variables. In this case it will plot everything in a matrix layout 
-#' @param leapyear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled. 
+#' @param leapYear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
+#' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
 #' @return It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously
-#' @usage rungetMuso(settings, timee="d", debugging=FALSE, logfilename=NULL,
-#' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
+#' @usage plotMuso(settings, variable,
+#' timee="d", silent=TRUE,
+#' debugging=FALSE, keepEpc=FALSE,
+#' logfilename=NULL, aggressive=FALSE,
+#' leapYear=FALSE, export=FALSE)
+#' @import graphics
 #' @export
 
 plotMuso <- function(settings,
                      variable,
                      ##compare,
                      ##plotname,
-                     parameters="ECOPHYS",
                      timee="d",
                      silent=TRUE,
                      debugging=FALSE,
                      keepEpc=FALSE,
                      logfilename=NULL,
                      aggressive=FALSE,
-                     leapyear=FALSE,
+                     leapYear=FALSE,
                      export=FALSE){
 
     
     musoData <- rungetMuso(settings=settings,
                            silent=silent,
                            timee=timee,
-                           parameters=parameters,
                            debugging=debugging,
                            keepEpc=keepEpc,
                            logfilename=logfilename,

@@ -18,5 +18,5 @@ It returns the modells leapyear-corrigated output data.
 This function leapyear-corrigate the output of the modell
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

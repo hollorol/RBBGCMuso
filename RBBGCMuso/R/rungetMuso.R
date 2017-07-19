@@ -2,7 +2,7 @@
 #'
 #' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
-#' @author Roland Hollós
+#' @author Roland Hollos
 #' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
 #' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
 #' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
@@ -10,10 +10,12 @@
 #' @param export if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
-#' @param leapyear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled. 
+#' @param leapYear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
+#' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
 #' @return It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously
 #' @usage rungetMuso(settings, timee="d", debugging=FALSE, logfilename=NULL,
 #' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
+#' @import utils
 #' @export
 
 
@@ -36,29 +38,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
     whereAmI<-getwd()
-    
-    ########################################################
-###############################Preparational functions###############
-#####################################################
-
-    numcut<-function(string){
-    #This function returns only the starting numbers of a string
-    unlist(strsplit(grep("^[0-9]",string,value = TRUE),"[aAzZ-]"))[1]
-        }
-
-numcutall<-function(vector){
-    #numcall apply numcut for all elements of a string vector
-as.numeric(unlist(apply(as.matrix(vector),1,numcut)))
-}
-
-stamp<-function(path="./"){
-    #It gives back a stamp wich is the maximum number of the output numcall
-    numbers<-numcutall(list.files(path))
-    if(length(numbers)==0){
-        return (0)} else {
-                   return(max(numbers))}
-}
-    
+        
 #############################################################
 ############################spinup run############################
 ########################################################## 

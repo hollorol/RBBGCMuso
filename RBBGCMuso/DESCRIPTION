@@ -1,12 +1,18 @@
 Package: RBBGCMuso
-Title: What the Package Does (one line, title case)
-Version: 0.2.0.0-1
-Authors@R: person("Roland", "Hollos", , "hollorol@gmail.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph)
+Title: An R package for BiomeBGC-MuSo ecosystem modelling
+Version: 0.3.0.0-1
+Authors@R: person("Roland", "Hollo's", , "hollorol@gmail.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
 License: GPL-2
 LazyData: true
 NeedsCompilation: no
-Packaged: 2016-11-15 13:58:04 UTC; hollorol
-Author: First Last [aut, cre]
-Maintainer: First Last <first.last@example.com>
+Packaged: 2017-07-19 14:00:04 UTC; hollorol
+Author: Roland Hollo's [aut, cre]
+Imports:
+	utils,
+	graphics
+Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

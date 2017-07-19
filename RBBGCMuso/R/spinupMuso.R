@@ -1,63 +1,96 @@
-spinupMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE){
+#' Run the BBGCMuso modell only in spinup phase, and debugging. 
+#'
+#' This function runs the BBGC-MuSo model's in the spinup phase.
+#' 
+#' @author Roland Hollos
+#' @param settings You have to run the setupMuso function before spinupMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment.
+#' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
+#' @param keepEpc If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.
+#' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
+#' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
+#' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
+#' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
+#' @return No return, outputs are written to file 
+#' @usage spinupMuso(settings, parameters=NULL, debugging=FALSE,
+#' logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE)
+#' @export
+
+spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE){
+
+##########################################################################
+###########################Set local variables########################
+########################################################################
+    
+    Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
     inputloc <- settings$inputloc
+    outputloc <- settings$outputloc
     executable <- settings$executable
     ininput <- settings$ininput
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
+    whereAmI<-getwd()
 
-    ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
+
+#############################################################
+############################spinup run############################
+########################################################## 
+    
+##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
     
     if(silent!=TRUE){
         if(length(grep("(dayout$)|(log$)",list.files(inputloc)))>0){    
-            cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
-
-        }
-        
-    }
+            cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")}}
+    
     ##With the aggressive option every unneeded file will deleted
     if(aggressive==TRUE){
-        cleanupMuso()
-    }
+        cleanupMuso(location=outputloc)}
 
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
-        changemulline(settings, parameters)
-    }
+        changemulline(filename=epc[1], calibrationpar, parameters)}
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-    whereAmI<-getwd()
     ## Set the working directory to the inputloc temporary.
     setwd(inputloc)
     ##Run the spinup
-    system(paste(executable,ininput[1],sep=" "))
 
-    logfiles<-list.files(inputloc)[grep("log$",list.files(inputloc))]
-    perror<-as.numeric(as.vector(lapply(paste(inputloc,logfiles,sep=""),function(x) tail(readLines(x,-1),1))))
+
+
+    if(silent){#silenc mode
+        if(Linuxp){
+            #In this case, in linux machines
+            system(paste(executable,ininput[1],"> /dev/null",sep=" "))
+        } else {
+            #In windows machines there is a show.output.on.console option
+            system(paste(executable,ininput[1],sep=" "),show.output.on.console = FALSE)}        
+    } else {
+        system(paste(executable,ininput[1],sep=" "))}
+
+###############################################
+#############LOG SECTION#######################
+###############################################
+    logspinup<-list.files(outputloc)[grep("log$",list.files(outputloc))]
+    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0
+    logfiles <- list.files(outputloc)[grep("log$",list.files(outputloc))]
+
     dirName<-paste(inputloc,"/LOG",sep="")
     dirERROR<-paste(inputloc,"/ERROR",sep="")
     ERROR_EPC<-paste(inputloc,"/ERROR_EPC",sep="")
-
-
-
     
     if(!dir.exists(dirName)){
-        dir.create(dirName)
-    }
+        dir.create(dirName)}
 
     if(!dir.exists(dirERROR)){
-        dir.create(dirERROR)
-    }
+        dir.create(dirERROR)}
 
-    if(length(perror)>sum(perror)){
+    if(spincrash){
         errorsign <- 1
     } else {
-        errorsign <- 0
-    }
-
-
+        errorsign <- 0}
+    
     if(keepEpc){#if keepepc option tured on
         
         if(length(unique(dirname(epc)))>1){

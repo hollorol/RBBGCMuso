@@ -4,12 +4,8 @@
 #'
 #'@param year a year
 #'@usage isLeapyear(year)
-#'@examples
-#' isLeapyear(2004)
-#' isLeapyear(2000)
-#' isLeapyear(2100)
 #'@return TRUE, if leapyear, FALSE if dont.
-
+#' @keywords internal
 isLeapyear <- function(year){
     ##This Boolean function tells us whether the given year is leapyear or not
 
@@ -27,12 +23,8 @@ isLeapyear <- function(year){
 #'@param year a year
 #'@param corrigated Do you want to handle the leapyears, if yes choose TRUE
 #'@usage dayOfMonths(year, corrigated=TRUE)
-#'@examples
-#' dayOfMonths(2004, corrigated=TRUE)
-#' 
-#' dayOfMonths(2004, corrigated=FALSE)
-#'
 #'@return vector with 12 element. First is January, the last is December. All of the vector element represents the number of the days in that specific month
+#' @keywords internal
 
 
 
@@ -53,6 +45,12 @@ dayOfMonths <- function(year,corrigated=TRUE){
 
 
 
+#' This function tells us how many days are in the given year.
+#' 
+#' This function tells us how many days are in the given year.
+#' @author Roland Hollos
+#' @keywords internal
+
 dayOfYears <- function(year, corrigated=TRUE){
     ##This function tells us how many days are in the given year.
 
@@ -67,6 +65,12 @@ dayOfYears <- function(year, corrigated=TRUE){
     }
 
 }
+
+#' How many days are from the given date and given period length(periodlen)? 
+#' 
+#'How many days are from the given date and given period length(periodlen)? 
+#' @author Roland Hollos
+#' @keywords internal
 
 sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
     ##How many days are from the given date and given period length(periodlen)?    
@@ -85,12 +89,31 @@ sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
     }
 }
 
+#' Musoleapyear
+#' 
+#' How many days are from the given date and given period length(periodlen)? 
+#' @author Roland Hollos
+#' @keywords internal
+
 musoLeapYears <- function(settings){
     days <- 365*settings$numyears
     years <- settings$startyear:(settings$startyear+settings$numyears-1)
     Leapyears <-unlist(lapply(years,isLeapyear)) 
     return(Leapyears)
 }
+
+#' It generates BiomeBGC-MuSo dates
+#' 
+#' It generates all of the day-dates which are between the start and endyear of BiomeBGC-MuSo run.
+#' How many days are from the given date and given period length(periodlen)? 
+#' @author Roland Hollos
+#' @param timestep timestep, which can be daily ("d"), monthly ("m"), yearly("y") 
+#' @param settings You have to run the setupMuso function before musoDate. It is its output which contains all of the necessary system variables. It sets the whole environment.
+#' @param combined If FALSE the output is a vector of 3 string: day, month year, if true, these strings will be concatenated.
+#' @param corrigated If True it counts with leapyears, else dont. 
+#' @param format This is the format of the date. It can be "en" (dd.mm.yyyy), or "hu" (yyyy.mm.dd)
+#' @return The exact date-vectors for the BioBGC-MuSo output. You can use this for labelling purpose for example. 
+#' @export
 
 musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, format="en"){
     ##purpose: generate date label for muso
@@ -122,7 +145,7 @@ musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, forma
         if(format=="hu"){
          dates<-dates[,c(3,2,1)]   
         } else {
-            cat("format is coerced to english, because I don't know",format)
+            cat("format is coerced to english, because I don't know what do you mean by:",format)
         }
     }
 

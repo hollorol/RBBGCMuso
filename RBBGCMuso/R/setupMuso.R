@@ -2,7 +2,7 @@
 #'
 #' This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
 #'
-#' @author Roland Hollós
+#' @author Roland Hollos
 #' @param parallel Do you want to run multiple modell paralelly, if yes, set this variable to TRUE
 #' @param executable This parameter stores the place of the modell-executable file. In normal usage, you don't have to be set this, because a RBBgcmuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful
 #' @param calibrationpar You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)
@@ -21,10 +21,14 @@
 #' @param nitinput Via this parameter, you can tell the modell where are the NO2 data files. As default it reads this from the inifiles.
 #' @param ininput Via this parameter, you can tell the modell where are the ini files. As default it reads this from the inifiles.
 #' @param epcinput Via this parameter, you can tell the modell where are the epc data files. As default it reads this from the inifiles.
-#' @usage setupMuso(executable=NULL, parallel = F, calibrationpar =c(1), outputloc=NULL, inputloc=NULL,
-#' metinput=NULL, CO2input=NULL, plantinput=NULL, thininput=NULL,
-#' mowinput=NULL, grazinput=NULL, harvinput=NULL, plouginput=NULL, fertinput=NULL,
-#' irrinput=NULL, nitinput=NULL, ininput=NULL, epcinput=NULL)
+#' @usage setupMuso(executable=NULL, parallel = F, calibrationpar =c(1),
+#' outputloc=NULL, inputloc=NULL,
+#' metinput=NULL, CO2input=NULL,
+#' plantinput=NULL, thininput=NULL,
+#' mowinput=NULL, grazinput=NULL,
+#' harvinput=NULL, plouginput=NULL,
+#' fertinput=NULL, irrinput=NULL,
+#' nitinput=NULL, ininput=NULL, epcinput=NULL)
 #' @return The output is a the modell setting list wich contains the following elements:
 #' executable, calibrationpar, outputloc, outputname, inputloc, ininput, metinput, epcinput,thininput,CO2input, mowinput, grazinput, harvinput, plouginput, fertinput, irrinput, nitinput, inputfiles, numdata, startyear, numyears, outputvars
 setupMuso <- function(executable=NULL,

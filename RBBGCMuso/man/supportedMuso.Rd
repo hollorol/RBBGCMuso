@@ -16,5 +16,5 @@ if you choose "outputs", it gives you a simple vector of the formats, if you cho
 A function for getting the list of the output formats which is supported by RBBGCMuso
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

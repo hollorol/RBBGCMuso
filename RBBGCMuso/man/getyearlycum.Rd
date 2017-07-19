@@ -7,7 +7,7 @@
 getyearlycum(daily_observations)
 }
 \arguments{
-\item{A}{vector of the daily observations.}
+\item{daily_observations}{vector of the daily observations.}
 }
 \value{
 A vector of yearly data
@@ -16,5 +16,5 @@ A vector of yearly data
 Funtion for getting cumulative yearly data from observations
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

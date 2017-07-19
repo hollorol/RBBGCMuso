@@ -16,5 +16,5 @@ the extension of the given file
 A function for extracting the extension name from the filename string
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

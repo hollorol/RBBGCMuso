@@ -4,8 +4,11 @@
 \alias{plotMuso}
 \title{plot the BBGCMuso output}
 \usage{
-rungetMuso(settings, timee="d", debugging=FALSE, logfilename=NULL,
-keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
+plotMuso(settings, variable,
+timee="d", silent=TRUE,
+debugging=FALSE, keepEpc=FALSE,
+logfilename=NULL, aggressive=FALSE,
+leapYear=FALSE, export=FALSE)
 }
 \arguments{
 \item{settings}{You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment}
@@ -20,9 +23,11 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{keepEpc}{If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.}
 
+\item{logfilename}{If you want to set a specific name for your logfiles you can set this via logfile parameter}
+
 \item{aggressive}{It deletes every possible modell-outputs from the previous modell runs.}
 
-\item{leapyear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
+\item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
 
 \item{export}{if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.}
 }
@@ -33,5 +38,5 @@ It depends on the export parameter. The function returns with a matrix with the 
 This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

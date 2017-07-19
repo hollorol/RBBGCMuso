@@ -15,8 +15,4 @@ TRUE, if leapyear, FALSE if dont.
 \description{
 This function tells us if its argument a leapyear or not.
 }
-\examples{
-isLeapyear(2004)
-isLeapyear(2000)
-isLeapyear(2100)
-}
+\keyword{internal}

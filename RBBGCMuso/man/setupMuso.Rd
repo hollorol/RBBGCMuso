@@ -4,10 +4,14 @@
 \alias{setupMuso}
 \title{setupMuso}
 \usage{
-setupMuso(executable=NULL, parallel = F, calibrationpar =c(1), outputloc=NULL, inputloc=NULL,
-metinput=NULL, CO2input=NULL, plantinput=NULL, thininput=NULL,
-mowinput=NULL, grazinput=NULL, harvinput=NULL, plouginput=NULL, fertinput=NULL,
-irrinput=NULL, nitinput=NULL, ininput=NULL, epcinput=NULL)
+setupMuso(executable=NULL, parallel = F, calibrationpar =c(1),
+outputloc=NULL, inputloc=NULL,
+metinput=NULL, CO2input=NULL,
+plantinput=NULL, thininput=NULL,
+mowinput=NULL, grazinput=NULL,
+harvinput=NULL, plouginput=NULL,
+fertinput=NULL, irrinput=NULL,
+nitinput=NULL, ininput=NULL, epcinput=NULL)
 }
 \arguments{
 \item{executable}{This parameter stores the place of the modell-executable file. In normal usage, you don't have to be set this, because a RBBgcmuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful}
@@ -54,5 +58,5 @@ executable, calibrationpar, outputloc, outputname, inputloc, ininput, metinput, 
 This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
 }
 \author{
-Roland Hollós
+Roland Hollos
 }

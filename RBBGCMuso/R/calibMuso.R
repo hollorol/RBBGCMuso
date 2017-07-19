@@ -2,18 +2,21 @@
 #'
 #' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
-#' @author Roland Hollós
-#' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
+#' @author Roland Hollos
+#' @param settings You have to run the setupMuso function before calibMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment
 #' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
 #' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
 #' @param keepEpc If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.
 #' @param export if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
-#' @param leapyear future feature.
 #' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
+#' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
+#' @param leapYear  Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled. 
 #' @return No return, outputs are written to file 
-#' @usage calibMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
+#' @usage calibMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL,
+#' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
+#' @import utils
 #' @export
 
 
@@ -33,44 +36,6 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
     whereAmI<-getwd()
-    ########################################################
-###############################Preparational functions###############
-#####################################################
-
-    numcut<-function(string){
-    #This function returns only the starting numbers of a string
-    unlist(strsplit(grep("^[0-9]",string,value = TRUE),"[aAzZ-]"))[1]
-        }
-
-numcutall<-function(vector){
-    #numcall apply numcut for all elements of a string vector
-as.numeric(unlist(apply(as.matrix(vector),1,numcut)))
-}
-
-stamp<-function(path="./"){
-    #It gives back a stamp wich is the maximum number of the output numcall
-    numbers<-numcutall(list.files(path))
-    if(length(numbers)==0){
-        return (0)} else {
-                   return(max(numbers))}
-}
-
-
-    
-    changemulline <- function(filename,calibrationpar,contents){
-                                        #This is the function which is capable change multiple specific lines to other using their row numbers.
-                                        #The function uses the previous changspecline function to operate.
-         ##From now changespecline is in the forarcheologist file, because its no longer needed
-        varnum <- length(calibrationpar)
-        if(length(contents)!=varnum)
-        {
-            cat("Error: number of the values is not the same as the number of the changed parameters")
-        }
-
-        TOT=readLines(filename,-1)
-        TOT[calibrationpar]<-contents
-        writeLines(TOT,filename)
-    }
     
 #############################################################
 ############################spinup run############################

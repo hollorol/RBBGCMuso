@@ -16,5 +16,5 @@ A vector of yearly data
 Function for getting the maximum values of the years, from daily data
 }
 \author{
-Roland Hollós
+Roland Hollos
 }
