@@ -1,0 +1,26 @@
+DOCUMENTATIONS
+===========================================================
+1. Rewriting some of the man pages (for better english)
+2. Description for the functions
+3. Details for the functions
+4. Vignettes...
+
+PROGRAMING
+===========================================================
+1. Automatic handle for executable files
+2. Fix the spinumMuso, and the normalMuso functions
+3. Fix the export functions.
+4. Build in the mtclim43 to RBBGCMuso
+
+TESTING
+===========================================================
+1. Jasca
+2. Kiskun
+3. HHS
+4. Bugac
+
+CALIBRATION AND OTHERS
+============================================================
+1. Local sensitivity analysis
+2. Morriss sensitivity analysis
+3. MCMC
