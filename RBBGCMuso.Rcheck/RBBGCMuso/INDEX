@@ -1,0 +1,12 @@
+calibMuso               calibMuso
+corrigMuso              corrigMuso
+fextension              fextension
+getyearlycum            getyearlycum
+getyearlymax            getyearlymax
+musoDate                It generates BiomeBGC-MuSo dates
+plotMuso                plot the BBGCMuso output
+rungetMuso              rungetMuso
+setupMuso               setupMuso
+spinupMuso              Run the BBGCMuso modell only in spinup phase,
+                        and debugging.
+supportedMuso           supportedMuso
