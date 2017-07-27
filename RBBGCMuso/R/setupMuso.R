@@ -31,6 +31,7 @@
 #' nitinput=NULL, ininput=NULL, epcinput=NULL)
 #' @return The output is a the modell setting list wich contains the following elements:
 #' executable, calibrationpar, outputloc, outputname, inputloc, ininput, metinput, epcinput,thininput,CO2input, mowinput, grazinput, harvinput, plouginput, fertinput, irrinput, nitinput, inputfiles, numdata, startyear, numyears, outputvars
+#' @export
 setupMuso <- function(executable=NULL,
                   parallel = F,
                   calibrationpar =c(1),
