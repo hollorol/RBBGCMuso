@@ -245,8 +245,9 @@ setupMuso <- function(executable=NULL,
         file.copy(executable,inputloc)
     }
 
-     outputname <- unlist(strsplit(grep("output",grep("prefix",inifiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
-    ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!!
+    outputname <- unlist(strsplit(inifiles[[2]][grep("OUTPUT_CONTROL",inifiles[[2]])+1],"[\ \t]"))[1]
+   ##  outputname <- unlist(strsplit(grep("output",grep("prefix",inifiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
+    ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
     ## outputname <- unlist(strsplit(grep("prefix for output files",inifiles[[2]],value=TRUE),"[\ \t]"))[1]
     if(is.null(outputname)){
         cat("I cannot find outputname, in your default ini file \n Please make sure that the line wich contains the name alse contains the prefix and the outmut keywords!")
