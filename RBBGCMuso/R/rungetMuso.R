@@ -204,7 +204,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
                      }
 
                      if(errorsign==1){
-                         lapply( logfiles, function (x) file.rename(from=paste(dirName,"/", x, sep=""), to=dirERROR))
+                          lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
                      }
 
                  } else {
@@ -216,7 +216,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
                      }
                      
                      if(errorsign==1){
-                         lapply( logfiles, function (x) file.rename(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
+                         lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
                      }
                  }    
                  
