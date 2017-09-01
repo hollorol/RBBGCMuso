@@ -11,59 +11,40 @@
 
 
 cleanupMuso <- function(location=NULL, simplicity=TRUE,deep=FALSE){
-    areThereAnyFolders <- FALSE
+    
+    
     whereAmI <- getwd()
     if(!is.null(location)){
         setwd(location)
     }
 
     if(deep){
-        if(dir.exists("LOG")){
-            setwd("LOG")
+
+
+        
+        if(dir.exists(paste(location,"/LOG",sep=""))){
             file.remove(
-                grep("(out$)|(endpoint$)|(log$)",
-                     list.files(), value = T))
-            areThereAnyFolders <- TRUE
+                list.files("LOG/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE)
+         )
         }
         
-        
-        if(dir.exists("../ERROR")){
-            setwd("../ERROR")
-
+        if(dir.exists("ERROR")){
             file.remove(
-                grep("(out$)|(endpoint$)|(log$)",
-                     list.files(), value = T))
-            areThereAnyFolders <- TRUE
+                list.files("ERROR/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-
-        if(dir.exists("../EPCS")){
-            setwd("../EPCS")
-
+        if(dir.exists("EPCS")){
             file.remove(
-                grep("(out$)|(endpoint$)|(log$)|(epc$)",
-                     list.files(), value = T))
-            areThereAnyFolder <- TRUE
+                list.files("EPCS/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-        if(dir.exists("../WRONGEPC")){
-            setwd("../WRONGEPC")
+        if(dir.exists("WRONGEPC")){
             file.remove(
-                grep("(out$)|(endpoint$)|(log$)|(epc$)",
-                     list.files(), value = T))
-            areThereAnyFolders <- TRUE
+                list.files("WRONGEPC/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-        if(areThereAnyFolders){
-            setwd("..")    
-            file.remove(
-                grep("(out$)|(endpoint$)|(log$)",
-                     list.files(), value = T))
-        } else {
-            file.remove(
-                grep("(out$)|(endpoint$)|(log$)",
-                     list.files(), value = T))}
-    }
+       file.remove(list.files(pattern="(out$)|(endpoint$)|(log$)",full.names=TRUE))}
+    
     
     if(!simplicity){    
         file.remove(

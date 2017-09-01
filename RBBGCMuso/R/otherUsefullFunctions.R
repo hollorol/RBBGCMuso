@@ -113,3 +113,23 @@ corrigMuso <- function(settings, data){
     }
     return(data)
 }
+
+#' file.path2
+#'
+#' It is an extended file.path function, it can concatenate path where the first ends and the second begins with "/", so
+#' there wont be two  slash nearby eachother
+#' @author Roland Hollos
+#' @param str1 This is the first path string
+#' @param str2 This is the second path string
+#' @return A concatenated path
+#' @export
+#' @usage file.path2(str1, str2)
+
+file.path2<-function(str1, str2){
+    str1<-file.path(dirname(str1),basename(str1))
+    if(substring(str2,1,1)=="/"){
+        return(paste(str1,str2,sep=""))
+    } else{
+        return(file.path(str1,str2))
+    }
+} 

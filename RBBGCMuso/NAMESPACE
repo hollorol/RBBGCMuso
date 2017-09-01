@@ -3,6 +3,7 @@
 export(calibMuso)
 export(cleanupMuso)
 export(corrigMuso)
+export(file.path2)
 export(getyearlycum)
 export(getyearlymax)
 export(musoDate)
