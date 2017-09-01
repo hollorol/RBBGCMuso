@@ -26,6 +26,7 @@ cleanupMuso <- function(location=NULL, simplicity=TRUE,deep=FALSE){
             areThereAnyFolders <- TRUE
         }
         
+        
         if(dir.exists("../ERROR")){
             setwd("../ERROR")
 

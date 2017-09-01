@@ -55,7 +55,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     }
     
     if(aggressive==TRUE){
-        cleanupMuso(location=outputloc)
+        cleanupMuso(location=outputloc,deep = TRUE)
     }
     
     ##change the epc file if and only if there are given parameters
@@ -229,7 +229,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                  
              }}
     
-    cleanupMuso(location=outputloc)
+    cleanupMuso(location=outputloc,deep = TRUE)
     if(errorsign==1){
         return("Modell Failure")
     }

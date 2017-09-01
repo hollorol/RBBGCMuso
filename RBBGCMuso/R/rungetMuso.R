@@ -56,7 +56,7 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     }
     
     if(aggressive==TRUE){
-        cleanupMuso(location=outputloc)
+        cleanupMuso(location=outputloc, deep=TRUE)
     }
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.

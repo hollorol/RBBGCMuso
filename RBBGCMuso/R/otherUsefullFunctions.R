@@ -113,20 +113,3 @@ corrigMuso <- function(settings, data){
     }
     return(data)
 }
-
-#' genMusoMapping
-#'
-#' This function leapyear-corrigate the output of the modell
-#' @author Roland Hollos
-#' @param settings This is the output of the setupMuso() function. It contains all of the RBBGCMuso settings
-#' @param data the models outputdata
-#' @return It returns the modells leapyear-corrigated output data.
-#' @export
-#' @usage corrigMuso(settings, data)
-
-genMusoMapping<-function(output_map_init="output_map_init.c"){
-    
-    outputRaw<-grep("\\[",readLines("output_map_init",-1),value=TRUE)
-    
-    
-}
