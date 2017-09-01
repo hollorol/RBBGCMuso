@@ -1,6 +1,6 @@
 Package: RBBGCMuso
 Title: An R package for BiomeBGC-MuSo ecosystem modelling
-Version: 0.3.0.0-2
+Version: 0.3.1.0-1
 Authors@R: person("Roland", "Hollo's", , "hollorol@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 License: GPL-2

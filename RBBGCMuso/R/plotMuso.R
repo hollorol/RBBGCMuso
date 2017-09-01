@@ -44,7 +44,7 @@ plotMuso <- function(settings,
                            logfilename=logfilename,
                            export=export) 
 
-    xlab_muso<- switch(timee, "d"="days","y"="years","m"=months)
+    xlab_muso<- switch(timee, "d"="days","y"="years","m"="months")
     numVari <- ncol(musoData)
     
     if(is.numeric(variable)){
