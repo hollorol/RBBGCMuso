@@ -12,48 +12,44 @@
 
 cleanupMuso <- function(location=NULL, simplicity=TRUE,deep=FALSE){
     
-    
-    whereAmI <- getwd()
-    if(!is.null(location)){
-        setwd(location)
+    if(is.null(location)){
+        location<-"./"
     }
+
+    logDir<-file.path2(location,"LOG")
+    errDir<-file.path2(location,"ERROR")
+    epcDir<-file.path2(location,"EPCS")
+    wroDir<-file.path2(location,"WRONGEPC")
 
     if(deep){
 
-
-        
-        if(dir.exists(paste(location,"/LOG",sep=""))){
+        if(dir.exists(logDir)){
             file.remove(
-                list.files("LOG/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE)
+                list.files(logDir,pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE)
          )
         }
         
-        if(dir.exists("ERROR")){
+        if(dir.exists(errDir)){
             file.remove(
-                list.files("ERROR/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
+                list.files(errDir,pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-        if(dir.exists("EPCS")){
+        if(dir.exists(epcDir)){
             file.remove(
-                list.files("EPCS/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
+                list.files(epcDir,pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-        if(dir.exists("WRONGEPC")){
+        if(dir.exists(wroDir)){
             file.remove(
-                list.files("WRONGEPC/",pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
+                list.files(wroDir,pattern="(out$)|(endpoint$)|(log$)", full.names=TRUE))
         }
 
-       file.remove(list.files(pattern="(out$)|(endpoint$)|(log$)",full.names=TRUE))}
+       file.remove(list.files(location, pattern="(out$)|(endpoint$)|(log$)",full.names=TRUE))}
     
     
     if(!simplicity){    
-        file.remove(
-            grep("(out$)|(endpoint$)|(log$)",
-                 list.files(), value = T)
-        )} else {
-             file.remove(grep("log$",list.files(),value = T))
-         }
-
-    setwd(whereAmI)
-    
+        file.remove(list.files(location, pattern="(out$)|(endpoint$)|(log$)",full.names=TRUE))
+    } else {
+             file.remove(list.files(location, pattern="log$",full.names=TRUE))}
+         
 }
