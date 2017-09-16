@@ -33,39 +33,40 @@
 #' executable, calibrationpar, outputloc, outputname, inputloc, ininput, metinput, epcinput,thininput,CO2input, mowinput, grazinput, harvinput, plouginput, fertinput, irrinput, nitinput, inputfiles, numdata, startyear, numyears, outputvars
 #' @export
 setupMuso <- function(executable=NULL,
-                  parallel = F,
-                  calibrationpar =c(1),
-                  outputloc=NULL,
-                  inputloc=NULL,
-                  metinput=NULL,
-                  CO2input=NULL,
-                  plantinput=NULL,
-                  thininput=NULL,
-                  mowinput=NULL,
-                  grazinput=NULL,
-                  harvinput=NULL,
-                  plouginput=NULL,
-                  fertinput=NULL,
-                  irrinput=NULL,
-                  nitinput=NULL,
-                  ininput=NULL,
-                  epcinput=NULL
-                  ){
+                      parallel = F,
+                      calibrationpar =c(1),
+                      outputloc=NULL,
+                      inputloc=NULL,
+                      metinput=NULL,
+                      CO2input=NULL,
+                      plantinput=NULL,
+                      thininput=NULL,
+                      mowinput=NULL,
+                      grazinput=NULL,
+                      harvinput=NULL,
+                      plouginput=NULL,
+                      fertinput=NULL,
+                      irrinput=NULL,
+                      nitinput=NULL,
+                      ininput=NULL,
+                      epcinput=NULL,
+                      mapData=NULL
+                      ){
 
     Linuxp <-(Sys.info()[1]=="Linux")
 
     if(is.null(inputloc)){
         inputloc<- "./"
     } else {
-    inp <- unlist(strsplit(inputloc,"")) #This is the charactervector of the given imput location
+        inp <- unlist(strsplit(inputloc,"")) #This is the charactervector of the given imput location
 
-    if(inp[length(inp)]!="/"){
-        inp<-c(inp,"/")
-        inputloc <- paste(inp,collapse = "")
-        rm(inp)
-    }# If inp not ends in / paste one at the end, then make a string, that will be the new inputloc
+        if(inp[length(inp)]!="/"){
+            inp<-c(inp,"/")
+            inputloc <- paste(inp,collapse = "")
+            rm(inp)
+        }# If inp not ends in / paste one at the end, then make a string, that will be the new inputloc
 
-    ##Example: "a/b/c ==> a/b/c/"
+        ##Example: "a/b/c ==> a/b/c/"
     }
     inichangedp <- FALSE
 
@@ -223,16 +224,34 @@ setupMuso <- function(executable=NULL,
             inifiles[[2]][grep("do IRRIGATION",inifiles[[2]])]<-paste(irrinput[2],"do IRRIGATION",sep="")
         }}
 
-    c<-grep("DAILY_OUTPUT",inifiles[[2]])+1
-    numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
-    dailyVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
-    dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
+    if(is.null(mapData)){
+        
+        c<-grep("DAILY_OUTPUT",inifiles[[2]])+1
+        numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
+        dailyVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
+        dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
 
-    c<-grep("ANNUAL_OUTPUT",inifiles[[2]])+1
-    numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
-    annualVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
-    annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
-    outputvars<-list(dailyVarnames,annualVarnames)
+        c<-grep("ANNUAL_OUTPUT",inifiles[[2]])+1
+        numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
+        annualVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
+        annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
+        outputvars<-list(dailyVarnames,annualVarnames)} else {
+
+                                                          c<-grep("DAILY_OUTPUT",inifiles[[2]])+1
+                                                          numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
+                                                          dailyVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
+                                                          dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
+
+                                                          c<-grep("ANNUAL_OUTPUT",inifiles[[2]])+1
+                                                          numVar<-as.numeric(unlist(strsplit(inifiles[[2]][c],"[\ \t]"))[1])
+                                                          annualVarCodes<-inifiles[[2]][(c+1):(c+numVar)]
+                                                          annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
+                                                          outputvars<-list(dailyVarnames,annualVarnames)
+
+
+                                                          
+                                                      }
+    
     
     
     if(is.null(executable)){
@@ -246,18 +265,18 @@ setupMuso <- function(executable=NULL,
     }
 
     outputname <- unlist(strsplit(inifiles[[2]][grep("OUTPUT_CONTROL",inifiles[[2]])+1],"[\ \t]"))[1]
-   ##  outputname <- unlist(strsplit(grep("output",grep("prefix",inifiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
+    ##  outputname <- unlist(strsplit(grep("output",grep("prefix",inifiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
     ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
     ## outputname <- unlist(strsplit(grep("prefix for output files",inifiles[[2]],value=TRUE),"[\ \t]"))[1]
     if(is.null(outputname)){
         cat("I cannot find outputname, in your default ini file \n Please make sure that the line wich contains the name alse contains the prefix and the outmut keywords!")
         
-}
-##    outputname<-unlist(read.table(ininput[2],skip=93,nrows = 1))[1]
+    }
+    ##    outputname<-unlist(read.table(ininput[2],skip=93,nrows = 1))[1]
 
 
     if(is.null(outputloc)){
-    ##  outputloc<-paste((rev(rev(unlist(strsplit(outputname,"/")))[-1])),collapse="/")
+        ##  outputloc<-paste((rev(rev(unlist(strsplit(outputname,"/")))[-1])),collapse="/")
         outputloc <- dirname(outputname)
     }
 

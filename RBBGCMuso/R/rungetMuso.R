@@ -87,7 +87,18 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
         return("Modell Failure")#in that case the modell did not create even a logfile
     }
     
-    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
+    
+    if(length(logspinup)>1){
+        spincrash<-TRUE
+    } else {
+        if(identical(tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1),character(0))){
+            spincrash<-TRUE
+        } else {
+            spincrash<-(tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)!=1)
+        }
+    }
+    
+    
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
         
@@ -145,8 +156,13 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
     ##if errorsign is 1 there is error, if it is 0 everything ok
     if(length(perror)>sum(perror)){
         errorsign <- 1
+
     } else {
-        errorsign <- 0
+        if(spincrash){
+            errorsign <- 1
+        } else {
+            errorsign <- 0
+        } 
     }
 
 

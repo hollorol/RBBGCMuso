@@ -2,7 +2,7 @@
 #'
 #' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly 
 #' 
-#' @author Roland Hollos
+#' @author Roland Hollos, Dora Hidy
 #' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
 #' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly
 #' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles
@@ -44,30 +44,32 @@ plotMuso <- function(settings,
                            logfilename=logfilename,
                            export=export) 
 
-    xlab_muso<- switch(timee, "d"="days","y"="years","m"="months")
-    numVari <- ncol(musoData)
+     xlab_muso<- switch(timee, "d"="days","y"="years","m"="months")
+     numVari <- ncol(musoData)
     
-    if(is.numeric(variable)){
-    if((variable>numVari)|(variable<1)){
-        return(print(paste("The variable parameter must be between 1 and ",numVari)))
-    }
+     if(is.numeric(variable)){
+     if((variable>numVari)|(variable<1)){
+         return(print(paste("The variable parameter must be between 1 and ",numVari)))
+     }
 
 
-    plot(musoData[,variable],pch=20,col = "dark blue",xlab=xlab_muso,ylab=colnames(musoData)[variable])
-    } else {
-        if(variable=="all"){
+     plot(musoData[,variable],pch=20,col = "dark blue",xlab=xlab_muso,ylab=colnames(musoData)[variable])
+     } else {
+         if(variable=="all"){
             
-            musoData  <- rbind((1:ncol(musoData)),musoData) #creating the column indexes
-            par(mfrow = c(2,numVari/2))
+             musoData  <- rbind(1:numVari,musoData) #creating the column indexes
+             par(mfrow = niceMatrixLayoutForPlots(numVari))
 
-            apply(musoData, 2, function(x) plot(x[2:length(x)],pch=20,col="dark blue",xlab=xlab_muso,ylab = colnames(musoData)[x[1]]))
-            return(print("Everything was Ok. ;)"))
-        } else {
+             apply(musoData, 2, function(x) plot(x[2:length(x)],pch=20,col="dark blue",xlab=xlab_muso,ylab = colnames(musoData)[x[1]]))
+             par(mfrow=c(1,1))
+             return(print("Everything was Ok. ;)"))
+         } else {
              return(print("The variable option is the coloumn number of the output data-matrix, so it must be numeric, of if you want to plot the whole data matrix set it \"all\""))
-        }
+         }
 
+            
         
-    }
+     }
 
     
 

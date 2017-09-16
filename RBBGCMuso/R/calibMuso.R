@@ -1,4 +1,4 @@
-#' calibMuso
+t#' calibMuso
 #'
 #' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
@@ -91,8 +91,18 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     if(length(logspinup)==0){
         return("Modell Failure")#in that case the modell did not create even a logfile
     }
+
+    if(length(logspinup)>1){
+        spincrash<-TRUE
+    } else {
+        if(identical(tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1),character(0))){
+            spincrash<-TRUE
+        } else {
+            spincrash<-(tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)!=1)
+        }
+    }
     
-    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0 #If the last line in the logfile is 0 There are mistakes so the spinup crashes
+                                        #If the last line in the logfile is 0 There are mistakes so the spinup crashes
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
         
@@ -150,11 +160,16 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
         }
     }
 
-##if errorsign is 1 there is error, if it is 0 everything ok
+    ##if errorsign is 1 there is error, if it is 0 everything ok
+    perror[is.na(perror)]<-0
     if(length(perror)>sum(perror)){
         errorsign <- 1
     } else {
-        errorsign <- 0
+        if(spincrash){
+            errorsign <- 1
+        } else {
+            errorsign <- 0
+        } 
     }
 
 

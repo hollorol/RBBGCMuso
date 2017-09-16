@@ -133,3 +133,39 @@ file.path2<-function(str1, str2){
         return(file.path(str1,str2))
     }
 } 
+
+numFactors <- function(x,type="pos"){
+    x <- as.integer(abs(x))
+    div <- seq_len(x)
+    posdiv <- div[x%%div==0L]
+    negdiv <- posdiv*-1
+    alldiv <- c(negdiv,posdiv)
+    switch(type,"pos"=return(posdiv),"neg"=return(negdiv),"all"=return(alldiv))
+}
+
+niceMatrixLayoutForPlots <- function(n){
+    if(n==0){
+        return(cat("Ther is nothing to do with 0 graph"))
+    }
+    n <- as.integer(n)
+    factors <- numFactors(n)
+    if(length(factors)==2){
+        return(n)}
+    sqrtn <- round(sqrt(n))
+    num1 <- factors[which(min(abs(factors-sqrtn))==abs(factors-sqrtn))[1]]
+    num2 <- n/num1
+    return(c(num1,num2))
+}
+
+truncNorm<-function(N,mean, sd, min, max){
+n=0
+randomNorm<-rep(NA,N)
+while(n<=N){
+  transNorm<-rnorm(1,mean,sd)
+  if((transNorm>min)&(transNorm<max)){
+    randomNorm[n]<-transNorm
+    n<-n+1
+  }
+}
+return(randomNorm)
+}

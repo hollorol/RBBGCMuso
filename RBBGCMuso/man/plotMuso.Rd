@@ -38,5 +38,5 @@ It depends on the export parameter. The function returns with a matrix with the 
 This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly
 }
 \author{
-Roland Hollos
+Roland Hollos, Dora Hidy
 }
