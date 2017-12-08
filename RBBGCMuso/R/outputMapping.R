@@ -36,3 +36,11 @@ musoMapping <- function(code, mapData=NULL){
         return(unlist(mapData[which(mapData[,1]==650),2]))
     }
 }
+
+musoMappingFind <- function(variable=NULL){
+    if(is.null(variable)){
+        return(mMapping)
+    } else {
+                            mMapping[grep(variable,mMapping[,2]),]
+                    }
+}
