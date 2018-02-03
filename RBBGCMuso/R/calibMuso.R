@@ -1,4 +1,4 @@
-t#' calibMuso
+#' calibMuso
 #'
 #' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
 #' 
