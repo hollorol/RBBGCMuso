@@ -36,6 +36,16 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     epc <- settings$epcinput
     calibrationpar <- settings$calibrationpar
     whereAmI<-getwd()
+
+
+
+##########################################################################
+###########################Defining Functions########################
+########################################################################
+
+    
+
+    
     
 #############################################################
 ############################spinup run############################

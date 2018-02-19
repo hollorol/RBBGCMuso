@@ -1,4 +1,3 @@
-
 #' This is the function which is capable change multiple specific lines to other using their row numbers.
 #'
 #' he function uses the previous changspecline function to operate.
@@ -14,7 +13,7 @@ changemulline <- function(filename,calibrationpar,contents){
         varnum <- length(calibrationpar)
         if(length(contents)!=varnum)
         {
-            cat("Error: number of the values is not the same as the number of the changed parameters")
+            stop(" number of the values is not the same as the number of the changed parameters")
         }
 
         TOT=readLines(filename,-1)
