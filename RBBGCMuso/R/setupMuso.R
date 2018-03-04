@@ -55,6 +55,11 @@ setupMuso <- function(executable=NULL,
 
     Linuxp <-(Sys.info()[1]=="Linux")
 
+    inputParser <- function(string,fileName,counter,value=TRUE){
+        unlist(strsplit(grep(string,fileName,value=TRUE),"[\ \t]"))[counter]
+    }
+
+    
     if(is.null(inputloc)){
         inputloc<- "./"
     } else {
@@ -93,8 +98,8 @@ setupMuso <- function(executable=NULL,
     
     if(is.null(epcinput)){
         epcflag=TRUE
-        epcinput[1] <-  unlist(strsplit(grep(" EPC file name",inifiles[[1]],value=TRUE),"[\ \t]"))[1]
-        epcinput[2] <-  unlist(strsplit(grep(" EPC file name",inifiles[[2]],value=TRUE),"[\ \t]"))[1]
+        epcinput[1] <-  paste0(inputloc,inputParser(string=" EPC file name",fileName=inifiles[[1]],counter=1,value=TRUE))
+        epcinput[2] <-  paste0(inputloc,inputParser(string=" EPC file name",fileName=inifiles[[2]],counter=1,value=TRUE))
     } else {
         inifiles[[1]][grep(" EPC file name",inifiles[[1]])]<-paste(epcinput[1],"\t EPC file name",sep="")
 

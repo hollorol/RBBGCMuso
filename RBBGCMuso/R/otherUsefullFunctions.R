@@ -126,6 +126,9 @@ corrigMuso <- function(settings, data){
 #' @usage file.path2(str1, str2)
 
 file.path2<-function(str1, str2){
+    if(str1==""|str1=="./"){
+        return(str2)
+    }
     str1<-file.path(dirname(str1),basename(str1))
     if(substring(str2,1,1)=="/"){
         return(paste(str1,str2,sep=""))
