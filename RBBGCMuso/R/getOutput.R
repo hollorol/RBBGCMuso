@@ -12,9 +12,9 @@ getthespecdata<-function(settings,colnumbers){
 }
 
 getdailyout<-function(settings){
-  binaryname<-paste(settings$inputloc,settings$outputnames,".dayout",sep="")
+  binaryname<-paste(settings$inputLoc,settings$outputNames,".dayout",sep="")
   d<-file(binaryname,"rb")
-  dayoutput<-matrix(readBin(d,"double",size=8,n=(settings$numdata[1])),(settings$numyears*365),byrow=TRUE)
+  dayoutput<-matrix(readBin(d,"double",size=8,n=(settings$numData[1])),(settings$numYears*365),byrow=TRUE)
   close(d) 
   return(dayoutput)
 }

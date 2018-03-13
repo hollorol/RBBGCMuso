@@ -14,7 +14,7 @@
 ##     executable <- settings$executable
 ##     ininput <- settings$ininput
 ##     epc <- settings$epcinput
-##     calibrationpar <- settings$calibrationpar
+##     calibrationPar <- settings$calibrationPar
 ##     whereAmI<-getwd()
         
 ## #############################################################

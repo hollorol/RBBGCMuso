@@ -6,11 +6,11 @@
 #' @author Roland Hollos
 #' @keywords internal
 
-changemulline <- function(filename,calibrationpar,contents){
+changemulline <- function(filename,calibrationPar,contents){
     ##This is the function which is capable change multiple specific lines to other using their row numbers.
     ##The function uses the previous changspecline function to operate.
     ##From now changespecline is in the forarcheologist file, because its no longer needed
-    varnum <- length(calibrationpar)
+    varnum <- length(calibrationPar)
     contents <- as.list(contents)
     if(length(contents)!=varnum)
     {
@@ -20,7 +20,7 @@ changemulline <- function(filename,calibrationpar,contents){
     readedFile = readLines(filename,-1)
 
     for(i in 1:varnum){
-        readedFile[calibrationpar[i]] <- paste(contents[[i]],collapse = " ")
+        readedFile[calibrationPar[i]] <- paste(contents[[i]],collapse = " ")
     }
     
     writeLines(unlist(readedFile),filename)

@@ -86,6 +86,7 @@ sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
         return(days)
     } else {
         days <- periodlen*365
+        return(days)
     }
 }
 
@@ -121,7 +122,7 @@ musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, forma
     
 
     
-    days <- sumDaysOfPeriod(settings$startyear,settings$numyears, corrigated=corrigated)
+    days <- sumDaysOfPeriod(settings$startyear,settings$numYears, corrigated=corrigated)
     dates <- matrix(rep(NA,days*3),ncol=3)
 
         dates[1,] <- c(1,1,settings$startyear)    

@@ -23,12 +23,12 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     
     Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
-    inputloc <- settings$inputloc
-    outputloc <- settings$outputloc
+    inputLoc <- settings$inputLoc
+    outputLoc <- settings$outputLoc
     executable <- settings$executable
-    ininput <- settings$ininput
-    epc <- settings$epcinput
-    calibrationpar <- settings$calibrationpar
+    iniInput <- settings$iniInput
+    epc <- settings$epcInput
+    calibrationPar <- settings$calibrationPar
     whereAmI<-getwd()
 
 
@@ -39,22 +39,22 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
     
     if(silent!=TRUE){
-        if(length(grep("(dayout$)|(log$)",list.files(inputloc)))>0){    
+        if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
             cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")}}
     
     ##With the aggressive option every unneeded file will deleted
     if(aggressive==TRUE){
-        cleanupMuso(location=outputloc)}
+        cleanupMuso(location=outputLoc)}
 
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
-        changemulline(filename=epc[1], calibrationpar, parameters)}
+        changemulline(filename=epc[1], calibrationPar, parameters)}
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-    ## Set the working directory to the inputloc temporary.
-    setwd(inputloc)
+    ## Set the working directory to the inputLoc temporary.
+    setwd(inputLoc)
     ##Run the spinup
 
 
@@ -62,22 +62,22 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     if(silent){#silenc mode
         if(Linuxp){
             #In this case, in linux machines
-            system(paste(executable,ininput[1],"> /dev/null",sep=" "))
+            system(paste(executable,iniInput[1],"> /dev/null",sep=" "))
         } else {
             #In windows machines there is a show.output.on.console option
-            system(paste(executable,ininput[1],sep=" "),show.output.on.console = FALSE)}        
+            system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE)}        
     } else {
-        system(paste(executable,ininput[1],sep=" "))}
+        system(paste(executable,iniInput[1],sep=" "))}
 
 ###############################################
 #############LOG SECTION#######################
 ###############################################
-    logspinup<-list.files(outputloc)[grep("log$",list.files(outputloc))]
-    spincrash<-tail(readLines(paste(outputloc,logspinup,sep="/"),-1),1)==0
-    logfiles <- list.files(outputloc)[grep("log$",list.files(outputloc))]
+    logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]
+    spincrash<-tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)==0
+    logfiles <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]
 
-    dirName<-paste(inputloc,"/LOG",sep="")
-    dirERROR<-paste(inputloc,"/ERROR",sep="")
+    dirName<-paste(inputLoc,"/LOG",sep="")
+    dirERROR<-paste(inputLoc,"/ERROR",sep="")
     
     if(!dir.exists(dirName)){
         dir.create(dirName)}
@@ -99,8 +99,8 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
         } else {
             epcdir <- dirname(epc[1])
             
-            WRONGEPC<-paste(inputloc,"WRONGEPC",sep="")
-            EPCS<-paste(inputloc,"EPCS",sep="")
+            WRONGEPC<-paste(inputLoc,"WRONGEPC",sep="")
+            EPCS<-paste(inputLoc,"EPCS",sep="")
             
             if(!dir.exists(WRONGEPC)){
                 dir.create(WRONGEPC)
@@ -126,11 +126,11 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 
     if(debugging=="stamplog"){
         stampnum<-stamp(dirName)
-        if(inputloc==outputloc){
-            lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+        if(inputLoc==outputLoc){
+            lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
             
         } else {
-            lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+            lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
         }
         
         if(errorsign==1){
@@ -139,10 +139,10 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     } else { if(debugging){
                  if(is.null(logfilename)){
 
-                     if(inputloc==outputloc){
-                          lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName,"/", x, sep="")))
+                     if(inputLoc==outputLoc){
+                          lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName,"/", x, sep="")))
                      } else {
-                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
                      }
 
                      if(errorsign==1){
@@ -151,10 +151,10 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 
                  } else {
 
-                     if(inputloc==outputloc){#These are very ugly solutions for a string problem: inputloc: "./", if outputloc equalent of inputloc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
-                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
+                     if(inputLoc==outputLoc){#These are very ugly solutions for a string problem: inputLoc: "./", if outputLoc equalent of inputLoc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
                      } else {
-                         lapply( logfiles, function (x) file.rename(from=paste(outputloc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
                      }
                      
                      if(errorsign==1){
@@ -164,7 +164,7 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
                  
              }}
     
-    cleanupMuso(location=outputloc)
+    cleanupMuso(location=outputLoc)
 
     
     if(errorsign==1){
