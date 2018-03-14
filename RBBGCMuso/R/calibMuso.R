@@ -20,7 +20,7 @@
 #' @export
 
 
-calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binayPlace="./"){
+calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binayPlace="./", fileToChange="epc"){
 
 
 ##########################################################################
@@ -70,7 +70,12 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
-        changemulline(filename=epc[2],calibrationPar,parameters)
+
+        switch(fileToChange,
+               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
+               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
+               "both"=(stop(This option is not implemented yet, please choose epc or ini))
+               )
     }
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
