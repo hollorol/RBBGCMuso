@@ -74,7 +74,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
         switch(fileToChange,
                "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
                "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
-               "both"=(stop(This option is not implemented yet, please choose epc or ini))
+               "both"=(stop("This option is not implemented yet, please choose epc or ini"))
                )
     }
 
