@@ -262,7 +262,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                  
              }}
     
-    cleanupMuso(location=outputLoc,deep = TRUE)
+    cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
         return("Modell Failure")
     }
