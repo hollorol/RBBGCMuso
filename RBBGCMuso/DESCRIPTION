@@ -10,8 +10,13 @@ NeedsCompilation: no
 Packaged: 2017-07-19 14:00:04 UTC; hollorol
 Author: Roland Hollo's [aut, cre]
 Imports:
+  stats,
 	utils,
-	graphics
+	graphics,
+	Rcpp,
+	magrittr,
+	dplyr
+LinkingTo: Rcpp
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 6.0.1
 Suggests: knitr,
