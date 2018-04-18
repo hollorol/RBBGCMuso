@@ -1,3 +1,21 @@
+#' musoMonte
+#'
+#' This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
+#' inputDir = "./",
+#' @author Roland Hollos
+#' @param settings Do you want to run multiple modell paralelly, if yes, set this variable to TRUE
+#' @param parameters stores the place of the modell-executable file. In normal usage, you don't have to be set this, because a RBBgcmuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful
+#' @param calibrationPar You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)
+#' @param outLoc Where should the modell puts its outputs. You should give a location for it via this variable, for example: outputLoc="/place/of/the/outputs/"
+#' @param iterations Usually it is the root directory, where you put the iniFiles for the modell
+#' @param preTag Via metInput parameter, you can tell the modell where are the meteorological files. As default it reads this from the iniFiles.
+#' @param inputName Via CO2 parameter, you can tell the modell where are the CO2 data files. As default it reads this from the iniFiles.
+#' @param outputType Via planting parameter, you can tell the modell where are the data files, which contains the planting informations. As default it reads this from the iniFiles.
+#' @param fun Via thining parameter, you can tell the modell where are the data files, which contains the thining informations. As default it reads this from the iniFiles.
+#' @param varIndex Via mowing parameter, you can tell the modell where are the data files, which contains the mowing informations. As default it reads this from the iniFiles.
+#' @param doSensitivity Via grazing parameter, you can tell the modell where are the data files, which contains the grazing informations. As default it reads this from the iniFiles.
+#' @param onDisk Via harvesting parameter, you can tell the modell where are the data files, which contains the harvesting informations. As default it reads this from the iniFiles.
+#' @export
 musoMonte <- function(settings=NULL,
                      parameters,
                       inputDir = "./",
