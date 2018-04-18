@@ -12,8 +12,9 @@ musoMonte <- function(settings=NULL,
                       onDisk=FALSE,
                      ...)
 {
-
-  currDir <- getwd()
+    outLocPlain <- basename(outLoc)
+    currDir <- getwd()
+    inputDir <- normalizePath(inputDir)
   tmp <- file.path(outLoc,"tmp/")
 
     if(!dir.exists(outLoc)){
@@ -21,10 +22,13 @@ musoMonte <- function(settings=NULL,
     warning(paste(outLoc," is not exists, so it was created"))
   }
 
-  if(dir.exists(tmp){
+  if(dir.exists(tmp)){
     stop("There is a tmp directory inside the output location, please replace it. tmp is an important temporary directory for the function")
     }
-  dir.create(tmp)
+dir.create(tmp)
+  outLoc <- normalizePath(outLoc)
+  tmp <- normalizePath(tmp)
+
   inputFiles <- file.path(inputDir,grep(basename(outLoc),list.files(inputDir),invert = TRUE,value = TRUE)) 
 
   
@@ -58,8 +62,9 @@ musoMonte <- function(settings=NULL,
   ##  run.
   preservedEpc <- matrix(nrow = (iterations +1 ), ncol = length(settings$calibrationPar))
   preservedEpc[1,] <- origEpc
+  names(origEpc)<-colnames(preservedEpc)
   colnames(preservedEpc) <- Otable[[1]][,1]
-  write.csv(preservedEpc,"preservedEpc.csv")
+  write.table(t(origEpc),row.names = FALSE,"preservedEpc.csv",sep=",")
   ## Save the backupEpc, while change the settings
   ## variable and set the output.
   file.copy(settings$epc[2],"savedEpc",overwrite = TRUE) # do I need this? 
@@ -72,7 +77,7 @@ musoMonte <- function(settings=NULL,
       for(i in 1:iterations){
           parVar <- musoRandomizer(A,B)[,2]
                                         #preservedEpc[(i+1),] <- parVar
-          write.csv(x=parVar,file="preservedEpc.csv", append=TRUE)
+          write.table(x=t(parVar),file="preservedEpc.csv",row.names=FALSE,col.names=FALSE, append=TRUE,sep=",")
           exportName <- paste0(preTag,i,".csv")
           tempData <- calibMuso(settings,debugging = "stamplog",
                                parameters = parVar,
@@ -121,8 +126,16 @@ musoMonte <- function(settings=NULL,
          "netCDF" = (a <- netCDF()))
   
   ## Change back the epc file to the original
-  
-  file.copy(savedEpc,settings$epc[2],overwrite = TRUE)
-  return(do.call("c",a))
+    for(i in file.path("./",grep(outLocPlain, list.files(inputDir), invert = TRUE, value = TRUE))){
+        file.remove(i,recursive=TRUE)
+    }
+    for(i in list.files()){
+        file.copy(i,outLoc,recursive=TRUE,overwrite = TRUE)
+    }
+    
+    unlink(tmp,recursive = TRUE)
+    setwd(currDir)
+    file.copy("savedEpc",settings$epc[2],overwrite = TRUE)
+    return(do.call("c",a))
 
-}  
+}
