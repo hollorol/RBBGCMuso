@@ -10,7 +10,8 @@ musoMonte <- function(settings=NULL,
                       varIndex=8,
                       doSensitivity=FALSE,
                       onDisk=FALSE,
-                      ...){
+                     ...)
+{
 
   currDir <- getwd()
   tmp <- file.path(outLoc,"tmp/")
@@ -58,7 +59,7 @@ musoMonte <- function(settings=NULL,
   preservedEpc <- matrix(nrow = (iterations +1 ), ncol = length(settings$calibrationPar))
   preservedEpc[1,] <- origEpc
   colnames(preservedEpc) <- Otable[[1]][,1]
-  
+  write.csv(preservedEpc,"preservedEpc.csv")
   ## Save the backupEpc, while change the settings
   ## variable and set the output.
   file.copy(settings$epc[2],"savedEpc",overwrite = TRUE) # do I need this? 
@@ -66,17 +67,21 @@ musoMonte <- function(settings=NULL,
   
   ## Creating function for generating separate
   ## csv files for each run
-  a<-1:100000
   moreCsv <- function(){
-    for(i in 1:iterations){
-      parVar <- musoRandomizer(A,B)[,2]
-      #preservedEpc[(i+1),] <- parVar
-      exportName <- paste0(preTag,i,".csv")
-      tryCatch (calibMuso(settings,debugging = "stamplog",
-                parameters = parVar,export = exportName,
-                keepEpc = TRUE),error=function(e) NA )
-    }
-    return(preservedEpc)
+      a <- list()
+      for(i in 1:iterations){
+          parVar <- musoRandomizer(A,B)[,2]
+                                        #preservedEpc[(i+1),] <- parVar
+          write.csv(x=parVar,file="preservedEpc.csv", append=TRUE)
+          exportName <- paste0(preTag,i,".csv")
+          tempData <- calibMuso(settings,debugging = "stamplog",
+                               parameters = parVar,
+                               keepEpc = TRUE)
+          write.csv(x=tempData,file=exportName)
+          a[[i]]<-fun(tempData[,varIndex])
+      
+      }
+      return(a)
   }
   
   ## Creating function for generating one
@@ -88,7 +93,8 @@ musoMonte <- function(settings=NULL,
       for(i in 1:iterations){
       
         parVar <- apply(parameters,1,function (x) {
-          runif(1, as.numeric(x[3]), as.numeric(x[4]))})
+            runif(1, as.numeric(x[3]), as.numeric(x[4]))})
+          
         preservedEpc[(i+1),] <- parVar
         exportName <- paste0(preTag,".csv")
         write.csv(parvar,"preservedEpc.csv",append=TRUE)
@@ -110,12 +116,13 @@ musoMonte <- function(settings=NULL,
   
   ## Call one function according to the outputType
   switch(outputType,
-         "oneCsv" = (preservedEpc <- oneCsv()),
-         "moreCsv" = (preservedEpc <- moreCsv()),
-         "netCDF" = (preservedEpc <- netCDF()))
+         "oneCsv" = (a <- oneCsv()),
+         "moreCsv" = (a <- moreCsv()),
+         "netCDF" = (a <- netCDF()))
   
   ## Change back the epc file to the original
   
   file.copy(savedEpc,settings$epc[2],overwrite = TRUE)
-  write.csv(preservedEpc,"preservedEpc.csv")
-}
+  return(do.call("c",a))
+
+}  
