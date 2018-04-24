@@ -19,7 +19,6 @@
 #' @import utils
 #' @export
 
-
 calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binayPlace="./", fileToChange="epc"){
 
 
