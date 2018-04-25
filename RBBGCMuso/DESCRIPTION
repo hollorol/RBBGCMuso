@@ -10,7 +10,8 @@ NeedsCompilation: no
 Packaged: 2017-07-19 14:00:04 UTC; hollorol
 Author: Roland Hollo's [aut, cre]
 Imports:
-  stats,
+	grDevices,
+	stats,
 	utils,
 	graphics,
 	Rcpp,
