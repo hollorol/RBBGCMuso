@@ -182,11 +182,14 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     if(length(perror)>sum(perror)){
         errorsign <- 1
     } else {
-        if(spincrash){
+        if(length(perror)==1){
             errorsign <- 1
         } else {
-            errorsign <- 0
-        } 
+            if(spincrash){
+                errorsign <- 1
+            } else {
+                errorsign <- 0
+            } }
     }
 
 
