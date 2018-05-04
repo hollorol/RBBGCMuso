@@ -12,7 +12,7 @@ updateMusoMapping<-function(output_map_init="output_map_init.c"){
     outputRaw<-grep("\\[",readLines(output_map_init,-1),value=TRUE)
 
     codes <- as.vector(lapply(outputRaw, function (x)  as.numeric(unlist(strsplit(unlist(strsplit(x,"\\["))[2],"\\]"))[1])))
-    names <- unlist(lapply(outputRaw, function (x) unlist(strsplit(unlist(strsplit(x,">"))[2],";"))[1]))
+    names <- unlist(lapply(outputRaw, function (x) unlist(strsplit(unlist(strsplit(x,"\\&"))[2],";"))[1]))
     mMapping <-cbind(codes,names)
     save(mMapping, file="mMap.RData")
     return(mMapping)
