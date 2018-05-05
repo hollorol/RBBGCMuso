@@ -27,7 +27,10 @@ OtableMaker <- function(parametersReal){
     mutate(MIN=OTFzero$MIN,MAX=OTFzero$MAX)
 
   sliced <- constMatrix %>%
-    dplyr::filter(GROUP %in% groupIDs)
+      dplyr::filter(GROUP %in% groupIDs)
+  slicedIndexes<- which(sliced[,"INDEX"] %in% intersect(sliced[,"INDEX"],otfIndexes))
+  sliced[slicedIndexes,c("MIN","MAX")] <- OTF[which(OTF["GROUP"] == groupIDs),c("MIN","MAX")]
+  
   OTbig <- rbind(OT0,sliced) %>% data.frame()
   parnumbers <- nrow(OTbig)
 
@@ -36,7 +39,7 @@ OtableMaker <- function(parametersReal){
       OTbig[i,3] <- OTF[OTF$INDEX==OTbig[i,1],2]
       OTbig[i,4] <- OTF[OTF$INDEX==OTbig[i,1],3]
       if(OTbig$Type[i]==2){
-        OTbig$DEPENDENCE[i] <-2
+        OTbig$DEPENDENCE[i] <- 2
       }
     }
   }
@@ -48,3 +51,4 @@ OtableMaker <- function(parametersReal){
   return(list(Otable=OTbig,driver=summaries))
 
 }
+

@@ -44,3 +44,4 @@ musoMappingFind <- function(variable=NULL){
                             mMapping[grep(variable,mMapping[,2]),]
                     }
 }
+
