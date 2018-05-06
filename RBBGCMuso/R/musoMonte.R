@@ -76,6 +76,7 @@ musoMonte <- function(settings=NULL,
     preservedEpc <- matrix(nrow = (iterations +1 ), ncol = npar)
     preservedEpc[1,] <- origEpc
     colnames(preservedEpc) <- Otable[[1]][,1]
+    
     preservedEpc <- cbind(preservedEpc,rep(NA,(iterations+1)))
     colnames(preservedEpc)[(npar+1)] <- "y"
     ## Save the backupEpc, while change the settings

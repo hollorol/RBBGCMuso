@@ -44,11 +44,8 @@ musoSensi <- function(monteCarloFile = NULL,
                       varIndex = varIndex
                       )
         npar <- ncol(M)-1
+        M <- M[which(!is.na(M$y)),]
         y <- M[,(npar+1)]
-        M %<>%
-            tbl_df() %>%
-            filter(.,!is.na(y)) %>%
-            as.data.frame()
         M <- apply(M[,1:npar],2,function(x){x-mean(x)})
         varNames<- colnames(M)[1:npar]
         w <- lm(y~M)$coefficients[-1]
@@ -64,12 +61,10 @@ musoSensi <- function(monteCarloFile = NULL,
         return(S)
     } else {
         M <- read.csv(monteCarloFile)
+        
         npar <- ncol(M)-1
+        M <- M[which(!is.na(M$y)),]
         y <- M[,(npar+1)]
-        M %<>%
-            tbl_df() %>%
-            filter(.,!is.na(y)) %>%
-            as.data.frame()
         M <- apply(M[,1:npar],2,function(x){x-mean(x)})
         varNames<- colnames(M)[1:npar]
         w <- lm(y~M)$coefficients[-1]
