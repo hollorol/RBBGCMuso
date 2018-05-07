@@ -2,3 +2,5 @@ inst/doc
 swp$
 '~'$
 '#'$
+*.o
+*.so
