@@ -25,12 +25,35 @@ musoSensi <- function(monteCarloFile = NULL,
                      inputDir = "./",
                      outLoc = "./calib",
                      iterations = 30,
-                     preTag = "mount-",
+                     preTag = "mont-",
                      outputType = "moreCsv",
                      fun = mean,
                      varIndex = 1,
                      outputFile = "sensitivity.csv",
                      plotName = "sensitivity.jpg"){
+
+    doSensi <- function(M){
+        npar <- ncol(M)-1
+        M <- M[which(!is.na(M[,"y"])),]
+        y <- M[,(npar+1)]
+        M <- M[,colnames(M) %in% parameters[,1]]
+        npar <- ncol(M)
+        M <- apply(M[,1:npar],2,function(x){x-mean(x)})
+        varNames<- colnames(M)[1:npar]
+        w <- lm(y~M)$coefficients[-1]
+        Sv <- apply(M,2,var)
+        overalVar <- sum(Sv^2*w^2)
+        S=numeric(npar)
+        for(i in 1:npar){
+            S[i] <- ((w[i]^2*Sv[i]^2)/overalVar)*100
+        }
+        names(S)<-varNames
+        write.csv(file = outputFile, x = S)
+        barplot(S,las=2)
+        return(S)
+    }
+
+    
 
     if(is.null(monteCarloFile)){
         M <- musoMonte(parameters = parameters,
@@ -43,40 +66,10 @@ musoSensi <- function(monteCarloFile = NULL,
                       fun = fun,
                       varIndex = varIndex
                       )
-        npar <- ncol(M)-1
-        M <- M[which(!is.na(M$y)),]
-        y <- M[,(npar+1)]
-        M <- apply(M[,1:npar],2,function(x){x-mean(x)})
-        varNames<- colnames(M)[1:npar]
-        w <- lm(y~M)$coefficients[-1]
-        Sv <- apply(M,2,var)
-        overalVar <- sum(Sv^2*w^2)
-        S=numeric(npar)
-        for(i in 1:npar){
-            S[i] <- ((w[i]^2*Sv[i]^2)/overalVar)*100
-        }
-        write.csv(file = outputFile, x = S)
-        names(S)<-varNames
-        barplot(S,las=2)
-        return(S)
+        return(doSensi(M))
+        
     } else {
         M <- read.csv(monteCarloFile)
-        
-        npar <- ncol(M)-1
-        M <- M[which(!is.na(M$y)),]
-        y <- M[,(npar+1)]
-        M <- apply(M[,1:npar],2,function(x){x-mean(x)})
-        varNames<- colnames(M)[1:npar]
-        w <- lm(y~M)$coefficients[-1]
-        Sv <- apply(M,2,var)
-        overalVar <- sum(Sv^2*w^2)
-        S=numeric(npar)
-        for(i in 1:npar){
-            S[i] <- ((w[i]^2*Sv[i]^2)/overalVar)*100
-        }
-        names(S)<-varNames
-        write.csv(file = outputFile, x = S)
-        barplot(S,las=2)
-        return(S)        
+        return(doSensi(M))        
     }
 }

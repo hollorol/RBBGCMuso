@@ -6,7 +6,7 @@
 \usage{
 musoSensi(monteCarloFile = NULL, parameters, settings = NULL,
   inputDir = "./", outLoc = "./calib", iterations = 30,
-  preTag = "mount-", outputType = "moreCsv", fun = mean, varIndex = 1,
+  preTag = "mont-", outputType = "moreCsv", fun = mean, varIndex = 1,
   outputFile = "sensitivity.csv", plotName = "sensitivity.jpg")
 }
 \arguments{

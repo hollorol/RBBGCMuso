@@ -22,6 +22,7 @@ musoMonte <- function(settings=NULL,
                      outputType = "moreCsv",
                      fun=mean,
                      varIndex = 1,
+                     silent = TRUE,
                      ...){
     
     outLocPlain <- basename(outLoc)
@@ -75,8 +76,12 @@ musoMonte <- function(settings=NULL,
     ##  run.
     preservedEpc <- matrix(nrow = (iterations +1 ), ncol = npar)
     preservedEpc[1,] <- origEpc
-    colnames(preservedEpc) <- Otable[[1]][,1]
+    Otable[[1]][,1]  <- (as.character(Otable[[1]][,1]))
+    for(i in parameters[,2]){
+        Otable[[1]][Otable[[1]][,2]==i,1] <- as.character(parameters[parameters[,2]==i,1])
+    }
     
+    colnames(preservedEpc) <- Otable[[1]][,1]
     preservedEpc <- cbind(preservedEpc,rep(NA,(iterations+1)))
     colnames(preservedEpc)[(npar+1)] <- "y"
     ## Save the backupEpc, while change the settings
@@ -86,9 +91,10 @@ musoMonte <- function(settings=NULL,
     
     ## Creating function for generating separate
     ## csv files for each run
+    progBar <- txtProgressBar(1,iterations,style=3)
     moreCsv <- function(){
         a <- numeric(iterations+1)
-        tempData <- calibMuso(settings, debugging = "stamplog", parameters = origEpc,keepEpc = TRUE)
+        tempData <- calibMuso(settings, debugging = "stamplog", parameters = origEpc,keepEpc = TRUE,silent = silent)
         a[1] <- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})
         preservedEpc[1,(npar+1)] <- a[1]
         write.table(t(preservedEpc[1,]),row.names = FALSE,"preservedEpc.csv",sep=",")
@@ -99,12 +105,15 @@ musoMonte <- function(settings=NULL,
             exportName <- paste0(preTag,(i+1),".csv")
             tempData <- calibMuso(settings,debugging = "stamplog",
                                  parameters = parVar,
-                                 keepEpc = TRUE)
+                                 keepEpc = TRUE,
+                                 silent=silent)
             write.csv(x=tempData,file=exportName)
             
             preservedEpc[(i+1),(npar+1)] <- a[i+1]<- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})
             write.table(t(preservedEpc[(i+1),]),file="preservedEpc.csv",row.names=FALSE,col.names=FALSE, append=TRUE,sep=",")
+            setTxtProgressBar(progBar,i)
         }
+        cat("\n")
         return(preservedEpc)
     }
     
