@@ -17,11 +17,13 @@
 #' @import dplyr
 #' @import graphics
 #' @import grDevices
+#' @import ggplot2
 #' @export
 
 musoSensi <- function(monteCarloFile = NULL,
-                     parameters,
+                     parameters=NULL,
                      settings = NULL,
+                     parametersFromFile=FALSE,
                      inputDir = "./",
                      outLoc = "./calib",
                      iterations = 30,
@@ -30,7 +32,19 @@ musoSensi <- function(monteCarloFile = NULL,
                      fun = mean,
                      varIndex = 1,
                      outputFile = "sensitivity.csv",
-                     plotName = "sensitivity.jpg"){
+                     plotName = "sensitivity.png",
+                     plotTitle = "Sensitivity",
+                     dpi=300){
+
+    if(is.null(parameters)){
+        parameters <- read.csv("parameters.csv")
+    } else {
+        if(parametersFromFile){
+            parameters <- read.csv(parameters,stringsAsFactors=FALSE)
+        } else {
+            parameters <- parameters
+        }
+    }
 
     doSensi <- function(M){
         npar <- ncol(M)-1
@@ -47,9 +61,19 @@ musoSensi <- function(monteCarloFile = NULL,
         for(i in 1:npar){
             S[i] <- ((w[i]^2*Sv[i]^2)/overalVar)*100
         }
+        S <- round(S)
         names(S)<-varNames
         write.csv(file = outputFile, x = S)
-        barplot(S,las=2)
+
+        sensiPlot <- ggplot(data.frame(name=varNames,y=S/100),aes(x=name,y=y))+
+            geom_bar(stat = 'identity')+
+            theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+            xlab(NULL)+
+            ylab(NULL)+
+            ggtitle("Sensitivity")+
+            scale_y_continuous(labels = scales::percent,limits=c(0,1))
+        print(sensiPlot)
+        ggsave(plotName,dpi=dpi)
         return(S)
     }
 
