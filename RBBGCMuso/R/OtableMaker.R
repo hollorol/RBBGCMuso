@@ -25,13 +25,17 @@ OtableMaker <- function(parametersReal){
   OTFzero <- OTF[OTF$GROUP==0,]
   OT0 <- constMatrix [constMatrix$INDEX %in% zeroIndexes,] %>%
     mutate(MIN=OTFzero$MIN,MAX=OTFzero$MAX)
-
-  sliced <- constMatrix %>%
+  if(nrow(OT0)!=nrow(OTF)){
+      sliced <- constMatrix %>%
       dplyr::filter(GROUP %in% groupIDs)
-  slicedIndexes<- which(sliced[,"INDEX"] %in% intersect(sliced[,"INDEX"],otfIndexes))
-  sliced[slicedIndexes,c("MIN","MAX")] <- OTF[which(OTF["GROUP"] == groupIDs),c("MIN","MAX")]
+      slicedIndexes<- which(sliced[,"INDEX"] %in% intersect(sliced[,"INDEX"],otfIndexes))
+      sliced[slicedIndexes,c("MIN","MAX")] <- OTF[which(OTF["GROUP"] == groupIDs),c("MIN","MAX")]
   
-  OTbig <- rbind(OT0,sliced) %>% data.frame()
+      OTbig <- rbind(OT0,sliced) %>% data.frame()
+  } else {
+      OTbig <- OT0 %>% data.frame()
+  }
+  
   parnumbers <- nrow(OTbig)
 
   for(i in 1:parnumbers){
