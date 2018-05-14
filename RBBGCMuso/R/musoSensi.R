@@ -63,7 +63,7 @@ musoSensi <- function(monteCarloFile = NULL,
             S[i] <- ((w[i]^2*Sv[i])/(overalVar))*100
         }
         
-        S <- round(S)
+        S <- round(S,digits=2)
         names(S)<-varNames
         write.csv(file = outputFile, x = S)
 
