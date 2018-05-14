@@ -57,7 +57,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     if(silent!=TRUE){
         if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
-            cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
+            warning("there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
 
         }
         

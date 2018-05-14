@@ -4,10 +4,11 @@
 \alias{musoSensi}
 \title{musoSensi}
 \usage{
-musoSensi(monteCarloFile = NULL, parameters, settings = NULL,
-  inputDir = "./", outLoc = "./calib", iterations = 30,
-  preTag = "mont-", outputType = "moreCsv", fun = mean, varIndex = 1,
-  outputFile = "sensitivity.csv", plotName = "sensitivity")
+musoSensi(monteCarloFile = NULL, parameters = NULL, settings = NULL,
+  parametersFromFile = FALSE, inputDir = "./", outLoc = "./calib",
+  iterations = 30, preTag = "mont-", outputType = "moreCsv", fun = mean,
+  varIndex = 1, outputFile = "sensitivity.csv",
+  plotName = "sensitivity.png", plotTitle = "Sensitivity", dpi = 300)
 }
 \arguments{
 \item{monteCarloFile}{If you run musoMonte function previously, you did not have to rerun the monteCarlo, just provide the preservedEpc.csv file with its path. If you do not set this parameter, musoSensi will fun the musoMonte function to get all of the information.}

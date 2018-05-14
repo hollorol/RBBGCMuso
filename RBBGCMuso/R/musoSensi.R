@@ -25,7 +25,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      settings = NULL,
                      parametersFromFile=FALSE,
                      inputDir = "./",
-                     outLoc = "./calib",
+ outLoc = "./calib",
                      iterations = 30,
                      preTag = "mont-",
                      outputType = "moreCsv",
@@ -56,12 +56,14 @@ musoSensi <- function(monteCarloFile = NULL,
         varNames<- colnames(M)[1:npar]
         w <- lm(y~M)$coefficients[-1]
         Sv <- apply(M,2,var)
-        overalVar <- sum(Sv^2*w^2)
+        overalVar <- sum(Sv*w^2)
         S=numeric(npar)
+        
         for(i in 1:npar){
-            S[i] <- ((w[i]^2*Sv[i]^2)/overalVar)*100
+            S[i] <- ((w[i]^2*Sv[i])/(overalVar))*100
         }
-        S <- round(S)
+        
+        S <- round(S,digits=2)
         names(S)<-varNames
         write.csv(file = outputFile, x = S)
 
