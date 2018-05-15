@@ -214,7 +214,7 @@ setupMuso <- function(executable=NULL,
     
     inputFiles<-c(iniInput,epcInput,metInput)
     numData<-rep(NA,3)
-    numYears <-  as.numeric(unlist(strsplit(grep("simulation years",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])gfrurgc dhxv
+    numYears <-  as.numeric(unlist(strsplit(grep("simulation years",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
     numValues <-  as.numeric(unlist(strsplit(grep("number of daily output variables",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
     ## numValues will be replaced to numVar

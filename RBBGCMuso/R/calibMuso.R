@@ -70,14 +70,6 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
         }
     }   
 
-##########################################################################
-###########################Defining Functions########################
-########################################################################
-
-    
-
-    
-    
 #############################################################
 ############################spinup run############################
    ########################################################## 
@@ -125,8 +117,8 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     }
 
     
-    
-    logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
+    logspinup <- getLogs(outputLoc,outputNames,type="spinup")
+    ## logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
     ## logspinup <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
     
     if(length(logspinup)==0){
@@ -186,16 +178,14 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                )
         
         if(keepBinary){
-            possibleNames <- grep("out$",grep(paste(paste0(outputNames,"*"), collapse = "|") ,list.files(outputLoc),value=TRUE),value = TRUE)
-            
-            print(stamp(binaryPlace))
+            possibleNames <- getOutFiles(outputLoc = outputLoc,outputNames = outputNames)
             file.copy(file.path(outputLoc,possibleNames)
                      ,file.path(binaryPlace,paste0((stamp(binaryPlace)+1),"-",possibleNames)))
         }
     }
 
     
-    logfiles <- grep(paste(paste0(outputNames,".log"), collapse = "|"), list.files(outputLoc),value = TRUE)
+    logfiles <- getLogs(outputLoc,outputNames,type="both")
     ## list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
 ###############################################    
@@ -204,7 +194,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
 
     
-    perror<-as.numeric(as.vector(lapply(paste(outputLoc,logfiles,sep="/"),function(x) tail(readLines(x,-1),1))))                                      #vector of spinup and normalrun error
+    perror <- readErrors(outputLoc=outputLoc,logfiles=logfiles)                                    #vector of spinup and normalrun error
     
   
     ##if errorsign is 1 there is error, if it is 0 everything ok
@@ -226,7 +216,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     if(keepEpc){#if keepepc option turned on
 
         if(length(unique(dirname(epc)))>1){
-            print("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
+            stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
 
             ## epcfiles <- list.files(epcdir)[grep("epc$",list.files(
