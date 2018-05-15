@@ -1,44 +1,54 @@
-normalMuso<- function(settings,parameters=c(" ECOPHYS"),timee="d",debugging=FALSE,logfilename=NULL){
+normalMuso<- function(settings,parameters=NULL,timee="d",debugging=FALSE,logfilename=NULL,keepEpc=FALSE, export=FALSE,silent=FALSE,aggressive=FALSE,leapYear=FALSE, binaryPlace="./",fileToChange="epc"){
 
-   Linuxp <-(Sys.info()[1]=="Linux")
 
-    ########################################################
-###############################Preparational functions###############
-#####################################################
+##########################################################################
+###########################Set local variables########################
+########################################################################
 
-    numcut<-function(string){
-    #This function returns only the starting numbers of a string
-    unlist(strsplit(grep("^[0-9]",string,value = TRUE),"[aAzZ-]"))[1]
-        }
-
-numcutall<-function(vector){
-    #numcall apply numcut for all elements of a string vector
-as.numeric(unlist(apply(as.matrix(vector),1,numcut)))
-}
-
-stamp<-function(path="./"){
-    #It gives back a stamp wich is the maximum number of the output numcall
-    numbers<-numcutall(list.files(path))
-    if(length(numbers)==0){
-        return (0)} else {
-                   return(max(numbers))}
-}
+    Linuxp <-(Sys.info()[1]=="Linux")
+    ##Copy the variables from settings
+    inputLoc <- settings$inputLoc
+    outputLoc <- settings$outputLoc
+    executable <- settings$executable
+    iniInput <- settings$iniInput
+    epc <- settings$epcInput
+    calibrationPar <- settings$calibrationPar
+    whereAmI<-getwd()
 
 
 
 
-    changemulline(settings,parameters)
-
-    inputloc<-settings$inputloc
-    executable<-settings$executable
-    ininput<-settings$ininput
+    
 
 
+        if(!is.null(parameters)){
+
+        switch(fileToChange,
+               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
+               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
+               "both"=(stop("This option is not implemented yet, please choose epc or ini"))
+               )
+    }
 
 
-    setwd(inputloc)
+
+    setwd(inputLoc)
                                         #normal run
-    system(paste(executable,ininput[2],sep=" "))
+
+    if(silent){
+        if(Linuxp){
+            system(paste(executable,iniInput[2],"> /dev/null",sep=" "))
+        } else {
+            system(paste(executable,iniInput[2],sep=" "),show.output.on.console = FALSE)
+        }
+        
+    } else {
+        system(paste(executable,iniInput[2],sep=" "))
+    }
+
+
+    
+    system(paste(executable,iniInput[2],sep=" "))
     
     switch(timee,
            "d"=(Reva<-getdailyout(settings)),

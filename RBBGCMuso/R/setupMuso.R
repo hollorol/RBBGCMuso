@@ -72,8 +72,8 @@ setupMuso <- function(executable=NULL,
             writep <<- writep+1
             if(filep)
             {
-                tempVar["spinup"] <- paste0(inputLoc,inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE))
-                tempVar["normal"] <- paste0(inputLoc,inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE))
+                tempVar["spinup"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE))
+                tempVar["normal"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE))
             } else {
                 tempVar["spinup"] <- inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE)
                 tempVar["normal"] <- inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE)
@@ -89,9 +89,12 @@ setupMuso <- function(executable=NULL,
         }
         return(tempVar)
     }
-
+    
     if(is.null(inputLoc)){
-           inputLoc<- "./"}
+        inputLoc<- normalizePath("./")
+    } else{
+        inputLoc <- normalizePath(inputLoc)
+    }
     
     #iniChangedp <- FALSE
 
@@ -183,8 +186,9 @@ setupMuso <- function(executable=NULL,
     } else {        
         file.copy(executable,inputLoc)
     }
-
-    outputName <- unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]])+1],"[\ \t]"))[1]
+    outputName <- character(2)
+    outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]])+1],"[\ \t]"))[1])
+    outputName[2] <- basename(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]])+1],"[\ \t]"))[1])
     ##  outputName <- unlist(strsplit(grep("output",grep("prefix",iniFiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
     ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
     ## outputName <- unlist(strsplit(grep("prefix for output files",iniFiles[[2]],value=TRUE),"[\ \t]"))[1]
@@ -197,7 +201,13 @@ setupMuso <- function(executable=NULL,
 
     if(is.null(outputLoc)){
         ##  outputLoc<-paste((rev(rev(unlist(strsplit(outputName,"/")))[-1])),collapse="/")
-        outputLoc <- dirname(outputName)
+        outputLoc <- dirname(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]])+1],"[\ \t]"))[1])
+        if(substr(outputLoc,start = 1,stop = 1)!="/"){
+            ##if the outputName is not absolute path make it absolute
+            outputLoc <- file.path(inputLoc,outputLoc)
+        } 
+    } else {
+        outputLoc <- normalizePath(outputLoc)
     }
 
     
@@ -219,6 +229,9 @@ setupMuso <- function(executable=NULL,
 
     writeLines(iniFiles[[1]],iniInput[1])
     writeLines(iniFiles[[2]],iniInput[2])
+
+    suppressWarnings(file.remove(file.path(outputLoc,outputNames[1])))
+    suppressWarnings(file.remove(file.path(outputLoc,outputNames[2])))
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,
@@ -246,7 +259,7 @@ setupMuso <- function(executable=NULL,
     
     if(writep!=nrow(grepHelper)){
         writeLines(iniFiles[[1]],iniInput[[1]])
-        if(epcInput[1]!=epcInput[2]){ #Change need here
+        if(inputs$epcInput[1]!=inputs$epc$Input[2]){ #Change need here
             writeLines(iniFiles[[2]],iniInput[[2]])      
         }
     }

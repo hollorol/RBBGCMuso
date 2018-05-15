@@ -15,7 +15,7 @@
 #' logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE)
 #' @export
 
-spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE){
+spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE, fileToChange="epc"){
 
 ##########################################################################
 ###########################Set local variables########################
@@ -40,16 +40,23 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     
     if(silent!=TRUE){
         if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
-            cat(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")}}
+            warning(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")}}
     
     ##With the aggressive option every unneeded file will deleted
     if(aggressive==TRUE){
-        cleanupMuso(location=outputLoc)}
+        cleanupMuso(location=outputLoc,deep=TRUE)}
 
     
     ##change the epc file if and only if there are given parameters
+    ## if(!is.null(parameters)){
+    ##     changemulline(filename=epc[1], calibrationPar, parameters)}
     if(!is.null(parameters)){
-        changemulline(filename=epc[1], calibrationPar, parameters)}
+        switch(fileToChange,
+               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
+               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
+               "both"=(stop("This option is not implemented yet, please choose epc or ini"))
+               )
+    }
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
@@ -73,7 +80,24 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 #############LOG SECTION#######################
 ###############################################
     logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]
-    spincrash<-tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)==0
+    ## spincrash<-tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)==0
+
+  logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
+
+    if(length(logspinup)==0){
+        spincrash <- TRUE
+    }
+
+    if(length(logspinup)>1){
+        spincrash <- TRUE
+    } else {
+        if(identical(tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1),character(0))){
+            spincrash <- TRUE
+        } else {
+            spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
+        }
+    }
+    
     logfiles <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]
 
     dirName<-paste(inputLoc,"/LOG",sep="")
@@ -164,7 +188,7 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
                  
              }}
     
-    cleanupMuso(location=outputLoc)
+    #cleanupMuso(location=outputLoc)
 
     
     if(errorsign==1){

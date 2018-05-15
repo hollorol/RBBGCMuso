@@ -12,8 +12,9 @@ getthespecdata<-function(settings,colnumbers){
 }
 
 getdailyout<-function(settings){
-  binaryname<-paste(settings$inputLoc,settings$outputNames,".dayout",sep="")
+  binaryname<-paste0(settings$outputLoc,"/",settings$outputNames[2],".dayout")
   d<-file(binaryname,"rb")
+  ##leapyear is not implemented yet in this function
   dayoutput<-matrix(readBin(d,"double",size=8,n=(settings$numData[1])),(settings$numYears*365),byrow=TRUE)
   close(d) 
   return(dayoutput)

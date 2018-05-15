@@ -19,11 +19,11 @@
 #' @import utils
 #' @export
 
-calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binayPlace="./", fileToChange="epc"){
+calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binaryPlace="./", fileToChange="epc"){
 
 
 ##########################################################################
-###########################Set local variables########################
+###########################Set local variables and places########################
 ########################################################################
     
     Linuxp <-(Sys.info()[1]=="Linux")
@@ -37,6 +37,9 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     whereAmI<-getwd()
 
 
+    ## Set the working directory to the inputLoc temporarly.
+    setwd(inputLoc)
+    
 
 ##########################################################################
 ###########################Defining Functions########################
@@ -55,18 +58,20 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
 ##alma    
 
-    if(silent!=TRUE){
-        if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
-            warning("there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
+    ## if(silent!=TRUE){
+    ##     if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
+    ##         warning("there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
 
-        }
+    ##     }
         
-    }
+    ## }
     
-    if(aggressive==TRUE){
-        cleanupMuso(location=outputLoc,deep = TRUE)
-    }
+    ## if(aggressive==TRUE){
+    ##     cleanupMuso(location=outputLoc,deep = TRUE)
+    ## }
+
     
+
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
 
@@ -79,9 +84,6 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-
-    ## Set the working directory to the inputLoc temporary.
-    setwd(inputLoc)
 
 
     ##Run the model for the spinup run.
@@ -102,6 +104,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     
     
     logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
+    
     if(length(logspinup)==0){
         return("Modell Failure")#in that case the modell did not create even a logfile
     }
@@ -146,11 +149,13 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                "m"=(Reva<-getmonthlyout(settings)),
                "y"=(Reva<-getyearlyout(settings))
                )
+        
         if(keepBinary){
-            file.copy(grep("out$",list.files(outputLoc),value=TRUE)
+            file.copy(file.path(outputLoc,grep("out$",list.files(outputLoc),value=TRUE))
                     ,file.path(binaryPlace,paste0(stamp(binaryPlace),"-",grep("out$",list.files(outputLoc),value=TRUE))))
         }
     }
+
     
     logfiles <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
