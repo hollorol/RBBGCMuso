@@ -45,7 +45,7 @@ getOutFiles <- function(outputLoc, outputNames){
     return(grep("out$", grep(paste(paste0(outputNames, "*"), collapse = "|"), list.files(outputLoc), value=TRUE), value = TRUE))
 }
 
-#' getOutFiles
+#' stampAndCopy
 #'
 #'This function gives us the muso output files with their paths
 #'
@@ -54,9 +54,22 @@ getOutFiles <- function(outputLoc, outputNames){
 #'@return Output files with their paths
 #'@keywords internal
 
-stampAndCopyDir <- function(outputLoc,names,stampDir, stampnum=NULL){
-     if(!is.null(stampnum)){file.copy(file.path(outputLoc,names)
-                                    ,file.path(stampDir,paste0((stampnum+1),"-",possibleNames)))
-     } else{file.copy(file.path(outputLoc,names)
-                                    ,file.path(stampDir,paste0((stamp(stampDir)+1),"-",possibleNames)))}
+stampAndDir <- function(outputLoc,names,stampDir, wrongDir, type="output", errorsign){
+
+    switch(type,
+        "output" = (
+           file.copy(file.path(outputLoc,names)
+                            ,file.path(stampDir,paste0((stamp(stampDir)+1),"-",names))) ),
+        "epc" = (function (){
+            stampnum <- stamp(stampDir)
+            lapply(names,function (x) file.copy(from = x ,to=paste(stampDir,"/",(stampnum+1),"-", basename(x),sep="")))
+            if(errorsign==1){
+                lapply(names, function (x) file.copy(from = paste(stampDir,"/",(stampnum+1),"-",basename(x),sep=""), to=wrongDir))}})(),
+        "log" = (
+            file.rename(names
+                            ,file.path(stampDir,paste0((stamp(stampDir)+1),"-",basename(names))))
+        )
+    )
+
 }
+

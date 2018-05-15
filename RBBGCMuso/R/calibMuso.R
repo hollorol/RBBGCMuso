@@ -179,8 +179,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
         
         if(keepBinary){
             possibleNames <- getOutFiles(outputLoc = outputLoc,outputNames = outputNames)
-            file.copy(file.path(outputLoc,possibleNames)
-                     ,file.path(binaryPlace,paste0((stamp(binaryPlace)+1),"-",possibleNames)))
+            stampAndDir(outputLoc = outputLoc,names = possibleNames,stampDir=binaryPlace,type="output")
         }
     }
 
@@ -219,12 +218,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
             stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
 
-            ## epcfiles <- list.files(epcdir)[grep("epc$",list.files(
-            stampnum<-stamp(EPCS)
-            lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
-            if(errorsign==1){
-                lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
-            }
+            stampAndDir(stampDir=EPCS,wrongDir=WRONGEPC,names=epc,type="epc",errorsig=errorsign)
 
         }
     }
