@@ -44,8 +44,8 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
       
     if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
         #If log or ERROR directory does not exists create it!
-        dirName<-paste(inputLoc,"LOG",sep="") 
-        dirERROR<-paste(inputLoc,"ERROR",sep="")
+        dirName<-file.path(inputLoc,"LOG")
+        dirERROR<-file.path(inputLoc,"ERROR")
         
         if(!dir.exists(dirName)){
             dir.create(dirName)
@@ -55,6 +55,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
             dir.create(dirERROR)
         }
     }
+    
     if(keepEpc) {
         epcdir <- dirname(epc[1])
         print(epcdir)
@@ -218,53 +219,17 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
             stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
 
-            stampAndDir(stampDir=EPCS,wrongDir=WRONGEPC,names=epc,type="epc",errorsig=errorsign)
+            stampAndDir(stampDir=EPCS,wrongDir=WRONGEPC,names=epc,type="general",errorsign=errorsign,logfiles=logfiles)
 
         }
     }
     
 
 
-
-    if(debugging=="stamplog"){
-        stampnum<-stamp(dirName)
-        if(inputLoc==outputLoc){
-            lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
-            
-        } else {
-            lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
-        }
-        
-        if(errorsign==1){
-            lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",(stampnum+1),"-",x,sep=""), to=dirERROR  ))}
-
-    } else { if(debugging){
-                 if(is.null(logfilename)){
-
-                     if(inputLoc==outputLoc){
-                          lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName,"/", x, sep="")))
-                     } else {
-                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
-                     }
-
-                     if(errorsign==1){
-                         lapply( logfiles, function (x) file.copy(from=paste(dirName,"/", x, sep=""), to=dirERROR))
-                     }
-
-                 } else {
-
-                     if(inputLoc==outputLoc){#These are very ugly solutions for a string problem: inputLoc: "./", if outputLoc equalent of inputLoc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
-                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
-                     } else {
-                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
-                     }
-                     
-                     if(errorsign==1){
-                         lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
-                     }
-                 }    
-                 
-             }}
+    if(debugging==TRUE){
+                       logfiles <- file.path(outputLoc,logfiles)
+                       stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
+  
     
     #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
@@ -280,11 +245,11 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
 
 
-if(leapYear){
+    if(leapYear){
         Reva <- corrigMuso(settings,Reva)
-         rownames(Reva) <- musoDate(settings)
-     } else { 
-         rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+        rownames(Reva) <- musoDate(settings)
+    } else { 
+        rownames(Reva) <- musoDate(settings, corrigated=FALSE)
     }
 
 

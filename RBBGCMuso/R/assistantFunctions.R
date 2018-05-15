@@ -54,21 +54,18 @@ getOutFiles <- function(outputLoc, outputNames){
 #'@return Output files with their paths
 #'@keywords internal
 
-stampAndDir <- function(outputLoc,names,stampDir, wrongDir, type="output", errorsign){
+stampAndDir <- function(outputLoc,names,stampDir, wrongDir, type="output", errorsign, logfiles){
 
     switch(type,
         "output" = (
            file.copy(file.path(outputLoc,names)
                             ,file.path(stampDir,paste0((stamp(stampDir)+1),"-",names))) ),
-        "epc" = (function (){
+        "general" = (function (){
             stampnum <- stamp(stampDir)
             lapply(names,function (x) file.copy(from = x ,to=paste(stampDir,"/",(stampnum+1),"-", basename(x),sep="")))
             if(errorsign==1){
-                lapply(names, function (x) file.copy(from = paste(stampDir,"/",(stampnum+1),"-",basename(x),sep=""), to=wrongDir))}})(),
-        "log" = (
-            file.rename(names
-                            ,file.path(stampDir,paste0((stamp(stampDir)+1),"-",basename(names))))
-        )
+                lapply(names, function (x) file.copy(from = paste(stampDir,"/",(stampnum+1),"-",basename(x),sep=""), to=wrongDir))}})()
+
     )
 
 }

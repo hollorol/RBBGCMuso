@@ -305,3 +305,48 @@ getyearlyout<-function(settings){
             ## if(errorsign==1){
             ##     lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
             ## }
+
+
+        ## stampnum<-stamp(dirName)
+        ## if(inputLoc==outputLoc){
+        ##     lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+            
+        ## } else {
+        ##     lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+        ## }
+        
+        ## if(errorsign==1){
+        ##     lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",(stampnum+1),"-",x,sep=""), to=dirERROR  ))}
+
+    if(debugging=="stamplog"){
+
+        logfiles <- file.path(outputLoc,logfiles)
+        stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)
+        
+    } else { if(debugging){
+                 if(is.null(logfilename)){
+
+                     if(inputLoc==outputLoc){
+                          lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName,"/", x, sep="")))
+                     } else {
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
+                     }
+
+                     if(errorsign==1){
+                         lapply( logfiles, function (x) file.copy(from=paste(dirName,"/", x, sep=""), to=dirERROR))
+                     }
+
+                 } else {
+
+                     if(inputLoc==outputLoc){#These are very ugly solutions for a string problem: inputLoc: "./", if outputLoc equalent of inputLoc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
+                     } else {
+                         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
+                     }
+                     
+                     if(errorsign==1){
+                         lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
+                     }
+                 }    
+                 
+             }}
