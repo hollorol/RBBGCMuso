@@ -284,3 +284,15 @@ getyearlyout<-function(settings){
   close(d)
   return(yearoutput)
 }
+
+    ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
+##alma    
+
+    ## if(silent!=TRUE){
+    ##     if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
+    ##         warning("there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
+
+    ##     }
+        
+    ## }
+    

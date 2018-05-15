@@ -34,12 +34,41 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     iniInput <- settings$iniInput
     epc <- settings$epcInput
     calibrationPar <- settings$calibrationPar
+    binaryPlace <- normalizePath(binaryPlace)
     whereAmI<-getwd()
 
 
     ## Set the working directory to the inputLoc temporarly.
     setwd(inputLoc)
-    
+
+      
+    if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
+        #If log or ERROR directory does not exists create it!
+        dirName<-paste(inputLoc,"LOG",sep="") 
+        dirERROR<-paste(inputLoc,"ERROR",sep="")
+        
+        if(!dir.exists(dirName)){
+            dir.create(dirName)
+        }
+
+        if(!dir.exists(dirERROR)){
+            dir.create(dirERROR)
+        }
+    }
+    if(keepEpc) {
+        epcdir <- dirname(epc[1])
+        print(epcdir)
+        WRONGEPC<-file.path(inputLoc,"WRONGEPC")
+        EPCS<-file.path(inputLoc,"EPCS")
+        
+        if(!dir.exists(WRONGEPC)){
+            dir.create(WRONGEPC)
+        }
+        
+        if(!dir.exists(EPCS)){
+            dir.create(EPCS)
+        }
+    }   
 
 ##########################################################################
 ###########################Defining Functions########################
@@ -55,20 +84,10 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     
     
-    ##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory
-##alma    
 
-    ## if(silent!=TRUE){
-    ##     if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
-    ##         warning("there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")
-
-    ##     }
-        
-    ## }
-    
-    ## if(aggressive==TRUE){
-    ##     cleanupMuso(location=outputLoc,deep = TRUE)
-    ## }
+     if(aggressive==TRUE){
+         cleanupMuso(location=outputLoc,deep = TRUE)
+     }
 
     
 
@@ -76,8 +95,10 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     if(!is.null(parameters)){
 
         switch(fileToChange,
-               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
-               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
+               "epc"=tryCatch(changemulline(filename=epc[2],calibrationPar,parameters),
+                              error= function (e) {stop("Cannot change the epc file")}),
+               "ini"=tryCatch(changemulline(filename=iniInput[2],calibrationPar,parameters),
+                              error= function (e) {stop("Cannot change the ini file")}),
                "both"=(stop("This option is not implemented yet, please choose epc or ini"))
                )
     }
@@ -91,10 +112,12 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     if(silent){#silenc mode
         if(Linuxp){
             #In this case, in linux machines
-            system(paste(executable,iniInput[1],"> /dev/null",sep=" "))
+            tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
+                   error= function (e){stop("Cannot run the modell-check the executable!")})
         } else {
             #In windows machines there is a show.output.on.console option
-            system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE)
+            tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
+                     error= function (e){stop("Cannot run the modell-check the executable!")})
         }
         
     } else {
@@ -103,10 +126,16 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
     
     
-    logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
+    logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
+    ## logspinup <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
     
     if(length(logspinup)==0){
-        return("Modell Failure")#in that case the modell did not create even a logfile
+        if(keepEpc){
+            stampnum<-stamp(EPCS)
+            lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
+            lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
+        }
+        return("Modell Failure") #in that case the modell did not create even a logfile
     }
 
     if(length(logspinup)>1){
@@ -115,7 +144,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
         if(identical(tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1),character(0))){
             spincrash<-TRUE
         } else {
-            spincrash<-(tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
+            spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
         }
     }
     
@@ -132,32 +161,42 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
 
         if(silent){
             if(Linuxp){
-                system(paste(executable,iniInput[2],"> /dev/null",sep=" "))
+                tryCatch(system(paste(executable,iniInput[2],"> /dev/null",sep=" ")),
+                         error =function (e) {stop("Cannot run the modell-check the executable!")})
             } else {
-                system(paste(executable,iniInput[2],sep=" "),show.output.on.console = FALSE)
+                tryCatch(system(paste(executable,iniInput[2],sep=" "),show.output.on.console = FALSE),
+                        error =function (e) {stop("Cannot run the modell-check the executable!")} )
             }
             
         } else {
-            system(paste(executable,iniInput[2],sep=" "))
+            tryCatch(system(paste(executable,iniInput[2],sep=" ")),
+                     error =function (e) {stop("Cannot run the modell-check the executable!")})
         }
 
 
         ##read the output
-        
+         
         switch(timee,
-               "d"=(Reva<-getdailyout(settings)),
-               "m"=(Reva<-getmonthlyout(settings)),
-               "y"=(Reva<-getyearlyout(settings))
+               "d"=(Reva <- tryCatch(getdailyout(settings),
+               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
+               "m"=(Reva <- tryCatch(getmonthlyout(settings),
+               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
+               "y"=(Reva <- tryCatch(getyearlyout(settings),
+               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
                )
         
         if(keepBinary){
-            file.copy(file.path(outputLoc,grep("out$",list.files(outputLoc),value=TRUE))
-                    ,file.path(binaryPlace,paste0(stamp(binaryPlace),"-",grep("out$",list.files(outputLoc),value=TRUE))))
+            possibleNames <- grep("out$",grep(paste(paste0(outputNames,"*"), collapse = "|") ,list.files(outputLoc),value=TRUE),value = TRUE)
+            
+            print(stamp(binaryPlace))
+            file.copy(file.path(outputLoc,possibleNames)
+                     ,file.path(binaryPlace,paste0((stamp(binaryPlace)+1),"-",possibleNames)))
         }
     }
 
     
-    logfiles <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
+    logfiles <- grep(paste(paste0(outputNames,".log"), collapse = "|"), list.files(outputLoc),value = TRUE)
+    ## list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
 ###############################################    
 #############LOG SECTION#######################
@@ -167,21 +206,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     
     perror<-as.numeric(as.vector(lapply(paste(outputLoc,logfiles,sep="/"),function(x) tail(readLines(x,-1),1))))                                      #vector of spinup and normalrun error
     
-    
-    if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
-        #If log or ERROR directory does not exists create it!
-        dirName<-paste(inputLoc,"LOG",sep="") 
-        dirERROR<-paste(inputLoc,"ERROR",sep="")
-        
-        if(!dir.exists(dirName)){
-            dir.create(dirName)
-        }
-
-        if(!dir.exists(dirERROR)){
-            dir.create(dirERROR)
-        }
-    }
-
+  
     ##if errorsign is 1 there is error, if it is 0 everything ok
     perror[is.na(perror)]<-0
     if(length(perror)>sum(perror)){
@@ -198,29 +223,17 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     }
 
 
-    if(keepEpc){#if keepepc option tured on
-        
+    if(keepEpc){#if keepepc option turned on
+
         if(length(unique(dirname(epc)))>1){
             print("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
-            epcdir <- dirname(epc[1])
-            
-            WRONGEPC<-paste(inputLoc,"WRONGEPC",sep="")
-            EPCS<-paste(inputLoc,"EPCS",sep="")
-            
-            if(!dir.exists(WRONGEPC)){
-                dir.create(WRONGEPC)
-            }
 
-            if(!dir.exists(EPCS)){
-                dir.create(EPCS)
-            }
-            
-            epcfiles <- list.files(epcdir)[grep("epc$",list.files(epcdir))]
+            ## epcfiles <- list.files(epcdir)[grep("epc$",list.files(
             stampnum<-stamp(EPCS)
-            lapply(epcfiles,function (x) file.copy(from = paste(epcdir,"/",x,sep=""),to=paste(EPCS,"/",(stampnum+1),"-",x,sep="")))
+            lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
             if(errorsign==1){
-                lapply(epcfiles,function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",x,sep=""), to=WRONGEPC))
+                lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
             }
 
         }
@@ -269,7 +282,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
                  
              }}
     
-    cleanupMuso(location=outputLoc,deep = FALSE)
+    #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
         return("Modell Failure")
     }

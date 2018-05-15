@@ -214,7 +214,7 @@ setupMuso <- function(executable=NULL,
     
     inputFiles<-c(iniInput,epcInput,metInput)
     numData<-rep(NA,3)
-    numYears <-  as.numeric(unlist(strsplit(grep("simulation years",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
+    numYears <-  as.numeric(unlist(strsplit(grep("simulation years",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])gfrurgc dhxv
     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
     numValues <-  as.numeric(unlist(strsplit(grep("number of daily output variables",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
     ## numValues will be replaced to numVar
@@ -230,8 +230,9 @@ setupMuso <- function(executable=NULL,
     writeLines(iniFiles[[1]],iniInput[1])
     writeLines(iniFiles[[2]],iniInput[2])
 
-    suppressWarnings(file.remove(file.path(outputLoc,outputNames[1])))
-    suppressWarnings(file.remove(file.path(outputLoc,outputNames[2])))
+    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputNames[1]),".log")))
+    ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
+    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputNames[2]),".log")))
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,
