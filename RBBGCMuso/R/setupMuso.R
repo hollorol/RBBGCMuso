@@ -230,9 +230,9 @@ setupMuso <- function(executable=NULL,
     writeLines(iniFiles[[1]],iniInput[1])
     writeLines(iniFiles[[2]],iniInput[2])
 
-    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputNames[1]),".log")))
+    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[1]),".log")))
     ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
-    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputNames[2]),".log")))
+    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,

@@ -30,6 +30,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
     ##Copy the variables from settings
     inputLoc <- settings$inputLoc
     outputLoc <- settings$outputLoc
+    outputNames <- settings$outputNames
     executable <- settings$executable
     iniInput <- settings$iniInput
     epc <- settings$epcInput
@@ -219,7 +220,7 @@ calibMuso <- function(settings,parameters=NULL, timee="d", debugging=FALSE, logf
             stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
 
-            stampAndDir(stampDir=EPCS,wrongDir=WRONGEPC,names=epc,type="general",errorsign=errorsign,logfiles=logfiles)
+            stampAndDir(stampDir=EPCS, wrongDir=WRONGEPC, names=epc, type="general", errorsign=errorsign, logfiles=logfiles)
 
         }
     }

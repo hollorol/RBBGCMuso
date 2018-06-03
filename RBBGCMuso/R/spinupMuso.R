@@ -25,6 +25,7 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     ##Copy the variables from settings
     inputLoc <- settings$inputLoc
     outputLoc <- settings$outputLoc
+    outputNames <- settings$outputNames
     executable <- settings$executable
     iniInput <- settings$iniInput
     epc <- settings$epcInput
@@ -52,8 +53,10 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     ##     changemulline(filename=epc[1], calibrationPar, parameters)}
     if(!is.null(parameters)){
         switch(fileToChange,
-               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)),
-               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
+               "epc"=tryCatch(changemulline(filename=epc[2],calibrationPar,parameters),
+                              error = function (e) {stop("Cannot change the epc file")}),
+               "ini"=tryCatch(changemulline(filename=iniInput[2],calibrationPar,parameters),
+                              error = function (e) {stop("Cannot change the ini file")}),
                "both"=(stop("This option is not implemented yet, please choose epc or ini"))
                )
     }
@@ -64,18 +67,17 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
     setwd(inputLoc)
     ##Run the spinup
 
-
-
+    
     if(silent){#silenc mode
         if(Linuxp){
             #In this case, in linux machines
-            system(paste(executable,iniInput[1],"> /dev/null",sep=" "))
+            tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
+                   error= function (e){stop("Cannot run the modell-check the executable!")})
         } else {
             #In windows machines there is a show.output.on.console option
-            system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE)}        
-    } else {
-        system(paste(executable,iniInput[1],sep=" "))}
-
+            tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
+                     error= function (e){stop("Cannot run the modell-check the executable!")})
+        }}
 ###############################################
 #############LOG SECTION#######################
 ###############################################
@@ -197,4 +199,3 @@ spinupMuso <- function(settings, parameters=NULL, debugging=FALSE, logfilename=N
 
     
 }
-

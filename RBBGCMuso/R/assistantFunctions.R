@@ -12,7 +12,7 @@ getLogs <- function(outputLoc, outputNames, type = "spinup"){
     switch(type,
            "spinup" = return(grep(paste0(outputNames[1], ".log"), list.files(outputLoc), value = TRUE)),
            "normal" = return(grep(paste0(outputNames[2], ".log"), list.files(outputLoc), value = TRUE)),
-           "both" = return(grep(paste0(outputNames[2], ".log"), list.files(outputLoc), value = TRUE)))
+           "both" = return(sapply(1:2, function (x){grep(paste0(outputNames[x], ".log"), list.files(outputLoc), value = TRUE)})))
 }
 
 

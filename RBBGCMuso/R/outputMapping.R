@@ -37,6 +37,17 @@ musoMapping <- function(code, mapData=NULL){
     }
 }
 
+
+#' musoMappingFind
+#'
+#' musoMapping can give us the name of a muso outputcode
+#' @author Roland Hollos
+#' @param variable If null return the whole mapping, else search a variable code
+#' @return The code of th specific name
+#' @export
+#' @usage musoMapping(code, mapData=NULL)
+
+
 musoMappingFind <- function(variable=NULL){
     if(is.null(variable)){
         return(mMapping)
