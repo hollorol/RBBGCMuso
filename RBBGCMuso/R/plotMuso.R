@@ -22,8 +22,8 @@
 #' @import graphics
 #' @export
 
-plotMuso <- function(settings,
-                     variable,
+plotMuso <- function(settings=NULL,
+                     variable=1,
                      ##compare,
                      ##plotname,
                      timee="d",
@@ -35,6 +35,10 @@ plotMuso <- function(settings,
                      leapYear=FALSE,
                      export=FALSE){
 
+
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
     
     musoData <- rungetMuso(settings=settings,
                            silent=silent,

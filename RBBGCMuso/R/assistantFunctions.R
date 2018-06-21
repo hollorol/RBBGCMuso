@@ -26,8 +26,24 @@ getLogs <- function(outputLoc, outputNames, type = "spinup"){
 #'@keywords internal
 
 
-readErrors <- function(outputLoc, logfiles){
-    return(as.numeric(as.vector(lapply(paste(outputLoc,logfiles,sep = "/"),function(x) tail(readLines(x,-1),1)))) )
+readErrors <- function(outputLoc, logfiles, type = "both"){
+    switch( type,
+           "both" = return(
+               as.numeric(
+                   as.vector(
+                       lapply(paste(outputLoc,logfiles,sep = "/"),
+                              function(x) {
+                                  tail(readLines(x,-1),1) 
+                              }
+                              )
+                   )
+               )
+           ),
+           "spinup" = print("spinup"),
+           "normal" = return(
+               abs(as.numeric(tail(readLines(file.path(outputLoc,logfiles),-1),1))-1)
+           )
+           )
 }
 
 #' getOutFiles

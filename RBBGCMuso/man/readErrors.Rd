@@ -4,7 +4,7 @@
 \alias{readErrors}
 \title{readErrors}
 \usage{
-readErrors(outputLoc, logfiles)
+readErrors(outputLoc, logfiles, type = "both")
 }
 \arguments{
 \item{outputLoc}{This is the location of the output files.}

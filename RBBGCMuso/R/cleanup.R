@@ -16,10 +16,10 @@ cleanupMuso <- function(location=NULL, simplicity=TRUE,deep=FALSE){
         location<-"./"
     }
 
-    logDir<-file.path2(location,"LOG")
-    errDir<-file.path2(location,"ERROR")
-    epcDir<-file.path2(location,"EPCS")
-    wroDir<-file.path2(location,"WRONGEPC")
+    logDir<-file.path(location,"LOG")
+    errDir<-file.path(location,"ERROR")
+    epcDir<-file.path(location,"EPCS")
+    wroDir<-file.path(location,"WRONGEPC")
 
     if(deep){
 

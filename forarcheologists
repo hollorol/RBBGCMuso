@@ -350,3 +350,97 @@ getyearlyout<-function(settings){
                  }    
                  
              }}
+##Sometimes a bug occure due to logfiles and controlfiles in the input loc directory- NOT ANYMORE! :)
+    
+    ## if(silent!=TRUE){
+    ##     if(length(grep("(dayout$)|(log$)",list.files(inputLoc)))>0){    
+    ##         warning(" \n \n WARMING: there is a log or dayout file nearby the ini files, that may cause problemes. \n \n If you want to avoid that possible problemes, please copy the log or dayout files into a save place, and after do a cleanupMuso(), or delete these manually, or run the rungetMuso(), with the agressive=TRUE parameter \n \n")}}
+    
+    ##With the aggressive option every unneeded file will deleted
+
+
+  
+    ##change the epc file if and only if there are given parameters
+    ## if(!is.null(parameters)){
+    ##     changemulline(filename=epc[1], calibrationPar, parameters)}
+ ##   logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]
+    ## spincrash<-tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)==0
+
+ # logspinup<-list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
+    
+    ## logfiles <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]
+
+  ## if(keepEpc){#if keepepc option tured on
+        
+    ##     if(length(unique(dirname(epc)))>1){
+    ##         print("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
+    ##     } else {
+    ##         epcdir <- dirname(epc[1])
+            
+    ##         WRONGEPC<-paste(inputLoc,"WRONGEPC",sep="")
+    ##         EPCS<-paste(inputLoc,"EPCS",sep="")
+            
+    ##         if(!dir.exists(WRONGEPC)){
+    ##             dir.create(WRONGEPC)
+    ##         }
+
+    ##         if(!dir.exists(EPCS)){
+    ##             dir.create(EPCS)
+    ##         }
+            
+    ##         epcfiles <- list.files(epcdir)[grep("epc$",list.files(epcdir))]
+    ##         stampnum<-stamp(EPCS)
+    ##         lapply(epcfiles,function (x) file.copy(from = paste(epcdir,"/",x,sep=""),to=paste(EPCS,"/",(stampnum+1),"-",x,sep="")))
+    ##         if(errorsign==1){
+    ##             lapply(epcfiles,function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",x,sep=""), to=WRONGEPC))
+    ##         }
+
+    ##     }
+    ## }
+    
+
+
+
+
+    ## if(debugging=="stamplog"){
+    ##     stampnum<-stamp(dirName)
+    ##     if(inputLoc==outputLoc){
+    ##         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+            
+    ##     } else {
+    ##         lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
+    ##     }
+        
+    ##     if(errorsign==1){
+    ##         lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",(stampnum+1),"-",x,sep=""), to=dirERROR  ))}
+
+    ## } else { if(debugging){
+    ##              if(is.null(logfilename)){
+
+    ##                  if(inputLoc==outputLoc){
+    ##                       lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName,"/", x, sep="")))
+    ##                  } else {
+    ##                      lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName,"/", x, sep="")))     
+    ##                  }
+
+    ##                  if(errorsign==1){
+    ##                      lapply( logfiles, function (x) file.rename(from=paste(dirName,"/", x, sep=""), to=dirERROR))
+    ##                  }
+
+    ##              } else {
+
+    ##                  if(inputLoc==outputLoc){#These are very ugly solutions for a string problem: inputLoc: "./", if outputLoc equalent of inputLoc, it ends with "/", the string manipulation can not handle this. The better solution is easy, but I dont have enough time(Roland Hollo's) 
+    ##                      lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))                        
+    ##                  } else {
+    ##                      lapply( logfiles, function (x) file.rename(from=paste(outputLoc,x, sep="/"), to=paste(dirName, "/",logfilename,"-",x,sep="")))    
+    ##                  }
+                     
+    ##                  if(errorsign==1){
+    ##                      lapply( logfiles, function (x) file.rename(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
+    ##                  }
+    ##              }    
+                 
+    ##          }}
+    
+    #cleanupMuso(location=outputLoc)
+
