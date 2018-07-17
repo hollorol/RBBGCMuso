@@ -11,10 +11,12 @@
 #' @param outputType  This parameter can be "oneCsv", "moreCsv", and "netCDF". If "oneCsv" is choosen the function create 1 big csv file for all of the runs, if "moreCsv" is choosen, every modell output goes to separate files, if netCDF is selected the outputs will be put in a netCDF file. The default value of the outputTypes is "moreCsv". netCDF is not implemented yet. 
 #' @param fun If you select a variable from the possible outputs (with specify the varIndex parameter), you have to provide a function which maps to a subset of real numbers. The most frequent possibilities are: mean, min, max, var, but you can define any function for your need.
 #' @param varIndex This parameter specify which parameter of the output will be used. You can extract this information from the ini-files. At the output parameter specifications, the parameters order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926, you should address varIndex with 3.
+#' @param debugging If you set this parameter, you can save every logfile, and RBBGCMuso will select those which contains errors.
+#' @param keepEpc if you set keepEpc also true, it will save every selected epc file, and put the wrong ones in the WRONGEPC directory.
 #' @export
 
 musoMonte <- function(settings=NULL,
-                     parameters,
+                     parameters=NULL,
                      inputDir = "./",
                      outLoc = "./calib",
                      iterations = 10,
@@ -23,7 +25,21 @@ musoMonte <- function(settings=NULL,
                      fun=mean,
                      varIndex = 1,
                      silent = TRUE,
+                     skipSpinup = FALSE,
+                     debugging = FALSE,
+                     keepEpc = FALSE,
                      ...){
+
+    if(is.null(parameters)){
+        parameters <- tryCatch(read.csv("parameters.csv"), error = function (e) {
+            stop("You need to specify a path for the parameters.csv, or a matrix.")
+        })
+    } else {
+        if((!is.list(parameters)) & (!is.matrix(parameters))){
+             parameters <- tryCatch(read.csv(parameters), error = function (e){
+                                         stop("Cannot find neither parameters file neither the parameters matrix")
+                                     })
+        }}
     
     outLocPlain <- basename(outLoc)
     currDir <- getwd()
@@ -42,9 +58,9 @@ musoMonte <- function(settings=NULL,
     outLoc <- normalizePath(outLoc)
     tmp <- normalizePath(tmp)
 
-    inputFiles <- file.path(inputDir,grep(basename(outLoc),list.files(inputDir),invert = TRUE,value = TRUE)) 
+    inputFiles <- file.path(inputDir,grep(basename(outLoc),list.files(inputDir),invert = TRUE,value = TRUE))
 
-    
+ 
     for(i in inputFiles){
         file.copy(i,tmp)
     }
@@ -91,10 +107,31 @@ musoMonte <- function(settings=NULL,
     
     ## Creating function for generating separate
     ## csv files for each run
+
     progBar <- txtProgressBar(1,iterations,style=3)
+
+    modelRun <- function(settings, debugging, parameters, keepEpc, silent, skipSpinup){
+        if(!skipSpinup){
+            calibMuso(settings, debugging = debugging, parameters = parameters, keepEpc = keepEpc, silent = silent)        
+        } else {
+            normalMuso(settings, debugging = debugging, parameters = parameters, keepEpc = keepEpc, silent = silent)
+        } 
+        
+    }
+    
     moreCsv <- function(){
+
+        if(skipSpinup){#skipSpinup is boolean
+            spinupMuso(settings = settings , silent = silent)
+        }
         a <- numeric(iterations+1)
-        tempData <- calibMuso(settings, debugging = "stamplog", parameters = origEpc,keepEpc = TRUE,silent = silent)
+        tempData <- modelRun(settings=settings,
+                             debugging = debugging,
+                             parameters = origEpc,
+                             keepEpc = keepEpc,
+                             silent = silent,
+                             skipSpinup = skipSpinup)
+        ## tempData <- calibMuso(settings, debugging = "stamplog", parameters = origEpc,keepEpc = TRUE,silent = silent)
         a[1] <- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})
         preservedEpc[1,(npar+1)] <- a[1]
         write.table(t(preservedEpc[1,]),row.names = FALSE,"preservedEpc.csv",sep=",")
@@ -103,10 +140,12 @@ musoMonte <- function(settings=NULL,
             parVar <- musoRandomizer(A,B)[,2]
             preservedEpc[(i+1),] <- c(parVar,NA)
             exportName <- paste0(preTag,(i+1),".csv")
-            tempData <- calibMuso(settings,debugging = "stamplog",
+            tempData <- modelRun(settings = settings,
+                                 debugging = debugging,
                                  parameters = parVar,
-                                 keepEpc = TRUE,
-                                 silent=silent)
+                                 keepEpc = keepEpc,
+                                 silent=silent,
+                                 skipSpinup =skipSpinup)
             write.csv(x=tempData,file=exportName)
             
             preservedEpc[(i+1),(npar+1)] <- a[i+1]<- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})

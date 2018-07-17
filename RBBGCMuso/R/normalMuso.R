@@ -30,9 +30,9 @@ normalMuso<- function(settings=NULL,parameters=NULL,timee="d",debugging=FALSE,lo
 ########################################################################
 
     if(is.null(settings)){
-        settings <- setupMuso()
+        settings <- setupMuso() #( :INSIDE: setupMuso.R)
     }
-    
+        # The software works on Linux or Windows, Mac is not implemented yet, so with this simple dichotomy we can determine wich syste is running
     Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
     inputLoc <- settings$inputLoc
@@ -42,28 +42,65 @@ normalMuso<- function(settings=NULL,parameters=NULL,timee="d",debugging=FALSE,lo
     iniInput <- settings$iniInput
     epc <- settings$epcInput
     calibrationPar <- settings$calibrationPar
+    
+    ## We want to minimize the number of sideeffects so we store the state to restore in the end.
     whereAmI<-getwd()
 
+    
+    ## Optionally the user may want to store the original binary file. At default we set it to the output location. 
+    
     if(is.null(binaryPlace)){
         binaryPlace <- outputLoc
     }
 
+    ## Now we create a directories for the debugging files if these are not exists, and if debugging or keepEpc options are set to true. 
 
+        if(debugging){ #debugging is boolean, so we dont write debugging == TRUE for the sake of faster model run
+        #If log or ERROR directory does not exists create it!
+        dirName<-file.path(inputLoc,"LOG")
+        dirERROR<-file.path(inputLoc,"ERROR")
+        
+        if(!dir.exists(dirName)){
+            dir.create(dirName)
+        }
+
+        if(!dir.exists(dirERROR)){
+            dir.create(dirERROR)
+        }
+    }
+    
+    if(keepEpc) {#keepEpc is boolean
+        epcdir <- dirname(epc[1])
+        print(epcdir)
+        WRONGEPC<-file.path(inputLoc,"WRONGEPC")
+        EPCS<-file.path(inputLoc,"EPCS")
+        
+        if(!dir.exists(WRONGEPC)){
+            dir.create(WRONGEPC)
+        }
+        
+        if(!dir.exists(EPCS)){
+            dir.create(EPCS)
+        }
+    }
     
 
 
-        if(!is.null(parameters)){
-
+    
+    
+    if(!is.null(parameters)){
         switch(fileToChange,
-               "epc"=(changemulline(filename=epc[2],calibrationPar,parameters)), #(:TODO: trycatch /p4/)
-               "ini"=(changemulline(filename=iniInput[2],calibrationPar,parameters)),
-               "both"=(stop("This option is not implemented yet, please choose epc or ini"))
+               "epc" = tryCatch(changemulline(filename = epc[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
+                                error = function (e) {stop("Cannot change the epc file")}),
+               "ini" = tryCatch(changemulline(filename = iniInput[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
+                                error = function (e) {stop("Cannot change the ini file")}),
+               "both" = (stop("This option is not implemented yet, please choose epc or ini"))
                )
     }
 
 
 
-    setwd(inputLoc)
+   
                                         #normal run
 
     ## if(silent){
@@ -104,65 +141,53 @@ normalMuso<- function(settings=NULL,parameters=NULL,timee="d",debugging=FALSE,lo
 
 
         ##read the output
-         
-        switch(timee,
-               "d"=(Reva <- tryCatch(getdailyout(settings),
-               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "m"=(Reva <- tryCatch(getmonthlyout(settings),
-               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "y"=(Reva <- tryCatch(getyearlyout(settings),
-               error = function (e) {stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
+
+            switch(timee,
+               "d"=(Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R ) 
+                                    error = function (e){
+                                        setwd((whereAmI))
+                                        stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
+               "m"=(Reva <- tryCatch(getmonthlyout(settings), #(:INSIDE: getOutput.R )
+                                    error = function (e){
+                                        setwd((whereAmI))
+                                        stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
+               "y"=(Reva <- tryCatch(getyearlyout(settings), #(:INSIDE: getOutput.R )
+                                    error = function (e){
+                                        setwd((whereAmI))
+                                        stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
                )
-        
+
+
+
         if(keepBinary){
-            possibleNames <- getOutFiles(outputLoc = outputLoc,outputNames = outputNames)
-            stampAndDir(outputLoc = outputLoc,names = possibleNames,stampDir=binaryPlace,type="output")
+            possibleNames <- getOutFiles(outputLoc = outputLoc,outputNames = outputNames) #(:INSIDE: assistantFunctions.R)
+            stampAndDir(outputLoc = outputLoc,names = possibleNames,stampDir=binaryPlace,type="output") #(:INSIDE: assistantFunctions.R)
         }
     
 
 
-    logfiles <- getLogs(outputLoc,outputNames,type = "normal")
+    logfiles <- getLogs(outputLoc,outputNames,type = "normal") #(:INSIDE: assistantFunctions.R)
+    
 
 #############LOG SECTION#######################
-    errorsign <- readErrors(outputLoc = outputLoc,logfiles = logfiles,type="normal")
-    dirName<-paste(inputloc,"/LOG",sep="")
-    dirERROR<-paste(inputloc,"/ERROR",sep="")
-    ERROR_EPC<-paste(inputloc,"/ERROR_EPC",sep="")
+    errorsign <- readErrors(outputLoc = outputLoc,logfiles = logfiles,type="normal") #(:INSIDE: assistantFunctions.R)
 
-    if(!dir.exists(dirName)){
-        dir.create(dirName)
+    if(keepEpc){#if keepepc option turned on
+
+        if(length(unique(dirname(epc)))>1){
+            stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
+        } else {
+
+            stampAndDir(stampDir=EPCS, wrongDir=WRONGEPC, names=epc[2], type="general", errorsign=errorsign, logfiles=logfiles)
+
+        }
     }
+        
 
-    if(!dir.exists(dirERROR)){
-        dir.create(dirERROR)
-    }
-
-
-
-
-    if(debugging=="stamplog"){
-        stampnum<-stamp(dirName)
-        lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName, "/",(stampnum+1),"-",x,sep="")))
-        if(errorsign==1){
-            lapply( logfiles, function (x) file.copy(from=paste(dirName, "/",(stampnum+1),"-",x,sep=""), to=dirERROR  ))}
-
-    } else { if(debugging){
-                 if(is.null(logfilename)){
-                     lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName,"/", x, sep="")))
-                     if(errorsign==1){
-                         lapply( logfiles, function (x) file.rename(from=paste(dirName,"/", x, sep=""), to=dirERROR))
-                     }
-
-                 } else {
-                     lapply( logfiles, function (x) file.rename(from=paste(inputloc,x, sep=""), to=paste(dirName, "/",logfilename,"-",x,sep="")))
-                     if(errorsign==1){
-                         lapply( logfiles, function (x) file.rename(from=paste(dirName, "/",logfilename,"-",x,sep=""), to=dirERROR))
-                     }
-                 }    
-                 
-             }}
-
-
+    
+        if(debugging){ #debugging is boolean
+                       logfiles <- file.path(outputLoc,logfiles)
+                       stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
     cleanupMuso()
     if(errorsign==1){
         return("Modell Failure")

@@ -1,7 +1,7 @@
-#' musoSensi
+#' musoGlue
 #'
-#' This function does regression based sensitivity analysis based on the output of musoMonte. 
-#' @author Roland Hollos
+#' This ...
+#' #' @author Roland Hollos
 #' @param monteCarloFile If you run musoMonte function previously, you did not have to rerun the monteCarlo, just provide the preservedEpc.csv file with its path. If you do not set this parameter, musoSensi will fun the musoMonte function to get all of the information.
 #' @param outputFile The filename in which the output of musoSensi function will be saved. It's default value is: "sensitivity.csv"
 #' @param plotName The name of the output barplot. It's default value is: "sensitivity.jpg"
@@ -21,7 +21,7 @@
 #' @import ggplot2
 #' @export
 
-musoSensi <- function(monteCarloFile = NULL,
+musoGLUE <- function(monteCarloFile = NULL,
                      parameters = NULL,
                      settings = NULL,
                      inputDir = "./",
@@ -37,68 +37,21 @@ musoSensi <- function(monteCarloFile = NULL,
                      skipSpinup = FALSE,
                      dpi=300){
 
-    if(is.null(parameters)){
-        parameters <- tryCatch(read.csv("parameters.csv"), error = function (e) {
-            stop("You need to specify a path for the parameters.csv, or a matrix.")
-        })
-    } else {
-        if((!is.list(parameters)) & (!is.matrix(parameters))){
-             parameters <- tryCatch(read.csv(parameters), error = function (e){
-                                         stop("Cannot find neither parameters file neither the parameters matrix")
-                                     })
-        }}
 
-    doSensi <- function(M){
-        npar <- ncol(M)-1
-        M <- M[which(!is.na(M[,"y"])),]
-        y <- M[,(npar+1)]
-        M <- M[,colnames(M) %in% parameters[,1]]
-        npar <- ncol(M)
-        M <- apply(M[,1:npar],2,function(x){x-mean(x)})
-        varNames<- colnames(M)[1:npar]
-        w <- lm(y~M)$coefficients[-1]
-        Sv <- apply(M,2,var)
-        overalVar <- sum(Sv*w^2)
-        S=numeric(npar)
-        
-        for(i in 1:npar){
-            S[i] <- ((w[i]^2*Sv[i])/(overalVar))*100
-        }
-        
-        S <- round(S,digits=2)
-        names(S)<-varNames
-        write.csv(file = outputFile, x = S)
-
-        sensiPlot <- ggplot(data.frame(name=varNames,y=S/100),aes(x=name,y=y))+
-            geom_bar(stat = 'identity')+
-            theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-            xlab(NULL)+
-            ylab(NULL)+
-            ggtitle("Sensitivity")+
-            scale_y_continuous(labels = scales::percent,limits=c(0,1))
-        print(sensiPlot)
-        ggsave(plotName,dpi=dpi)
-        return(S)
+    rmse <- function(modelled, measured){
+        (modelled-measured) %>%
+            (function(x) {x*x}) %>% # It is more clear than `^`(.,2) form, even it is longer
+            sum %>%
+            sqrt
     }
 
     
 
-    if(is.null(monteCarloFile)){
-        M <- musoMonte(parameters = parameters,
-                      settings = settings,
-                      inputDir = inputDir,
-                      outLoc = outLoc,
-                      iterations = iterations,
-                      preTag = preTag,
-                      outputType = outputType,
-                      fun = fun,
-                      varIndex = varIndex,
-                      skipSpinup = skipSpinup
-                      )
-        return(doSensi(M))
-        
-    } else {
-        M <- read.csv(monteCarloFile)
-        return(doSensi(M))        
-    }
+                     
+
+
+
+
+
+
 }

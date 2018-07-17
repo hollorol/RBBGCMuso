@@ -49,7 +49,7 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
     setwd(inputLoc)
 
       
-    if((debugging=="stamplog")|(debugging==TRUE)){#If debugging option turned on
+    if(debugging){#If debugging option turned on
         #If log or ERROR directory does not exists create it!
         dirName<-file.path(inputLoc,"LOG")
         dirERROR<-file.path(inputLoc,"ERROR")
@@ -194,15 +194,15 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
         ##read the output
          
         switch(timee,
-               "d"=(Reva <- tryCatch(getdailyout(settings),
+               "d"=(Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "m"=(Reva <- tryCatch(getmonthlyout(settings),
+               "m"=(Reva <- tryCatch(getmonthlyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "y"=(Reva <- tryCatch(getyearlyout(settings),
+               "y"=(Reva <- tryCatch(getyearlyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
@@ -221,7 +221,7 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
     logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="both"),
                         error = function (e){
                             setwd(whereAmI)
-                            "Cannot find log files, something went wrong"})
+                            stop("Cannot find log files, something went wrong")})
     ## list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
 ###############################################    
@@ -262,7 +262,7 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
     
 
 
-    if(debugging==TRUE){
+    if(debugging){ #debugging is boolean
                        logfiles <- file.path(outputLoc,logfiles)
                        stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
   

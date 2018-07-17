@@ -22,11 +22,12 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
 ########################################################################
 
     if(is.null(settings)){
-        settings <- setupMuso()
+        settings <- setupMuso() #(:INSIDE: setupMuso.R)
+        
     }
-    
+    # The software works on Linux or Windows, Mac is not implemented yet, so with this simple dichotomy we can determine wich system is running
     Linuxp <-(Sys.info()[1]=="Linux")
-    ##Copy the variables from settings
+    ##Copy the variables from settings for the sake of easy
     inputLoc <- settings$inputLoc
     outputLoc <- settings$outputLoc
     outputNames <- settings$outputNames
@@ -34,32 +35,36 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     iniInput <- settings$iniInput
     epc <- settings$epcInput
     calibrationPar <- settings$calibrationPar
+
+    ## We want to minimize the number of sideeffects so we store the state to restore in the end.
     whereAmI<-getwd()
 
 
 #############################################################
 ############################spinup run############################
 ########################################################## 
-    
-    if(aggressive==TRUE){
-        cleanupMuso(location=outputLoc,deep=TRUE)}
 
+    ## obsolete feature, but there can be cases in wich this option is helpfull
+    if(aggressive==TRUE){
+        cleanupMuso(location=outputLoc,deep=TRUE)} #(:INSIDE: cleanup.R)
+
+    ## If parameters given, use changemulline, else leave this steps
+    
      if(!is.null(parameters)){
         switch(fileToChange,
-               "epc"=tryCatch(changemulline(filename=epc[2],calibrationPar,parameters),
+               "epc" = tryCatch(changemulline(filename = epc[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
                               error = function (e) {stop("Cannot change the epc file")}),
-               "ini"=tryCatch(changemulline(filename=iniInput[2],calibrationPar,parameters),
+               "ini" = tryCatch(changemulline(filename = iniInput[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
                               error = function (e) {stop("Cannot change the ini file")}),
-               "both"=(stop("This option is not implemented yet, please choose epc or ini"))
+               "both" = (stop("This option is not implemented yet, please choose epc or ini"))
                )
     }
-
-    ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
     ## Set the working directory to the inputLoc temporary.
     setwd(inputLoc)
-    ##Run the spinup
 
+    
+    ##Run the spinup modell
     
     if(silent){#silenc mode
         if(Linuxp){
@@ -76,7 +81,8 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
 ###############################################
 #############LOG SECTION#######################
 ###############################################
-      logspinup <- getLogs(outputLoc,outputNames,type="spinup")
+    
+      logspinup <- getLogs(outputLoc,outputNames,type="spinup") #(:INSIDE: assistantFunctions.R)
  
   if(length(logspinup)==0){
         if(keepEpc){
@@ -101,7 +107,7 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     }
 
     dirName<-normalizePath(paste(inputLoc,"/LOG",sep=""))
-    dirERROR<-paste(inputLoc,"/ERROR",sep="")
+    dirERROR<-paste0(inputLoc,"/ERROR")
     
     if(!dir.exists(dirName)){
         dir.create(dirName)}
@@ -117,7 +123,7 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
 
 
     if(debugging==TRUE){
-        stampAndDir(outputLoc=outputLoc,stampDir=dirName, names=logspinup, type="output")
+        stampAndDir(outputLoc=outputLoc,stampDir=dirName, names=logspinup, type="output") #(:INSIDE: assistantFunctions.R)
     }
 
     

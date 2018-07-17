@@ -121,7 +121,6 @@ setupMuso <- function(executable=NULL,
     names(iniFiles) <- c("spinup","normal")
 
 
-
     
     inputs <- lapply(1:nrow(grepHelper), function (x) {
 
@@ -149,14 +148,17 @@ setupMuso <- function(executable=NULL,
     
     if(is.null(mapData)){
         
-        c<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
-        dailyVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
+        outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
+        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
+        dailyVarCodes<-tryCatch(iniFiles[[2]][(outIndex+1):(outIndex+numVar)],
+                                error = function(e){
+        stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
+        })
         dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
 
-        c<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
-        annualVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
+        outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
+        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
+        annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
         annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
         outputVars<-list(dailyVarnames,annualVarnames)} else {
 
