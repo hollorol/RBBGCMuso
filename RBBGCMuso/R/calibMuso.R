@@ -283,9 +283,9 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
 
     if(leapYear){
         Reva <- corrigMuso(settings,Reva)
-        rownames(Reva) <- musoDate(settings)
+        rownames(Reva) <- musoDate(settings$startYear,settings$numYears)
     } else { 
-        rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+        rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)
     }
 
 

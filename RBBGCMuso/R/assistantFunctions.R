@@ -86,3 +86,12 @@ stampAndDir <- function(outputLoc,names,stampDir, wrongDir, type="output", error
 
 }
 
+
+
+compareNA <- function(v,a){
+    compared<- (v==a)
+    compared[is.na(compared)] <- FALSE
+    return(compared)
+}
+
+

@@ -221,8 +221,8 @@ setupMuso <- function(executable=NULL,
     numValues <-  as.numeric(unlist(strsplit(grep("number of daily output variables",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
     ## numValues will be replaced to numVar
     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
-    startyear <- as.numeric(unlist(strsplit(grep("first simulation year",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
-    numData[1] <- numValues * sumDaysOfPeriod(startyear,numYears,corrigated=leapYear)
+    startYear <- as.numeric(unlist(strsplit(grep("first simulation year",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
+    numData[1] <- numValues * sumDaysOfPeriod(startYear,numYears,corrigated=leapYear)
         
     numData[2] <- numYears * numValues*12
     numData[3] <- numYears * numValues
@@ -255,7 +255,7 @@ setupMuso <- function(executable=NULL,
                     nitInput=inputs$nitInput,
                     inputFiles=inputFiles,
                     numData=numData,
-                    startyear=startyear,
+                    startYear=startYear,
                     numYears=numYears,
                     outputVars=outputVars
                     )

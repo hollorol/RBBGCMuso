@@ -116,16 +116,16 @@ musoLeapYears <- function(settings){
 #' @return The exact date-vectors for the BioBGC-MuSo output. You can use this for labelling purpose for example. 
 #' @export
 
-musoDate <- function(settings,timestep="d",combined=TRUE, corrigated=TRUE, format="en"){
+musoDate <- function(startYear, numYears, timestep="d", combined=TRUE, corrigated=TRUE, format="en"){
     ##purpose: generate date label for muso
 
     
 
     
-    days <- sumDaysOfPeriod(settings$startyear,settings$numYears, corrigated=corrigated)
+    days <- sumDaysOfPeriod(startYear, numYears, corrigated=corrigated)
     dates <- matrix(rep(NA,days*3),ncol=3)
 
-        dates[1,] <- c(1,1,settings$startyear)    
+        dates[1,] <- c(1,1,startYear)    
         for(i in 2:days){
             dates[i,]<-dates[(i-1),]
             if((dates[i-1,2]==12)&(dates[i-1,1]==31)){

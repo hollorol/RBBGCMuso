@@ -252,9 +252,9 @@ rungetMuso <- function(settings, timee="d", debugging=FALSE, logfilename=NULL, k
 
     if(leapYear){
         Reva <- corrigMuso(settings,Reva)
-        rownames(Reva) <- musoDate(settings)
+        rownames(Reva) <- musoDate(settings$startYear, settings$numYears)
     } else { 
-        rownames(Reva) <- musoDate(settings, corrigated=FALSE)
+        rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)
     }
 
     if(export!=FALSE){
