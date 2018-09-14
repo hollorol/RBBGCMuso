@@ -74,8 +74,63 @@ plotMuso <- function(settings=NULL,
             
         
      }
+    
+}
+
+#'plot the BBGCMuso output with data 
+#'
+#' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly along with a given measurement 
+#' 
+#' @author Roland Hollos, Dora Hidy
+#' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
+#' @param sep This is the separator used in the measurement file
+#' @param savePlot It it is specified, the plot will be saved in a format specified with the immanent extension
+#' @param variable The name of the output variable to plot
+#' @param NACHAR This is not implemented yet
+#' @param csvFile The file of the measurement. It must contain a header.
+#' @usage plotMuso(settings, variable,
+#' timee="d", silent=TRUE,
+#' debugging=FALSE, keepEpc=FALSE,
+#' logfilename=NULL, aggressive=FALSE,
+#' leapYear=FALSE, export=FALSE)
+#' @import ggplot2
+#' @export
+plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL){
+    if(!is.na(NACHAR)){
+        warning("NACHAR is not implemented yet")
+    }
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
+    
+    numberOfYears <- settings$numYears
+    startYear <- settings$startYear
+    yearVec <- seq(from = startYear, length=numberOfYears,by=1)
 
     
+    data <- read.table(csvFile,header = TRUE, sep = ",") %>%
+        select(variable)
+    
+    baseData <- calibMuso(settings,silent=TRUE) %>%
+        as.data.frame() %>%
+        tibble::rownames_to_column("date") %>%
+        dplyr::mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
+        tidyr::separate(date2,c("day","month","year"),sep="\\.")
+    baseData <- cbind(baseData,data)
+    colnames(baseData)[ncol(baseData)] <- "measuredData"
 
-
+    p <- baseData %>%
+        ggplot(aes_string("date",variable)) +
+        geom_line(colour = "blue") +
+        geom_point(aes(date,measuredData)) +
+        labs(y = paste0(variable,"_measured"))+
+        theme(axis.title.x = element_blank())
+    if(!is.null(savePlot)){
+        return(p)
+    } else {
+        ggsave(savePlot,p)
+        return(p)
+    }
+    
 }
+

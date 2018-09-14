@@ -4,8 +4,8 @@
 \alias{stampAndDir}
 \title{stampAndCopy}
 \usage{
-stampAndDir(outputLoc, names, stampDir, wrongDir, type = "output", errorsign,
-  logfiles)
+stampAndDir(outputLoc, names, stampDir, wrongDir, type = "output",
+  errorsign, logfiles)
 }
 \arguments{
 \item{outputLoc}{This is the location of the output files.}

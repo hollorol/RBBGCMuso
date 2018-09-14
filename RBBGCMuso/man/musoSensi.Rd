@@ -5,10 +5,11 @@
 \title{musoSensi}
 \usage{
 musoSensi(monteCarloFile = NULL, parameters = NULL, settings = NULL,
-  parametersFromFile = FALSE, inputDir = "./", outLoc = "./calib",
-  iterations = 30, preTag = "mont-", outputType = "moreCsv", fun = mean,
+  inputDir = "./", outLoc = "./calib", iterations = 30,
+  preTag = "mont-", outputType = "moreCsv", fun = mean,
   varIndex = 1, outputFile = "sensitivity.csv",
-  plotName = "sensitivity.png", plotTitle = "Sensitivity", dpi = 300)
+  plotName = "sensitivity.png", plotTitle = "Sensitivity",
+  skipSpinup = FALSE, dpi = 300)
 }
 \arguments{
 \item{monteCarloFile}{If you run musoMonte function previously, you did not have to rerun the monteCarlo, just provide the preservedEpc.csv file with its path. If you do not set this parameter, musoSensi will fun the musoMonte function to get all of the information.}
@@ -32,6 +33,8 @@ musoSensi(monteCarloFile = NULL, parameters = NULL, settings = NULL,
 \item{outputFile}{The filename in which the output of musoSensi function will be saved. It's default value is: "sensitivity.csv"}
 
 \item{plotName}{The name of the output barplot. It's default value is: "sensitivity.jpg"}
+
+\item{skipSpinup}{With this parameter, you can turn of the spinup phase after the first spinup. I will decrease the time significantly.}
 
 \item{calibrationPar}{You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)}
 }

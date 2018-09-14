@@ -4,12 +4,10 @@
 \alias{musoDate}
 \title{It generates BiomeBGC-MuSo dates}
 \usage{
-musoDate(settings, timestep = "d", combined = TRUE, corrigated = TRUE,
-  format = "en")
+musoDate(startYear, numYears, timestep = "d", combined = TRUE,
+  corrigated = TRUE, format = "en")
 }
 \arguments{
-\item{settings}{You have to run the setupMuso function before musoDate. It is its output which contains all of the necessary system variables. It sets the whole environment.}
-
 \item{timestep}{timestep, which can be daily ("d"), monthly ("m"), yearly("y")}
 
 \item{combined}{If FALSE the output is a vector of 3 string: day, month year, if true, these strings will be concatenated.}
@@ -17,6 +15,8 @@ musoDate(settings, timestep = "d", combined = TRUE, corrigated = TRUE,
 \item{corrigated}{If True it counts with leapyears, else dont.}
 
 \item{format}{This is the format of the date. It can be "en" (dd.mm.yyyy), or "hu" (yyyy.mm.dd)}
+
+\item{settings}{You have to run the setupMuso function before musoDate. It is its output which contains all of the necessary system variables. It sets the whole environment.}
 }
 \value{
 The exact date-vectors for the BioBGC-MuSo output. You can use this for labelling purpose for example.

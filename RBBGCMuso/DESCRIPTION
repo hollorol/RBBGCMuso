@@ -18,7 +18,9 @@ Imports:
 	magrittr,
 	dplyr,
 	ggplot2,
-	rmarkdown
+	rmarkdown,
+	tibble,
+	tidyr
 LinkingTo: Rcpp
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 6.0.1
