@@ -126,9 +126,9 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
         labs(y = paste0(variable,"_measured"))+
         theme(axis.title.x = element_blank())
     if(!is.null(savePlot)){
+        ggsave(savePlot,p)
         return(p)
     } else {
-        ggsave(savePlot,p)
         return(p)
     }
     
