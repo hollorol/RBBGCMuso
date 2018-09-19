@@ -21,7 +21,9 @@
 #' debugging=FALSE, keepEpc=FALSE,
 #' logfilename=NULL, aggressive=FALSE,
 #' leapYear=FALSE, export=FALSE)
-#' @import ggplot2, dplyr
+#' @import ggplot2
+#' @import dplyr
+#' @import tidyr
 #' @export
 
 plotMuso <- function(settings=NULL,
@@ -96,7 +98,7 @@ plotMuso <- function(settings=NULL,
                    }
                    p
                 } else {
-                    p <- baseData %>%
+                    p <- musoData %>%
                         select(c("date", variableName))%>%
                         gather(., key= outputs, value = bla, variableName) %>%
                                         # head  %>%
@@ -119,7 +121,7 @@ plotMuso <- function(settings=NULL,
                     }
                     p
                 } else{
-                    p <- baseData %>%
+                    p <- musoData %>%
                         select(c("date",variableName))%>%
                         gather(., key= outputs, value = bla,variableName) %>%
                                         # head  %>%

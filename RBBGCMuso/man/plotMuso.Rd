@@ -29,6 +29,10 @@ leapYear=FALSE, export=FALSE)
 
 \item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
 
+\item{plotType}{There are two options now: continious time series("cts")  or disctrete time series("dts")}
+
+\item{skipSpinup}{If TRUE, calibMuso wont do spinup simulation}
+
 \item{export}{if it is yes or you give a filename here, it converts the output to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.}
 }
 \value{
