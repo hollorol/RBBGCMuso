@@ -13,13 +13,15 @@
 #' @param variable column number of the variable which should be plottedor "all" if you have less than 10 variables. In this case it will plot everything in a matrix layout 
 #' @param leapYear Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
 #' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
+#' @param plotType There are two options now: continious time series("cts")  or disctrete time series("dts")
+#' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
 #' @return It depends on the export parameter. The function returns with a matrix with the modell output, or writes this in a file, which is given previously
 #' @usage plotMuso(settings, variable,
 #' timee="d", silent=TRUE,
 #' debugging=FALSE, keepEpc=FALSE,
 #' logfilename=NULL, aggressive=FALSE,
 #' leapYear=FALSE, export=FALSE)
-#' @import graphics
+#' @import ggplot2, dplyr
 #' @export
 
 plotMuso <- function(settings=NULL,
@@ -33,49 +35,164 @@ plotMuso <- function(settings=NULL,
                      logfilename=NULL,
                      aggressive=FALSE,
                      leapYear=FALSE,
-                     export=FALSE){
+                     plotName=NULL,
+                     plotType="cts",
+                     layerPlot=FALSE,
+                     colour="blue",
+                     skipSpinup=TRUE,
+                     fromData=FALSE,
+                     dpi=300){
 
-
+    if( plotType!="cts" && plotType != "dts"){
+        warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
+        plotType <- "cts"
+    }
+    
     if(is.null(settings)){
         settings <- setupMuso()
     }
     
-    musoData <- rungetMuso(settings=settings,
-                           silent=silent,
-                           timee=timee,
-                           debugging=debugging,
-                           keepEpc=keepEpc,
-                           logfilename=logfilename,
-                           export=export) 
+    numberOfYears <- settings$numYears
+    startYear <- settings$startYear
+    ## musoData <- rungetMuso(settings=settings,
+    ##                        silent=silent,
+    ##                        timee=timee,
+    ##                        debugging=debugging,
+    ##                        keepEpc=keepEpc,
+    ##                        logfilename=logfilename,
+    ##                        export=export)
+    if(fromData){
+        Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
+                                    error = function (e){
+                                        setwd((whereAmI))
+                                        stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})
+        colnames(Reva) <- unlist(settings$outputVars[[1]])
+        rownames(Reva) <- NULL
+        musoData <- cbind(musoDate(startYear = startYear,numYears = numberOfYears,combined = TRUE,corrigated=FALSE),
+              rep(1:365,numberOfYears),
+              musoDate(startYear = startYear,numYears = numberOfYears,combined = FALSE,corrigated=FALSE),as.data.frame(Reva))
+        colnames(musoData)[1:5]<-c("date","yearDay","year","day","month")
+        musoData <-musoData %>%
+            mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
+    } else {
+            musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
+                as.data.frame() %>%
+                tibble::rownames_to_column("date") %>%
+                mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
+                tidyr::separate(date2,c("day","month","year"),sep="\\.")
+    }
 
-     xlab_muso<- switch(timee, "d"="days","y"="years","m"="months")
-     numVari <- ncol(musoData)
-    
-     if(is.numeric(variable)){
-     if((variable>numVari)|(variable<1)){
-         return(print(paste("The variable parameter must be between 1 and ",numVari)))
-     }
+    ## numVari <- ncol(musoData)
+     numVari <- ncol(musoData)-5
 
-
-     plot(musoData[,variable],pch=20,col = "dark blue",xlab=xlab_muso,ylab=colnames(musoData)[variable])
-     } else {
-         if(variable=="all"){
+    pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
+        if(!expandPlot){
+            if(plotType=="cts"){
+                if(length(variableName)==1){
+                   p <- ggplot(musoData,aes_string("date",variableName))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
+                   if(!is.null(plotName)){
+                       ggsave(as.character(plotName), plot = p)
+                    p
+                   }
+                   p
+                } else {
+                    p <- baseData %>%
+                        select(c("date", variableName))%>%
+                        gather(., key= outputs, value = bla, variableName) %>%
+                                        # head  %>%
+                        ggplot(aes(x=date,y=bla))+
+                        facet_wrap(~ outputs, scales = "free_y",ncol=1) +
+                        geom_line(colour=colour)+
+                        theme(
+                            axis.title.y = element_blank()
+                        )
+                    if(!is.null(plotName)){
+                        ggsave(as.character(plotName), plot = p)
+                    }
+                    p
+                }
+            } else {
+                if(length(variableName)==1){
+                    p <- ggplot(musoData,aes_string("date",variableName))+geom_point(colour=colour)+theme(axis.title.x=element_blank())
+                    if(!is.null(plotName)){
+                        ggsave(as.character(plotName),p)
+                    }
+                    p
+                } else{
+                    p <- baseData %>%
+                        select(c("date",variableName))%>%
+                        gather(., key= outputs, value = bla,variableName) %>%
+                                        # head  %>%
+                        ggplot(aes(x=date,y=bla))+
+                        facet_wrap(~ outputs, scales = "free_y",ncol=1) +
+                        geom_line(colour=colour)+
+                        theme(
+                            axis.title.y = element_blank()
+                        )
+                    if(!is.null(plotName)){
+                        ggsave(as.character(plotName),p)
+                    }
+                    p
+                }
+            }
+        } else {
+            if(!is.null(plotName)){
+                stop("Cannot save a single plot layer to a graphics device")
+            }
             
-             musoData  <- rbind(1:numVari,musoData) #creating the column indexes
-             par(mfrow = niceMatrixLayoutForPlots(numVari))
-
-             apply(musoData, 2, function(x) plot(x[2:length(x)],pch=20,col="dark blue",xlab=xlab_muso,ylab = colnames(musoData)[x[1]]))
-             par(mfrow=c(1,1))
-             return(print("Everything was Ok. ;)"))
-         } else {
-             return(print("The variable option is the coloumn number of the output data-matrix, so it must be numeric, of if you want to plot the whole data matrix set it \"all\""))
-         }
-
+            if(plotType=="cts"){
+                if(length(variableName)==1){
+                    geom_line(colour=colour, aes_string("date",variableName))
+                    
+                } else {
+                    stop("you cannot add layers for multiple plots")
+                }
+            } else {
+                if(length(variableName)==1){
+                    geom_point(colour=colour, aes_string("date",variableName))
+                } else{
+                    stop("you cannot add layers for multiple plots")
+                }
+            }
             
+        }
         
-     }
+    }
     
-}
+
+
+    variableName <-  as.character(settings$outputVars[[1]])[variable]
+    if(is.character(variable)){
+        if(identical(variable,"all")){
+            variableName <- as.character(settings$outputVars[[1]])
+        } else {
+            if(identical(character(0),setdiff(variable,as.character(settings$outputVars[[1]])))){
+                variableName <- variable
+            } else {
+                stop("The symmetric difference of the set of the output variables specified in the ini files and the set specified with your variable parameter is not the empty set.")
+            }   
+        }
+        
+        if(length(variableName)>8){
+            warning("Too many variables to plot, the output quality can be poor")
+        }
+        
+     } else {
+         
+         if(prod(sapply(variable,function(x){
+             return(x >= 0 && x <= numVari)
+         }))){
+             variableName <-  as.character(settings$outputVars[[1]])[variable]
+         } else {
+             stop("Not all members of the variable parameter are among the output variables")
+         }}
+    
+    pointOrLineOrPlot(musoData = musoData,
+                      variableName = variableName,
+                      plotType = plotType,
+                      expandPlot = layerPlot,
+                      plotName = plotName)
+     }
 
 #'plot the BBGCMuso output with data 
 #'
@@ -95,7 +212,7 @@ plotMuso <- function(settings=NULL,
 #' leapYear=FALSE, export=FALSE)
 #' @import ggplot2
 #' @export
-plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL){
+plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL,colour=c("black","blue")){
     if(!is.na(NACHAR)){
         warning("NACHAR is not implemented yet")
     }
@@ -121,8 +238,8 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
 
     p <- baseData %>%
         ggplot(aes_string("date",variable)) +
-        geom_line(colour = "blue") +
-        geom_point(aes(date,measuredData)) +
+        geom_line(colour=colour[1]) +
+        geom_point(colour=colour[2], aes(date,measuredData)) +
         labs(y = paste0(variable,"_measured"))+
         theme(axis.title.x = element_blank())
     if(!is.null(savePlot)){

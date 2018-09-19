@@ -16,13 +16,14 @@
 #' @param keepBinary In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.
 #' @param binaryPlace The place of the binary output files.
 #' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"
+#' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
 #' @return No return, outputs are written to file 
 #' @usage calibMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL,
 #' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 #' @import utils
 #' @export
 
-calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binaryPlace="./", fileToChange="epc"){
+calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL, keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE,keepBinary=FALSE, binaryPlace="./", fileToChange="epc", skipSpinup = TRUE){
 
 
 ##########################################################################
@@ -109,7 +110,7 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
-
+   if(!skipSpinup) {
 
     ##Run the model for the spinup run.
 
@@ -158,7 +159,7 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
             spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
         }
     }
-    
+    } else {spincrash <- FALSE}
                                         #If the last line in the logfile is 0 There are mistakes so the spinup crashes
     
     if(!spincrash){##If spinup did not crashed, run the normal run.
@@ -218,43 +219,60 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
     }
 
     
-    logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="both"),
-                        error = function (e){
-                            setwd(whereAmI)
-                            stop("Cannot find log files, something went wrong")})
+    if(skipSpinup){
+       logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="normal"),
+                                error = function (e){
+                                    setwd(whereAmI)
+                                    stop("Cannot find log files, something went wrong")})
+    } else {
+        logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="both"),
+                                error = function (e){
+                                    setwd(whereAmI)
+                                    stop("Cannot find log files, something went wrong")})
+    }
     ## list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
 
-
-    
-    perror <- readErrors(outputLoc=outputLoc,logfiles=logfiles)                                    #vector of spinup and normalrun error
-    
-  
-    ##if errorsign is 1 there is error, if it is 0 everything ok
-    perror[is.na(perror)]<-0
-    if(length(perror)>sum(perror)){
-        errorsign <- 1
+    if(skipSpinup){
+        errorsign <- readErrors(outputLoc=outputLoc,logfiles=logfiles,type="normal")
     } else {
-        if(length(perror)==1){
-            errorsign <- 1
+
+        perror <- readErrors(outputLoc=outputLoc,logfiles=logfiles)                                    #vector of spinup and normalrun error
+        
+        
+        ##if errorsign is 1 there is error, if it is 0 everything ok
+        perror[is.na(perror)]<-0
+        if(length(perror)>sum(perror)){
+        errorsign <- 1
         } else {
-            if(spincrash){
+            if(length(perror)==1){
                 errorsign <- 1
             } else {
-                errorsign <- 0
-            } }
+                if(spincrash){
+                    errorsign <- 1
+                } else {
+                    errorsign <- 0
+                } }
+        }
+        
+        
+        
     }
-
+        
+    
+    
 
     if(keepEpc){#if keepepc option turned on
 
         if(length(unique(dirname(epc)))>1){
             stop("Why are you playing with my nervs? Seriously? You hold your epc-s in different folders?")
         } else {
-
+            if(skipSpinup){
+                stampAndDir(stampDir=EPCS, wrongDir=WRONGEPC, names=epc[2], type="general", errorsign=errorsign, logfiles=logfiles)
+            }
             stampAndDir(stampDir=EPCS, wrongDir=WRONGEPC, names=epc, type="general", errorsign=errorsign, logfiles=logfiles)
 
         }
@@ -263,7 +281,8 @@ calibMuso <- function(settings=NULL,parameters=NULL, timee="d", debugging=FALSE,
 
 
     if(debugging){ #debugging is boolean
-                       logfiles <- file.path(outputLoc,logfiles)
+        logfiles <- file.path(outputLoc,logfiles)
+        
                        stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
   
     
