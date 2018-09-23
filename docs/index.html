@@ -7,9 +7,9 @@
 <style type="text/css">
 .underline { text-decoration: underline; }
 </style>
-<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/reveal.css"/>
+<link rel="stylesheet" href="./reveal.js/css/reveal.css"/>
 
-<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/theme/moon.css" id="theme"/>
+<link rel="stylesheet" href="./reveal.js/css/theme/moon.css" id="theme"/>
 
 
 <!-- If the query includes 'print-pdf', include the PDF print sheet -->
@@ -18,7 +18,7 @@
         var link = document.createElement( 'link' );
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        link.href = 'http://cdn.jsdelivr.net/reveal.js/3.0.0/css/print/pdf.css';
+        link.href = './reveal.js/css/print/pdf.css';
         document.getElementsByTagName( 'head' )[0].appendChild( link );
     }
 </script>
@@ -26,38 +26,38 @@
 <body>
 <div class="reveal">
 <div class="slides">
-<section id="sec-title-slide"><h1 class="title">Szimuláció RBBGCMuso-val</h1><h2 class="author">Hollós Roland</h2><p class="date">Created: 2018-09-23 Sun 18:24</p>
+<section id="sec-title-slide"><h1 class="title">Szimuláció RBBGCMuso-val</h1><h2 class="author">Hollós Roland</h2><p class="date">Created: 2018-09-23 Sun 19:21</p>
 </section>
 <section id="table-of-contents">
 <div id="table-of-contents">
 <h2>Tartalomjegyz&eacute;k</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#/slide-orge65f586">1. Bevezetés</a></li>
-<li><a href="#/slide-org7daeb27">2. Kérdésfeltevés</a></li>
-<li><a href="#/slide-org14b984a">3. RBBGCMuso használata</a></li>
+<li><a href="#/slide-orgdda0f75">1. Bevezetés</a></li>
+<li><a href="#/slide-org56d3a7e">2. Kérdésfeltevés</a></li>
+<li><a href="#/slide-orgf5ff3d7">3. RBBGCMuso használata</a></li>
 </ul>
 </div>
 </div>
 </section>
 <section>
 <section id="slide-sec-1">
-<h2 id="orge65f586"><span class="section-number-2">1</span> Bevezetés</h2>
+<h2 id="orgdda0f75"><span class="section-number-2">1</span> Bevezetés</h2>
 </section>
 </section>
 <section>
 <section id="slide-sec-2">
-<h2 id="org7daeb27"><span class="section-number-2">2</span> Kérdésfeltevés</h2>
+<h2 id="org56d3a7e"><span class="section-number-2">2</span> Kérdésfeltevés</h2>
 </section>
 </section>
 <section>
 <section id="slide-sec-3">
-<h2 id="org14b984a"><span class="section-number-2">3</span> RBBGCMuso használata</h2>
+<h2 id="orgf5ff3d7"><span class="section-number-2">3</span> RBBGCMuso használata</h2>
 <div class="outline-text-2" id="text-3">
 </div>
 </section>
 <section id="slide-sec-3-1">
-<h3 id="org520b89b"><span class="section-number-3">3.1</span> devtools telepítése</h3>
+<h3 id="org540bba7"><span class="section-number-3">3.1</span> devtools telepítése</h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">install.packages(<span style="color: #ff1493;">"devtools"</span>)
@@ -66,7 +66,7 @@
 
 </section>
 <section id="slide-sec-3-2">
-<h3 id="org64d0b07"><span class="section-number-3">3.2</span> RBBGCMuso telepítése</h3>
+<h3 id="org80153c2"><span class="section-number-3">3.2</span> RBBGCMuso telepítése</h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">devtools::install_github(<span style="color: #ff1493;">"hollorol/RBBGCMuso/RGBBCMuso"</span>)
@@ -74,7 +74,7 @@
 </div>
 </section>
 <section id="slide-sec-3-3">
-<h3 id="orgf1bbdcb"><span class="section-number-3">3.3</span> csomagok betöltése, munkakönyvtár beállítása:</h3>
+<h3 id="orgdbf3e82"><span class="section-number-3">3.3</span> csomagok betöltése, munkakönyvtár beállítása:</h3>
 <div class="org-src-container">
 
 <pre  class="src src-R"><span style="color: #7fffd4;">library</span>(RBBGCMuso)
@@ -84,7 +84,7 @@
 
 </section>
 <section id="slide-sec-3-4">
-<h3 id="org05ccd65"><span class="section-number-3">3.4</span> futtatás előkészítése: <i>setupMuso()</i></h3>
+<h3 id="org8a27758"><span class="section-number-3">3.4</span> futtatás előkészítése: <i>setupMuso()</i></h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">beallitasok <span style="color: #7fffd4;">&lt;-</span> setupMuso()
@@ -93,7 +93,7 @@
 
 </section>
 <section id="slide-sec-3-5">
-<h3 id="org91605e4"><span class="section-number-3">3.5</span> modellfuttatás: <i>calibMuso()</i></h3>
+<h3 id="org20413af"><span class="section-number-3">3.5</span> modellfuttatás: <i>calibMuso()</i></h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">kimenet <span style="color: #7fffd4;">&lt;-</span> calibMuso(settings = beallitasok,skipSpinup=<span style="color: #8470ff;">FALSE</span>)
@@ -159,7 +159,7 @@ kimenet[1:6,1:3]
 
 </section>
 <section id="slide-sec-3-6">
-<h3 id="org9a58263"><span class="section-number-3">3.6</span> kimeneti adatok ábrázolása (első verzió)</h3>
+<h3 id="orga157472"><span class="section-number-3">3.6</span> kimeneti adatok ábrázolása (első verzió)</h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">plot(kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>])
@@ -174,7 +174,7 @@ kimenet[1:6,1:3]
 
 </section>
 <section id="slide-sec-3-7">
-<h3 id="orgde179d9"><span class="section-number-3">3.7</span> egy kicsit cicomázva:</h3>
+<h3 id="org2600471"><span class="section-number-3">3.7</span> egy kicsit cicomázva:</h3>
 <div class="org-src-container">
 
 <pre  class="src src-R">par(mar=c(5,5,4,4))
@@ -190,12 +190,27 @@ plot(y=kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>],
 <p><img src="hegyhatsal/daily_2.png" alt="daily_2.png" />
 </p>
 </div>
+
+</section>
+<section id="slide-sec-3-8">
+<h3 id="orgbc924fe"><span class="section-number-3">3.8</span> Mindez sokkal egyszerűbben</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">plot(kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>])
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hegyhatsal/daily_1.png" alt="daily_1.png" />
+</p>
+</div>
 </section>
 </section>
 </div>
 </div>
-<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/lib/js/head.min.js"></script>
-<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/js/reveal.js"></script>
+<script src="./reveal.js/lib/js/head.min.js"></script>
+<script src="./reveal.js/js/reveal.js"></script>
 
 <script>
 // Full list of configuration options available here:
@@ -222,11 +237,11 @@ multiplex: {
 
 // Optional libraries used to extend on reveal.js
 dependencies: [
- { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
- { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
- { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
- { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
- { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+ { src: './reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: './reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: './reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
 });
 </script>
 </body>
