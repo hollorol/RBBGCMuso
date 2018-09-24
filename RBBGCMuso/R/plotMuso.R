@@ -43,6 +43,8 @@ plotMuso <- function(settings=NULL,
                      colour="blue",
                      skipSpinup=TRUE,
                      fromData=FALSE,
+                     timeFrame="day",
+                     groupFun=mean,
                      dpi=300){
 
     if( plotType!="cts" && plotType != "dts"){
@@ -63,6 +65,16 @@ plotMuso <- function(settings=NULL,
     ##                        keepEpc=keepEpc,
     ##                        logfilename=logfilename,
     ##                        export=export)
+    
+    groupByTimeFrame <- function(data, timeFrame, groupFun){
+        datas <- data %>%
+            group_by(year) %>%
+            summarize(variable=groupFun(eval(parse(text=variable))))
+        datas[,1]<-as.numeric(unlist(datas[,1]))
+        colnames(datas) <- c("date",variable)
+        datas
+    }
+    
     if(fromData){
         Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
@@ -80,8 +92,13 @@ plotMuso <- function(settings=NULL,
             musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
                 as.data.frame() %>%
                 tibble::rownames_to_column("date") %>%
-                mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
+                mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
+                       yearDay=rep(1:365,numberOfYears), cum_yieldC_HRV=cum_yieldC_HRV*22.22) %>%
                 tidyr::separate(date2,c("day","month","year"),sep="\\.")
+            if(timeFrame!="day"){
+                musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
+                                     error=function(e){stop("The timeframe or the gropFun is not found")})
+            }
     }
 
     ## numVari <- ncol(musoData)
@@ -144,14 +161,14 @@ plotMuso <- function(settings=NULL,
             
             if(plotType=="cts"){
                 if(length(variableName)==1){
-                    geom_line(colour=colour, aes_string("date",variableName))
+                    geom_line(data=musoData, colour=colour, aes_string("date",variableName))
                     
                 } else {
                     stop("you cannot add layers for multiple plots")
                 }
             } else {
                 if(length(variableName)==1){
-                    geom_point(colour=colour, aes_string("date",variableName))
+                    geom_point(data=musoData, colour=colour, aes_string("date",variableName))
                 } else{
                     stop("you cannot add layers for multiple plots")
                 }
