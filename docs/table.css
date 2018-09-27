@@ -1,0 +1,11 @@
+.reveal .kanyad th {
+    border-left: 0.5px solid;
+    border-right: 0.5px solid;
+    border-bottom: 1px solid;
+}
+
+.reveal .kanyad td {
+    border-left: 0.5px solid;
+    border-right: 0.5px solid;
+    border-bottom: 0px;
+}

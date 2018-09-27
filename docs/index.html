@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
 <meta charset="utf-8"/>
-<title>Szimuláció RBBGCMuso-val</title>
+<title>AgroMo Commander</title>
 <meta name="author" content="(Hollós Roland)"/>
 <style type="text/css">
 .underline { text-decoration: underline; }
@@ -11,6 +11,9 @@
 
 <link rel="stylesheet" href="./reveal.js/css/theme/moon.css" id="theme"/>
 
+<link rel="stylesheet" href="./table.css"/>
+
+<link rel="stylesheet" href="./titleSlide.css"/>
 
 <!-- If the query includes 'print-pdf', include the PDF print sheet -->
 <script>
@@ -22,20 +25,27 @@
         document.getElementsByTagName( 'head' )[0].appendChild( link );
     }
 </script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<style>span[class^="section-number-"]:after { content: '.'; }</style>
 </head>
 <body>
 <div class="reveal">
 <div class="slides">
-<section id="sec-title-slide"><h1 class="title">Szimuláció RBBGCMuso-val</h1><h2 class="author">Hollós Roland</h2><h2 class="date">2018. 09. 27</h2>
+<section id="sec-title-slide" data-background="./titleimage.png"><h1 class="title">AgroMo Commander</h1><h2 class="author">Hollós Roland</h2><h2 class="date">2018. 09. 27</h2>
 </section>
 <section id="table-of-contents">
 <div id="table-of-contents">
 <h2>Tartalomjegyz&eacute;k</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#/slide-org3a18f38">1. Bevezetés</a></li>
-<li><a href="#/slide-org5386a01">2. Kérdésfeltevés</a></li>
-<li><a href="#/slide-org2f354e5">3. RBBGCMuso használata</a></li>
+<li><a href="#/slide-orgac974b3">1. Bevezetés</a></li>
+<li><a href="#/slide-org7080fbd">2. A workshop célja</a></li>
+<li><a href="#/slide-orgf0cba9e">3. A modell input-output kezelése</a></li>
+<li><a href="#/slide-org95cb610">4. Input adatok</a></li>
+<li><a href="#/slide-orgfa7e8e6">5. Kérdések</a></li>
+<li><a href="#/slide-orgb84c0a9">6. RBBGCMuso használata</a></li>
+<li><a href="#/slide-org6aa1dd0">7. Kísérletek</a></li>
+<li><a href="#/slide-org9e2525f">8. AgroMo-<i>Lite</i></a></li>
 </ul>
 </div>
 </div>
@@ -43,133 +53,335 @@
 
 <section>
 <section id="slide-sec-1">
-<h2 id="org3a18f38"><span class="section-number-2">1</span> Bevezetés</h2>
+<h2 id="orgac974b3"><span class="section-number-2">1</span> Bevezetés</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+</section>
+<section id="slide-sec-1-1">
+<h3 id="org2dfb8f9"><span class="section-number-3">1.1</span> AgroMo használatának szintjei</h3>
+<ol>
+<li>AgroMo Lite</li>
+<li>AgroMo Spatial</li>
+<li>AgroMo Commander &lt;- RBBGCMuso</li>
+<li>AgroMo Expert</li>
+
+</ol>
+
+</section>
+<section id="slide-sec-1-2">
+<h3 id="org609a675"><span class="section-number-3">1.2</span> Az RBBGCMuso:</h3>
+<ul>
+<li>interfész,</li>
+<li>grafikus megjelenítő,</li>
+<li>modelloptimalizálást, érzékenységelemzést lehetővé tevő,</li>
+<li>az általános modellhasználatot könnyebbé tevő</li>
+<li>R csomag.</li>
+
+</ul>
 </section>
 </section>
 <section>
 <section id="slide-sec-2">
-<h2 id="org5386a01"><span class="section-number-2">2</span> Kérdésfeltevés</h2>
+<h2 id="org7080fbd"><span class="section-number-2">2</span> A workshop célja</h2>
+<ol>
+<li>modell futtatása,</li>
+<li>eredmények ábrázolása,</li>
+<li>egyszerű kísérletek elvégzése,</li>
+<li>a kísérletek eredményeinek grafikus értelmezése,</li>
+<li>AgroMo Commander (RBBGCMuso) segítségével.</li>
+
+</ol>
+
 </section>
 </section>
 <section>
 <section id="slide-sec-3">
-<h2 id="org2f354e5"><span class="section-number-2">3</span> RBBGCMuso használata</h2>
-<div class="outline-text-2" id="text-3">
-</div>
+<h2 id="orgf0cba9e"><span class="section-number-2">3</span> A modell input-output kezelése</h2>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" class="kanyad">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">input (file kiterjesztés)</th>
+<th scope="col" class="org-left">output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">meteorológia (mtc43)</td>
+<td class="org-left">széntárazók állapotai</td>
+</tr>
+
+<tr>
+<td class="org-left">ökofiziológiai (epc)</td>
+<td class="org-left">termés</td>
+</tr>
+
+<tr>
+<td class="org-left">Termőhely adatok (ini)</td>
+<td class="org-left">levélfelületi index</td>
+</tr>
+
+<tr>
+<td class="org-left">menedzsment (ini)</td>
+<td class="org-left">Talajnedvesség</td>
+</tr>
+
+<tr>
+<td class="org-left">vezérlés    (ini)</td>
+<td class="org-left">(&#x2026;)x~3060</td>
+</tr>
+</tbody>
+</table>
+
 </section>
 <section id="slide-sec-3-1">
-<h3 id="org0fe0db7"><span class="section-number-3">3.1</span> devtools telepítése</h3>
-<div class="org-src-container">
+<h3 id="org392228f"><span class="section-number-3">3.1</span> Az ini file feladatai</h3>
+<ul>
+<li>Vezérlés</li>
+<li>Helyspecifikus adatok szolgáltatása</li>
+<li>Művelésre vonatkozó adatok szolgáltatása</li>
 
-<pre  class="src src-R">install.packages(<span style="color: #ff1493;">"devtools"</span>)
-</pre>
-</div>
+</ul>
 
 </section>
 <section id="slide-sec-3-2">
-<h3 id="org2b1e6f5"><span class="section-number-3">3.2</span> RBBGCMuso telepítése</h3>
-<div class="org-src-container">
+<h3 id="org1c90660"><span class="section-number-3">3.2</span> Az epc file feladatai</h3>
 
-<pre  class="src src-R">devtools::install_github(<span style="color: #ff1493;">"hollorol/RBBGCMuso/RGBBCMuso"</span>)
-</pre>
-</div>
 </section>
 <section id="slide-sec-3-3">
-<h3 id="org0a30b93"><span class="section-number-3">3.3</span> csomagok betöltése, munkakönyvtár beállítása:</h3>
+<h3 id="orgfb3dc42"><span class="section-number-3">3.3</span> További fájlok</h3>
+<ul>
+<li>Meteorológiai (mtc43)</li>
+<li>CO2</li>
+<li>NDEP</li>
+<li>Management</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-sec-4">
+<h2 id="org95cb610"><span class="section-number-2">4</span> Input adatok</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+</section>
+<section id="slide-sec-4-1">
+<h3 id="org150ce0a"><span class="section-number-3">4.1</span> Helyszín: Hegyhátsál</h3>
+</section>
+<section id="slide-sec-4-2">
+<h3 id="orga7f72bd"><span class="section-number-3">4.2</span> Meteorológia</h3>
+
+
+</section>
+<section id="slide-sec-4-3">
+<h3 id="org18657a2"><span class="section-number-3">4.3</span> Meteorológia: csapadék</h3>
+
+<div class="figure">
+<p><img src="./hegyhatsal/meteorology1.png" alt="meteorology1.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-4-4">
+<h3 id="orgc13ad43"><span class="section-number-3">4.4</span> Meteorológia: nappali átlaghőmérséklet</h3>
+
+<div class="figure">
+<p><img src="./hegyhatsal/meteorology2.png" alt="meteorology2.png" />
+</p>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-sec-5">
+<h2 id="orgfa7e8e6"><span class="section-number-2">5</span> Kérdések</h2>
+<ol>
+<li>Milyen hatásai lehetnek a termésre/GPP-re, illetve LAIRA a jövőbeli lehetséges klimatikus változásoknak?</li>
+<li>Mennyi műtrágyát használjunk?</li>
+<li>Adott helyen milyen ökofiziológiai paraméterrel bíró (kukorica/búza/\(\dots\))fajtákat érdemes termesztenünk?</li>
+
+</ol>
+
+</section>
+</section>
+<section>
+<section id="slide-sec-6">
+<h2 id="orgb84c0a9"><span class="section-number-2">6</span> RBBGCMuso használata</h2>
+<div class="outline-text-2" id="text-6">
+</div>
+</section>
+<section id="slide-sec-6-1">
+<h3 id="org20c82d0"><span class="section-number-3">6.1</span> devtools telepítése</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R"><span style="color: #7fffd4;">library</span>(RBBGCMuso)
-<span style="color: #7fffd4;">library</span>(ggplot2)
+<pre  class="src src-R">install.packages(<span style="color: #1D8B15;">"devtools"</span>)
 </pre>
 </div>
 
 </section>
-<section id="slide-sec-3-4">
-<h3 id="orgbdd1806"><span class="section-number-3">3.4</span> futtatás előkészítése: <i>setupMuso()</i></h3>
+<section id="slide-sec-6-2">
+<h3 id="org9084ab8"><span class="section-number-3">6.2</span> RBBGCMuso telepítése</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">beallitasok <span style="color: #7fffd4;">&lt;-</span> setupMuso()
+<pre  class="src src-R">devtools::install_github(<span style="color: #1D8B15;">"hollorol/RBBGCMuso/RGBBCMuso"</span>)
 </pre>
 </div>
 
 </section>
-<section id="slide-sec-3-5">
-<h3 id="org3fc27f2"><span class="section-number-3">3.5</span> modellfuttatás: <i>calibMuso()</i></h3>
+<section id="slide-sec-6-3">
+<h3 id="org4526703"><span class="section-number-3">6.3</span> csomagok betöltése, munkakönyvtár beállítása:</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">kimenet <span style="color: #7fffd4;">&lt;-</span> calibMuso(settings = beallitasok,skipSpinup=<span style="color: #8470ff;">FALSE</span>)
-kimenet[1:6,1:2]
+<pre  class="src src-R"><span style="color: #00d1e0;">library</span>(RBBGCMuso)
+<span style="color: #00d1e0;">library</span>(ggplot2)
 </pre>
 </div>
 
+
 </section>
-<section id="slide-sec-3-6">
-<h3 id="org303dc53"><span class="section-number-3">3.6</span> kimeneti adatok ábrázolása (első verzió)</h3>
+<section id="slide-sec-6-4">
+<h3 id="org398055c"><span class="section-number-3">6.4</span> futtatás előkészítése: <i>setupMuso()</i></h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">plot(kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>])
+<pre  class="src src-R">beallitasok <span style="color: #00d1e0;">&lt;-</span> setupMuso()
+</pre>
+</div>
+
+<p>
+<b>Argumentum nélküli meghívás esetén a normal ini n.ini-re, a spinup pedig s.ini-re végződik, a végrehajtható fájl neve muso vagy muso.exe!</b>
+</p>
+
+</section>
+<section id="slide-sec-6-5">
+<h3 id="org2ef94c5"><span class="section-number-3">6.5</span> modellfuttatás: <i>calibMuso()</i></h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">kimenet <span style="color: #00d1e0;">&lt;-</span> calibMuso(settings = beallitasok,skipSpinup=<span style="color: #eab700;">TRUE</span>)
+round(kimenet[1:6,1:2],digits=2)
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">tsoil_0</th>
+<th scope="col" class="org-right">evapotransp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">3.09</td>
+<td class="org-right">0.21</td>
+</tr>
+
+<tr>
+<td class="org-right">2.54</td>
+<td class="org-right">0.01</td>
+</tr>
+
+<tr>
+<td class="org-right">1.63</td>
+<td class="org-right">0.02</td>
+</tr>
+
+<tr>
+<td class="org-right">2.34</td>
+<td class="org-right">0.1</td>
+</tr>
+
+<tr>
+<td class="org-right">3.66</td>
+<td class="org-right">0.45</td>
+</tr>
+
+<tr>
+<td class="org-right">5.01</td>
+<td class="org-right">0.14</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section id="slide-sec-6-6">
+<h3 id="orgf8572ca"><span class="section-number-3">6.6</span> kimeneti adatok ábrázolása (első verzió)</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">plot(kimenet[,<span style="color: #1D8B15;">"daily_gpp"</span>])
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/daily_1.png" alt="daily_1.png" />
+<p><img src="./hegyhatsal/daily_1.png" alt="daily_1.png" />
 </p>
 </div>
 
 </section>
-<section id="slide-sec-3-7">
-<h3 id="org4e23223"><span class="section-number-3">3.7</span> egy kicsit cicomázva:</h3>
+<section id="slide-sec-6-7">
+<h3 id="org49a793e"><span class="section-number-3">6.7</span> Ügyelvén az esztétikára:</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">par(mar=c(5,5,4,4))
-plot(y=kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>],
-     x=as.Date(rownames(kimenet),<span style="color: #ff1493;">"%d.%m.%Y"</span>), xlab=<span style="color: #ff1493;">"Days"</span>,
-     ylab = expression(paste(<span style="color: #ff1493;">"daily GPP ["</span>,kg[C],m^-2,<span style="color: #ff1493;">"]"</span>)),
-     type=<span style="color: #ff1493;">"l"</span>, col=<span style="color: #ff1493;">"blue"</span>, lwd=<span style="color: #ff1493;">"1.8"</span>)
+<pre  class="src src-R"><span style="color: #00d1e0;">par</span>(mar=c(2.2,5,1.5,0.5))
+plot(y=kimenet[,<span style="color: #1D8B15;">"daily_gpp"</span>],
+     x=as.Date(rownames(kimenet),<span style="color: #1D8B15;">"%d.%m.%Y"</span>), xlab=<span style="color: #1D8B15;">""</span>,
+     ylab = expression(paste(<span style="color: #1D8B15;">"daily GPP ["</span>,kgC,m^-2,<span style="color: #1D8B15;">"]"</span>)),
+     type=<span style="color: #1D8B15;">"l"</span>, col=<span style="color: #1D8B15;">"blue"</span>, lwd=<span style="color: #1D8B15;">"1.8"</span>)
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/daily_2.png" alt="daily_2.png" />
+<p><img src="./hegyhatsal/daily_2.png" alt="daily_2.png" />
 </p>
 </div>
 
 </section>
-<section id="slide-sec-3-8">
-<h3 id="orgf5873fa"><span class="section-number-3">3.8</span> Mindez sokkal egyszerűbben</h3>
+<section id="slide-sec-6-8">
+<h3 id="org6906261"><span class="section-number-3">6.8</span> Mindez sokkal egyszerűbben</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">plotMuso(variable=<span style="color: #ff1493;">"daily_gpp"</span>)
+<pre  class="src src-R">plotMuso(variable=<span style="color: #1D8B15;">"daily_gpp"</span>)
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/daily_3.png" alt="daily_3.png" />
+<p><img src="./hegyhatsal/daily_3.png" alt="daily_3.png" />
 </p>
 </div>
 
 </section>
-<section id="slide-sec-3-9">
-<h3 id="orga91d83f"><span class="section-number-3">3.9</span> Egy apró javítás</h3>
+<section id="slide-sec-6-9">
+<h3 id="org95efe20"><span class="section-number-3">6.9</span> Egy apró javítás</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">plotMuso(variable=<span style="color: #ff1493;">"daily_gpp"</span>)+
-    labs(y=expression(paste(<span style="color: #ff1493;">"daily GPP ["</span>,kg[C],m^-2,<span style="color: #ff1493;">"]"</span>)))
+<pre  class="src src-R">plotMuso(variable=<span style="color: #1D8B15;">"daily_gpp"</span>)+
+  labs(y=expression(paste(<span style="color: #1D8B15;">"daily GPP ["</span>,kgC,m^-2,<span style="color: #1D8B15;">"]"</span>)))
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/daily_4.png" alt="daily_4.png" />
+<p><img src="./hegyhatsal/daily_4.png" alt="daily_4.png" />
 </p>
 </div>
 
 </section>
-<section id="slide-sec-3-10">
-<h3 id="org4d08121"><span class="section-number-3">3.10</span> <i>musoMappingFind()</i></h3>
+<section id="slide-sec-6-10">
+<h3 id="org6709bbb"><span class="section-number-3">6.10</span> <i>musoMappingFind()</i></h3>
 <ul>
 <li class="fragment appear">Honnan tudjuk, hogy mi is egy általános változónak a neve?
 <ul>
@@ -180,11 +392,11 @@ plot(y=kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>],
 
 </ul>
 </section>
-<section id="slide-sec-3-11">
-<h3 id="org8c5a7d5"><span class="section-number-3">3.11</span> <i>musoMappingFind()</i></h3>
+<section id="slide-sec-6-11">
+<h3 id="orgc56d554"><span class="section-number-3">6.11</span> <i>musoMappingFind()</i></h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">musoMappingFind(<span style="color: #ff1493;">"yield"</span>)
+<pre  class="src src-R">musoMappingFind(<span style="color: #1D8B15;">"yield"</span>)
 </pre>
 </div>
 
@@ -205,52 +417,334 @@ plot(y=kimenet[,<span style="color: #ff1493;">"daily_gpp"</span>],
 </table>
 
 </section>
-<section id="slide-sec-3-12">
-<h3 id="orga0292d0"><span class="section-number-3">3.12</span> Nézzük meg, hogy hogyan változott a termés 2013 és 2017 között!</h3>
+<section id="slide-sec-6-12">
+<h3 id="org6e16fa6"><span class="section-number-3">6.12</span> Nézzük meg, hogy hogyan változott a termés 2013 és 2017 között!</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">plotMuso(variable=<span style="color: #ff1493;">"cum_yieldC_HRV"</span>)+
-    labs(y=expression(paste(<span style="color: #ff1493;">"yield ["</span>,kg[C],m^-2,<span style="color: #ff1493;">"]"</span>)))
+<pre  class="src src-R">plotMuso(variable=<span style="color: #1D8B15;">"cum_yieldC_HRV"</span>)+
+  labs(y=<span style="color: #1D8B15;">"Term&#233;s [t/ha]"</span>)
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/yield_base.png" alt="yield_base.png" />
+<p><img src="./hegyhatsal/yield_pre.png" alt="yield_pre.png" />
 </p>
 </div>
 
-
 </section>
-<section id="slide-sec-3-13">
-<h3 id="org1d8ecbe"><span class="section-number-3">3.13</span> Mentsük el az alapábránkat!</h3>
+<section id="slide-sec-6-13">
+<h3 id="orga3a21ca"><span class="section-number-3">6.13</span> Ábrázoljuk inkább az éves maximumokat!</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">termesAlap <span style="color: #7fffd4;">&lt;-</span> plotMuso(variable=<span style="color: #ff1493;">"cum_yieldC_HRV"</span>)+
-    labs(y=expression(paste(<span style="color: #ff1493;">"yield ["</span>,kg[C],m^-2,<span style="color: #ff1493;">"]"</span>)))
+<pre  class="src src-R">plotMuso(variable=<span style="color: #1D8B15;">"cum_yieldC_HRV"</span>, timeFrame=<span style="color: #1D8B15;">"year"</span>, groupFun=max)+
+  labs(y=<span style="color: #1D8B15;">"Term&#233;s [t/ha]"</span>)
 </pre>
 </div>
 
 
-
+<div class="figure">
+<p><img src="./hegyhatsal/yield_base.png" alt="yield_base.png" />
+</p>
+</div>
 
 </section>
-<section id="slide-sec-3-14">
-<h3 id="orgd685c04"><span class="section-number-3">3.14</span> Mentsük le a LAI-t is</h3>
+<section id="slide-sec-6-14">
+<h3 id="org928dbf1"><span class="section-number-3">6.14</span> mentsük el az alapábránkat!</h3>
 <div class="org-src-container">
 
-<pre  class="src src-R">LAIAlap <span style="color: #7fffd4;">&lt;-</span> plotMuso(variable=<span style="color: #ff1493;">"proj_lai"</span>)+
-    labs(y=expression(
-             paste(<span style="color: #ff1493;">"Lev&#233;lfel&#252;leti index "</span>,over(m^2,m^2))))
+<pre  class="src src-R">termesAlap <span style="color: #00d1e0;">&lt;-</span> plotMuso(variable=<span style="color: #1D8B15;">"cum_yieldC_HRV"</span>, timeFrame=<span style="color: #1D8B15;">"year"</span>, groupFun=max)+
+    labs(y=<span style="color: #1D8B15;">"Term&#233;s [t/ha]"</span>)
+</pre>
+</div>
+
+</section>
+<section id="slide-sec-6-15">
+<h3 id="orgcb1ec58"><span class="section-number-3">6.15</span> Nézzük meg, majd mentsük le a LAI-t is!</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">LAIAlap <span style="color: #00d1e0;">&lt;-</span> plotMuso(variable=<span style="color: #1D8B15;">"proj_lai"</span>)+
+  labs(y=expression(
+    paste(<span style="color: #1D8B15;">"Lev&#233;lfel&#252;leti index "</span>,m^2m^-2)))
 LAIAlap
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="hegyhatsal/lai_base.png" alt="lai_base.png" />
+<p><img src="./hegyhatsal/lai_base.png" alt="lai_base.png" />
 </p>
 </div>
+
+</section>
+<section id="slide-sec-6-16">
+<h3 id="org0951963"><span class="section-number-3">6.16</span> GPP alap</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">GPPAlap <span style="color: #00d1e0;">&lt;-</span> plotMuso(variable=<span style="color: #1D8B15;">"daily_gpp"</span>)+
+    labs(y=expression(paste(<span style="color: #1D8B15;">"daily GPP ["</span>,kgC,m^-2,<span style="color: #1D8B15;">"]"</span>)))
+GPPAlap
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./hegyhatsal/gpp_base.png" alt="gpp_base.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-6-17">
+<h3 id="orga5aa63f"><span class="section-number-3">6.17</span> Gyep Biomassza</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">termesAlap_gyep <span style="color: #00d1e0;">&lt;-</span> plotMuso(variable = <span style="color: #1D8B15;">"leafc"</span>,
+    timeFrame = <span style="color: #1D8B15;">"year"</span>, groupFun=sum, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+</pre>
+</div>
+
+</section>
+<section id="slide-sec-6-18">
+<h3 id="org62628f7"><span class="section-number-3">6.18</span> Gyep LAI</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">LAIAlap_gyep <span style="color: #00d1e0;">&lt;-</span> plotMuso(variable = <span style="color: #1D8B15;">"proj_lai"</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+</pre>
+</div>
+
+</section>
+<section id="slide-sec-6-19">
+<h3 id="org18c7b84"><span class="section-number-3">6.19</span> Gyep GPP</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">GPPAlap_gyep<span style="color: #00d1e0;">&lt;-</span>plotMuso(variable = <span style="color: #1D8B15;">"daily_gpp"</span>)
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-sec-7">
+<h2 id="org6aa1dd0"><span class="section-number-2">7</span> Kísérletek</h2>
+<div class="outline-text-2" id="text-7">
+</div>
+</section>
+<section id="slide-sec-7-1">
+<h3 id="org62a7771"><span class="section-number-3">7.1</span> Vetési idő</h3>
+
+<div class="figure">
+<p><img src="./iniMod.png" alt="iniMod.png" />
+</p>
+</div>
+</section>
+<section id="slide-sec-7-2">
+<h3 id="org3db7080"><span class="section-number-3">7.2</span> Vetési idő- Termés</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">TermesValtozas_vetesido <span style="color: #00d1e0;">&lt;-</span> termesAlap+
+plotMuso(variable = <span style="color: #1D8B15;">"cum_yieldC_HRV"</span>,
+timeFrame = <span style="color: #1D8B15;">"year"</span>, groupFun=max,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+TermesValtozas_vetesido
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./vetesido/TermesValtozas_vetesido.png" alt="TermesValtozas_vetesido.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-3">
+<h3 id="org545a1de"><span class="section-number-3">7.3</span> Vetési idő- LAI</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">LAIValtozas_vetesido <span style="color: #00d1e0;">&lt;-</span> LAIAlap+
+plotMuso(variable = <span style="color: #1D8B15;">"proj_lai"</span>,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+LAIValtozas_vetesido
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./vetesido/LAIValtozas_vetesido.png" alt="LAIValtozas_vetesido.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-4">
+<h3 id="org83768a2"><span class="section-number-3">7.4</span> Vetési idő- GPP</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">GPPValtozas_vetesido <span style="color: #00d1e0;">&lt;-</span> GPPAlap + 
+plotMuso(variable = <span style="color: #1D8B15;">"daily_gpp"</span>,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+GPPValtozas_vetesido
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./vetesido/GPPValtozas_vetesido.png" alt="GPPValtozas_vetesido.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-5">
+<h3 id="org9ac02c9"><span class="section-number-3">7.5</span> Műtrágyázás</h3>
+
+<div class="figure">
+<p><img src="./iniMod1.png" alt="iniMod1.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-6">
+<h3 id="org148608d"><span class="section-number-3">7.6</span> Műtrágyázás- Termés</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">TermesValtozas_fertilP <span style="color: #00d1e0;">&lt;-</span> termesAlap+
+plotMuso(variable = <span style="color: #1D8B15;">"cum_yieldC_HRV"</span>,
+timeFrame = <span style="color: #1D8B15;">"year"</span>, groupFun=max,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+TermesValtozas_fertilP
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./fertilP/TermesValtozas_fertilP.png" alt="TermesValtozas_fertilP.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-7">
+<h3 id="orga55ad47"><span class="section-number-3">7.7</span> Műtrágyázás - LAI</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">LAIValtozas_fertilP <span style="color: #00d1e0;">&lt;-</span> LAIAlap+
+plotMuso(variable = <span style="color: #1D8B15;">"proj_lai"</span>,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+LAIValtozas_fertilP
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./fertilP/LAIValtozas_fertilP.png" alt="LAIValtozas_fertilP.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-8">
+<h3 id="org084a9c2"><span class="section-number-3">7.8</span> Műtrágyázás - GPP</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">GPPValtozas_fertilP <span style="color: #00d1e0;">&lt;-</span> GPPAlap + 
+plotMuso(variable = <span style="color: #1D8B15;">"daily_gpp"</span>,
+colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+GPPValtozas_fertilP
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./fertilP/GPPValtozas_fertilP.png" alt="GPPValtozas_fertilP.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-9">
+<h3 id="org88efc10"><span class="section-number-3">7.9</span> Szárazodás - Termés</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">TermesValtozas_szarazodas <span style="color: #00d1e0;">&lt;-</span> termesAlap_gyep+
+  plotMuso(variable = <span style="color: #1D8B15;">"leafc"</span>,
+  timeFrame = <span style="color: #1D8B15;">"year"</span>, groupFun=sum,
+  colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+TermesValtozas_szarazodas
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./szarazodas/TermesValtozas_szarazodas.png" alt="TermesValtozas_szarazodas.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-7-10">
+<h3 id="orgb66addc"><span class="section-number-3">7.10</span> Szárazodás - LAI</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">LAIValtozas_szarazodas <span style="color: #00d1e0;">&lt;-</span> LAIAlap_gyep+
+  plotMuso(variable = <span style="color: #1D8B15;">"proj_lai"</span>,
+  colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+LAIValtozas_szarazodas
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./szarazodas/LAIValtozas_szarazodas.png" alt="LAIValtozas_szarazodas.png" />
+</p>
+</div>
+
+
+</section>
+<section id="slide-sec-7-11">
+<h3 id="orgf48dec6"><span class="section-number-3">7.11</span> Szárazodás - GPP</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R">GPPValtozas_szarazodas <span style="color: #00d1e0;">&lt;-</span> GPPAlap_gyep + 
+  plotMuso(variable = <span style="color: #1D8B15;">"daily_gpp"</span>,
+  colour = <span style="color: #1D8B15;">"brown"</span>, layerPlot = <span style="color: #eab700;">TRUE</span>, skipSpinup=<span style="color: #eab700;">FALSE</span>)
+GPPValtozas_szarazodas
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./szarazodas/GPPValtozas_szarazodas.png" alt="GPPValtozas_szarazodas.png" />
+</p>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-sec-8">
+<h2 id="org9e2525f"><span class="section-number-2">8</span> AgroMo-<i>Lite</i></h2>
+<div class="outline-text-2" id="text-8">
+</div>
+</section>
+<section id="slide-sec-8-1">
+<h3 id="org3b485f6"><span class="section-number-3">8.1</span> Telepítés</h3>
+<div class="org-src-container">
+
+<pre  class="src src-R"><span style="color: #00d1e0;">setwd</span>(<span style="color: #1D8B15;">"../hegyhatsal"</span>)
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-R">intall_github(<span style="color: #1D8B15;">"hollorol/AgroMoLite"</span>)
+<span style="color: #00d1e0;">library</span>(AgroMoLite)
+</pre>
+</div>
+
+
+<div class="org-src-container">
+
+<pre  class="src src-R">soilWaterTest()
+</pre>
+</div>
+
+
+</section>
+<section id="slide-sec-8-2" data-background="./titleimage.png">
+<h3 id="org1e3fa62"><span class="section-number-3">8.2</span> Köszönöm, hogy itt voltak!</h3>
 </section>
 </section>
 </div>

@@ -1,0 +1,14 @@
+h1.title {
+    text-align: left;
+    font-size: 2.7em;
+    margin: 0.1px;
+}
+h2.author {
+    text-align: left;
+    font-size: 1.5em;
+    margin: 1px;
+}
+h2.date {
+    text-align: left;
+    font-size: 1.3em;
+}
