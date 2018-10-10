@@ -77,43 +77,55 @@ plotMuso <- function(settings=NULL,
     
     if(fromData){
         Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
-                                    error = function (e){
-                                        setwd((whereAmI))
-                                        stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})
+                         error = function (e){
+                             setwd((whereAmI))
+                             stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})
         colnames(Reva) <- unlist(settings$outputVars[[1]])
         rownames(Reva) <- NULL
         musoData <- cbind(musoDate(startYear = startYear,numYears = numberOfYears,combined = TRUE,corrigated=FALSE),
-              rep(1:365,numberOfYears),
-              musoDate(startYear = startYear,numYears = numberOfYears,combined = FALSE,corrigated=FALSE),as.data.frame(Reva))
+                          rep(1:365,numberOfYears),
+                          musoDate(startYear = startYear,numYears = numberOfYears,combined = FALSE,corrigated=FALSE),as.data.frame(Reva))
         colnames(musoData)[1:5]<-c("date","yearDay","year","day","month")
         musoData <-musoData %>%
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
+        if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
             musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
                 as.data.frame() %>%
                 tibble::rownames_to_column("date") %>%
-                mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
-                       yearDay=rep(1:365,numberOfYears), cum_yieldC_HRV=cum_yieldC_HRV*22.22) %>%
+                mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
                 tidyr::separate(date2,c("day","month","year"),sep="\\.")
             if(timeFrame!="day"){
                 musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
                                      error=function(e){stop("The timeframe or the gropFun is not found")})
-            }
+            }} else {
+                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
+                     as.data.frame() %>%
+                     tibble::rownames_to_column("date") %>%
+                     mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
+                            yearDay=rep(1:365,numberOfYears), cum_yieldC_HRV=cum_yieldC_HRV*22.22) %>%
+                     tidyr::separate(date2,c("day","month","year"),sep="\\.")
+                 if(timeFrame!="day"){
+                     musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
+                                          error=function(e){stop("The timeframe or the gropFun is not found")})
+                 }
+                 
+             }
     }
 
     ## numVari <- ncol(musoData)
-     numVari <- ncol(musoData)-5
+    numVari <- ncol(musoData)-5
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
-                   p <- ggplot(musoData,aes_string("date",variableName))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
-                   if(!is.null(plotName)){
-                       ggsave(as.character(plotName), plot = p)
+                    p <- ggplot(musoData,aes_string("date",variableName))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
+                    if(!is.null(plotName)){
+                        ggsave(as.character(plotName), plot = p)
+                        p
+                    }
                     p
-                   }
-                   p
                 } else {
                     p <- musoData %>%
                         select(c("date", variableName))%>%
@@ -196,22 +208,22 @@ plotMuso <- function(settings=NULL,
             warning("Too many variables to plot, the output quality can be poor")
         }
         
-     } else {
-         
-         if(prod(sapply(variable,function(x){
-             return(x >= 0 && x <= numVari)
-         }))){
-             variableName <-  as.character(settings$outputVars[[1]])[variable]
-         } else {
-             stop("Not all members of the variable parameter are among the output variables")
-         }}
+    } else {
+        
+        if(prod(sapply(variable,function(x){
+            return(x >= 0 && x <= numVari)
+        }))){
+            variableName <-  as.character(settings$outputVars[[1]])[variable]
+        } else {
+            stop("Not all members of the variable parameter are among the output variables")
+        }}
     
     pointOrLineOrPlot(musoData = musoData,
                       variableName = variableName,
                       plotType = plotType,
                       expandPlot = layerPlot,
                       plotName = plotName)
-     }
+}
 
 #'plot the BBGCMuso output with data 
 #'
