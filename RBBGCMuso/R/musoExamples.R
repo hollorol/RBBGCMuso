@@ -20,7 +20,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
             choiceValues <-  basename(list.dirs(system.file("examples","",package = "RBBGCMuso"),recursive = FALSE))
             choices <- tcltk::tkwidget(choiceWin,"ComboBox",
                                        editable = FALSE, values = choiceValues,
-                                       textvariable = tclVar(choiceValues[1]))
+                                       textvariable = tcltk::tclVar(choiceValues[1]))
             tkpack(choices)
             choiceValue <- NA
             closeSelection <- tcltk::tkwidget(choiceWin,"button",text ="Select", command =function (){
@@ -38,15 +38,24 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
 
     
     if(is.null(example)){
-        cExample<-chooseExample()       
+        cExample<-paste0(system.file("examples","",package = "RBBGCMuso"),chooseExample())       
     }
     
     if(is.null(destination)){
         destination<-tcltk::tk_choose.dir(getwd(), "Choose folder to copy the examples!")
     }
-    return(c(cExample,destination))
-     
-   
+    
+    currDir <- getwd()
+    setwd(cExample)
+    print(getwd())
+    if(!WindowsP){
+        file.copy("./bin/muso", destination)
+    } else {
+        file.copy("./bin/muso.exe", destination)
+        file.copy("./bin/cygwin.dll")
+    }
+        file.copy(grep("bin", list.files(), value = TRUE, invert = TRUE),destination)
+     setwd(currDir)
 }
 ## choiceWin <- tcltk::tktoplevel()
 ## tclRequire("BWidget")
