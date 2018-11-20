@@ -51,7 +51,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
         file.copy("./bin/muso", destination)
     } else {
         file.copy("./bin/muso.exe", destination)
-        file.copy("./bin/cygwin.dll", destination)
+        file.copy("./bin/cygwin1.dll", destination)
     }
         file.copy(grep("bin", list.files(), value = TRUE, invert = TRUE),destination)
      setwd(currDir)
