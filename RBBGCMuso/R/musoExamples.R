@@ -25,7 +25,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
             choiceValue <- NA
             closeSelection <- tcltk::tkwidget(choiceWin,"button",text ="Select", command =function (){
                 choiceValue <<- tcltk::tclvalue(tcltk::tcl(choices,"get"))
-                tkdestroy(choiceWin)
+                tcltk::tkdestroy(choiceWin)
             })
             
             tcltk::tkpack(closeSelection)
@@ -51,7 +51,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
         file.copy("./bin/muso", destination)
     } else {
         file.copy("./bin/muso.exe", destination)
-        file.copy("./bin/cygwin.dll")
+        file.copy("./bin/cygwin.dll", destination)
     }
         file.copy(grep("bin", list.files(), value = TRUE, invert = TRUE),destination)
      setwd(currDir)
