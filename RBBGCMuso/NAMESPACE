@@ -3,6 +3,7 @@
 export(OtableMaker)
 export(calibMuso)
 export(cleanupMuso)
+export(copyMusoExamleTo)
 export(corrigMuso)
 export(getyearlycum)
 export(getyearlymax)
