@@ -21,7 +21,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
             choices <- tcltk::tkwidget(choiceWin,"ComboBox",
                                        editable = FALSE, values = choiceValues,
                                        textvariable = tcltk::tclVar(choiceValues[1]))
-            tkpack(choices)
+            tcltk::tkpack(choices)
             choiceValue <- NA
             closeSelection <- tcltk::tkwidget(choiceWin,"button",text ="Select", command =function (){
                 choiceValue <<- tcltk::tclvalue(tcltk::tcl(choices,"get"))
@@ -38,7 +38,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
 
     
     if(is.null(example)){
-        cExample<-paste0(system.file("examples","",package = "RBBGCMuso"),chooseExample())       
+        cExample<-paste0(system.file("examples","",package = "RBBGCMuso"),"/",chooseExample())       
     }
     
     if(is.null(destination)){
@@ -47,7 +47,6 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
     
     currDir <- getwd()
     setwd(cExample)
-    print(getwd())
     if(!WindowsP){
         file.copy("./bin/muso", destination)
     } else {
