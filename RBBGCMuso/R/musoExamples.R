@@ -17,6 +17,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
             tcltk::tclRequire("BWidget")
             tcltk::tktitle(choiceWin) <- "Choose an example!"
             tcltk::tcl("wm","geometry",choiceWin,"200x50")
+            tcl("wm", "attributes", base, topmost=TRUE)
             choiceValues <-  basename(list.dirs(system.file("examples","",package = "RBBGCMuso"),recursive = FALSE))
             choices <- tcltk::tkwidget(choiceWin,"ComboBox",
                                        editable = FALSE, values = choiceValues,
