@@ -8,9 +8,8 @@ copyMusoExamleTo(example = NULL, destination = NULL)
 }
 \arguments{
 \item{example}{The name of the example file, if it is NULL tcl/tk menu will pop up to select.}
-}
-\value{
-List of two matrices: A and B matrix for musoRandomizer
+
+\item{destination}{The destination where the example files will be copied.}
 }
 \description{
 With this function you can copy RBBGCMuso example library whereever you want

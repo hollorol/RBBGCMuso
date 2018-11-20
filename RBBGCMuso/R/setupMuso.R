@@ -218,7 +218,7 @@ setupMuso <- function(executable=NULL,
     numData<-rep(NA,3)
     numYears <-  as.numeric(unlist(strsplit(grep("simulation years",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
-    numValues <-  as.numeric(unlist(strsplit(grep("number of daily output variables",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])
+    numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]])+1],"[\ \t]"))[1])
     ## numValues will be replaced to numVar
     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
     startYear <- as.numeric(unlist(strsplit(grep("first simulation year",iniFiles[[2]],value=TRUE),"[\ \t]"))[1])

@@ -3,10 +3,7 @@
 #'With this function you can copy RBBGCMuso example library whereever you want
 #'
 #'@param example The name of the example file, if it is NULL tcl/tk menu will pop up to select.
-#'@return List of two matrices: A and B matrix for musoRandomizer
-#'@import stats
-#'@import magrittr
-#'@import dplyr
+#'@param destination The destination where the example files will be copied. 
 #'@export
 
 copyMusoExamleTo <- function(example = NULL, destination = NULL){
@@ -17,7 +14,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
             tcltk::tclRequire("BWidget")
             tcltk::tktitle(choiceWin) <- "Choose an example!"
             tcltk::tcl("wm","geometry",choiceWin,"200x50")
-            tcl("wm", "attributes", choiceWin, topmost=TRUE)
+            tcltk::tcl("wm", "attributes", choiceWin, topmost=TRUE)
             choiceValues <-  basename(list.dirs(system.file("examples","",package = "RBBGCMuso"),recursive = FALSE))
             choices <- tcltk::tkwidget(choiceWin,"ComboBox",
                                        editable = FALSE, values = choiceValues,
@@ -57,11 +54,3 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
         file.copy(grep("bin", list.files(), value = TRUE, invert = TRUE),destination)
      setwd(currDir)
 }
-## choiceWin <- tcltk::tktoplevel()
-## tclRequire("BWidget")
-## 
-## choiceValues <-  basename(list.dirs("~/Documents/projects",recursive = FALSE))
-## choices <- tkwidget(choiceWin,"ComboBox", editable = FALSE, values = choiceValues, textvariable = tclVar(choiceValues[1]))
-## tkpack(choices)
-## filename<- tclvalue(tcl(choices,"get"))
-## filename
