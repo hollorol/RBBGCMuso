@@ -4,8 +4,9 @@
 \alias{compareMuso}
 \title{compareMuso}
 \usage{
-compareMuso(settings, parameters, variable, calibrationPar = NULL,
-  fileToChange = NULL, skipSpinup = TRUE, timeFrame = "day")
+compareMuso(settings = NULL, parameters, variable = 1,
+  calibrationPar = NULL, fileToChange = "epc", skipSpinup = TRUE,
+  timeFrame = "day")
 }
 \arguments{
 \item{settings}{You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment}
