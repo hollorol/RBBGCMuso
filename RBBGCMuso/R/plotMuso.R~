@@ -32,11 +32,8 @@ plotMuso <- function(settings=NULL,
                      ##plotname,
                      timee="d",
                      silent=TRUE,
-                     calibrationPar=NULL,
-                     parameters=NULL,
                      debugging=FALSE,
                      keepEpc=FALSE,
-                     fileToChange="epc",
                      logfilename=NULL,
                      aggressive=FALSE,
                      leapYear=FALSE,
@@ -71,7 +68,7 @@ plotMuso <- function(settings=NULL,
     
     groupByTimeFrame <- function(data, timeFrame, groupFun){
         datas <- data %>%
-            group_by(eval(parse(text=timeFrame))) %>%
+            group_by(year) %>%
             summarize(variable=groupFun(eval(parse(text=variable))))
         datas[,1]<-as.numeric(unlist(datas[,1]))
         colnames(datas) <- c("date",variable)
@@ -102,7 +99,7 @@ plotMuso <- function(settings=NULL,
                 musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
                                      error=function(e){stop("The timeFrame or the gropFun is not found")})
             }} else {
-                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
+                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
                      as.data.frame() %>%
                      tibble::rownames_to_column("date") %>%
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
@@ -239,8 +236,6 @@ plotMuso <- function(settings=NULL,
 #' @param variable The name of the output variable to plot
 #' @param NACHAR This is not implemented yet
 #' @param csvFile The file of the measurement. It must contain a header.
-#' @param calibrationPar documentation in setupMuso()
-#' @param parameters documentation in calibMuso() 
 #' @usage plotMuso(settings, variable,
 #' timee="d", silent=TRUE,
 #' debugging=FALSE, keepEpc=FALSE,
@@ -248,7 +243,7 @@ plotMuso <- function(settings=NULL,
 #' leapYear=FALSE, export=FALSE)
 #' @import ggplot2
 #' @export
-plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL,colour=c("black","blue"), calibrationPar=NULL, parameters=NULL){
+plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL,colour=c("black","blue")){
     if(!is.na(NACHAR)){
         warning("NACHAR is not implemented yet")
     }
@@ -286,30 +281,4 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
     }
     
 }
-
-#' compareMuso 
-#'
-#' This function runs the modell, change one of it's input, and plot both in one plot. 
-#' 
-#' @author Roland Hollos
-#' @param settings You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment
-#' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
-#' @param variable The name of the output variable to plot
-#' @param calibrationPar  in the help of setupMuso function.
-#' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini", "both"
-#' @import ggplot2
-#' @export
-compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NULL, fileToChange="epc", skipSpinup=TRUE, timeFrame="day"){
-
-    if(is.null(settings)){
-        settings <- setupMuso()
-    }
-    
-
-    p1 <- plotMuso(settings = settings,variable = variable,timeFrame = timeFrame)
-    p2 <- p1+plotMuso(settings = settings,variable = variable, timeFrame = timeFrame,fileToChange=fileToChange,layerPlot=TRUE)
-    p2
-    
-}
-
 

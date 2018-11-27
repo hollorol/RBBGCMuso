@@ -22,6 +22,10 @@ leapYear=FALSE, export=FALSE)
 \item{sep}{This is the separator used in the measurement file}
 
 \item{savePlot}{It it is specified, the plot will be saved in a format specified with the immanent extension}
+
+\item{calibrationPar}{documentation in setupMuso()}
+
+\item{parameters}{documentation in calibMuso()}
 }
 \description{
 This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way, and after that plot the results automaticly along with a given measurement

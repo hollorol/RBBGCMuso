@@ -1,0 +1,13 @@
+#' putOutVars
+#'
+#'This function is for adding variables in the inifiles.
+#'
+#' @author Roland Hollos
+#' @param IniFile The name of the normal ini file.
+#' @param outputVars List of the output codes
+#' @keywords internal 
+putOutVars <- function(IniFile,outputVars){
+    ini <- readLines(IniFile)
+    sapply(outputVars,musoMapping)
+}
+

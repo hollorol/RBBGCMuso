@@ -7,43 +7,44 @@
 #' @keywords internal
 #' 
 
-changemulline <- function(filePaths, calibrationPar, contents, fileOut, fileToChange, modifyOriginal=FALSE){
+changemulline <- function(filePaths, calibrationPar, contents, fileOut=NULL, fileToChange, modifyOriginal=FALSE){
     selectFileToWrite <- function(filePaths, fileTochange){
         if(fileToChange == "epc"){
-            return(1)
+            return(filePaths[1])
         } else{
-            return(2)            
+            return(filePaths[2])            
         }
 
+    }
+
+    if(modifyOriginal){
+        fileOut <- filePaths
+        mutated <- TRUE
+    } else {
+        fileOut <- sapply(filePaths, function (x){
+            paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
+        })
+        mutated <- FALSE
     }
     
     if(xor(is.list(calibrationPar), is.list(contents)) ){
         stop("If you change epc and ini files also, you have to use list for calibrationPar, and paramateters.")
     }
-     
+    
     if(!is.element(fileToChange,c("ini","epc","both"))){
         stop("RBBGCMuso can only change ini or epc file, so fileToChange can be 'epc/ini/both'")
     }
 
     if(fileToChange == "epc" | fileToChange == "ini"){
-        parMat<-cbind(calibrationPar, contents)
-        parMat[order(parMat[,1]),]
-        changeMusoC(inFile = filePaths[selectFileToWrite(filePaths, fileToChange)],
-                    outFile = fileOut[selectFileToWrite(filePaths, fileToChange)],
-                    parMat)
+        changeMusoC(selectFileToWrite(filePaths, fileToChange),fileOut[1], cbind(calibrationPar, contents))
     }
     
     if(fileToChange == "both"){
-        parMat<-list()
-        parMat[[1]]<-cbind(calibrationPar[[1]], contents[[1]])
-        parMat[[1]][order(parMat[[1]][,1]),]
-        parMat[[2]]<-cbind(calibrationPar[[2]], contents[[2]])
-        parMat[[2]][order(parMat[[2]][,1]),]
-        
-        changeMusoC(filePaths[1],fileOut[1],parMat[[1]] )
-        changeMusoC(filePaths[2],fileOut[2],parMat[[2]] )
+        changeMusoC(filePaths[1],fileOut[1], cbind(calibrationPar[[1]],contents[[1]]))
+        changeMusoC(filePaths[2],fileOut[2], cbind(calibrationPar[[1]],contents[[2]]))
     }
 
+    return(mutated)
 }
 
 

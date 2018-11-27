@@ -234,13 +234,6 @@ setupMuso <- function(executable=NULL,
     writeLines(iniFiles[[1]],iniInput[1])
     writeLines(iniFiles[[2]],iniInput[2])
 
-    if(!is.null(modelOutputs)){
-        outVarChanges <- putOutVars(iniFile = iniInput[2],outputVars = modelOutputs, modifyOriginal = TRUE)
-        numData <- round(numDate*outVarChanges[[2]])
-        outputVars[[1]] <-outVarChanges[[1]] 
-    }
-    
-
     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[1]),".log")))
     ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))

@@ -26,7 +26,6 @@ musoSensi <- function(monteCarloFile = NULL,
                      settings = NULL,
                      inputDir = "./",
                      outLoc = "./calib",
-                     outVars = NULL,
                      iterations = 30,
                      preTag = "mont-",
                      outputType = "moreCsv",
@@ -92,7 +91,6 @@ musoSensi <- function(monteCarloFile = NULL,
                       iterations = iterations,
                       preTag = preTag,
                       outputType = outputType,
-                      outVars = outVars,
                       fun = fun,
                       varIndex = varIndex,
                       skipSpinup = skipSpinup
@@ -105,9 +103,6 @@ musoSensi <- function(monteCarloFile = NULL,
         
     } else {
         M <- read.csv(monteCarloFile)
-         yInd <-  grep("mod.", colnames(M))[varIndex]
-        parNames <- grep("mod.",colnames(M), invert=TRUE, value = TRUE)
-        M <- M[,c(grep("mod.", colnames(M),invert=TRUE),yInd)]
         return(doSensi(M))        
     }
 }

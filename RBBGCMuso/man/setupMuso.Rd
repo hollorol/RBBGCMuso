@@ -22,6 +22,8 @@ nitInput=NULL, iniInput=NULL, epcInput=NULL)
 
 \item{outputLoc}{Where should the modell puts its outputs. You should give a location for it via this variable, for example: outputLoc="/place/of/the/outputs/"}
 
+\item{modelOutputs}{This parameter is the list of the codes of outpu}
+
 \item{inputLoc}{Usually it is the root directory, where you put the iniFiles for the modell}
 
 \item{metInput}{Via metInput parameter, you can tell the modell where are the meteorological files. As default it reads this from the iniFiles.}
@@ -52,7 +54,7 @@ nitInput=NULL, iniInput=NULL, epcInput=NULL)
 }
 \value{
 The output is a the modell setting list wich contains the following elements:
-executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput, irrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
+executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput,rrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
 }
 \description{
 This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
