@@ -1,4 +1,0 @@
-musoFilter <- function(dB=.,text){
-    eval(parse(text = paste0("filter(",dB,",.,",text,")"))) %>%
-        tbl_df
-}
