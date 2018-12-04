@@ -15,7 +15,7 @@
 #' @param keepEpc if you set keepEpc also true, it will save every selected epc file, and put the wrong ones in the WRONGEPC directory.
 #' @export
 
-musoMont <- function(settings=NULL,
+musoMonte <- function(settings=NULL,
                      parameters=NULL,
                      inputDir = "./",
                      outLoc = "./calib",
@@ -24,44 +24,36 @@ musoMont <- function(settings=NULL,
                      outputType = "moreCsv",
                      fun=mean,
                      varIndex = 1,
-                     outVars = NULL,
                      silent = TRUE,
-                     skipSpinup = TRUE,
+                     skipSpinup = FALSE,
                      debugging = FALSE,
                      keepEpc = FALSE,
-                     constrains = NULL,
                      ...){
 
-
-    readValuesFromEpc  <- function(epc, linums){
-        epcFile <- readLines(epc)
-        rows <- numeric(2)
-        values <- sapply(linums, function(x){
-            rows[1] <- as.integer(x)
-            rows[2] <- as.integer(round(100*x)) %% 10 + 1 
-            epcFile <- readLines(epc)
-            selRow <- unlist(strsplit(epcFile[rows[1]], split= "[\t ]"))
-            selRow <- selRow[selRow!=""]
-            return(as.numeric(selRow[rows[2]]))
-            
-        })
-        
-        return(values)
+    getEpcValue  <- function(epc, linum){
+        numcord <- numeric(3)
+        numcord[1] <- as.integer(linNum)
+        linNum <- as.integer(round(linNum * 100))
+        numcord[3] <-linNum %% 10 +1 
+        numcord[2] <- (linNum %/% 10) %% 10 + 1
+        numcord 
     } 
     
+    
     if(is.null(parameters)){
-        parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
+        parameters <- tryCatch(read.csv("parameters.csv"), error = function (e) {
             stop("You need to specify a path for the parameters.csv, or a matrix.")
         })
     } else {
         if((!is.list(parameters)) & (!is.matrix(parameters))){
-             parameters <- tryCatch(read.csv(parameters, stringsAsFactor=FALSE), error = function (e){
+             parameters <- tryCatch(read.csv(parameters), error = function (e){
                                          stop("Cannot find neither parameters file neither the parameters matrix")
                                      })
         }}
     
-    outLocPlain <- basename(outLoc)
-    currDir <- getwd()
+    outLocPlain <- basename(outLoc) #Where to put the csv outputs 
+    currDir <- getwd() # just to go back, It is unlikely to be used
+    inputDir <- normalizePath(inputDir) # Where are the model files.
 
     if(!dir.exists(outLoc)){
         dir.create(outLoc)
@@ -70,39 +62,44 @@ musoMont <- function(settings=NULL,
 
     outLoc <- normalizePath(outLoc)
 
+    
     if(is.null(settings)){
         settings <- setupMuso()
     }
     
-    
-
-    if(is.null(outVars)){
-        numVars <- length(settings$outputVars[[1]])
-        outVarNames <- settings$outputVars[[1]]
-    } else {
-        numVars <- length(outVars)
-        outVarNames <- sapply(outVars, musoMapping)
-    }
-    
     parameterNames <- parameters[,1]
-    # settings$calibrationPar <- A[,1] #:LATER:
+    parReal <- parameters[,-1]
+    Otable <- OtableMaker(parReal)
+    A <- as.matrix(Otable[[1]][,c(2,4,5,6)])
+    B <- as.matrix(Otable[[2]])
+    settings$calibrationPar <- A[,1] 
     pretag <- file.path(outLoc,preTag)
     npar <- length(settings$calibrationPar)
     
     ##reading the original epc file at the specified
     ## row numbers
-    if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
-        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
-    } else {
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
-    }
     
-    origEpc <- readValuesFromEpc(settings$epc[2],parameters[,2])
+    origEpcFile <- readLines(settings$epcInput[2])
+    
+    origEpc <- unlist(lapply(settings$calibrationPar, function (x) {
+        as.numeric(unlist(strsplit(origEpcFile[x],split="[\t ]"))[1])
+    }))
     
     ## Prepare the preservedEpc matrix for the faster
     ##  run.
-
+    preservedEpc <- matrix(nrow = (iterations +1 ), ncol = npar)
+    preservedEpc[1,] <- origEpc
+    Otable[[1]][,1]  <- (as.character(Otable[[1]][,1]))
+    for(i in parameters[,2]){
+        Otable[[1]][Otable[[1]][,2]==i,1] <- as.character(parameters[parameters[,2]==i,1])
+    }
+    
+    colnames(preservedEpc) <- Otable[[1]][,1]
+    preservedEpc <- cbind(preservedEpc,rep(NA,(iterations+1)))
+    colnames(preservedEpc)[(npar+1)] <- "y"
+    ## Save the backupEpc, while change the settings
+    ## variable and set the output.
+    file.copy(settings$epc[2],"savedEpc",overwrite = TRUE) # do I need this? 
     pretag <- file.path(outLoc,preTag)
     
     ## Creating function for generating separate
@@ -110,59 +107,49 @@ musoMont <- function(settings=NULL,
 
     progBar <- txtProgressBar(1,iterations,style=3)
 
+    modelRun <- function(settings, debugging, parameters, keepEpc, silent, skipSpinup){
+        if(!skipSpinup){
+            calibMuso(settings, debugging = debugging, parameters = parameters, keepEpc = keepEpc, silent = silent)        
+        } else {
+            normalMuso(settings, debugging = debugging, parameters = parameters, keepEpc = keepEpc, silent = silent)
+        } 
+        
+    }
     
     moreCsv <- function(){
-        randValues <- randVals[[2]]
-        settings$calibrationPar <- randVals[[1]]
-        ## randValues <- randValues[,randVals[[1]] %in% parameters[,2]][,rank(parameters[,2])]
-        modellOut <- matrix(ncol = numVars, nrow = iterations + 1)
 
-        origModellOut <- calibMuso(silent=TRUE)
-        write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
-
-        if(!is.list(fun)){
-            funct <- rep(list(fun), numVars)
+        if(skipSpinup){#skipSpinup is boolean
+            spinupMuso(settings = settings , silent = silent)
         }
-            
-        tmp2 <- numeric(numVars)
-
-        for(j in 1:numVars){
-            tmp2[j]<-funct[[j]](origModellOut[,j])
-        }
-        modellOut[1,]<- tmp2
-        
-        for(i in 2:(iterations+1)){
-            tmp <- calibMuso(settings = settings,
-                             parameters = randValues[(i-1),],
-                             silent= TRUE,
-                             skipSpinup = skipSpinup,
-                             keepEpc = keepEpc,
+        a <- numeric(iterations+1)
+        tempData <- modelRun(settings=settings,
                              debugging = debugging,
-                             outVars = outVars)
+                             parameters = origEpc,
+                             keepEpc = keepEpc,
+                             silent = silent,
+                             skipSpinup = skipSpinup)
+        ## tempData <- calibMuso(settings, debugging = "stamplog", parameters = origEpc,keepEpc = TRUE,silent = silent)
+        a[1] <- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})
+        preservedEpc[1,(npar+1)] <- a[1]
+        write.table(t(preservedEpc[1,]),row.names = FALSE,"preservedEpc.csv",sep=",")
+        write.csv(x=tempData, file=paste0(preTag,1,".csv"))
+        for(i in 1:iterations){
+            parVar <- musoRandomizer(A,B)[,2]
+            preservedEpc[(i+1),] <- c(parVar,NA)
+            exportName <- paste0(preTag,(i+1),".csv")
+            tempData <- modelRun(settings = settings,
+                                 debugging = debugging,
+                                 parameters = parVar,
+                                 keepEpc = keepEpc,
+                                 silent=silent,
+                                 skipSpinup =skipSpinup)
+            write.csv(x=tempData,file=exportName)
             
-
-            for(j in 1:numVars){
-                tmp2[j]<-funct[[j]](tmp[,j])
-            }
-            
-            modellOut[i,]<- tmp2
-            write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
+            preservedEpc[(i+1),(npar+1)] <- a[i+1]<- tryCatch(fun(tempData[,varIndex]),error=function(e){return(NA)})
+            write.table(t(preservedEpc[(i+1),]),file="preservedEpc.csv",row.names=FALSE,col.names=FALSE, append=TRUE,sep=",")
             setTxtProgressBar(progBar,i)
         }
-
-        paramLines <- parameters[,2]
-        paramLines <- order(paramLines)
-        randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
-        randInd <- order(randInd)
-        
-       
-        epcStrip <- rbind(origEpc[order(parameters[,2])],
-                          randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
-        
-        
-            preservedEpc <- cbind(epcStrip,
-                                  modellOut)
-        colnames(preservedEpc) <- c(parameterNames[paramLines], sapply(outVarNames, function (x) paste0("mod.", x)))
+        cat("\n")
         return(preservedEpc)
     }
     
@@ -170,27 +157,26 @@ musoMont <- function(settings=NULL,
     ## csv files for each run
     
     oneCsv <- function () {
-        stop("This function is not implemented yet")
-        ## numDays <- settings$numdata[1]
-        ## if(!onDisk){
-        ##     for(i in 1:iterations){
+        numDays <- settings$numdata[1]
+        if(!onDisk){
+            for(i in 1:iterations){
                 
-        ##         parVar <- apply(parameters,1,function (x) {
-        ##             runif(1, as.numeric(x[3]), as.numeric(x[4]))})
+                parVar <- apply(parameters,1,function (x) {
+                    runif(1, as.numeric(x[3]), as.numeric(x[4]))})
                 
-        ##         preservedEpc[(i+1),] <- parVar
-        ##         exportName <- paste0(preTag,".csv")
-        ##         write.csv(parvar,"preservedEpc.csv",append=TRUE)
-        ##         calibMuso(settings,debugging = "stamplog",
-        ##                   parameters = parVar,keepEpc = TRUE) %>%
-        ##             {mutate(.,iD = i)} %>%
-        ##             {write.csv(.,file=exportName,append=TRUE)}
-        ##     }
+                preservedEpc[(i+1),] <- parVar
+                exportName <- paste0(preTag,".csv")
+                write.csv(parvar,"preservedEpc.csv",append=TRUE)
+                calibMuso(settings,debugging = "stamplog",
+                          parameters = parVar,keepEpc = TRUE) %>%
+                    {mutate(.,iD = i)} %>%
+                    {write.csv(.,file=exportName,append=TRUE)}
+            }
             
-        ##     return(preservedEpc)
-        ## } else {
+            return(preservedEpc)
+        } else {
             
-        ## }
+        }
     }
     
     netCDF <- function () {
@@ -202,9 +188,18 @@ musoMont <- function(settings=NULL,
            "oneCsv" = (a <- oneCsv()),
            "moreCsv" = (a <- moreCsv()),
            "netCDF" = (a <- netCDF()))
-    write.csv(a,"preservedEpc.csv")
-   
+    
+    ## Change back the epc file to the original
+    for(i in file.path("./",grep(outLocPlain, list.files(inputDir), invert = TRUE, value = TRUE))){
+        file.remove(i,recursive=TRUE)
+    }
+    for(i in list.files()){
+        file.copy(i,outLoc,recursive=TRUE,overwrite = TRUE)
+    }
+    
+    unlink(tmp,recursive = TRUE)
     setwd(currDir)
+    file.copy("savedEpc",settings$epc[2],overwrite = TRUE)
     return(a)
 }
 

@@ -27,6 +27,16 @@ getLogs <- function(outputLoc, outputNames, type = "spinup"){
 
 
 readErrors <- function(outputLoc, logfiles, type = "both"){
+
+    if(length(logfiles)==0){
+        if(type=="normal"){
+            return(1)
+        } else {
+            return(c(0,0))
+        }
+    } 
+        
+    
     switch( type,
            "both" = return(
                as.numeric(

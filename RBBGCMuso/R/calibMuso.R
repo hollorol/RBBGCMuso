@@ -46,7 +46,10 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     executable <- settings$executable
     iniInput <- settings$iniInput
     epc <- settings$epcInput
-    calibrationPar <- settings$calibrationPar
+
+    if(is.null(calibrationPar)){
+        calibrationPar <- settings$calibrationPar
+    }
     binaryPlace <- normalizePath(binaryPlace)
     whereAmI<-getwd()
 
@@ -314,7 +317,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     
     #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
-        return("Modell Failure")
+        stop("Modell Failure")
     }
 
     if(timee=="d"){

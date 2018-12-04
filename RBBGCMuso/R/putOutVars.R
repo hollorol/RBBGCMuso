@@ -8,7 +8,7 @@
 #' @keywords internal 
 putOutVars <- function(iniFile,outputVars,modifyOriginal = FALSE){
     ini <- readLines(iniFile)
-    numVarsOriginal <- as.numeric(ini[grep("DAILY_OUTPUT",ini)+1])
+    numVarsOriginal <- as.numeric(unlist(strsplit(ini[grep("DAILY_OUTPUT",ini)+1],"[\ \t]"))[1])
     if(!modifyOriginal){
         iniOut <- paste0(tools::file_path_sans_ext(basename(iniFile)),"-tmp.",tools::file_ext(iniFile))
     } else {
