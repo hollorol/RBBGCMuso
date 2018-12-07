@@ -1,0 +1,14 @@
+#+TITLE: This is the official repository of the RBBCMuSo package
+#+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
+
+Written by Roland HOLLÓS, Dóra HIDY
+
+E-mail: hollorol@gmail.com
+* Introduction
+
+
+* Installation
+* Usage
+* Acknowledgements
+
+The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028).

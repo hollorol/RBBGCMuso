@@ -17,6 +17,7 @@
 #' @param binaryPlace The place of the binary output files.
 #' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"
 #' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
+#' @param prettyOut date ad Date type, separate year, month, day vectors
 #' @return No return, outputs are written to file 
 #' @usage calibMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NULL,
 #' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
@@ -30,7 +31,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       silent=FALSE, aggressive=FALSE,
                       leapYear=FALSE,keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE){
+                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
 ##########################################################################
 ###########################Set local variables and places########################
 ########################################################################
@@ -321,7 +322,21 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     }
 
     if(timee=="d"){
-        colnames(Reva) <- unlist(settings$outputVars[[1]])
+        if(!prettyOut){
+            colnames(Reva) <- unlist(settings$outputVars[[1]])
+        } else{
+            dates <- as.Date(musoDate(startYear = settings$startYear,
+                                      numYears = settings$numYears,
+                                      timestep="d",combined = TRUE,corrigated = FALSE),
+                             "%d.%m.%Y")
+            Reva <- cbind.data.frame(dates,
+                          musoDate(startYear = settings$startYear,
+                                   numYears = settings$numYears,
+                                   timestep = "d", combined = FALSE, corrigated = FALSE),
+                          Reva)
+            colnames(Reva) <- as.character(c("date","day","month","year",unlist(settings$outputVars[[1]])) )
+            
+        }
     } else {
         if(timee=="y")
             colnames(Reva) <- unlist(settings$outputVars[[2]])
@@ -331,9 +346,15 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     if(leapYear){
         Reva <- corrigMuso(settings,Reva)
-        rownames(Reva) <- musoDate(settings$startYear,settings$numYears)
-    } else { 
-        rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)
+        if(!prettyOut){
+            rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
+        }
+
+    } else {
+        if(!prettyOut){
+            rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)    
+        }
+        
     }
 
 
