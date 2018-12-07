@@ -1,6 +1,7 @@
 #+TITLE: This is the official repository of the RBBCMuSo package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
 
+[[https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/logo.jpg]]
 Written by Roland HOLLÓS, Dóra HIDY
 
 E-mail: hollorol@gmail.com
