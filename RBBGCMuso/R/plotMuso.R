@@ -46,7 +46,8 @@ plotMuso <- function(settings=NULL,
                      colour="blue",
                      skipSpinup=TRUE,
                      fromData=FALSE,
-                     timeFrame="day",
+                    timeFrame="day",
+                    selectYear=NULL,
                      groupFun=mean,
                      dpi=300){
 
@@ -98,6 +99,10 @@ plotMuso <- function(settings=NULL,
                 tibble::rownames_to_column("date") %>%
                 mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
                 tidyr::separate(date2,c("day","month","year"),sep="\\.")
+            if(!is.null(selectYear)){
+            musoData <- musoData %>% dplyr::filter(year == get("selectYear"))    
+            }
+            
             if(timeFrame!="day"){
                 musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
                                      error=function(e){stop("The timeFrame or the gropFun is not found")})
@@ -108,6 +113,11 @@ plotMuso <- function(settings=NULL,
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
                             yearDay=rep(1:365,numberOfYears), cum_yieldC_HRV=cum_yieldC_HRV*22.22) %>%
                      tidyr::separate(date2,c("day","month","year"),sep="\\.")
+                 if(!is.null(selectYear)){
+                     musoData <- musoData %>% dplyr::filter(year == get("selectYear"))    
+                 }
+                 
+                 
                  if(timeFrame!="day"){
                      musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
                                           error=function(e){stop("The timeframe or the gropFun is not found")})
