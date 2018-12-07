@@ -52,6 +52,6 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
     a %<>%
         tbl_df %>%
         mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
-        select(date,varNames,parVal)
-    print(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(round(parVal,2)))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.4,1)))
+        select(date,as.character(varNames),parVal)
+    print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(round(parVal,2)))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.25,1))))
 }
