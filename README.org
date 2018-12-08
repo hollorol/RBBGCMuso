@@ -1,15 +1,12 @@
 #+BEGIN_HTML
-<img style="width: 10px; position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/logo.jpg" alt="Fork me on GitHub">
+<img width="200px" align="right" position="absolute" style="position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/logo.jpg" alt="Fork me on GitHub">
 #+END_HTML
 
-#+TITLE: The RBBCMuSo package
+* The RBBGCMuso Package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
 Written by Roland HOLLÓS, Dóra HIDY
 
 E-mail: hollorol@gmail.com
-* Introduction
-
-
 * Installation
 * Usage
 * Acknowledgements
