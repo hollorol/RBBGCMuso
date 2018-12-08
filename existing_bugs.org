@@ -1,4 +1,0 @@
-* RBBGCMuso 0. 4 bugs
-
-Output mapping variable names are not obvious, van the variable is part of a structure. See The 2909 variable: "flnr".
- 
