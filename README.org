@@ -4,11 +4,34 @@
 
 * The RBBGCMuso Package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
-Written by Roland HOLLÓS, Dóra HIDY
+RBBGCMuso is an R package which helps you to use [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] model in R environment. It also provides some additional tools for the model such as MuSo optimized montecarlo, sensitivity analysis. If you want to use the framework, please read the following description.
 
-E-mail: hollorol@gmail.com
-* Installation
-* Usage
-* Acknowledgements
+** Installation
+*** Installation in Windows
+*** Istallation in Linux
+*** Installation from Source
+** Quick usage
+*** Running the model
+*** Visualizing the output
+*** MonteCarlo experiments
+*** Sensitivity analysis
+*** Perform Quick experiments
+*** parameterSweep
+** Advanced usage
+*** copyMusoExampleTo
+*** setupMuso
+*** musoData
+*** musoMapping
+*** musoMappingFind
+*** spinupMuso
+*** normalMuso
+*** calibMuso
+*** plotMuso
+*** plotMusoWithData
+*** musoQuckEffect
+*** musoMonte
+*** musoSensi
+** Contact
+** Acknowledgements
 
 The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028).
