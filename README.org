@@ -1,5 +1,5 @@
 #+BEGIN_HTML
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/logo.jpg" alt="Fork me on GitHub">
+<img style="width: 10px; position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/logo.jpg" alt="Fork me on GitHub">
 #+END_HTML
 
 #+TITLE: The RBBCMuSo package
