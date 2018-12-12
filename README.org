@@ -7,11 +7,27 @@
 RBBGCMuso is an R package which helps you to use the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as MuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you want to use the framework, please read the following description.
 
 ** Installation
+You can install the RBBGCMuso package in several ways depending on the operating system you use. Now, RBBGCMuso is tested only in Linux and Windows, so OS X compatibility cannot be granted yet. In Windows you can use install the package from binary or from source installer. In Linux you can only install from source.  
+
 *** Installation in Windows
-*** Istallation in Linux
-*** Installation from Source
+You can allways install the latest RBBGCMuso by copy the following line into the R console
+#+BEGIN_SRC R :eval no
+source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
+#+END_SRC
+
+*** Installation in Linux or from Source
+If you want to install the RBBGCMuso package in Linux, you have several ways.
+1) Clone this repository, and build and run the package (further information here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
+2) Install devtools package and copy the following line into an R session
+#+BEGIN_SRC R :eval no
+devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
+#+END_SRC
+
+Please note, that the last point also works in Windows after you installed the [[https://cran.r-project.org/web/packages/devtools/index.html][devtools]] package and [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]].
+
 ** Quick usage
 *** Running the model
+
 *** Visualization of the model output
 *** Study the effect of ecophysiological parameters using parameterSweep
 *** Monte-Carlo experiments
