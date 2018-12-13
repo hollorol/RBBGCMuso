@@ -26,7 +26,11 @@ devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
 Please note, that the last point also works in Windows after you installed the [[https://cran.r-project.org/web/packages/devtools/index.html][devtools]] package and [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]].
 
 ** Quick usage
+*** Preparation
+In order to use the RBBGCMuso framework you have to set up the m environment, as you normally would if you use the modell without the framework. Please read the corresponding documentation at the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][Biome-BGCMuSo's actual userguide]]
 *** Running the model
+
+You can run the model in spinup, in normal, or in both phase. With calibMuso functcion, you are able to execute the the model in both or in a normal phase.  
 
 *** Visualization of the model output
 *** Study the effect of ecophysiological parameters using parameterSweep
