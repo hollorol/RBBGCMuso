@@ -15,10 +15,8 @@
 #' @param fun If you select a variable from the possible outputs (with specify the varIndex parameter), you have to provide a function which maps to a subset of real numbers. The most frequent possibilities are: mean, min, max, var, but you can define any function for your need.
 #' @param varIndex This parameter specify which parameter of the output will be used. You can extract this information from the ini-files. At the output parameter specifications, the parameters order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926, you should address varIndex with 3.
 #' @param skipSpinup With this parameter, you can turn of the spinup phase after the first spinup. I will decrease the time significantly.
-#' @import dplyr
-#' @import graphics
-#' @import grDevices
-#' @import ggplot2
+#' @importFrom ggplot2 geom_bar ggplot aes theme element_text xlab ylab ggtitle ggsave scale_y_continuous
+#' @importFrom scales percent
 #' @export
 
 musoSensi <- function(monteCarloFile = NULL,
@@ -76,7 +74,7 @@ musoSensi <- function(monteCarloFile = NULL,
             xlab(NULL)+
             ylab(NULL)+
             ggtitle("Sensitivity")+
-            scale_y_continuous(labels = scales::percent,limits=c(0,1))
+            scale_y_continuous(labels = percent,limits=c(0,1))
         print(sensiPlot)
         ggsave(plotName,dpi=dpi)
         return(S)
@@ -85,7 +83,7 @@ musoSensi <- function(monteCarloFile = NULL,
     
 
     if(is.null(monteCarloFile)){
-        M <- musoMont(parameters = parameters,
+        M <- musoMonte(parameters = parameters,
                       settings = settings,
                       inputDir = inputDir,
                       outLoc = outLoc,
@@ -105,7 +103,7 @@ musoSensi <- function(monteCarloFile = NULL,
         
     } else {
         M <- read.csv(monteCarloFile)
-         yInd <-  grep("mod.", colnames(M))[varIndex]
+        yInd <-  grep("mod.", colnames(M))[varIndex]
         parNames <- grep("mod.",colnames(M), invert=TRUE, value = TRUE)
         M <- M[,c(grep("mod.", colnames(M),invert=TRUE),yInd)]
         return(doSensi(M))        

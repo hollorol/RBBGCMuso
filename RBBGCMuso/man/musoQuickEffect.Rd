@@ -5,7 +5,7 @@
 \title{musoQuickEffect}
 \usage{
 musoQuickEffect(settings = NULL, calibrationPar = NULL, startVal,
-  endVal, nSteps = 1, fileTochange = "epc", outVar,
+  endVal, nSteps = 1, fileToChange = "epc", outVar,
   parName = "parVal")
 }
 \arguments{

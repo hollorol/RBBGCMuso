@@ -4,7 +4,8 @@
 #' @author Roland Hollos
 #' @param parameters This is a dataframe (heterogen data-matrix), which first column is the name of the parameters, the second is a numeric vector of the rownumbers of the given variable in the input-file, the last two column consist the endpont of the parameter-ranges, where the parameters will be randomized.
 #' @param constrains This is a matrics wich specify the constrain rules for the sampling. Further informations coming son.
-#' @param iteration The number of sample-s. It is adviced to use at least 3000 iteration, because it is generally fast and it can be subsampled later at any time. 
+#' @param iteration The number of sample-s. It is adviced to use at least 3000 iteration, because it is generally fast and it can be subsampled later at any time.
+#' @importFrom limSolve xsample
 #' @export
 
 musoRand <- function(parameters, constrains = NULL, iterations=3000){
@@ -163,7 +164,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
         randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)
-        randVal <- suppressWarnings(limSolve::xsample(G=Gh0$G,H=Gh0$h, iter = iterations))$X
+        randVal <- suppressWarnings(xsample(G=Gh0$G,H=Gh0$h, iter = iterations))$X
     }
     
     results <- list(INDEX =dependences$INDEX, randVal=randVal)

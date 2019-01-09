@@ -11,6 +11,7 @@ Packaged: 2017-07-19 14:00:04 UTC; hollorol
 Author: Roland Hollo's [aut, cre]
 Imports:
 	grDevices,
+        limSolve,
 	stats,
 	utils,
 	graphics,

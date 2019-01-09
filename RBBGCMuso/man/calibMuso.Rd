@@ -35,6 +35,8 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 \item{fileToChange}{You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"}
 
 \item{skipSpinup}{If TRUE, calibMuso wont do spinup simulation}
+
+\item{prettyOut}{date ad Date type, separate year, month, day vectors}
 }
 \value{
 No return, outputs are written to file

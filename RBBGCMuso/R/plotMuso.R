@@ -21,9 +21,10 @@
 #' debugging=FALSE, keepEpc=FALSE,
 #' logfilename=NULL, aggressive=FALSE,
 #' leapYear=FALSE, export=FALSE)
-#' @import ggplot2
-#' @import dplyr
-#' @import tidyr
+#' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
+#' @importFrom dplyr filter group_by summarize mutate '%>%'
+#' @importFrom tibble rownames_to_column
+#' @importFrom tidyr separate
 #' @export
 
 plotMuso <- function(settings=NULL,
@@ -96,11 +97,11 @@ plotMuso <- function(settings=NULL,
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
             musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
                 as.data.frame() %>%
-                tibble::rownames_to_column("date") %>%
+                rownames_to_column("date") %>%
                 mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
-                tidyr::separate(date2,c("day","month","year"),sep="\\.")
+                separate(date2,c("day","month","year"),sep="\\.")
             if(!is.null(selectYear)){
-            musoData <- musoData %>% dplyr::filter(year == get("selectYear"))    
+            musoData <- musoData %>% filter(year == get("selectYear"))    
             }
             
             if(timeFrame!="day"){
@@ -109,12 +110,12 @@ plotMuso <- function(settings=NULL,
             }} else {
                  musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
                      as.data.frame() %>%
-                     tibble::rownames_to_column("date") %>%
+                     rownames_to_column("date") %>%
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
                             yearDay=rep(1:365,numberOfYears), cum_yieldC_HRV=cum_yieldC_HRV*22.22) %>%
-                     tidyr::separate(date2,c("day","month","year"),sep="\\.")
+                     separate(date2,c("day","month","year"),sep="\\.")
                  if(!is.null(selectYear)){
-                     musoData <- musoData %>% dplyr::filter(year == get("selectYear"))    
+                     musoData <- musoData %>% filter(year == get("selectYear"))    
                  }
                  
                  
@@ -276,9 +277,9 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
     
     baseData <- calibMuso(settings,silent=TRUE) %>%
         as.data.frame() %>%
-        tibble::rownames_to_column("date") %>%
-        dplyr::mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
-        tidyr::separate(date2,c("day","month","year"),sep="\\.")
+        rownames_to_column("date") %>%
+        mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
+        separate(date2,c("day","month","year"),sep="\\.")
     baseData <- cbind(baseData,data)
     colnames(baseData)[ncol(baseData)] <- "measuredData"
 
