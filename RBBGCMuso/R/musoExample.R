@@ -47,11 +47,9 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
   currDir <- getwd()
   setwd(cExample)
   if(!WindowsP){
-    file.copy("./bin/muso", destination)
+      file.copy(grep("(exe|dll)$", list.files(), value = TRUE, invert = TRUE),destination)
   } else {
-    file.copy("./bin/muso.exe", destination)
-    file.copy("./bin/cygwin1.dll", destination)
+      file.copy(grep("^muso$", list.files(), value = TRUE, invert = TRUE),destination)    
   }
-  file.copy(grep("bin", list.files(), value = TRUE, invert = TRUE),destination)
   setwd(currDir)
 }

@@ -27,7 +27,7 @@ Imports:
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr
