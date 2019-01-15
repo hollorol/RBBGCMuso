@@ -8,7 +8,7 @@
 #' @param iterations The number of changes in the parameter
 #' @param outVar The name of the output variable to plot, of the MuSo code of it.
 #' @param htmlOutName The name of the rendered html file 
-#' @importFrom rmarkdown render
+#' @importFrom rmarkdown render pandoc_version
 #' @importFrom digest digest
 #' @importFrom tcltk tk_choose.files 
 #' @export
@@ -19,6 +19,11 @@ paramSweep <- function(inputDir="./",
                        iterations=10,
                        outVar="daily_gpp",
                        htmlOutName = "paramsweep.html"){
+    
+    if(is.null(pandoc_version())){
+        stop("In order to use parameterSweep you have to have pandoc (1.12.3+) installed or run this function from Rstudio\n
+You can download pandoc from here: 'https://pandoc.org/', or Rstudio from here: 'https://www.rstudio.com/'")
+    }
     currDir <- getwd()
     opSystem <- Sys.info()[[1]]
     if(is.character(outVar)){
@@ -62,7 +67,7 @@ paramSweep <- function(inputDir="./",
         system(paste0("xdg-open ",htmlOutName))
     } else {
         if(opSystem == "Windows"){
-            system(paste0("start ",htmlOutName))
+            shell(paste0("start ",htmlOutName))
         } else {
             system(paste0("open ",htmlOutName))
         }
