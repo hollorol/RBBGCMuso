@@ -4,7 +4,7 @@
 #'
 #'@param example The name of the example file, if it is NULL tcl/tk menu will pop up to select.
 #'@param destination The destination where the example files will be copied.
-#'@importFrom tcltk tclRequire tktoplevel tktoplevel tcl tclVar tclvalue tkwidget tk_choose.dir tktitle
+#'@import tcltk
 #'@export
 
 copyMusoExamleTo <- function(example = NULL, destination = NULL){
