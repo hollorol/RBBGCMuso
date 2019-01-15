@@ -10,7 +10,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
   WindowsP <- Sys.info()[1] == "Windows"
   
   chooseExample <- function(){
-    tcltk::choiceWin <- tcltk::tktoplevel()
+    choiceWin <- tcltk::tktoplevel()
     tcltk::tclRequire("BWidget")
     tcltk::tktitle(choiceWin) <- "Choose an example!"
     tcltk::tcl("wm","geometry",choiceWin,"200x50")
@@ -22,7 +22,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
     tcltk::tkpack(choices)
     choiceValue <- NA
     closeSelection <- tcltk::tkwidget(choiceWin,"button",text ="Select", command =function (){
-      choiceValue <<- tcltk::tclvalue(tcl(choices,"get"))
+      choiceValue <<- tcltk::tclvalue(tcltk::tcl(choices,"get"))
       tcltk::tkdestroy(choiceWin)
     })
     
@@ -40,7 +40,7 @@ copyMusoExamleTo <- function(example = NULL, destination = NULL){
   }
   
   if(is.null(destination)){
-    destination<-tk_choose.dir(getwd(), "Choose folder to copy the examples!")
+    destination<-tcltk::tk_choose.dir(getwd(), "Choose folder to copy the examples!")
   }
   
   currDir <- getwd()
