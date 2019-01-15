@@ -39,7 +39,7 @@ paramSweep <- function(inputDir="./",
     
     
     if(is.null(parameters)){
-        parameters <- tk_choose.files(caption = "Please select a file with the parameters and the ranges")
+        parameters <- tcltk::tk_choose.files(caption = "Please select a file with the parameters and the ranges")
     }
     
     rmdFile <- "---\ntitle: \"ParameterSweep basic\"\n---\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\n```\n```{r, echo=FALSE}\nsuppressWarnings(library(RBBGCMuso))\n```\n```{r, echo=FALSE}\nparameters <- read.csv(\"parameters.csv\")\n```\n```{r,fig.width=10, fig.height=3, echo=FALSE}\nnumPar\nfor(i in 1:numPar){\n  suppressWarnings(musoQuickEffect(calibrationPar=parameters[i,2],startVal = parameters[i,3], endVal = parameters[i,4],\nnSteps = 9,\noutVar = \"daily_gpp\",\nparName = parameters[i,1]))\n}\n```"

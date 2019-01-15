@@ -8,6 +8,11 @@
 #' @param nSteps How many steps 'till you reach the endVal
 #' @param fileTochange Please choose "epc" "ini" or "both". This is the place of the orininal variable.
 #' @return An effect plot
+#' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
+#' @importFrom dplyr filter group_by summarize mutate '%>%' tbl_df select
+#' @importFrom tibble rownames_to_column
+#' @importFrom magrittr '%<>%'
+#' @importFrom tidyr separate
 #' @export
 
 musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc", outVar, parName = "parVal"){

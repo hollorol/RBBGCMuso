@@ -21,7 +21,9 @@ Imports:
 	ggplot2,
 	rmarkdown,
 	tibble,
-	tidyr
+	tidyr,
+	tcltk,
+	digest
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
@@ -29,3 +31,4 @@ RoxygenNote: 6.1.0
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr
+ByteCompile: true
