@@ -4,31 +4,30 @@
 #'
 #'@param example The name of the example file, if it is NULL tcl/tk menu will pop up to select.
 #'@param destination The destination where the example files will be copied.
-#'@import tcltk
 #'@export
 
 copyMusoExamleTo <- function(example = NULL, destination = NULL){
   WindowsP <- Sys.info()[1] == "Windows"
   
   chooseExample <- function(){
-    choiceWin <- tktoplevel()
-    tclRequire("BWidget")
-    tktitle(choiceWin) <- "Choose an example!"
-    tcl("wm","geometry",choiceWin,"200x50")
-    tcl("wm", "attributes", choiceWin, topmost=TRUE)
+    tcltk::choiceWin <- tcltk::tktoplevel()
+    tcltk::tclRequire("BWidget")
+    tcltk::tktitle(choiceWin) <- "Choose an example!"
+    tcltk::tcl("wm","geometry",choiceWin,"200x50")
+    tcltk::tcl("wm", "attributes", choiceWin, topmost=TRUE)
     choiceValues <-  basename(list.dirs(system.file("examples","",package = "RBBGCMuso"),recursive = FALSE))
-    choices <- tkwidget(choiceWin,"ComboBox",
+    choices <- tcltk::tkwidget(choiceWin,"ComboBox",
                                editable = FALSE, values = choiceValues,
-                               textvariable = tclVar(choiceValues[1]))
+                               textvariable = tcltk::tclVar(choiceValues[1]))
     tcltk::tkpack(choices)
     choiceValue <- NA
-    closeSelection <- tkwidget(choiceWin,"button",text ="Select", command =function (){
-      choiceValue <<- tclvalue(tcl(choices,"get"))
-      tkdestroy(choiceWin)
+    closeSelection <- tcltk::tkwidget(choiceWin,"button",text ="Select", command =function (){
+      choiceValue <<- tcltk::tclvalue(tcl(choices,"get"))
+      tcltk::tkdestroy(choiceWin)
     })
     
     tcltk::tkpack(closeSelection)
-    while(as.numeric(tclvalue(tcl("winfo","exists",choiceWin)))){
+    while(as.numeric(tcltk::tclvalue(tcltk::tcl("winfo","exists",choiceWin)))){
       
     }
     return(choiceValue)
