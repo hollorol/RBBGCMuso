@@ -20,7 +20,7 @@ paramSweep <- function(inputDir="./",
                        outVar="daily_gpp",
                        htmlOutName = "paramsweep.html"){
     
-    if(is.null(pandoc_version())){
+    if(is.null(rmarkdown::pandoc_version())){
         stop("In order to use parameterSweep you have to have pandoc (1.12.3+) installed or run this function from Rstudio\n
 You can download pandoc from here: 'https://pandoc.org/', or Rstudio from here: 'https://www.rstudio.com/'")
     }
