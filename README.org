@@ -61,7 +61,7 @@ In this example the C:\model directory will contain the following files:
 - parameters.csv - a simple text file to support sensitivity analysis and parameter sweel (see below)
 - hhs_1961-2014.mtc43 - meteorology input file; this file is used for spinup simulation
 - hhs_2013-2016.mtc43 - meteorology input file for the normal simulation
-- CO2_from1961.txt - CO2 file for the normal simulation
+- CO2_from1961.txt - CO_{2} file for the normal simulation
 
 *** Running the model
 
