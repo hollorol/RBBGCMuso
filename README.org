@@ -15,9 +15,9 @@ You can always install the latest RBBGCMuso by copying the following line into t
 source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
 #+END_SRC
 
-*** Installation in Linux and Widows from Source 
+*** Installation in Linux and Windows from Source 
 *Note that in MS Windows you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software firts.* 
-If you would like to install the RBBGCMuso package in Linux environment, you have two options. 
+If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
 OR
 b) Install the devtools package firts:
