@@ -7,10 +7,10 @@
 RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Bione-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
 
 ** Installation
-You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and Windows environment, so Mac OS X compatibility cannot be granted yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
+You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
-*** Installation in Windows
-You can always install the latest RBBGCMuso by copying the following line into the R console (using R or R Studio):
+*** Installation in MS Windows
+You can always install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
 #+BEGIN_SRC R :eval no
 source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
 #+END_SRC
@@ -32,7 +32,13 @@ Please note that the last point also works in Windows after you have installed t
 
 ** Quick usage
 *** Preparation
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. Please read the corresponding documentation at the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][Biome-BGCMuSo's actual user's guide]]
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation at the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+If you do not yet have a complete, functional model set, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete set of sample simulation on your hard drive:
+
+#+BEGIN_SRC R :eval no
+copyMusoExampleTo()
+#+END_SRC 
+
 *** Running the model
 
 You can run the model in spinup, in normal, or in both phase (including the so-called transient run). Using the so-called calibMuso functcion you will be able to execute the the model in both spinup or normal phase.  
@@ -44,7 +50,7 @@ You can run the model in spinup, in normal, or in both phase (including the so-c
 *** Perform Quick experiments
 
 ** Advanced usage
-*** copyMusoExampleTo
+
 *** setupMuso
 *** musoData
 *** musoMapping
