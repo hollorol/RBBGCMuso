@@ -4,10 +4,10 @@
 
 * The RBBGCMuso Package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Bione-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
 
 ** Installation
-You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
+You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
 *** Installation in MS Windows
 You can always install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
@@ -20,7 +20,7 @@ source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
 OR
-b) Install the devtools package firts:
+b) Install the devtools package first:
 #+BEGIN_SRC R :eval no
 install.packages("devtools")
 #+END_SRC
@@ -35,17 +35,21 @@ devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
 
 ** Quick usage
 *** Preparation
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation at the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
 In order to use RBBGCMuso you have to load the package with the following command:
 #+BEGIN_SRC R :eval no
 library(RBBGCMuso)
 #+END_SRC
 
-If you do not yet have a complete, functional model set, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete set of sample simulation on your hard drive:
+If you do not yet have a complete, functional model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a completesample simulation to your hard drive:
 
 #+BEGIN_SRC R :eval no
 copyMusoExampleTo()
 #+END_SRC 
+
+Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (in other names, folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory in C:\model as target directory. It means that after selection of the site the user will be prompted to select the C:\model directory. 
+
+If the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (e.g. Editpad Lite). Note that file extension might be hidden by Windows which might be an issue, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to show file extensions.  
 
 *** Running the model
 
