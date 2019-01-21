@@ -28,11 +28,17 @@ Then copy the following line into the R session and execute it:
 devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
 #+END_SRC
 
+
 Please note that the last point also works in Windows after you have installed the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software. 
 
 ** Quick usage
 *** Preparation
 In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation at the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use RBBGCMuso you have to load the package with the following command:
+#+BEGIN_SRC R :eval no
+library(RBBGCMuso)
+#+END_SRC
+
 If you do not yet have a complete, functional model set, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete set of sample simulation on your hard drive:
 
 #+BEGIN_SRC R :eval no
@@ -44,10 +50,11 @@ copyMusoExampleTo()
 You can run the model in spinup, in normal, or in both phase (including the so-called transient run). Using the so-called calibMuso functcion you will be able to execute the the model in both spinup or normal phase.  
 
 *** Visualization of the model output
+*** Perform Quick experiments
 *** Study the effect of ecophysiological parameters using parameterSweep
 *** Monte-Carlo experiments
 *** Sensitivity analysis
-*** Perform Quick experiments
+
 
 ** Advanced usage
 
@@ -64,6 +71,9 @@ You can run the model in spinup, in normal, or in both phase (including the so-c
 *** musoMonte
 *** musoSensi
 ** Contact
+
+E-mail: hollorol@gmail.com
+
 ** Acknowledgements
 
-The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028).
+The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028). 
