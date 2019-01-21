@@ -15,7 +15,7 @@ You can always install the latest RBBGCMuso by copying the following line into t
 source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
 #+END_SRC
 
-*** Installation in Linux and Windows from Source 
+*** Installation in Linux and Windows from Source (proposed method)
 *Note that in MS Windows you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software firts.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
@@ -35,7 +35,7 @@ devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
 
 ** Quick usage
 *** Preparation
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
 In order to use RBBGCMuso you have to load the package with the following command:
 #+BEGIN_SRC R :eval no
 library(RBBGCMuso)
@@ -50,12 +50,22 @@ copyMusoExampleTo()
 Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (in other word, folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite). Note that file extension might be hidden by Windows which might be an issue, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
-The C:\model directory contains the following files:
-
+In this example the C:\model directory will contain the following files:
+muso.exe - this is the Biome-BGCMuSo 5.0 model (version might change in the future)
+cygwin1.dll - a so-called DLL file that supports the model exe
+c3grass.epc - ecophysiological constants input file for the model (C3 grass in this case)
+maize.epc - another ecophysiological constants input file (C4 maize in this case)
+n.ini - initialization file for the model, normal mode
+normal_gyep.ini - another initialization file for the model, for the C3 grass simulation
+s.ini - initialization file for the model spinup (also known as self-initialization or equilibrium run)
+parameters.csv - a simple text file to support sensitivity analysis and parameter sweel (see below)
+hhs_1961-2014.mtc43 - meteorology input file; this file is used for spinup simulation
+hhs_2013-2016.mtc43 - meteorology input file for the normal simulation
+CO2_from1961.txt - CO2 file for the normal simulation
 
 *** Running the model
 
-You can run the model in spinup, in normal, or in both phases (including the so-called transient run). Using the so-called calibMuso functcion you will be able to execute the the model in both spinup or normal phase.  
+Now as we have a complete set of input data we are ready to run the model. You can run the model in spinup model, in normal mode, or in both phases (including the so-called transient run). Using the calibMuso functcion (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase.  
 
 *** Visualization of the model output
 *** Perform Quick experiments
