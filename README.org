@@ -41,24 +41,25 @@ In order to use RBBGCMuso you have to load the package with the following comman
 library(RBBGCMuso)
 #+END_SRC
 
-If you do not yet have a complete, functional model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a completesample simulation to your hard drive:
+If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation to your hard drive:
 
 #+BEGIN_SRC R :eval no
 copyMusoExampleTo()
 #+END_SRC 
 
-Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (in other names, folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory in C:\model as target directory. It means that after selection of the site the user will be prompted to select the C:\model directory. 
+Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (in other word, folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
+Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite). Note that file extension might be hidden by Windows which might be an issue, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
-If the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (e.g. Editpad Lite). Note that file extension might be hidden by Windows which might be an issue, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to show file extensions.  
+The C:\model directory contains the following files:
+
 
 *** Running the model
 
-You can run the model in spinup, in normal, or in both phase (including the so-called transient run). Using the so-called calibMuso functcion you will be able to execute the the model in both spinup or normal phase.  
+You can run the model in spinup, in normal, or in both phases (including the so-called transient run). Using the so-called calibMuso functcion you will be able to execute the the model in both spinup or normal phase.  
 
 *** Visualization of the model output
 *** Perform Quick experiments
 *** Study the effect of ecophysiological parameters using parameterSweep
-*** Monte-Carlo experiments
 *** Sensitivity analysis
 
 
