@@ -10,7 +10,7 @@ RBBGCMuso is an R package which supports the easy but powerful application of th
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
 *** Installation in Linux and MS Windows from Source (proposed method)
-*Note that in MS Windows you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software firts.* 
+*Note that in MS Windows first you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
 OR
@@ -71,7 +71,19 @@ In this example the C:\model directory will contain the following files:
 
 Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup model, in normal mode, or in both phases (including the so-called transient run; see the Biome-BGCMuSo User's Guide). Using the runMuso functcion (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. Note that runMuso is the same as the obsolete calibMuso function. 
 
+In order to execute the simulation, first you have to set the working directory in R so that RBBGCMuso will find the model and the input files:
 
+#+BEGIN_SRC R :eval no
+setwd("c:/model")
+#+END_SRC 
+
+(Note the "/" symbol which is different from the "\" that is typically used in Windows!)
+
+In order to run the model as it is provided simply use the following command in R or RStudio:
+
+runMuso(skipSpinup = FALSE)
+
+Though runMuso has several possibilities, in this case we simply run the model in spinup and normal mode. The results can be found in the C:\model directory. 
 
 *** Visualization of the model output
 *** Perform Quick experiments
