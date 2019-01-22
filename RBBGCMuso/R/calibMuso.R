@@ -32,8 +32,8 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       leapYear=FALSE,keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
                       skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
-##########################################################################
-###########################Set local variables and places########################
+########################################################################
+###########################Set local variables and places###############
 ########################################################################
     if(is.null(settings)){
         settings <- setupMuso()
