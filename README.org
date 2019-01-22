@@ -83,7 +83,9 @@ In order to run the model as it is provided simply use the following command in 
 
 runMuso(skipSpinup = FALSE)
 
-Though runMuso has several possibilities, in this case we simply run the model in spinup and normal mode. The results can be found in the C:\model directory. 
+Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. 
+
+If the simulation is successful, the results can be found in the C:\model directory. 
 
 *** Visualization of the model output
 *** Perform Quick experiments
