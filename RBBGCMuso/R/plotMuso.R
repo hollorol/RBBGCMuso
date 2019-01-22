@@ -24,7 +24,7 @@
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
 #' @importFrom dplyr filter group_by summarize mutate '%>%'
 #' @importFrom tibble rownames_to_column
-#' @importFrom tidyr separate
+#' @importFrom tidyr separate gather
 #' @export
 
 plotMuso <- function(settings=NULL,
