@@ -138,7 +138,7 @@ plot(gpp4*1000,type="l")
 Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. Execute the following command in R/RStudio:
 
 #+BEGIN_SRC R :eval no
-musoQuickEffect(calibrationPar = 25, startVal = 0,endVal = 9,nSteps = 5,outVar = 3009)
+musoQuickEffect(calibrationPar = 25, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009)
 #+END_SRC
 
 This command selects the 25th line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 27th variable), so the effect of varying base temperature on GPP is calculated using 9 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. 
