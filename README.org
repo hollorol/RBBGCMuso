@@ -135,15 +135,21 @@ plot(gpp4*1000,type="l")
 
 *** Perform Quick experiments
 
-Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. 
+Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. Execute the following command in R/RStudio:
+
+#+BEGIN_SRC R :eval no
+musoQuickEffect(calibrationPar = 25, startVal = 0,endVal = 9,nSteps = 5,outVar = 3009)
+#+END_SRC
+
 
 *** Study the effect of ecophysiological parameters using parameterSweep
 
-This is the so-called parameterSweep function. 
+The parameterSweep function is the extension of the musoQuickEffect. It can test the effect of the selected parameters on the model results in once. The result of the parameterSweep function is a single HTML file with embedded images.    
 
 *** Sensitivity analysis
 
-[[http://agromo.agrar.mta.hu/files/musoSensi_usage_v6_FINAL.pdf][See this link for details]]
+[[http://agromo.agrar.mta.hu/files/musoSensi_usage_v6_FINAL.pdf][See this link for details about the sensitivity analysis.]]
+Note that parameters.csv is provided in the hhs example dataset, so you don't have to create it manually. 
 
 *** Contact
 
