@@ -87,7 +87,7 @@ runMuso(skipSpinup = FALSE)
 
 Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. 
 
-If the simulation is successful, the results can be found in the C:\model directory. 
+If the simulation is successful, the results can be found in the C:\model directory. Two files were created with .log extension that contain some information about the spinup and the normal phase. The hhs.endpoint file is the result of the spinup (and optional transient) run, and can be considered as initial conditions for the normal run.( Here we have to note that now runMuso can be called without the skipSpinup parameter which means that the simulation will be restricted to the normal phase only.) The results of the simulation (carbon fluxes, state variables, whatever was set by the user in the DAILY_OUTPUT block of the normal INI file) are available in the file hegyhatsal.dayout. Note that annual output was not requested in this case. 
 
 *** Visualization of the model output
 
@@ -100,7 +100,7 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 *** Sensitivity analysis
 
-
+*** Contact
 
 E-mail: hollorol@gmail.com
 
