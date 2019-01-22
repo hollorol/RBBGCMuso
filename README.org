@@ -75,7 +75,7 @@ In the followings we will demonstrate the usability of RBBGCMuso with the hhs ex
 *Important note on file naming convention*
 
 We propose to use the following filename convention for the INI files. For practical reasons, name your spinup INI file as something_s.ini, and the normal INI file as something_n.ini where something is arbitrary (note the s and n convention). It is not obligatory, but if you do not follow this convention then you have to generate the settings variable 
-manually with the setupMuso command. However, if you do follow this convention, then RBBGCMuSo will automatically recognize your spinup and normal INI file name and content, so the work will be much easier. (See help of setupMuso command in R).
+manually with the setupMuso command. However, if you do follow this convention, then RBBGCMuSo will automatically recognize your spinup and normal INI file name and content, so the work will be much easier. (See help of setupMuso command in R.)
 In our example s.ini and n.ini follows this convention, so by default RBBGCMuso will use these files for spinup and normal run, repsectively. 
 ----------
 
@@ -98,21 +98,52 @@ In order to run the model as it is provided simply use the following command in 
 runMuso(skipSpinup = FALSE)
 #+END_SRC
 
-Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. Note that according to the naming convention described above the model will use s.ini and n.ini for spinup and normal phase, repsectivelt. It means that the 3rd ini file is not used in this case. 
+Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. Note that according to the naming convention described above the model will use s.ini and n.ini for spinup and normal phase, repsectivelt. It means that the 3rd ini file is not used in this case. As n.ini represents a maize simulation, the results will provide simulation data on C4 maize monoculture with predefined management defined by the n.ini file. 
 
-If the simulation is successful, the results can be found in the C:\model directory. In our example two files were created with .log extension that contain some information about the spinup and the normal phase. The hhs.endpoint file is the result of the spinup (and optional transient) run, and can be considered as initial conditions for the normal run. (Here we have to note that now runMuso can be called without the skipSpinup parameter which means that the simulation will be restricted to the normal phase only.) The results of the simulation (carbon fluxes, state variables, whatever was set by the user in the DAILY_OUTPUT block of the normal INI file) are available in the file hegyhatsal.dayout. Note that annual output was not requested in this case. Also note that in the hhs example file set binary daily output is created and further processed by RBBGCMuso. 
+If the simulation is successful, the results can be found in the C:\model directory. In our example two files were created with .log extension that contain some information about the spinup and the normal phase. The hhs.endpoint file is the result of the spinup (and optional transient) run, and can be considered as initial conditions for the normal run. (Here we have to note that now runMuso can be called without the skipSpinup parameter which means that the simulation will be restricted to the normal phase only.) The results of the simulation (carbon fluxes, state variables, whatever was set by the user in the DAILY_OUTPUT block of the normal INI file) are available in the file hegyhatsal.dayout. Note that annual output was not requested in this case. Also note that in the hhs example file set binary daily output is created and further processed by RBBGCMuso. One of the most attractive features of RBBGCMuso is that the model output is handled by the package which means that it will be directly available for the user for further processing in R. 
 
 *** Visualization of the model output
 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 39 variables are calculated in daily resolution. As the model is run for 4 years by the normal INI file, each output variable will be available for 4x365 days (note the handling of leap years in the Biome-BGCMuSo User's Guide). 
 
+Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 27th variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
+
+#+BEGIN_SRC R :eval no
+results<-runMuso()
+#+END_SRC
+
+Now we extract the 27th variable from the complete output set and call this R variable as gpp:
+
+#+BEGIN_SRC R :eval no
+gpp<-results[,27]
+#+END_SRC
+
+Now we are ready to visualize the results, first for all 4 years:
+
+#+BEGIN_SRC R :eval no
+plot(gpp*1000)
+#+END_SRC
+
+Note that the 1000 multiplier is needed to get GPP in gC/m^{2}/day units.
+
+Now get the 4th year from the dataset and plot it:
+
+#+BEGIN_SRC R :eval no
+gpp4<-gpp[(3*365+1):(4*365)]
+plot(gpp4*1000,type="l")
+#+END_SRC
 
 *** Perform Quick experiments
 
+Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. 
 
 *** Study the effect of ecophysiological parameters using parameterSweep
 
+This is the so-called parameterSweep function. 
 
 *** Sensitivity analysis
+
+[[http://agromo.agrar.mta.hu/files/musoSensi_usage_v6_FINAL.pdf][See this link for details]]
 
 *** Contact
 
