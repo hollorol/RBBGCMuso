@@ -81,33 +81,26 @@ setwd("c:/model")
 
 In order to run the model as it is provided simply use the following command in R or RStudio:
 
+#+BEGIN_SRC R :eval no
 runMuso(skipSpinup = FALSE)
+#+END_SRC
 
 Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. 
 
 If the simulation is successful, the results can be found in the C:\model directory. 
 
 *** Visualization of the model output
+
+
 *** Perform Quick experiments
+
+
 *** Study the effect of ecophysiological parameters using parameterSweep
+
+
 *** Sensitivity analysis
 
 
-** Advanced usage
-
-*** setupMuso
-*** musoData
-*** musoMapping
-*** musoMappingFind
-*** spinupMuso
-*** normalMuso
-*** calibMuso
-*** plotMuso
-*** plotMusoWithData
-*** musoQuckEffect
-*** musoMonte
-*** musoSensi
-** Contact
 
 E-mail: hollorol@gmail.com
 
