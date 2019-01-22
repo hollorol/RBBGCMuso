@@ -69,9 +69,11 @@ In this example the C:\model directory will contain the following files:
 
 In the followings we will demonstrate the usability of RBBGCMuso with the hhs example dataset. If you have your own model input data set, you might need to change the commands accordingly. 
 
-*Important note on file naming convention*
+
 
 ----------
+*Important note on file naming convention*
+
 We propose to use the following filename convention for the INI files. For practical reasons, name your spinup INI file as something_s.ini, and the normal INI file as something_n.ini where something is arbitrary (note the s and n convention). It is not obligatory, but if you do not follow this convention then you have to generate the settings variable 
 manually with the setupMuso command. However, if you do follow this convention, then RBBGCMuSo will automatically recognize your spinup and normal INI file name and content, so the work will be much easier. (See help of setupMuso command in R).
 In our example s.ini and n.ini follows this convention, so by default RBBGCMuso will use these files for spinup and normal run, repsectively. 
