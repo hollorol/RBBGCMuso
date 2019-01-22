@@ -6,7 +6,7 @@
 #'@param destination The destination where the example files will be copied.
 #'@export
 
-copyMusoExamleTo <- function(example = NULL, destination = NULL){
+copyMusoExampleTo <- function(example = NULL, destination = NULL){
   WindowsP <- Sys.info()[1] == "Windows"
   
   chooseExample <- function(){
