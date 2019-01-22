@@ -77,7 +77,7 @@ In order to execute the simulation, first you have to set the working directory 
 setwd("c:/model")
 #+END_SRC 
 
-(Note the "/" symbol which is different from the "\" that is typically used in Windows!)
+(Note the "/" symbol which is different from the "\\" that is typically used in Windows!)
 
 In order to run the model as it is provided simply use the following command in R or RStudio:
 
