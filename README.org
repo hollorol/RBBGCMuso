@@ -9,13 +9,7 @@ RBBGCMuso is an R package which supports the easy but powerful application of th
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
-*** Installation in MS Windows
-You can always install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
-#+BEGIN_SRC R :eval no
-source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
-#+END_SRC
-
-*** Installation in Linux and Windows from Source (proposed method)
+*** Installation in Linux and MS Windows from Source (proposed method)
 *Note that in MS Windows you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software firts.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
@@ -30,40 +24,42 @@ Then copy the following line into the R session and execute it:
 devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
 #+END_SRC
 
-In debian(8+) you can automate the whole process with curl via copying the following line in terminal:
+In Debian (version 8+) you can automate the whole installation process with curl via copying the following line into the Linux terminal:
 #+BEGIN_SRC bash :eval no
 bash <(curl -s https://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/debianInstaller.sh)
 #+END_SRC
 
-
-
-
-
-
+*** Installation in MS Windows
+You can also install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
+#+BEGIN_SRC R :eval no
+source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
+#+END_SRC
 
 ** Quick usage
 *** Preparation
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be used by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
-In order to use RBBGCMuso you have to load the package with the following command:
+
+To start using RBBGCMuso you have to load the package in R with the following command:
 #+BEGIN_SRC R :eval no
 library(RBBGCMuso)
 #+END_SRC
 
-If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation to your hard drive:
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+
+If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation set to your hard drive:
 
 #+BEGIN_SRC R :eval no
 copyMusoExampleTo()
 #+END_SRC 
 
-Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (in other word, folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
-Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite). Note that file extension might be hidden by Windows which might be an issue, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
+Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (=folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
+Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
 - muso.exe - this is the Biome-BGCMuSo 5.0 model (version might change in the future)
-- cygwin1.dll - a so-called DLL file that supports the model exe
+- cygwin1.dll - a so-called DLL file that supports the model execution
 - c3grass.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - maize.epc - another ecophysiological constants input file (C4 maize in this case)
-- n.ini - initialization file for the model, normal mode
+- n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
 - normal_gyep.ini - another initialization file for the model, for the C3 grass simulation
 - s.ini - initialization file for the model spinup (also known as self-initialization or equilibrium run)
 - parameters.csv - a simple text file to support sensitivity analysis and parameter sweel (see below)
@@ -73,7 +69,9 @@ In this example the C:\model directory will contain the following files:
 
 *** Running the model
 
-Now as we have a complete set of input data we are ready to run the model. You can run the model in spinup model, in normal mode, or in both phases (including the so-called transient run). Using the calibMuso functcion (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase.  
+Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup model, in normal mode, or in both phases (including the so-called transient run; see the Biome-BGCMuSo User's Guide). Using the runMuso functcion (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. Note that runMuso is the same as the obsolete calibMuso function. 
+
+
 
 *** Visualization of the model output
 *** Perform Quick experiments
