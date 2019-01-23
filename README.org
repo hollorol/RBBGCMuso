@@ -130,7 +130,7 @@ The result should look like this image:
 
 --------
 #+BEGIN_HTML
-<img width="600px" align="left"  
+<img width="600px"  
 src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/images/gpp01.png" alt="GPP plot">
 #+END_HTML
 --------
