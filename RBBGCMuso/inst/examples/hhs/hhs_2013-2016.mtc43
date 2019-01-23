@@ -1,5 +1,5 @@
-Hegyhatsal FORESEE alapjan
-MTCLIM	v4.3	OUTPUT	FILE
+Hegyhatsal based on FORESEE database
+MTCLIM v4.3 OUTPUT FILE
 year	yday	Tmax	Tmin	Tday	prcp	VPD	srad	daylen
               (degC)   (degC)  (degC)   (cm)    (Pa)   (Wm-2)     (s)
 2013	1	6.59	-4.73	3.48	0.00	63.75	172.69	30217

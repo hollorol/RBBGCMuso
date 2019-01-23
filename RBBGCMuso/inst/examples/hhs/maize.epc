@@ -1,4 +1,4 @@
-ECOPHYS FILE -    MAIZE
+ECOPHYS FILE - MAIZE 
 ----------------------------------------------------------------------------------------
 FLAGS
 0	(flag)		biome type flag (1 = WOODY 0 = NON-WOODY)
@@ -166,15 +166,15 @@ CH4 PARAMETERS
 0.010	(DIM) 		param1 for CH4 calculations (empirical function of Tsoil)
 ----------------------------------------------------------------------------------------
 PHENOLOGICAL (ALLOCATION) PARAMETERS (7 phenological phases)
-csirazas  	keles   	levelnov_felfut levelnov_lin	viragzas	szemtelitodes	erett   (text) name of the phenophase
-0		45		225		630		90		730		10000	(Celsius) length of phenophase (GDD)
-0.0		0.5		0.60		0.30		0.05		0.0  		0.	(ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
-0.0		0.5		0.35		0.25		0.20		0.15  		0.	(ratio) fine root ALLOCATION
-0.0		0.		0.0		0.0		0.05		0.65  		1.	(ratio) fruit ALLOCATION 	                                                                                                                                                                                                                                             
-0.0		0.		0.05		0.45		0.70		0.20		0.	(ratio) soft stem ALLOCATION
-0		0		0		0		0		0		0	(ratio) live woody stem ALLOCATION 
-0		0		0		0		0		0		0	(ratio) dead woody stem ALLOCATION 
-0		0		0		0		0		0		0	(ratio) live coarse root ALLOCATION 
-0		0		0		0		0		0		0	(ratio) dead coarse root ALLOCATION 
-50		50		50		50		50		50		50	(m2/kgC) canopy average specific leaf area (projected area basis)
-1.0		1.0		1.0		1.0		1.0		1.0     	1.0	(prop.)	current growth proportion
+germination  	emergence   	leafunfold      leafunfoldlin	flowering	grainfilling	maturity (text) name of the phenophase
+0		45		225		630		90		730		10000	 (Celsius) length of phenophase (GDD)
+0.0		0.5		0.60		0.30		0.05		0.0  		0.	 (ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
+0.0		0.5		0.35		0.25		0.20		0.15  		0.	 (ratio) fine root ALLOCATION
+0.0		0.		0.0		0.0		0.05		0.65  		1.	 (ratio) fruit ALLOCATION 	                                                                                                                                                                                                                                             
+0.0		0.		0.05		0.45		0.70		0.20		0.	 (ratio) soft stem ALLOCATION
+0		0		0		0		0		0		0	 (ratio) live woody stem ALLOCATION 
+0		0		0		0		0		0		0	 (ratio) dead woody stem ALLOCATION 
+0		0		0		0		0		0		0	 (ratio) live coarse root ALLOCATION 
+0		0		0		0		0		0		0	 (ratio) dead coarse root ALLOCATION 
+50		50		50		50		50		50		50	 (m2/kgC) canopy average specific leaf area (projected area basis)
+1.0		1.0		1.0		1.0		1.0		1.0     	1.0	 (prop.) current growth proportion
