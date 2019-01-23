@@ -2,7 +2,7 @@
 #'
 #' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a well-structured way.
 #' 
-#' @author Roland Hollos
+#' @author Roland Holl\'{o}s
 #' @param settings You have to run the setupMuso function before calibMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment
 #' @param timee The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly. I recommend to use daily data, the yearly and monthly data is not well-tested yet. 
 #' @param debugging If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles

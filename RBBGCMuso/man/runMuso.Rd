@@ -45,5 +45,5 @@ No return, outputs are written to file
 This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a well-structured way.
 }
 \author{
-Roland Hollos
+Roland Holl\'{o}s
 }
