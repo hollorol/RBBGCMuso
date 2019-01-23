@@ -60,7 +60,7 @@ In this example the C:\model directory will contain the following files:
 - c3grass.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - maize.epc - another ecophysiological constants input file (C4 maize in this case)
 - n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
-- normal_gyep.ini - another initialization file for the model, for the C3 grass simulation
+- normal_grass.ini - another initialization file for the model, for the C3 grass simulation
 - s.ini - initialization file for the model spinup (also known as self-initialization or equilibrium run)
 - parameters.csv - a simple text file to support sensitivity analysis and parameter sweel (see below)
 - hhs_1961-2014.mtc43 - meteorology input file; this file is used for spinup simulation
@@ -106,16 +106,16 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 39 variables are calculated in daily resolution. As the model is run for 4 years by the normal INI file, each output variable will be available for 4x365 days (note the handling of leap years in the Biome-BGCMuSo User's Guide). 
 
-Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 27th variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
+Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 26th variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
 #+BEGIN_SRC R :eval no
 results<-runMuso()
 #+END_SRC
 
-Now we extract the 27th variable from the complete output set and call this R variable as gpp:
+Now we extract the 26th variable from the complete output set and call this R variable as gpp:
 
 #+BEGIN_SRC R :eval no
-gpp<-results[,27]
+gpp<-results[,26]
 #+END_SRC
 
 Now we are ready to visualize the results, first for all 4 years:
@@ -141,7 +141,7 @@ Assume that we would like to dig a bit deeper with the model and understand the 
 musoQuickEffect(calibrationPar = 25, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009)
 #+END_SRC
 
-This command selects the 25th line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 27th variable), so the effect of varying base temperature on GPP is calculated using 9 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. 
+This command selects the 265h line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 26th variable), so the effect of varying base temperature on GPP is calculated using 9 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. 
 
 *** Study the effect of ecophysiological parameters using paramSweep
 
