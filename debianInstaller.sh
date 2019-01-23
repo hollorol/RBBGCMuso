@@ -6,8 +6,8 @@ then
     echo "Your Debian version is obsolated."
 exit 1
 fi
-INREPO=$(cat /etc/apt/sources.list|grep -c jessie-cran35)
-if (( $(echo "$DEBIAN_VERSION < 9 && $INREPO != 0" | bc -l )))
+#INREPO=$(cat /etc/apt/sources.list|grep -c jessie-cran35)
+if (( $(echo "$DEBIAN_VERSION < 9" | bc -l )))
 then
     apt-get install apt-transport-https
     apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
