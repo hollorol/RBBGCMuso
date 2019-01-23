@@ -151,7 +151,7 @@ The paramSweep function is the extension of the musoQuickEffect. It can test the
 paramSweep()
 #+END_SRC
 
-*IMPORTANT NOTE: After the execution of thos command a pop-up window will be opened to select the appropriate parameters.csv file. Due to some R related issues at present the dialog window will appear BEHIND THE MAIN R WINDOW, so it might be hidden from the user. Please check the Windows taskbar and find the dialog window, then select the parameters.csv.*
+*IMPORTANT NOTE: After the execution of this command a pop-up window will be opened to select the appropriate parameters.csv file. Due to some R related issues at present the dialog window will appear BEHIND THE MAIN R WINDOW, so it might be hidden from the user. Please check the Windows taskbar and find the dialog window, then select the parameters.csv.*
 In advanced mode there is possibility to select the parameters.csv file using the parameters of paramSweep. 
 
 *** Sensitivity analysis
