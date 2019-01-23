@@ -129,7 +129,8 @@ Note that the 1000 multiplier is needed to get GPP in gC/m^{2}/day units.
 The result should look like this image:
 
 #+BEGIN_HTML
-<img width="200px" align="left" src="hhttps://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/images/gpp01.png" alt="GPP plot">
+<img width="600px" align="right" position="absolute" style="position: absolute; top: 0; right: 0; border: 0;" 
+src="hhttps://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/images/gpp01.png" alt="GPP plot">
 #+END_HTML
 
 
