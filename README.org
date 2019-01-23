@@ -126,6 +126,12 @@ plot(gpp*1000)
 #+END_SRC
 
 Note that the 1000 multiplier is needed to get GPP in gC/m^{2}/day units.
+The result should look like this image:
+
+#+BEGIN_HTML
+<img width="200px" align="left" src="hhttps://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/images/gpp01.png" alt="GPP plot">
+#+END_HTML
+
 
 Now get the 4th year from the dataset and plot it:
 
