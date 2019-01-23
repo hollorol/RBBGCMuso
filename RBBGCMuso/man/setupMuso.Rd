@@ -14,9 +14,9 @@ fertInput=NULL, irrInput=NULL,
 nitInput=NULL, iniInput=NULL, epcInput=NULL)
 }
 \arguments{
-\item{executable}{This parameter stores the place of the modell-executable file. In normal usage, you don't have to be set this, because a RBBgcmuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful}
+\item{executable}{This parameter stores the location (directory) of the modell-executable file. In normal usage, you don't have to set this parameter, because a RBBGCMuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful}
 
-\item{parallel}{Do you want to run multiple modell paralelly, if yes, set this variable to TRUE}
+\item{parallel}{Set this variable to TRUE if you would like to implement parallel execution of the model}
 
 \item{calibrationPar}{You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)}
 
@@ -57,7 +57,7 @@ The output is a the modell setting list wich contains the following elements:
 executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput,rrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
 }
 \description{
-This funcion is fundamental for the BiomBGC-MuSo modell related functions like spinupMuso, normalMuso, rungetMuso, because it sets the modells environment.
+This funcion is fundamental for the Biome-BGCMuSo model related functions like runMuso, spinupMuso, normalMuso, rungetMuso, as it sets the model's environment. The function reads the INI files from a given directory, analyzes them with error checking, and creates a data structure in R that contains the complete information content for the simulation.
 }
 \author{
 Roland Hollos
