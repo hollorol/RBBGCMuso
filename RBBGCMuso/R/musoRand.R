@@ -1,10 +1,10 @@
 #' musoRand
 #'
-#' This funtion samples uniformly from the choosen parameters of the BiomeBGC-Muso model, which parameters are constrained by the model logic.
+#' This funtion samples uniformly from the chosen parameters of the Biome-BGCMuSo model, where the parameters are constrained by the model logic.
 #' @author Roland Hollos
-#' @param parameters This is a dataframe (heterogen data-matrix), which first column is the name of the parameters, the second is a numeric vector of the rownumbers of the given variable in the input-file, the last two column consist the endpont of the parameter-ranges, where the parameters will be randomized.
+#' @param parameters This is a dataframe (heterogeneous data-matrix), where first column is the name of the parameters, the second is a numeric vector of the rownumbers of the given variable in the input-file, the last two column consist the endpont of the parameter-ranges, where the parameters will be randomized.
 #' @param constrains This is a matrics wich specify the constrain rules for the sampling. Further informations coming son.
-#' @param iteration The number of sample-s. It is adviced to use at least 3000 iteration, because it is generally fast and it can be subsampled later at any time.
+#' @param iteration The number of samples. We propose to use at least 3000 iteration, because it is generally fast and it can be subsampled later at any time.
 #' @importFrom limSolve xsample
 #' @export
 
