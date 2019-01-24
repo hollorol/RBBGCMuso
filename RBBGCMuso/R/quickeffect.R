@@ -1,13 +1,13 @@
 #' musoQuickEffect
 #'
-#' This function changes a choosen parameter, and visualize the effect of the change on a chosen variable.
-#' @author Roland Hollos
-#' @param settings The settings from setupMuso output
-#' @param startVal The oroginal parameterValue
-#' @param endVal The goal value while the function pass 
-#' @param nSteps How many steps 'till you reach the endVal
-#' @param fileTochange Please choose "epc" "ini" or "both". This is the place of the orininal variable.
-#' @return An effect plot
+#' This function changes a chosen parameter from the INI or from the ecophysiological constants file (EPC) within a predefined range (defined by the user), and visualizes the effect of the change on the selected output variable. The user has to specify the parameter, the interval for the parameter effect test, and the number of steps. This function focuses only on one parameter. The so-called paramSweep function can manipulate multiple INI/EPC parameters and visualize the results. 
+#' @author Roland HOLLOS
+#' @param settings RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.
+#' @param startVal The initial value of the given parameter. 
+#' @param endVal The maximum of the given parameter. 
+#' @param nSteps Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot. 
+#' @param fileTochange Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user. 
+#' @return Graph showing the runs with the selected parameters with color coding. The graph will show data from the last simulation year. 
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
 #' @importFrom dplyr filter group_by summarize mutate '%>%' tbl_df select
 #' @importFrom tibble rownames_to_column
