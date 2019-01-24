@@ -5,10 +5,10 @@
 #' @author Roland HOLLOS
 #' @param settings In order to use spinupMuso, first you have to run the setupMuso function to set up the model environment. The result of setupMuso contains all necessary system variables for the model execution. It sets the whole modelling environment for the user.
 #' @param debugging If debugging is set to TRUE, after model execution the function copies the Biome-BGCMuSo log file into a LOG directory to stores it for further processing. If debugging is set to STAMPLOG instead of TRUE, it concatenates a number before the logfile, which is one plus the maximum of those present in the LOG directory. In each case the log files will be saved.
-#' @param keepEpc If keepEpc is set to TRUE, the function keeps the EPC file and stamps it, and then copies it to the EPCS directory. If debugging is set to TRUE or FALSE, it copies the wrong EPC files to the wrong epc directory.
+#' @param keepEpc If keepEpc is set to TRUE, the function keeps the EPC file and stamps it, and then copies it to the EPCS directory. If debugging is set to TRUE, it copies the wrong EPC files to the wrong epc directory.
 #' @param silent If you set the silent parameter to TRUE, all of the model's output normally written to the screen will be suppressed. This option can be useful to increase the speed of the model execution.
 #' @param aggressive It deletes all previous model-outputs from previous model runs.
-#' @param parameters In the parameters variable you have set the row indices of the variables that you wish to change. In this parameter you can give an exact value for them in a vector form like c(1,2,3,4)
+#' @param parameters |||| In the parameters variable you have set the row indices of the variables that you wish to change. In this parameter you can provide an exact value for them in a vector form like c(1,2,3,4)
 #' @param logfilename If you would like to set a specific name for the logfiles you can set this via the logfilename parameter
 #' @return No return, outputs are written to file 
 #' @usage spinupMuso(settings, parameters=NULL, debugging=FALSE,
