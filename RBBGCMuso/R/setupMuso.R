@@ -7,21 +7,21 @@
 #' @param executable This parameter stores the location (directory) of the model-executable file. In normal usage, you don't have to set this parameter, because the RBBGCMuso package always contains the latest model executable. In spite of this, if you would like to use this package for model development or just want to use different model version (for example for comparison), you will find this option useful
 #' @param calibrationPar You might want to change some parameters in your EPC file before running the model. setupMuso offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8)
 #' @param outputLoc With this parameter the user can specify the directory for the model output. The syntax is simple, for example: outputLoc="/place/of/the/outputs/" or outputLoc="C:/my_model_directory/". Note that this output directory is specified by the user within the INI file, which means that the outputLoc parameter overrides the INI settings if specified.
-#' @param inputLoc Usually it is the root (or base) directory where you store the INI files for the model. If the working directory is set by the user, this parameter can be skipped. 
-#' @param metInput Via the metInput parameter the user can specify the location of the input meteorological files. Generally this information is taken directly from the INI file. Using metInput this setting can be changed. 
-#' @param CO2Input Via CO2Input parameter the user can specify the location of the the CO2 data files. By default the package reads this information from the INI files.
-#' @param plantInput Via planting parameter, you can tell the modell where are the data files, which contains the planting informations. As default it reads this from the iniFiles.
-#' @param thinInput Via thining parameter, you can tell the modell where are the data files, which contains the thining informations. As default it reads this from the iniFiles.
-#' @param mowInput Via mowing parameter, you can tell the modell where are the data files, which contains the mowing informations. As default it reads this from the iniFiles.
-#' @param grazInput Via grazing parameter, you can tell the modell where are the data files, which contains the grazing informations. As default it reads this from the iniFiles.
-#' @param harvInput Via harvesting parameter, you can tell the modell where are the data files, which contains the harvesting informations. As default it reads this from the iniFiles.
-#' @param plougInput Via ploughing parameter, you can tell the modell where are the data files, which contains the ploughing informations. As default it reads this from the iniFiles.
-#' @param fertInput Via fertilizing parameter, you can tell the modell where are the fertilizing data files, which contains the fertilizing informations. As default it reads this from the iniFiles.
-#' @param irrInput Via irrigation parameter, you can tell the modell where are the data files, which contains the irrigation informations. As default it reads this from the iniFiles.
-#' @param nitInput Via this parameter, you can tell the modell where are the NO2 data files. As default it reads this from the iniFiles.
-#' @param iniInput Via this parameter, you can tell the modell where are the ini files. As default it reads this from the iniFiles.
-#' @param epcInput Via this parameter, you can tell the modell where are the epc data files. As default it reads this from the iniFiles.
-#' @param modelOutputs This parameter is the list of the codes of outpu 
+#' @param inputLoc Usually this is the root (or base) directory where the user stores the INI files for the model. If the working directory is set by the user, this parameter can be skipped. 
+#' @param metInput Via the metInput parameter the user can specify the location of the input meteorological files. By default the package reads this information from the INI files.
+#' @param CO2Input Via the CO2Input parameter the user can specify the location of the the CO2 data files. By default the package reads this information from the INI files.
+#' @param plantInput Via the plantInput parameter, the user can specify the location of the the file that contains the planting information. By default the package reads this information from the INI files.
+#' @param thinInput Via thining parameter, you can tell the modell where are the data files, which contains the thining informations. By default the package reads this information from the INI files.
+#' @param mowInput Via mowing parameter, you can tell the modell where are the data files, which contains the mowing informations. By default the package reads this information from the INI files.
+#' @param grazInput Via grazing parameter, you can tell the modell where are the data files, which contains the grazing informations. By default the package reads this information from the INI files.
+#' @param harvInput Via harvesting parameter, you can tell the modell where are the data files, which contains the harvesting informations. By default the package reads this information from the INI files.
+#' @param plougInput Via ploughing parameter, you can tell the modell where are the data files, which contains the ploughing informations. By default the package reads this information from the INI files.
+#' @param fertInput Via fertilizing parameter, you can tell the modell where are the fertilizing data files, which contains the fertilizing informations. By default the package reads this information from the INI files.
+#' @param irrInput Via irrigation parameter, you can tell the modell where are the data files, which contains the irrigation informations. By default the package reads this information from the INI files.
+#' @param nitInput Via this parameter, you can tell the modell where are the NO2 data files. By default the package reads this information from the INI files.
+#' @param iniInput Via this parameter, you can tell the modell where are the ini files. By default the package reads this information from the INI files.
+#' @param epcInput Via this parameter, you can tell the modell where are the epc data files. By default the package reads this information from the INI files.
+#' @param modelOutputs This parameter contains the list of the codes that defines the required model output variables. Check the Biome-BGCMuS website for the complete list of possible output variables. 
 #' @usage setupMuso(executable=NULL, parallel = F, calibrationPar =c(1),
 #' outputLoc=NULL, inputLoc=NULL,
 #' metInput=NULL, CO2Input=NULL,
@@ -30,7 +30,7 @@
 #' harvInput=NULL, plougInput=NULL,
 #' fertInput=NULL, irrInput=NULL,
 #' nitInput=NULL, iniInput=NULL, epcInput=NULL)
-#' @return The output is a the modell setting list wich contains the following elements:
+#' @return The output is a the model settings list wich contains the following elements:
 #' executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput,rrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
 #' @export
 
