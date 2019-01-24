@@ -3,7 +3,7 @@
 #' This function optionally changes the EPC file and runs the Biome-BGCMuSo model in normal phase and reads its output file in a well-structured way with debugging features. (Execution of spinup phase is possible with spinupMuso.)  
 #' 
 #' @author Roland HOLLOS
-#' @param settings You have to run the setupMuso function and then the spinupMuso function first as spinup phase created the so-called endpoint file for the normal simulation (endpoint=initial conditions). settings parameter contains the environment variables of the simulation as created by setupMuso. 
+#' @param settings You have to run the setupMuso function and then the spinupMuso function first as spinup phase creates the so-called endpoint file for the normal simulation (endpoint=initial conditions). The settings parameter contains the environment variables of the simulation as created by setupMuso. 
 #' @param timee The required timesteps in the model output. It can be "d", if it is daily, "m", if it is monthly, "y" if it is yearly. It is recommended to use daily data, as the yearly and monthly data is not well-tested yet. 
 #' @param debugging If debugging is set to TRUE, after model execution the function copies the Biome-BGCMuSo log file into a LOG directory to stores it for further processing. If debugging is set to STAMPLOG instead of TRUE, it concatenates a number before the logfile, which is one plus the maximum of those present in the LOG directory. In each case the log files will be saved. 
 #' @param keepEpc If keepEpc is set to TRUE, the function keeps the EPC file and stamps it, and then copies it to the EPCS directory. If debugging is set to TRUE, it copies the wrong EPC files to the wrong epc directory.
