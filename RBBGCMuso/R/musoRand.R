@@ -54,14 +54,18 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 	}
 
 	G<-G[dep[,4]!=0,]
-
+        
+        if(is.null(nrow(G))){
+            G<-t(as.matrix(G))
+        }
+        numRowsInG <- nrow(G)
 	if(Range[1]==1){
-	    G<-cbind(G,matrix(ncol=(N-Range[2]),nrow=nrow(G),data=0))
+	    G<-cbind(G,matrix(ncol=(N-Range[2]),nrow=numRowsInG,data=0))
 	} else{
 	    if(Range[2]==N){
-		G<-cbind(matrix(ncol=(Range[1]-1),nrow=nrow(G),data=0),G)
+		G<-cbind(matrix(ncol=(Range[1]-1),nrow=numRowsInG,data=0),G)
 	    } else {
-		G <- cbind(matrix(ncol=(Range[1]-1),nrow=nrow(G),data=0),G,matrix(ncol=(N-Range[2]),nrow=nrow(G),data=0))
+		G <- cbind(matrix(ncol=(Range[1]-1),nrow=numRowsInG,data=0),G,matrix(ncol=(N-Range[2]),nrow=numRowsInG,data=0))
 	    }
 	}
 	return(list(G=G,h=rep(0,nrow(G))))
@@ -86,6 +90,10 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 
 	G <- t(matrix(sign(dep[2,4])*G))
 	h <- abs(dep[1,4])
+        if(dep[1,"TYPE"]==2){
+            G <- G*(-1)
+            h <- h*(-1)
+        }
 
 	return(list(G=G,h=h))
     }
