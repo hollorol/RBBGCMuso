@@ -14,51 +14,51 @@ fertInput=NULL, irrInput=NULL,
 nitInput=NULL, iniInput=NULL, epcInput=NULL)
 }
 \arguments{
-\item{executable}{This parameter stores the location (directory) of the modell-executable file. In normal usage, you don't have to set this parameter, because a RBBGCMuso package contains allways the latest modell executable. In spite of this, if you would like to use this package for modell development or just want to use different models (for example for comparison), you will find it useful}
+\item{executable}{This parameter stores the location (directory) of the model-executable file. In normal usage, you don't have to set this parameter, because the RBBGCMuso package always contains the latest model executable. In spite of this, if you would like to use this package for model development or just want to use different model version (for example for comparison), you will find this option useful}
 
 \item{parallel}{Set this variable to TRUE if you would like to implement parallel execution of the model}
 
-\item{calibrationPar}{You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)}
+\item{calibrationPar}{You might want to change some parameters in your EPC file before running the model. setupMuso offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8)}
 
-\item{outputLoc}{Where should the modell puts its outputs. You should give a location for it via this variable, for example: outputLoc="/place/of/the/outputs/"}
+\item{outputLoc}{With this parameter the user can specify the directory for the model output. The syntax is simple, for example: outputLoc="/place/of/the/outputs/" or outputLoc="C:/my_model_directory/". Note that this output directory is specified by the user within the INI file, which means that the outputLoc parameter overrides the INI settings if specified.}
 
-\item{modelOutputs}{This parameter is the list of the codes of outpu}
+\item{modelOutputs}{This parameter contains the list of the codes that defines the required model output variables. Check the Biome-BGCMuS website for the complete list of possible output variables at http://agromo.agrar.mta.hu/bbgc/download.html}
 
-\item{inputLoc}{Usually it is the root directory, where you put the iniFiles for the modell}
+\item{inputLoc}{Usually this is the root (or base) directory where the user stores the INI files for the model. If the working directory is set by the user, this parameter can be skipped.}
 
-\item{metInput}{Via metInput parameter, you can tell the modell where are the meteorological files. As default it reads this from the iniFiles.}
+\item{metInput}{Via the metInput parameter the user can specify the location of the input meteorological files. By default the package reads this information from the INI files.}
 
-\item{CO2Input}{Via CO2 parameter, you can tell the modell where are the CO2 data files. As default it reads this from the iniFiles.}
+\item{CO2Input}{Via the CO2Input parameter the user can specify the location of the CO2 data file. By default the package reads this information from the INI files.}
 
-\item{plantInput}{Via planting parameter, you can tell the modell where are the data files, which contains the planting informations. As default it reads this from the iniFiles.}
+\item{plantInput}{Via the plantInput parameter, the user can specify the location of the the file that contains the planting information. By default the package reads this information from the INI files.}
 
-\item{thinInput}{Via thining parameter, you can tell the modell where are the data files, which contains the thining informations. As default it reads this from the iniFiles.}
+\item{thinInput}{Via the thinInput parameter,the user can specify the location of the file that contains the thinning information. By default the package reads this information from the INI files.}
 
-\item{mowInput}{Via mowing parameter, you can tell the modell where are the data files, which contains the mowing informations. As default it reads this from the iniFiles.}
+\item{mowInput}{Via the mowInput parameter, the user can specify the location of the file that contains the mowing (i.e. grass cutting) information. By default the package reads this information from the INI files.}
 
-\item{grazInput}{Via grazing parameter, you can tell the modell where are the data files, which contains the grazing informations. As default it reads this from the iniFiles.}
+\item{grazInput}{Via the grazInput parameter, the user can specify the location of the file that contains the grazing information. By default the package reads this information from the INI files.}
 
-\item{harvInput}{Via harvesting parameter, you can tell the modell where are the data files, which contains the harvesting informations. As default it reads this from the iniFiles.}
+\item{harvInput}{Via the harvInput parameter, the user can specify the location of the file that contains the harvesting information. By default the package reads this information from the INI files.}
 
-\item{plougInput}{Via ploughing parameter, you can tell the modell where are the data files, which contains the ploughing informations. As default it reads this from the iniFiles.}
+\item{plougInput}{Via the plougInput parameter, the user can specify the location of the file that contains the ploughing information. By default the package reads this information from the INI files.}
 
-\item{fertInput}{Via fertilizing parameter, you can tell the modell where are the fertilizing data files, which contains the fertilizing informations. As default it reads this from the iniFiles.}
+\item{fertInput}{Via the fertInput parameter, ythe user can specify the location of the file that contains the fertilizing information. By default the package reads this information from the INI files.}
 
-\item{irrInput}{Via irrigation parameter, you can tell the modell where are the data files, which contains the irrigation informations. As default it reads this from the iniFiles.}
+\item{irrInput}{Via the irrInput parameter, the user can specify the location of the file that contains the irrigation information. By default the package reads this information from the INI files.}
 
-\item{nitInput}{Via this parameter, you can tell the modell where are the NO2 data files. As default it reads this from the iniFiles.}
+\item{nitInput}{Via the nitInput parameter, the user can specify the location of the file that contains the nitrogen deposition data. By default the package reads this information from the INI files.}
 
-\item{iniInput}{Via this parameter, you can tell the modell where are the ini files. As default it reads this from the iniFiles.}
+\item{iniInput}{Via the iniInput parameter, the user can specify the location of the INI files. By default the package reads the INI files from the working directory.}
 
-\item{epcInput}{Via this parameter, you can tell the modell where are the epc data files. As default it reads this from the iniFiles.}
+\item{epcInput}{Via the epcInput parameter, the user can specify the location of the EPC data file. By default the package reads this information from the INI files.}
 }
 \value{
-The output is a the modell setting list wich contains the following elements:
+The output is a the model settings list wich contains the following elements:
 executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput,rrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
 }
 \description{
-This funcion is fundamental for the Biome-BGCMuSo model related functions like runMuso, spinupMuso, normalMuso, rungetMuso, as it sets the model's environment. The function reads the INI files from a given directory, analyzes them with error checking, and creates a data structure in R that contains the complete information content for the simulation.
+The setupMuso is fundamental for the Biome-BGCMuSo model related other functions like runMuso, spinupMuso, normalMuso, rungetMuso, as it sets the model's environment. The function reads the INI files from a given directory, analyzes them with error checking, and creates a data structure in R that contains the complete information content for the simulation.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

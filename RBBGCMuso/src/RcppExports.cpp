@@ -5,6 +5,16 @@
 
 using namespace Rcpp;
 
+// mtclim
+void mtclim(std::string iniFile);
+RcppExport SEXP _RBBGCMuso_mtclim(SEXP iniFileSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type iniFile(iniFileSEXP);
+    mtclim(iniFile);
+    return R_NilValue;
+END_RCPP
+}
 // getWritePositions
 IntegerVector getWritePositions(double a);
 RcppExport SEXP _RBBGCMuso_getWritePositions(SEXP aSEXP) {
@@ -64,6 +74,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_RBBGCMuso_mtclim", (DL_FUNC) &_RBBGCMuso_mtclim, 1},
     {"_RBBGCMuso_getWritePositions", (DL_FUNC) &_RBBGCMuso_getWritePositions, 1},
     {"_RBBGCMuso_changeMusoC", (DL_FUNC) &_RBBGCMuso_changeMusoC, 3},
     {"_RBBGCMuso_randTypeOne", (DL_FUNC) &_RBBGCMuso_randTypeOne, 1},
