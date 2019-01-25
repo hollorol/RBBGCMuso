@@ -132,18 +132,25 @@ musoMonte <- function(settings=NULL,
         modellOut[1,]<- tmp2
         
         for(i in 2:(iterations+1)){
-            tmp <- calibMuso(settings = settings,
+            tmp <- tryCatch(calibMuso(settings = settings,
                              parameters = randValues[(i-1),],
                              silent= TRUE,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
-                             outVars = outVars)
+                             outVars = outVars), error = function (e) NA)
             
-
-            for(j in 1:numVars){
-                tmp2[j]<-funct[[j]](tmp[,j])
+            if(!is.na(tmp)){
+                for(j in 1:numVars){
+                    tmp2[j]<-funct[[j]](tmp[,j])
+                }
+            } else {
+                for(j in 1:numVars){
+                    tmp2[j]<-rep(NA,length(settings$outputVars[[1]]))
+                }
             }
+
+            
             
             modellOut[i,]<- tmp2
             write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))

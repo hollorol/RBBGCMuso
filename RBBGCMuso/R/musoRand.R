@@ -68,7 +68,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 		G <- cbind(matrix(ncol=(Range[1]-1),nrow=numRowsInG,data=0),G,matrix(ncol=(N-Range[2]),nrow=numRowsInG,data=0))
 	    }
 	}
-	return(list(G=G,h=rep(0,nrow(G))))
+	return(list(G=-1*G,h=-1*rep(0,nrow(G))))
     }
 
     genMat2 <- function(dep, N){
@@ -90,7 +90,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 
 	G <- t(matrix(sign(dep[2,4])*G))
 	h <- abs(dep[1,4])
-        if(dep[1,"TYPE"]==2){
+        if(dep[1,"TYPE"]==2){ # This is not needed, I'll have to remove the if part, and keep the content
             G <- G*(-1)
             h <- h*(-1)
         }

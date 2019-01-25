@@ -57,7 +57,7 @@ musoSensi <- function(monteCarloFile = NULL,
         varNames<- colnames(M)[1:npar]
         w <- lm(y~M)$coefficients[-1]
         Sv <- apply(M,2,var)
-        overalVar <- sum(Sv*w^2)
+        overalVar <- sum(Sv*w^2,na.rm = TRUE)
         S=numeric(npar)
         
         for(i in 1:npar){
@@ -95,6 +95,7 @@ musoSensi <- function(monteCarloFile = NULL,
                       varIndex = varIndex,
                       skipSpinup = skipSpinup
                       )
+        M <- cbind(seq_along(M[,1]),M)
         yInd <-  grep("mod.", colnames(M))[varIndex]
         parNames <- grep("mod.",colnames(M), invert=TRUE, value = TRUE)
         M <- M[,c(grep("mod.", colnames(M),invert=TRUE),yInd)]
