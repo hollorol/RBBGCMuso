@@ -41,6 +41,7 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
      }
     
     parVals <- seq(startVal, endVal, length = (nSteps + 1))
+    parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
     a <- do.call(rbind,lapply(parVals, function(parVal){
         calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
         if(all(is.na(calResult))){
@@ -58,5 +59,5 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
         tbl_df %>%
         mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
         select(date,as.character(varNames),parVal)
-    print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(round(parVal,2)))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.25,1))))
+    print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(parVal))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.25,1))))
 }

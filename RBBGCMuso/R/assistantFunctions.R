@@ -104,4 +104,23 @@ compareNA <- function(v,a){
     return(compared)
 }
 
+#' dynRound
+#'
+#'This function rounds a sequence (definded by its endpoints and the length) optimally
+#'
+#'@param  x The lower end of the sequence
+#'@param y The higher end of the sequence
+#' @param seqLen The length of the sequence
+#'@return rounded sequence
+#'@keywords internal
+
+dynRound <- function(x,y,seqLen){
+    digitNum <- 2
+    a <- seq(x,y, length = seqLen)
+    while(length(a) != length(unique(round(a,digitNum)))){
+        digitNum <- digitNum +1
+    }
+    
+    return(round(a,digitNum))
+}
 
