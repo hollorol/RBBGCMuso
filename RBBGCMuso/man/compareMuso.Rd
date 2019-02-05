@@ -9,19 +9,19 @@ compareMuso(settings = NULL, parameters, variable = 1,
   timeFrame = "day")
 }
 \arguments{
-\item{settings}{You have to run the setupMuso function before rungetMuso. It is its output which contains all of the necessary system variables. It sets the whole environment}
+\item{settings}{RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.}
 
-\item{parameters}{In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)}
+\item{parameters}{Using this function it is possible to change some of the EPC parameters prior to model execution. This can be achieved with this option. In the parameters variable you have set the row indices of the variables that you wish to change. In this parameters you can give an exact value for them in a vector form like c(1,2,3,4).}
 
 \item{variable}{The name of the output variable to plot}
 
-\item{calibrationPar}{in the help of setupMuso function.}
+\item{calibrationPar}{You might want to change some parameters in your EPC file before running the model. This function offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8)}
 
-\item{fileToChange}{You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini", "both"}
+\item{fileToChange}{You can change any line of the EPC or the INI file. Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user.}
 }
 \description{
-This function runs the modell, change one of it's input, and plot both in one plot.
+This function runs the model, then changes one of its input data, runs it again, and plots both results in one graph.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

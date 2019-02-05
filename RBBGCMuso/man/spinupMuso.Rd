@@ -2,32 +2,32 @@
 % Please edit documentation in R/spinupMuso.R
 \name{spinupMuso}
 \alias{spinupMuso}
-\title{Run the BBGCMuso modell only in spinup phase, and debugging.}
+\title{Runs the Biome-BGCMuSo model in spinup phase (execution of normal phase is possible with normalMuso) with debugging features.}
 \usage{
 spinupMuso(settings, parameters=NULL, debugging=FALSE,
 logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE)
 }
 \arguments{
-\item{settings}{You have to run the setupMuso function before spinupMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment.}
+\item{settings}{RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.}
 
-\item{parameters}{In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)}
+\item{parameters}{|||| In the parameters variable you have set the row indices of the variables that you wish to change. In this parameter you can provide an exact value for them in a vector form like c(1,2,3,4)}
 
-\item{debugging}{If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles}
+\item{debugging}{If debugging is set to TRUE, after model execution the function copies the Biome-BGCMuSo log file into a LOG directory to stores it for further processing. If debugging is set to STAMPLOG instead of TRUE, it concatenates a number before the logfile, which is one plus the maximum of those present in the LOG directory. In each case the log files will be saved.}
 
-\item{logfilename}{If you want to set a specific name for your logfiles you can set this via logfile parameter}
+\item{logfilename}{If you would like to set a specific name for the logfiles you can set this via the logfilename parameter}
 
-\item{keepEpc}{If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.}
+\item{keepEpc}{If keepEpc is set to TRUE, the function keeps the EPC file and stamps it, and then copies it to the EPCS directory. If debugging is set to TRUE, it copies the wrong EPC files to the wrong epc directory.}
 
-\item{silent}{If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.}
+\item{silent}{If you set the silent parameter to TRUE, all of the model's output normally written to the screen will be suppressed. This option can be useful to increase the speed of the model execution.}
 
-\item{aggressive}{It deletes every possible modell-outputs from the previous modell runs.}
+\item{aggressive}{It deletes all previous model-outputs from previous model runs.}
 }
 \value{
 No return, outputs are written to file
 }
 \description{
-This function runs the BBGC-MuSo model's in the spinup phase.
+This function runs the Biome-BGCMuSo model in spinup phase.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

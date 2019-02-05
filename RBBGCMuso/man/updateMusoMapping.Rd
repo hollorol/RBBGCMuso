@@ -7,14 +7,14 @@
 updateMusoMapping(output_map_init="output_map_init.c")
 }
 \arguments{
-\item{output_map_init}{The outputcode-variable bindings is described in output_map_init.c file, via this parameter, you can give it the the function}
+\item{output_map_init}{The output code-variable bindings are described in output_map_init.c file that is part of the Biome-BGCMuSo source code. Using this function the user can read the output_map_init.c file and pass it to RBBGCMuso for further work.}
 }
 \value{
-The outputcode-variable matrix, and also change the global variable
+The output code-variable matrix, and also the function changes the global variable
 }
 \description{
-This function update the the muso outputcode-variable matrix
+This function updates the Biome-BGCMuSo output code-variable matrix. Within Biome-BGCMuSo the state variables and fluxes are marked by integer numbers. In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production in Biome-BGCMuSo v5) a conversion table is needed which is handled by this function.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

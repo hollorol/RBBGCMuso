@@ -10,12 +10,12 @@ stampAndDir(outputLoc, names, stampDir, wrongDir, type = "output",
 \arguments{
 \item{outputLoc}{This is the location of the output files.}
 
-\item{outputNames}{These are the prefixis of the logfiles}
+\item{outputNames}{These are the prefixes of the logfiles}
 }
 \value{
 Output files with their paths
 }
 \description{
-This function gives us the muso output files with their paths
+This function gives us the model output files with their paths
 }
 \keyword{internal}

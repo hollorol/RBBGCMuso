@@ -7,14 +7,14 @@
 readErrors(outputLoc, logfiles, type = "both")
 }
 \arguments{
-\item{outputLoc}{This is the location of the output files.}
+\item{outputLoc}{This is the location of the output file.}
 
-\item{logfiles}{These are the names of the logfiles}
+\item{logfiles}{These are the names of the logfiles.}
 }
 \value{
 vector with 0 and 1 values, 1, if succed, 0 if not. The first is the spinup run, the second is the normal.
 }
 \description{
-This function reads the spinup and the normal logfiles and gives back the last line which indicates weather there are any errors.
+This function reads the spinup and the normal logfiles and gives back the last line which indicates weather there are any errors during the model execution or not.
 }
 \keyword{internal}

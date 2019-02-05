@@ -7,9 +7,9 @@
 cleanupMuso(location=NULL, simplicity=TRUE,deep=FALSE)
 }
 \arguments{
-\item{location}{It is the place where your output files are.}
+\item{location}{This is the place (directory) where your output files are located.}
 
-\item{simplicity}{TRUE or FALSE. If true cleanupMuso will erase only the log files from only the location}
+\item{simplicity}{TRUE or FALSE. If TRUE cleanupMuso will erase only the log files from the location}
 
 \item{deep}{If it is TRUE, it will delete every files from the subdirectories also}
 }
@@ -17,5 +17,5 @@ cleanupMuso(location=NULL, simplicity=TRUE,deep=FALSE)
 cleanupMuso can erase all of the unnecessary log and output files.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

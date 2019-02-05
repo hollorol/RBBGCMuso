@@ -8,38 +8,38 @@ normalMuso(settings,parameters=NULL, timee="d", debugging=FALSE, logfilename=NUL
 keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 }
 \arguments{
-\item{settings}{You have to run the setupMuso function before calibMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment}
+\item{settings}{RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.}
 
-\item{parameters}{In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)}
+\item{parameters}{Using normalMuso it is possible to change some of the EPC parameters prior to model execution. This can be achieved with this option. In the parameters variable you have set the row indices of the variables that you wish to change. In this parameters you can give an exact value for them in a vector form like c(1,2,3,4).}
 
-\item{timee}{The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly. I recommend to use daily data, the yearly and monthly data is not well-tested yet.}
+\item{timee}{The required timesteps in the model output. It can be "d", if it is daily, "m", if it is monthly, "y" if it is yearly. It is recommended to use daily data, as the yearly and monthly data is not well-tested yet.}
 
-\item{debugging}{If it is TRUE, it copies the log file to a Log directory to store it, if it is stamplog it contatenate a number before the logfile, which is one more than the maximum of the represented ones in the LOG directory. If it is true or stamplog it collects the "wrong" logfiles}
+\item{debugging}{If debugging is set to TRUE, after model execution the function copies the Biome-BGCMuSo log file into a LOG directory and stores it for further processing. If debugging is set to STAMPLOG instead of TRUE, it concatenates a number before the logfile, which is one plus the maximum of those present in the LOG directory. In each case the log files will be saved.}
 
-\item{logfilename}{If you want to set a specific name for your logfiles you can set this via logfile parameter}
+\item{logfilename}{If you would like to set a specific name for your logfiles you can set this via the logfile parameter.}
 
-\item{keepEpc}{If TRUE, it keeps the epc file and stamp it, after these copies it to the EPCS directory. If debugging True or false, it copies the wrong epc files to the wrong epc directory.}
+\item{keepEpc}{If keepEpc is set to TRUE, the function keeps the EPC file and stamps it, and then copies it to the EPCS directory. If debugging is set to TRUE, it copies the wrong EPC files to the wrong epc directory.}
 
-\item{export}{if it is yes or you give a filename here, it converts the ouxtput to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.}
+\item{export}{If it is set to YES or you define a filename here, the function converts the output to the specific file format. For example, if you set export to "example.csv", it converts the output to "csv". If you set it to "example.xls" it converts the output to example.xls with the xlsx package. If the Excel converter package is not installed it gives back a warning message and converts the results to csv.}
 
-\item{silent}{If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.}
+\item{silent}{If you set the silent parameter to TRUE, all of the model's output normally written to the screen will be suppressed. This option can be useful to increase the speed of the model execution.}
 
-\item{aggressive}{It deletes every possible modell-outputs from the previous modell runs.}
+\item{aggressive}{It deletes all previous model-outputs from previous model runs.}
 
-\item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
+\item{leapYear}{Should the function do a leapyear correction on the output data? If TRUE, then the result for 31 December will be doubled in leap years which means that the results for the leap year will cover all 366 days. See the model's User's Guide for notes on leap years.}
 
-\item{binaryPlace}{The place of the binary output files.}
+\item{binaryPlace}{The directory for the binary output files (see the keepBinary parameter).}
 
-\item{fileToChange}{You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"}
+\item{fileToChange}{You can change any line of the EPC or the INI file prior to model execution. All you need to do is to specify with this variable which file you want to change. Two options possible: "EPC" or "INI"}
 
-\item{keepBinary}{In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.}
+\item{keepBinary}{By default RBBGCMuso keeps the working environment as clean as possible, thus deletes all the regular output files. The results are directly written to the standard output (e.g. to the screen), but you can redirect it and save them to a variable. Alternatively, you can export your results to the desired destination in a desired format. Through the keepBinary parameter you can set RBBGCMuso to keep the binary output files. If you would like to set the location of the binary output, please take a look at the binaryPlace argument.}
 }
 \value{
-The simunation output matrix, where the columns are the choosen variables and each row is a day/month/year data.
+The simulation output matrix, where the columns are the chosen variables and each row is a daily/monthly/annual data.
 }
 \description{
-This function changes the epc file and after that runs the BBGC-MuSo model in normal phase and reads in its outputfile in a well-structured way.
+This function optionally changes the EPC file and runs the Biome-BGCMuSo model in normal phase and reads its output file in a well-structured way with debugging features. (Execution of spinup phase is possible with spinupMuso.) Prerequisite of normalMuso is the existence of the endpoint file (which is the result of the spinup phase and contains initial conditions for the simulation).
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }

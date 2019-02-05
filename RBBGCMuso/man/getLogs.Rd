@@ -9,12 +9,12 @@ getLogs(outputLoc, outputNames, type = "spinup")
 \arguments{
 \item{outputLoc}{This is the location of the output files.}
 
-\item{outputNames}{These are the prefixis of the logfiles}
+\item{outputNames}{These are the prefixes of the logfiles}
 }
 \value{
 Logfiles with paths
 }
 \description{
-This function gives us the muso logfiles with their paths
+This function gives us the muso logfiles with their path
 }
 \keyword{internal}
