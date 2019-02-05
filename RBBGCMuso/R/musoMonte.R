@@ -13,6 +13,7 @@
 #' @param varIndex This parameter specifies which parameter will be used for the Monte Carlo experiment from the output list of Biome-BGCMuSo (defined by the INI file). You can extract this information from the INI files. At the output parameter specifications, the parameter order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926 for the experiment, you should specify varIndex as 3. 
 #' @param debugging If you set this parameter, you can save every logfile, and RBBGCMuso will select those which contains errors. This is useful to study why the model crashes with a given parameter set. 
 #' @param keepEpc If you set keepEpc as TRUE, it will save every selected EPC file, and move the wrong ones into the WRONGEPC directory.
+#' @importFrom magrittr '%>%'
 #' @export
 
 musoMonte <- function(settings=NULL,
@@ -112,12 +113,15 @@ musoMonte <- function(settings=NULL,
 
     
     moreCsv <- function(){
+        settings$iniInput[2] %>%
+            (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
+            unlink
         randValues <- randVals[[2]]
         settings$calibrationPar <- randVals[[1]]
         ## randValues <- randValues[,randVals[[1]] %in% parameters[,2]][,rank(parameters[,2])]
         modellOut <- matrix(ncol = numVars, nrow = iterations + 1)
 
-        origModellOut <- calibMuso(silent=TRUE)
+        origModellOut <- calibMuso(settings=settings,silent=TRUE)
         write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
 
         if(!is.list(fun)){

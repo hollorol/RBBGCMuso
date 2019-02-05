@@ -16,7 +16,6 @@
 #' @param varIndex This parameter specifies which parameter will be used for the Monte Carlo experiment from the output list of Biome-BGCMuSo (defined by the INI file). You can extract this information from the INI files. At the output parameter specifications, the parameter order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926 for the experiment, you should specify varIndex as 3. 
 #' @param skipSpinup With this parameter you can turn off the spinup phase after the first spinup was successfully executed (endpoint file is available). This option can dramatically decrease the time needed for the sensitivity analysis. Note that in case of natural vegetation this option might not be feasible. For croplands this is more feasible. 
 #' @importFrom ggplot2 geom_bar ggplot aes theme element_text xlab ylab ggtitle ggsave scale_y_continuous
-#' @importFrom scales percent
 #' @export
 
 musoSensi <- function(monteCarloFile = NULL,
@@ -74,7 +73,7 @@ musoSensi <- function(monteCarloFile = NULL,
             xlab(NULL)+
             ylab(NULL)+
             ggtitle("Sensitivity")+
-            scale_y_continuous(labels = percent,limits=c(0,1))
+            scale_y_continuous(labels = scales::percent,limits=c(0,1))
         print(sensiPlot)
         ggsave(plotName,dpi=dpi)
         return(S)
@@ -110,3 +109,6 @@ musoSensi <- function(monteCarloFile = NULL,
         return(doSensi(M))        
     }
 }
+
+
+
