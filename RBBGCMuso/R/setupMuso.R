@@ -267,7 +267,8 @@ setupMuso <- function(executable=NULL,
                     numData=numData,
                     startYear=startYear,
                     numYears=numYears,
-                    outputVars=outputVars
+                    outputVars=outputVars,
+                    dailyVarCodes= gsub("\\s.*","",dailyVarCodes)
                     )
     
     if(writep!=nrow(grepHelper)){
