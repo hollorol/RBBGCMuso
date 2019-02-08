@@ -18,11 +18,13 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
     constMatrix <- constMatrix[,-1]
     
     depTableMaker <- function(constMatrix,parameters){
-	parameters <- parameters[order(parameters[,1]),]
-	constMatrix[constMatrix[,"INDEX"] %in% parameters[,1],c(5,6)]<-parameters[,c(2,3)]
+        ##	parameters <- parameters[order(parameters[,1]),] ## BUG!!!
+        selectedRows <- constMatrix[,"INDEX"] %in% parameters[,1]
+        rankList <- rank(constMatrix[selectedRows,2])
+        constMatrix[selectedRows,c(5,6)] <- parameters[rankList,c(2,3)]
 	logiConstrain <- (constMatrix[,"GROUP"] %in% constMatrix[constMatrix[,"INDEX"] %in% parameters[,1],"GROUP"] &
 			  (constMatrix[,"GROUP"]!=0)) | ((constMatrix[,"INDEX"] %in% parameters[,1]) & (constMatrix[,"GROUP"] == 0))
-	constMatrix<-constMatrix[logiConstrain,]
+	constMatrix <- constMatrix[logiConstrain,]
 	constMatrix <- constMatrix[order(apply(constMatrix[,7:8],1,function(x){x[1]/10+abs(x[2])})),]
 	constMatrix
     }
