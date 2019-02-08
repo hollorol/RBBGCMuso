@@ -27,30 +27,18 @@
 #' @importFrom tidyr separate gather
 #' @export
 
-plotMuso <- function(settings=NULL,
-                     variable=1,
-                     ##compare,
-                     ##plotname,
-                     timee="d",
-                     silent=TRUE,
-                     calibrationPar=NULL,
-                     parameters=NULL,
-                     debugging=FALSE,
-                     keepEpc=FALSE,
-                     fileToChange="epc",
-                     logfilename=NULL,
-                     aggressive=FALSE,
-                     leapYear=FALSE,
-                     plotName=NULL,
-                     plotType="cts",
-                     layerPlot=FALSE,
-                     colour="blue",
-                     skipSpinup=TRUE,
-                     fromData=FALSE,
-                    timeFrame="day",
-                    selectYear=NULL,
-                     groupFun=mean,
-                     dpi=300){
+plotMuso <- function(settings = NULL, variable = 1,
+                     ##compare, ##plotname,
+                     timee = "d", silent = TRUE,
+                     calibrationPar = NULL, parameters = NULL,
+                     debugging = FALSE, keepEpc = FALSE,
+                     fileToChange = "epc", logfilename = NULL,
+                     aggressive = FALSE, leapYear = FALSE,
+                     plotName = NULL, plotType = "cts",
+                     layerPlot = FALSE, colour = "blue",
+                     skipSpinup = TRUE, fromData = FALSE,
+                    timeFrame = "day", selectYear = NULL,
+                    groupFun = mean, separateFile = FALSE, dpi=300){
 
     if( plotType!="cts" && plotType != "dts"){
         warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
@@ -63,6 +51,7 @@ plotMuso <- function(settings=NULL,
     
     numberOfYears <- settings$numYears
     startYear <- settings$startYear
+    dailyVarCodes <- settings$dailyVarCodes
     ## musoData <- rungetMuso(settings=settings,
     ##                        silent=silent,
     ##                        timee=timee,
@@ -164,20 +153,21 @@ plotMuso <- function(settings=NULL,
                     }
                     p
                 } else{
-                    p <- musoData %>%
-                        select(c("date",variableName))%>%
-                        gather(., key= outputs, value = bla,variableName) %>%
+                        p <- musoData %>%
+                            select(c("date",variableName))%>%
+                            gather(., key= outputs, value = bla,variableName) %>%
                                         # head  %>%
-                        ggplot(aes(x=date,y=bla))+
-                        facet_wrap(~ outputs, scales = "free_y",ncol=1) +
-                        geom_line(colour=colour)+
-                        theme(
-                            axis.title.y = element_blank()
-                        )
-                    if(!is.null(plotName)){
-                        ggsave(as.character(plotName),p)
-                    }
-                    p
+                            ggplot(aes(x=date,y=bla))+
+                            facet_wrap(~ outputs, scales = "free_y",ncol=1) +
+                            geom_line(colour=colour)+
+                            theme(
+                                axis.title.y = element_blank()
+                            )
+                        if(!is.null(plotName)){
+                            ggsave(as.character(plotName),p)
+                        }
+                        p
+                    
                 }
             }
         } else {
@@ -323,4 +313,47 @@ compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NUL
     
 }
 
+#' saveAllMusoPlots 
+#'
+#' This simple function takes the parameters from the ini files and generates graphics for all output variable. 
+#' 
+#' @author Roland HOLLOS
+#' @param settings RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.
+#' @param plotName The basename for the output plots
+#' @param destination The destination for the output plots, it not exits the  function will create it.
+#' @param silent if true do not suspect for printfs... 
+#' @importFrom ggplot2 theme_classic ggplot geom_line geom_point theme element_blank geom_bar labs aes_string aes ggsave 
+#' @export
 
+
+saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
+                             silent = TRUE, type = "line",
+                             colour = NULL, skipSpinup = FALSE){
+
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
+    
+    dailyVarCodes <- settings$dailyVarCodes
+    annualVarCodes <-settings$annualVarCodes
+    outputVars <- unlist(settings$outputVars[[1]])
+    musoData <- calibMuso(settings = settings, prettyOut = TRUE, silent = silent, skipSpinup = skipSpinup)
+    for(i in seq_along(dailyVarCodes)){
+        bases <- ggplot(data = musoData, mapping = aes_string(x = "date", y = outputVars[i]))
+        object <-ifelse(type == "line",paste0("geom_line(colour = '",colour,"')"),
+                                  ifelse(type == "point",paste0("geom_line(colour = ",colour,")"),
+                                         stop("The")))
+        outPlot <- bases + eval(parse(text = object)) + theme_classic() + theme(axis.title.x=element_blank())
+        ggsave(paste0("daily-",dailyVarCodes[i],plotName),outPlot)
+    }
+    
+    musoYData <- getyearlyout(settings)
+    
+     for(i in seq_along(annualVarCodes)){
+        outPlot <- ggplot(data = musoYData, mapping = aes_string(x = "year", y = paste0("var_",annualVarCodes[i])))+
+            geom_bar(stat = "identity")+ labs(y = musoMapping(annualVarCodes[i])) + theme_classic() +
+            theme(axis.title.x=element_blank())
+        ggsave(paste0("annual-",annualVarCodes[i],plotName),outPlot)
+     }   
+    
+}
