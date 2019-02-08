@@ -18,7 +18,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
     constMatrix <- constMatrix[,-1]
     
     depTableMaker <- function(constMatrix,parameters){
-        ##	parameters <- parameters[order(parameters[,1]),] ## BUG!!!
+        parameters <- parameters[order(parameters[,1]),] ## BUG!!!
         selectedRows <- constMatrix[,"INDEX"] %in% parameters[,1]
         rankList <- rank(constMatrix[selectedRows,2])
         constMatrix[selectedRows,c(5,6)] <- parameters[rankList,c(2,3)]
