@@ -29,12 +29,16 @@ getmonthlyout<-function(settings){
 }
 
 getyearlyout<-function(settings){
-  binaryname<-paste(settings$inputloc,settings$outputname,".annout",sep="")
-  d<-file(binaryname,"rb")
-  yearoutput<-matrix(readBin(d,"double",size=4,n=(settings$numdata[3])),(settings$numyears),byrow=TRUE)
-  close(d)
-  return(yearoutput)
+  binaryname<-paste0(settings$inputLoc,"/",settings$outputName[2],".annout")
+  ## d<-file(binaryname,"rb")
+  ## yearoutput<-matrix(readBin(d,"double",size=4,n=(settings$numData[3])),(settings$numYears),byrow=TRUE)
+  ## close(d)
+  ## return(yearoutput)
+  outPut <- read.table(binaryname,skip = 1)
+  colnames(outPut) <- c("year", paste0("var_",settings$annualVarCodes))
+  outPut
 }
+
 
 
 
