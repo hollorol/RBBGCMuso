@@ -327,7 +327,7 @@ compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NUL
 
 
 saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
-                             silent = TRUE, type = "line",
+                             silent = TRUE, type = "line", outFile = "annual.csv",
                              colour = NULL, skipSpinup = FALSE){
 
     if(is.null(settings)){
@@ -348,7 +348,7 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
     }
     
     musoYData <- getyearlyout(settings)
-    
+    write.csv(musoYData,paste0(settings$outputNames[[2]],outFile))
      for(i in seq_along(annualVarCodes)){
         outPlot <- ggplot(data = musoYData, mapping = aes_string(x = "year", y = paste0("var_",annualVarCodes[i])))+
             geom_bar(stat = "identity")+ labs(y = musoMapping(annualVarCodes[i])) + theme_classic() +
