@@ -29,7 +29,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       debugging=FALSE, logfilename=NULL,
                       keepEpc=FALSE, export=FALSE,
                       silent=FALSE, aggressive=FALSE,
-                      leapYear=FALSE,keepBinary=FALSE,
+                      keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
                       skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
 ########################################################################
@@ -325,15 +325,11 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         if(!prettyOut){
             colnames(Reva) <- unlist(settings$outputVars[[1]])
         } else{
-            dates <- as.Date(musoDate(startYear = settings$startYear,
-                                      numYears = settings$numYears,
-                                      timestep="d",combined = TRUE,corrigated = FALSE),
-                             "%d.%m.%Y")
-            Reva <- cbind.data.frame(dates,
-                          musoDate(startYear = settings$startYear,
-                                   numYears = settings$numYears,
-                                   timestep = "d", combined = FALSE, corrigated = FALSE),
-                          Reva)
+            Reva <- cbind.data.frame(
+                musoDate(startYear = settings$startYear,
+                         numYears = settings$numYears,
+                         combined = FALSE, prettyOut = TRUE),
+                Reva)
             colnames(Reva) <- as.character(c("date","day","month","year",unlist(settings$outputVars[[1]])) )
             
         }
@@ -344,19 +340,22 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
 
 
-    if(leapYear){
-        Reva <- corrigMuso(settings,Reva)
-        if(!prettyOut){
-            rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
-        }
+    ## if(leapYear){
+    ##     Reva <- corrigMuso(settings,Reva)
+    ##     if(!prettyOut){
+    ##         rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
+    ##     }
 
-    } else {
-        if(!prettyOut){
-            rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)    
-        }
+    ## } else {
+    ##     if(!prettyOut){
+    ##         rownames(Reva) <- musoDate(settings$startYear, settings$numYears)    
+    ##     }
         
-    }
-
+    ## }
+    
+    if(!prettyOut){
+        rownames(Reva) <- musoDate(settings$startYear, numYears = settings$numYears)
+   }
 
     
     if(export!=FALSE){
