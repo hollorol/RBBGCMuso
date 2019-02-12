@@ -229,7 +229,7 @@ setupMuso <- function(executable=NULL,
     ## numValues will be replaced to numVar
     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
     startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+3],"[\ \t]"))[1])
-    numData[1] <- numValues * sumDaysOfPeriod(startYear,numYears,corrigated=leapYear)
+    numData[1] <- numValues * numYears*365 #LEAPYEAR CORRECTION NEEDED
 
     numData[2] <- numYears * numValues*12
     numData[3] <- numYears * numValues
@@ -241,7 +241,7 @@ setupMuso <- function(executable=NULL,
 
     if(!is.null(modelOutputs)){
         outVarChanges <- putOutVars(iniFile = iniInput[2],outputVars = modelOutputs, modifyOriginal = TRUE)
-        numData <- round(numDate*outVarChanges[[2]])
+        numData <- round(numData*outVarChanges[[2]])
         outputVars[[1]] <-outVarChanges[[1]] 
     }
     
