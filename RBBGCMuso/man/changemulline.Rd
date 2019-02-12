@@ -2,13 +2,13 @@
 % Please edit documentation in R/changeMuso.R
 \name{changemulline}
 \alias{changemulline}
-\title{This is the function which is capable change multiple specific lines to other using their row numbers.}
+\title{This is the function which is capable to change multiple specific lines to others using their row numbers.}
 \usage{
 changemulline(filePaths, calibrationPar, contents, fileOut, fileToChange,
   modifyOriginal = FALSE)
 }
 \description{
-he function uses the previous changspecline function to operate.
+The function uses the previous changspecline function to operate.
 }
 \author{
 Roland Hollos

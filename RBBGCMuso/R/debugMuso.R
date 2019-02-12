@@ -1,6 +1,6 @@
 #'rungetMuso
 #'
-#' This function runs the BBGC-MuSo model and reads in its outputfile in a very structured way.
+#' This function runs the Biome-BGCMuSo model and reads its outputfile in a well structured way.
 #' 
 #' @author Roland Hollos
 #' @keywords internal

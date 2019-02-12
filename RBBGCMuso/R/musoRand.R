@@ -1,10 +1,10 @@
 #' musoRand
 #'
-#' This funtion samples uniformly from the chosen parameters of the Biome-BGCMuSo model, where the parameters are constrained by the model logic.
-#' @author Roland Hollos
-#' @param parameters This is a dataframe (heterogeneous data-matrix), where first column is the name of the parameters, the second is a numeric vector of the rownumbers of the given variable in the input-file, the last two column consist the endpont of the parameter-ranges, where the parameters will be randomized.
-#' @param constrains This is a matrics wich specify the constrain rules for the sampling. Further informations coming son.
-#' @param iteration The number of samples. We propose to use at least 3000 iteration, because it is generally fast and it can be subsampled later at any time.
+#' This funtion uses the Monte Carlo technique to uniformly sample the parameter space from user defined parameters of the Biome-BGCMuSo model. The sampling algorithm ensures that the parameters are constrained by the model logic which means that parameter dependencies are fully taken into account (parameter dependency means that e.g leaf C:N ratio must be smaller than C:N ratio of litter; more complicated rules apply to the allocation parameters where the allocation fractions to different plant compartments must sum up 1). This function implements a mathematically correct solution to provide uniform distriution for all selected parameters. 
+#' @author Roland HOLLOS
+#' @param parameters This is a dataframe (heterogeneous data-matrix), where the first column is the name of the parameter, the second is a numeric vector of the rownumbers of the given variable in the input EPC file, and the last two columns describe the minimum and the maximum of the parameter (i.e. the parameter ranges), defining the interval for the randomization.
+#' @param constrains This is a matrix wich specify the constrain rules for the sampling. Parameter dependencies are described in the Biome-BGCMuSo User's Guide. Further informations is coming soon.
+#' @param iteration The number of samples for the Monte-Carlo experiment. We propose to use at least 3000 iteration because it is generally fast and it can be subsampled later at any time. 
 #' @importFrom limSolve xsample
 #' @export
 
@@ -18,11 +18,13 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
     constMatrix <- constMatrix[,-1]
     
     depTableMaker <- function(constMatrix,parameters){
-	parameters <- parameters[order(parameters[,1]),]
-	constMatrix[constMatrix[,"INDEX"] %in% parameters[,1],c(5,6)]<-parameters[,c(2,3)]
+        parameters <- parameters[order(parameters[,1]),] ## BUG!!!
+        selectedRows <- constMatrix[,"INDEX"] %in% parameters[,1]
+        rankList <- rank(constMatrix[selectedRows,2])
+        constMatrix[selectedRows,c(5,6)] <- parameters[rankList,c(2,3)]
 	logiConstrain <- (constMatrix[,"GROUP"] %in% constMatrix[constMatrix[,"INDEX"] %in% parameters[,1],"GROUP"] &
 			  (constMatrix[,"GROUP"]!=0)) | ((constMatrix[,"INDEX"] %in% parameters[,1]) & (constMatrix[,"GROUP"] == 0))
-	constMatrix<-constMatrix[logiConstrain,]
+	constMatrix <- constMatrix[logiConstrain,]
 	constMatrix <- constMatrix[order(apply(constMatrix[,7:8],1,function(x){x[1]/10+abs(x[2])})),]
 	constMatrix
     }

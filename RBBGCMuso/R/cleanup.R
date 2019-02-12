@@ -2,9 +2,9 @@
 #'
 #' cleanupMuso can erase all of the unnecessary log and output files.
 #' 
-#' @author Roland Hollos
-#' @param location It is the place where your output files are.
-#' @param simplicity TRUE or FALSE. If true cleanupMuso will erase only the log files from only the location
+#' @author Roland HOLLOS
+#' @param location This is the place (directory) where your output files are located.
+#' @param simplicity TRUE or FALSE. If TRUE cleanupMuso will erase only the log files from the location
 #' @param deep If it is TRUE, it will delete every files from the subdirectories also
 #' @usage cleanupMuso(location=NULL, simplicity=TRUE,deep=FALSE)
 #' @export

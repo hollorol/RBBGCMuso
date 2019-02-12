@@ -1,9 +1,9 @@
 #' getLogs
 #'
-#'This function gives us the muso logfiles with their paths
+#'This function gives us the muso logfiles with their path
 #'
 #'@param outputLoc This is the location of the output files.
-#'@param outputNames These are the prefixis of the logfiles
+#'@param outputNames These are the prefixes of the logfiles
 #'@return Logfiles with paths
 #'@keywords internal
 
@@ -18,10 +18,10 @@ getLogs <- function(outputLoc, outputNames, type = "spinup"){
 
 #' readErrors
 #'
-#'This function reads the spinup and the normal logfiles and gives back the last line which indicates weather there are any errors.
+#'This function reads the spinup and the normal logfiles and gives back the last line which indicates weather there are any errors during the model execution or not.
 #'
-#'@param outputLoc This is the location of the output files.
-#'@param logfiles These are the names of the logfiles
+#'@param outputLoc This is the location of the output file.
+#'@param logfiles These are the names of the logfiles.
 #'@return vector with 0 and 1 values, 1, if succed, 0 if not. The first is the spinup run, the second is the normal.
 #'@keywords internal
 
@@ -61,8 +61,8 @@ readErrors <- function(outputLoc, logfiles, type = "both"){
 #'This function gives us the muso output files with their paths
 #'
 #'@param outputLoc This is the location of the output files.
-#'@param outputNames These are the prefixis of the logfiles
-#'@return Output files with their paths
+#'@param outputNames These are the prefixes of the logfiles.
+#'@return Output files with their paths.
 #'@keywords internal
 
 
@@ -73,10 +73,10 @@ getOutFiles <- function(outputLoc, outputNames){
 
 #' stampAndCopy
 #'
-#'This function gives us the muso output files with their paths
+#'This function gives us the model output files with their paths
 #'
 #'@param outputLoc This is the location of the output files.
-#'@param outputNames These are the prefixis of the logfiles
+#'@param outputNames These are the prefixes of the logfiles
 #'@return Output files with their paths
 #'@keywords internal
 

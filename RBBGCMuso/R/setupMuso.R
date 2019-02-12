@@ -55,7 +55,8 @@ setupMuso <- function(executable=NULL,
                       epcInput=NULL,
                       mapData=NULL,
                       leapYear=FALSE,
-                      version=5
+                      version=5,
+                      doCopy=TRUE
                       ){
 
     Linuxp <-(Sys.info()[1]=="Linux")
@@ -188,8 +189,11 @@ setupMuso <- function(executable=NULL,
         } else {
             executable<-file.path(inputLoc,"muso.exe")
         }
-    } else {        
-        file.copy(executable,inputLoc)
+    } else {
+        if(doCopy){
+            file.copy(executable,inputLoc)            
+        }
+
     }
     outputName <- character(2)
     outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]])+1],"[\ \t]"))[1])
@@ -267,7 +271,9 @@ setupMuso <- function(executable=NULL,
                     numData=numData,
                     startYear=startYear,
                     numYears=numYears,
-                    outputVars=outputVars
+                    outputVars=outputVars,
+                    dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
+                    annualVarCodes = gsub("\\s.*","",annualVarCodes)
                     )
     
     if(writep!=nrow(grepHelper)){

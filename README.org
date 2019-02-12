@@ -4,6 +4,9 @@
 
 * The RBBGCMuso Package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
+
+*Current version: 0.6.3.0*
+
 RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
 
 ** Installation
@@ -177,4 +180,4 @@ E-mail: hollorol@gmail.com
 
 ** Acknowledgements
 
-The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028). 
+   The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028). 

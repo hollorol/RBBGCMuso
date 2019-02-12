@@ -1,7 +1,7 @@
-#' This is the function which is capable change multiple specific lines to other using their row numbers.
+#' This is the function which is capable to change multiple specific lines to others using their row numbers.
 #'
-#' he function uses the previous changspecline function to operate.
-         ##From now changespecline is in the forarcheologist file, because its no longer needed
+#' The function uses the previous changspecline function to operate.
+         ##From now changespecline is in the forarcheologist file, because itis  no longer needed
 #' 
 #' @author Roland Hollos
 #' @keywords internal

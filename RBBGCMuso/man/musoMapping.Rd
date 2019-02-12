@@ -12,11 +12,11 @@ musoMapping(code, mapData=NULL)
 \item{mapData}{updateMusomapping generated matrix}
 }
 \value{
-The name of the MuSo outputcode
+The name of the Biome-BGCMuSo output code (e.g. if code is 3009 this function should return GPP to the user)
 }
 \description{
-musoMapping can give us the name of a muso outputcode
+musoMapping can provide the user the name of a Biome-BGCMuSo output code. Within Biome-BGCMuSo the state variables and fluxes are marked by integer numbers. In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production) a conversion table is needed which is utilized by this function. This function converts variable codes into names musoMappingFind does the opposite.
 }
 \author{
-Roland Hollos
+Roland HOLLOS
 }
