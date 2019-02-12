@@ -181,27 +181,69 @@ musoMonte <- function(settings=NULL,
     ## csv files for each run
     
     oneCsv <- function () {
-        stop("This function is not implemented yet")
-        ## numDays <- settings$numdata[1]
-        ## if(!onDisk){
-        ##     for(i in 1:iterations){
-                
-        ##         parVar <- apply(parameters,1,function (x) {
-        ##             runif(1, as.numeric(x[3]), as.numeric(x[4]))})
-                
-        ##         preservedEpc[(i+1),] <- parVar
-        ##         exportName <- paste0(preTag,".csv")
-        ##         write.csv(parvar,"preservedEpc.csv",append=TRUE)
-        ##         calibMuso(settings,debugging = "stamplog",
-        ##                   parameters = parVar,keepEpc = TRUE) %>%
-        ##             {mutate(.,iD = i)} %>%
-        ##             {write.csv(.,file=exportName,append=TRUE)}
-        ##     }
+      #  stop("This function is not implemented yet")
+         settings$iniInput[2] %>%
+            (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
+            unlink
+        randValues <- randVals[[2]]
+        settings$calibrationPar <- randVals[[1]]
+        ## randValues <- randValues[,randVals[[1]] %in% parameters[,2]][,rank(parameters[,2])]
+        modellOut <- matrix(ncol = numVars, nrow = iterations + 1)
+
+        origModellOut <- calibMuso(settings=settings,silent=TRUE)
+        write.csv(x=origModellOut, file=paste0(pretag,".csv"))
+
+        if(!is.list(fun)){
+            funct <- rep(list(fun), numVars)
+        }
             
-        ##     return(preservedEpc)
-        ## } else {
+        tmp2 <- numeric(numVars)
+
+        for(j in 1:numVars){
+            tmp2[j]<-funct[[j]](origModellOut[,j])
+        }
+        modellOut[1,]<- tmp2
+        
+        for(i in 2:(iterations+1)){
+            tmp <- tryCatch(calibMuso(settings = settings,
+                             parameters = randValues[(i-1),],
+                             silent= TRUE,
+                             skipSpinup = skipSpinup,
+                             keepEpc = keepEpc,
+                             debugging = debugging,
+                             outVars = outVars), error = function (e) NA)
             
-        ## }
+            if(!is.na(tmp)){
+                for(j in 1:numVars){
+                    tmp2[j]<-funct[[j]](tmp[,j])
+                }
+            } else {
+                for(j in 1:numVars){
+                    tmp2[j]<-rep(NA,length(settings$outputVars[[1]]))
+                }
+            }
+
+            
+            
+            modellOut[i,]<- tmp2
+            write.table(x=tmp, file=paste0(pretag,".csv"), append = TRUE,col.names = FALSE, sep = ",")
+            setTxtProgressBar(progBar,i)
+        }
+
+        paramLines <- parameters[,2]
+        paramLines <- order(paramLines)
+        randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
+        randInd <- order(randInd)
+        
+       
+        epcStrip <- rbind(origEpc[order(parameters[,2])],
+                          randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
+        
+        
+            preservedEpc <- cbind(epcStrip,
+                                  modellOut)
+        colnames(preservedEpc) <- c(parameterNames[paramLines], sapply(outVarNames, function (x) paste0("mod.", x)))
+        return(preservedEpc)
     }
     
     netCDF <- function () {
