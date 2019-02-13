@@ -1,6 +1,6 @@
 Package: RBBGCMuso
 Title: An R package for BiomeBGC-MuSo ecosystem modelling
-Version: 0.6.3.0
+Version: 0.7.0.0
 Authors@R: person("Roland", "Hollo's", , "hollorol@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends: R (>= 3.3.2)
@@ -25,7 +25,8 @@ Imports:
 	tidyr,
 	tcltk,
 	digest,
-	data.table
+	data.table,
+	gridExtra
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>

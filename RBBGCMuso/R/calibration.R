@@ -22,7 +22,7 @@
 #' @param settings e
 #' @param leapYear b
 #' @param plotName u
-#' @importFrom ggplot ggplot aes_string geom_point ggsave
+#' @importFrom ggplot2 ggplot aes_string geom_point ggsave
 #' @importFrom magrittr '%>%'
 #' @importFrom gridExtra grid.arrange
 #' @export 
