@@ -124,3 +124,51 @@ dynRound <- function(x,y,seqLen){
     return(round(a,digitNum))
 }
 
+
+readValuesFromFile  <- function(epc, linums){
+	epcFile <- readLines(epc)
+	rows <- numeric(2)
+	values <- sapply(linums, function(x){
+	    rows[1] <- as.integer(x)
+	    rows[2] <- as.integer(round(100*x)) %% 10 + 1 
+	    epcFile <- readLines(epc)
+	    selRow <- unlist(strsplit(epcFile[rows[1]], split= "[\t ]"))
+	    selRow <- selRow[selRow!=""]
+	    return(as.numeric(selRow[rows[2]]))
+
+	})
+
+	return(values)
+}
+#' readMeasuredMuso
+#'
+#' MuSo data reader
+#' @importFrom data.table fread
+#' @export
+
+readMeasuredMuso <- function(inFile,
+                             naString = getOption("datatable.na.strings","NA"), sep = ",",
+                             leapYearHandling = TRUE,
+                             convert.var = NULL,
+                             convert.scalar = 1,
+                             convert.fun = (function (x) {x * convert.scalar}),
+                             convert.file = NULL,
+                             filterCol = NULL,
+                             filterVal = 1,
+                             selVar = NULL
+                             ){
+    
+    baseData <- fread(file = inFile, na.strings = as.character(naString), sep=sep)
+    baseData <- as.data.frame(baseData)
+    if(!is.null(filterCol)){
+        filterVar<- colnames(baseData)[filterCol]
+        baseData[(baseData[,filterVar] == filterVal),selVar] <- NA
+    }
+    head(baseData)
+    if(!is.null(selVar)){
+        baseData <- cbind.data.frame(baseData,convert.fun(baseData[,selVar]))
+        colnames(baseData)[ncol(baseData)]<- paste0("M",selVar) 
+    }
+    
+    return(data.table(baseData))
+}

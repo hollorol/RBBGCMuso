@@ -24,7 +24,8 @@ Imports:
 	tibble,
 	tidyr,
 	tcltk,
-	digest
+	digest,
+	data.table
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>

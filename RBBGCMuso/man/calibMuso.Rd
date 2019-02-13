@@ -26,8 +26,6 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{aggressive}{It deletes every possible modell-outputs from the previous modell runs.}
 
-\item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
-
 \item{keepBinary}{In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.}
 
 \item{binaryPlace}{The place of the binary output files.}
@@ -37,6 +35,8 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 \item{skipSpinup}{If TRUE, calibMuso wont do spinup simulation}
 
 \item{prettyOut}{date ad Date type, separate year, month, day vectors}
+
+\item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
 }
 \value{
 No return, outputs are written to file
