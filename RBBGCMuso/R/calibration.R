@@ -26,12 +26,10 @@
 #' @importFrom magrittr '%>%'
 #' @importFrom gridExtra grid.arrange
 #' @export 
-optiMuso <- function(measuredDataFile, parameters = NULL,
-                     sep = ",", startDate,
+optiMuso <- function(measuredData, parameters = NULL, startDate,
                      endDate, formatString = "%Y-%m-%d",
-                     naString = NULL, leapYear = TRUE,
-                     filterCol = NULL, filterVal = 1,
-                     selVar, outLoc = "./calib",
+                     leapYear = TRUE,
+                     dataVar, outLoc = "./calib",
                      preTag = "cal-",
                      settings =  NULL,
                      outVars = NULL,
@@ -44,8 +42,8 @@ optiMuso <- function(measuredDataFile, parameters = NULL,
 		     },
 		     calPar = 3009)
 {
- measuredData <- readMeasuredMuso(inFile = measuredDataFile, sep = sep, selVar = selVar,filterCol = filterCol, filterVal = filterVal)
-
+    dataCol <- grep(dataVar, colnames(measuredData))
+    
  if(is.null(parameters)){
      parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
          stop("You need to specify a path for the parameters.csv, or a matrix.")
@@ -102,7 +100,7 @@ optiMuso <- function(measuredDataFile, parameters = NULL,
      unlink
  randValues <- randVals[[2]]
  settings$calibrationPar <- randVals[[1]]
- list2env(alignData(measuredData,dataCol = 8,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = FALSE),envir=environment())
+ list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = FALSE),envir=environment())
  
  modellOut <- numeric(iterations + 1) # single variable solution
  origModellOut <- calibMuso(settings=settings,silent=TRUE)
@@ -140,7 +138,7 @@ optiMuso <- function(measuredDataFile, parameters = NULL,
  }
 
  ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 600)
- 
+ write.csv(preservedCalib,"preservedCalib.csv")
  return(preservedCalib[preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"]),])
 }
 

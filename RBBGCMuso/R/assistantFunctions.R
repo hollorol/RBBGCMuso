@@ -143,7 +143,7 @@ readValuesFromFile  <- function(epc, linums){
 #' readMeasuredMuso
 #'
 #' MuSo data reader
-#' @importFrom data.table fread
+#' @importFrom data.table fread data.table
 #' @export
 
 readMeasuredMuso <- function(inFile,
