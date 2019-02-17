@@ -25,7 +25,10 @@ musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leap
     dates <- seq(from = as.Date(paste0(startYear,"01","01"),format = "%Y%m%d"), to =  as.Date(paste0(endYear,"12","31"),format = "%Y%m%d"), by = "day")
     if(leapYearHandling){
         if(prettyOut){
-            return(cbind(format(dates,"%d.%m.%Y"),as.numeric(format(dates,"%d")),as.numeric(format(dates,"%m")),as.numeric(format(dates,"%Y")))   )
+            return(cbind(format(dates,"%d.%m.%Y"),
+                         as.numeric(format(dates,"%d")),
+                         as.numeric(format(dates,"%m")),
+                         as.numeric(format(dates,"%Y")))   )
         }
         
         if(combined == FALSE){
@@ -35,10 +38,14 @@ musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leap
         }
 
     } else {
+         dates <- dates[format(dates,"%m%d")!="0229"]
         if(prettyOut){
-            return(cbind(format(dates,"%d.%m.%Y"),as.numeric(format(dates,"%d")),as.numeric(format(dates,"%m")),as.numeric(format(dates,"%Y")))   )
+            return(data.frame(date = format(dates,"%d.%m.%Y"),
+                              day = as.numeric(format(dates,"%d")),
+                              month = as.numeric(format(dates,"%m")),
+                              year = as.numeric(format(dates,"%Y"))))
         }
-        dates <- dates[format(dates,"%m%d")!="0229"]
+       
 
         if(combined == FALSE){
             return(cbind(format(dates,"%d"),format(dates,"%m"),format(dates,"%Y")))
@@ -48,29 +55,48 @@ musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leap
     }
     
 }
+#' alignData
+#'
+#' This function align the data to the model and the model to the data
+#' @importFrom lubridate leap_year
+#' @keywords internal
+alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate, endDate, formatString = "%Y-%m-%d", leapYear = TRUE){
 
-corrigLeapYear  <- function(data, dataCol, modellSettings = NULL, startYear, fromDate = NULL,toDate = NULL,formatString = "%Y-%m-%d"){
-    data <- as.data.frame(data) 
-    numDays <- nrow(data)
-    dates <- seq(as.Date(paste0(startYear,"01","01"),format = "%Y%m%d"), by= "day", length = numDays)
-    goodInd <- which(!(leap_year(dates)&
-                       (format(date,"%m") == "12")&
-                       (format(date,"%d") == "31")))
-    realDate <- musoDate(startYear = startYear, numYears = numYears)
+    startDate <- as.Date(startDate, format = formatString)
+    endDate <- as.Date(endDate, format = formatString)
+    mdata <- as.data.frame(mdata)
     
-    data <- cbind.data.frame(real,data[goodInd])
-    
-    modellDates <- musoDate(startYear = settings$startYear,numYears = settings$numYears)
-    
-    
-
     if(is.null(modellSettings)){
         modellSettings <- setupMuso()
     }
-
-   
-}
-
-alignDataWithModelIndex  <- function(){
     
-} 
+    dates <- seq(startDate, to = endDate, by= "day")
+    if(!leapYear){
+      dates <- dates[which(format(dates,"%m%d") != "0229")]
+    }
+    mdata <- mdata[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d"),]
+    dates <- dates[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d")]
+    goodInd <- which(!(leap_year(dates)&
+                       (format(dates,"%m") == "12")&
+                       (format(dates,"%d") == "31")))
+    if(leapYear){
+        goodInd <- which(!(leap_year(dates)&
+                       (format(dates,"%m") == "12")&
+                       (format(dates,"%d") == "31")))
+    } else {
+        goodInd <-seq_along(dates)
+    }
+    realDate <- dates[which(format(dates,"%m%d") != "0229")]
+    if(leapYear){
+        mdata <- cbind.data.frame(realDate,mdata)        
+    } else {
+        mdata <- cbind.data.frame(dates,mdata)
+    }
+    modellDates <- as.Date(musoDate(startYear = modellSettings$startYear,numYears = modellSettings$numYears), format = "%d.%m.%Y")
+    mdata <- mdata[mdata[,1] %in% modellDates,]
+    nonEmpty <- which(!is.na(mdata[,dataCol+1]))
+    mdata <- mdata[nonEmpty,]
+    modIndex <- which(modellDates %in% mdata[,1])
+
+    list(measuredData = mdata[,dataCol +1], modIndex = modIndex)
+}

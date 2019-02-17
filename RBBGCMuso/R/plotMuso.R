@@ -247,40 +247,33 @@ plotMuso <- function(settings = NULL, variable = 1,
 #' debugging=FALSE, keepEpc=FALSE,
 #' logfilename=NULL, aggressive=FALSE,
 #' leapYear=FALSE, export=FALSE)
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot geom_line geom_point aes aes_string labs theme element_blank 
 #' @export
-plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL,colour=c("black","blue"), calibrationPar=NULL, parameters=NULL){
-    if(!is.na(NACHAR)){
-        warning("NACHAR is not implemented yet")
-    }
-    if(is.null(settings)){
-        settings <- setupMuso()
-    }
-    
-    numberOfYears <- settings$numYears
-    startYear <- settings$startYear
-    yearVec <- seq(from = startYear, length=numberOfYears,by=1)
+plotMusoWithData <- function(mdata, plotName=NULL,
+                             startDate, endDate,
+                             colour=c("black","blue"),dataVar, modelVar, settings = setupMuso(), silent = TRUE){
 
-    
-    data <- read.table(csvFile,header = TRUE, sep = ",") %>%
-        select(variable)
-    
-    baseData <- calibMuso(settings,silent=TRUE) %>%
-        as.data.frame() %>%
-        rownames_to_column("date") %>%
-        mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
-        separate(date2,c("day","month","year"),sep="\\.")
-    baseData <- cbind(baseData,data)
-    colnames(baseData)[ncol(baseData)] <- "measuredData"
+    dataCol<- grep(paste0("^",dataVar,"$"), colnames(mdata))
+    selVar <- grep(modelVar,(settings$dailyVarCodes))+4
 
-    p <- baseData %>%
-        ggplot(aes_string("date",variable)) +
+    list2env(alignData(mdata, dataCol = dataCol,
+                       modellSettings = settings,
+                       startDate = startDate,
+                       endDate = endDate, leapYear = FALSE),envir=environment())
+
+
+    ## measuredData is created
+    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
+    baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
+    selVarName <- colnames(baseData)[selVar]    
+    p <- baseData  %>%
+        ggplot(aes_string("date",selVarName)) +
         geom_line(colour=colour[1]) +
         geom_point(colour=colour[2], aes(date,measuredData)) +
-        labs(y = paste0(variable,"_measured"))+
+        labs(y = paste0(selVarName,"_measured"))+
         theme(axis.title.x = element_blank())
-    if(!is.null(savePlot)){
-        ggsave(savePlot,p)
+    if(!is.null(plotName)){
+        ggsave(plotName,p)
         return(p)
     } else {
         return(p)
