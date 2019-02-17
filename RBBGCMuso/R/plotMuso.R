@@ -260,12 +260,17 @@ plotMusoWithData <- function(mdata, plotName=NULL,
                        modellSettings = settings,
                        startDate = startDate,
                        endDate = endDate, leapYear = FALSE),envir=environment())
-
-
+    
+    
     ## measuredData is created
     baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
     baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
-    selVarName <- colnames(baseData)[selVar]    
+    selVarName <- colnames(baseData)[selVar]
+    if(colnames(baseData) != unique(colnames(baseData))){
+        notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
+        stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
+    }
+    
     p <- baseData  %>%
         ggplot(aes_string("date",selVarName)) +
         geom_line(colour=colour[1]) +

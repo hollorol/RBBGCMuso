@@ -147,7 +147,7 @@ readValuesFromFile  <- function(epc, linums){
 #' @export
 
 readMeasuredMuso <- function(inFile,
-                             naString = getOption("datatable.na.strings","NA"), sep = ",",
+                             naString = NULL, sep = ",",
                              leapYearHandling = TRUE,
                              convert.var = NULL,
                              convert.scalar = 1,
@@ -157,9 +157,24 @@ readMeasuredMuso <- function(inFile,
                              filterVal = 1,
                              selVar = NULL
                              ){
+
+    if(!is.null(naString)){
+        if(is.numeric(naString)){
+            baseData <- fread(file = inFile, sep=sep)
+            baseData <- as.data.frame(baseData)            
+            baseData[baseData[,selVar] == naString,selVar] <- NA        
+        } else {
+            baseData <- fread(file = inFile, sep=sep, naString = naString)
+            baseData <- as.data.frame(baseData)                  
+        }
+        
     
-    baseData <- fread(file = inFile, na.strings = as.character(naString), sep=sep)
-    baseData <- as.data.frame(baseData)
+    } else {
+        
+            baseData <- fread(file = inFile, sep=sep)
+            baseData <- as.data.frame(baseData)            
+    }
+    
     if(!is.null(filterCol)){
         filterVar<- colnames(baseData)[filterCol]
         baseData[(baseData[,filterVar] == filterVal),selVar] <- NA
