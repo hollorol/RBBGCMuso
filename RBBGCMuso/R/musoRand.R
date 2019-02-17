@@ -171,10 +171,10 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
         h <- c(Gh0$h,h)
         E <- do.call(rbind,lapply(Ef,function(x){x$E}))
         f <- do.call(c,lapply(Ef,function(x){x$f}))
-        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations, type = "rda"))$X
+        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)
-        randVal <- suppressWarnings(xsample(G=Gh0$G,H=Gh0$h, iter = iterations, type = "rda"))$X
+        randVal <- suppressWarnings(xsample(G=Gh0$G,H=Gh0$h, iter = iterations))$X
     }
     
     results <- list(INDEX =dependences$INDEX, randVal=randVal)
