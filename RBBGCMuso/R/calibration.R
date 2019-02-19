@@ -41,88 +41,94 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
 			 exp(-sqrt(mean((x-y)^2)))
 		     },
                      continious,
-		     modelVar = 3009)
+		     modelVar = 3009,
+                     postProcString = NULL)
 {
     dataCol <- grep(dataVar, colnames(measuredData))
     
- if(is.null(parameters)){
-     parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
-         stop("You need to specify a path for the parameters.csv, or a matrix.")
-     })
- } else {
-     if((!is.list(parameters)) & (!is.matrix(parameters))){
-         parameters <- tryCatch(read.csv(parameters, stringsAsFactor=FALSE), error = function (e){
-             stop("Cannot find neither parameters file neither the parameters matrix")
-         })
-     }}
+    if(is.null(parameters)){
+        parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
+            stop("You need to specify a path for the parameters.csv, or a matrix.")
+        })
+    } else {
+        if((!is.list(parameters)) & (!is.matrix(parameters))){
+            parameters <- tryCatch(read.csv(parameters, stringsAsFactor=FALSE), error = function (e){
+                stop("Cannot find neither parameters file neither the parameters matrix")
+            })
+        }}
     
- outLoc <- normalizePath(outLoc)
- outLocPlain <- basename(outLoc)
- currDir <- getwd()
+    outLoc <- normalizePath(outLoc)
+    outLocPlain <- basename(outLoc)
+    currDir <- getwd()
+    
+    if(!dir.exists(outLoc)){
+        dir.create(outLoc)
+        warning(paste(outLoc," is not exists, so it was created"))
+    }
  
- if(!dir.exists(outLoc)){
-     dir.create(outLoc)
-     warning(paste(outLoc," is not exists, so it was created"))
- }
+    outLoc <- normalizePath(outLoc)
  
- outLoc <- normalizePath(outLoc)
- 
- if(is.null(settings)){
-     settings <- setupMuso()
- }
- 
- parameterNames <- parameters[,1]
- pretag <- file.path(outLoc,preTag)
- npar <- length(settings$calibrationPar)
-
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
+    
+    parameterNames <- parameters[,1]
+    pretag <- file.path(outLoc,preTag)
+    npar <- length(settings$calibrationPar)
+    
     ##reading the original epc file at the specified
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
- if(iterations < 3000){
-     randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
-     randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
- } else {
-     randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
- }
- 
- origEpc <- readValuesFromFile(settings$epc[2],parameters[,2])
- 
- ## Prepare the preservedCalib matrix for the faster
- ##  run.
- 
- pretag <- file.path(outLoc,preTag)
- 
+    if(iterations < 3000){
+        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
+        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
+    } else {
+        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
+    }
+    
+    origEpc <- readValuesFromFile(settings$epc[2],parameters[,2])
+    
+    ## Prepare the preservedCalib matrix for the faster
+    ##  run.
+    
+    pretag <- file.path(outLoc,preTag)
+    
  ## Creating function for generating separate
- ## csv files for each run
- 
- progBar <- txtProgressBar(1,iterations,style=3)
- colNumb <- which(settings$dailyVarCodes == modelVar)
- settings$iniInput[2] %>%
+    ## csv files for each run
+    
+    progBar <- txtProgressBar(1,iterations,style=3)
+    colNumb <- which(settings$dailyVarCodes == modelVar)
+    settings$iniInput[2] %>%
      (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
      unlink
- randValues <- randVals[[2]]
- settings$calibrationPar <- randVals[[1]]
- list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
+    randValues <- randVals[[2]]
+    settings$calibrationPar <- randVals[[1]]
+    list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
  
- modellOut <- numeric(iterations + 1) # single variable solution
- rmse <- numeric(iterations + 1)
+    modellOut <- numeric(iterations + 1) # single variable solution
+    rmse <- numeric(iterations + 1)
     origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup)
     
     
- write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
- modellOut[1] <- likelihood(measuredData,origModellOut[modIndex,colNumb])
- print("Running the model with the random epc values...", quote = FALSE)
- for(i in 2:(iterations+1)){
-     tmp <- tryCatch(calibMuso(settings = settings,
-                               parameters = randValues[(i-1),],
-                               silent= TRUE,
-                               skipSpinup = skipSpinup)[modIndex,colNumb], error = function (e) NA)
-     
-     modellOut[i]<- likelihood(measuredData,tmp)
-     rmse[i] <- sqrt(mean((measuredData-tmp)^2))
-     write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
-     setTxtProgressBar(progBar,i)
- }
+    write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
+    modellOut[1] <- likelihood(measuredData,origModellOut[modIndex,colNumb])
+    print("Running the model with the random epc values...", quote = FALSE)
+
+    if(!is.null(postProcString)){
+        colNumb <- length(settings$dailyVarCodes) + 1
+    }
+    
+    for(i in 2:(iterations+1)){
+        tmp <- tryCatch(calibMuso(settings = settings,
+                                  parameters = randValues[(i-1),],
+                                  silent= TRUE,
+                                  skipSpinup = skipSpinup, postProcString = postProcString)[modIndex,colNumb], error = function (e) NA)
+        
+        modellOut[i]<- likelihood(measuredData,tmp)
+        rmse[i] <- sqrt(mean((measuredData-tmp)^2))
+        write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
+        setTxtProgressBar(progBar,i)
+    }
  paramLines <- parameters[,2]
  paramLines <- order(paramLines)
  randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
