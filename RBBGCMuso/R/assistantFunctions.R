@@ -146,7 +146,7 @@ readValuesFromFile  <- function(epc, linums){
 #' @importFrom data.table fread data.table
 #' @export
 
-readMeasuredMuso <- function(inFile,
+readObservedData <- function(inFile,
                              naString = NULL, sep = ",",
                              leapYearHandling = TRUE,
                              convert.var = NULL,
@@ -181,8 +181,7 @@ readMeasuredMuso <- function(inFile,
     }
     head(baseData)
     if(!is.null(selVar)){
-        baseData <- cbind.data.frame(baseData,convert.fun(baseData[,selVar]))
-        colnames(baseData)[ncol(baseData)]<- paste0("M",selVar) 
+        baseData[,selVar] <-convert.fun(baseData[,selVar])
     }
     
     return(data.table(baseData))

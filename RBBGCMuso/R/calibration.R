@@ -28,7 +28,7 @@
 #' @export 
 optiMuso <- function(measuredData, parameters = NULL, startDate,
                      endDate, formatString = "%Y-%m-%d",
-                     leapYear = TRUE,
+                     leapYearHandling = TRUE,
                      dataVar, outLoc = "./calib",
                      preTag = "cal-",
                      settings =  NULL,
@@ -40,7 +40,8 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
 		     likelihood = function(x, y){
 			 exp(-sqrt(mean((x-y)^2)))
 		     },
-		     calPar = 3009)
+                     continious,
+		     modelVar = 3009)
 {
     dataCol <- grep(dataVar, colnames(measuredData))
     
@@ -75,7 +76,8 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
  npar <- length(settings$calibrationPar)
 
     ##reading the original epc file at the specified
- ## row numbers
+    ## row numbers
+    print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
  if(iterations < 3000){
      randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
      randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
@@ -94,18 +96,22 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
  ## csv files for each run
  
  progBar <- txtProgressBar(1,iterations,style=3)
- colNumb <- which(settings$dailyVarCodes == calPar)
+ colNumb <- which(settings$dailyVarCodes == modelVar)
  settings$iniInput[2] %>%
      (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
      unlink
  randValues <- randVals[[2]]
  settings$calibrationPar <- randVals[[1]]
- list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = FALSE),envir=environment())
+ list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
  
  modellOut <- numeric(iterations + 1) # single variable solution
- origModellOut <- calibMuso(settings=settings,silent=TRUE)
+ rmse <- numeric(iterations + 1)
+    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup)
+    
+    
  write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
  modellOut[1] <- likelihood(measuredData,origModellOut[modIndex,colNumb])
+ print("Running the model with the random epc values...", quote = FALSE)
  for(i in 2:(iterations+1)){
      tmp <- tryCatch(calibMuso(settings = settings,
                                parameters = randValues[(i-1),],
@@ -113,10 +119,10 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
                                skipSpinup = skipSpinup)[modIndex,colNumb], error = function (e) NA)
      
      modellOut[i]<- likelihood(measuredData,tmp)
+     rmse[i] <- sqrt(mean((measuredData-tmp)^2))
      write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
      setTxtProgressBar(progBar,i)
  }
- modellOut
  paramLines <- parameters[,2]
  paramLines <- order(paramLines)
  randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
@@ -128,7 +134,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
                    randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
  
  
- preservedCalib <- cbind(epcStrip,
+ preservedCalib <- cbind(epcStrip,rmsr,
                          modellOut)
  colnames(preservedCalib) <- c(parameterNames[paramLines], "likelihood")
  p<-list()
@@ -137,7 +143,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
      p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(size=0.9)
  }
 
- ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 600)
+ ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 3000)
  write.csv(preservedCalib,"preservedCalib.csv")
  return(preservedCalib[preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"]),])
 }

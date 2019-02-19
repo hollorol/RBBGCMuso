@@ -11,7 +11,6 @@
 #' @importFrom lubridate leap_year
 #' @export
 
-
 musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leapYearHandling = FALSE, prettyOut = FALSE){
 
     if(is.null(endYears) & is.null(numYears)){
@@ -60,8 +59,9 @@ musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leap
 #' This function align the data to the model and the model to the data
 #' @importFrom lubridate leap_year
 #' @keywords internal
-alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate, endDate, formatString = "%Y-%m-%d", leapYear = TRUE){
+alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, endDate=NULL, formatString = "%Y-%m-%d", leapYear = TRUE, continious = TRUE){
 
+    
     startDate <- as.Date(startDate, format = formatString)
     endDate <- as.Date(endDate, format = formatString)
     mdata <- as.data.frame(mdata)
@@ -69,16 +69,25 @@ alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate, endDate
     if(is.null(modellSettings)){
         modellSettings <- setupMuso()
     }
-    
-    dates <- seq(startDate, to = endDate, by= "day")
-    if(!leapYear){
-      dates <- dates[which(format(dates,"%m%d") != "0229")]
+
+    if(continious){
+        dates <- seq(startDate, to = endDate, by= "day")
+    } else{
+        dates <- do.call(c,lapply(seq(nrow(mdata)), function(i){ as.Date(paste0(mdata[i,1],sprintf("%02d",mdata[i,2]),mdata[i,3]),format = "%Y%m%d")}))
     }
+
+    if(!leapYear){
+        casualDays <- which(format(dates,"%m%d") != "0229")
+        #mdata <- mdata[casualDays,]
+        dates <- dates[casualDays]
+    }
+    
     mdata <- mdata[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d"),]
     dates <- dates[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d")]
-    goodInd <- which(!(leap_year(dates)&
-                       (format(dates,"%m") == "12")&
-                       (format(dates,"%d") == "31")))
+    ## goodInd <- which(!(leap_year(dates)&
+    ##                    (format(dates,"%m") == "12")&
+    ##                    (format(dates,"%d") == "31")))
+    
     if(leapYear){
         goodInd <- which(!(leap_year(dates)&
                        (format(dates,"%m") == "12")&

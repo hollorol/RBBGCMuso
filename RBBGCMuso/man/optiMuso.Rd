@@ -4,21 +4,15 @@
 \alias{optiMuso}
 \title{optiMuso}
 \usage{
-optiMuso(measuredDataFile, parameters = NULL, sep = ",", startDate,
-  endDate, formatString = "\%Y-\%m-\%d",
-  naString = getOption("datatable.na.strings", "NA"), leapYear = TRUE,
-  filterCol = NULL, filterVal = 1, selVar, outLoc = "./calib",
-  preTag = "cal-", settings = NULL, outVars = NULL,
-  iterations = 30, skipSpinup = TRUE, constrains = NULL,
-  plotName = "calib.jpg", likelihood = function(x, y) {    
-  exp(-sqrt(mean((x - y)^2))) }, calPar = 3009)
+optiMuso(measuredData, parameters = NULL, startDate, endDate,
+  formatString = "\%Y-\%m-\%d", leapYear = TRUE, dataVar,
+  outLoc = "./calib", preTag = "cal-", settings = NULL,
+  outVars = NULL, iterations = 30, skipSpinup = TRUE,
+  constrains = NULL, plotName = "calib.jpg", likelihood = function(x,
+  y) {     exp(-sqrt(mean((x - y)^2))) }, calPar = 3009)
 }
 \arguments{
-\item{measuredDataFile}{a}
-
 \item{parameters}{b}
-
-\item{sep}{c}
 
 \item{startDate}{d}
 
@@ -27,12 +21,6 @@ optiMuso(measuredDataFile, parameters = NULL, sep = ",", startDate,
 \item{formatString}{a}
 
 \item{leapYear}{b}
-
-\item{filterCol}{a}
-
-\item{filterVal}{b}
-
-\item{selVar}{c}
 
 \item{outLoc}{c}
 
@@ -49,6 +37,16 @@ optiMuso(measuredDataFile, parameters = NULL, sep = ",", startDate,
 \item{likelihood}{d}
 
 \item{calPar}{a}
+
+\item{measuredDataFile}{a}
+
+\item{sep}{c}
+
+\item{filterCol}{a}
+
+\item{filterVal}{b}
+
+\item{selVar}{c}
 
 \item{pretag}{a}
 }

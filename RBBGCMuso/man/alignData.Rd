@@ -4,8 +4,9 @@
 \alias{alignData}
 \title{alignData}
 \usage{
-alignData(mdata, dataCol, modellSettings = NULL, startDate, endDate,
-  formatString = "\%Y-\%m-\%d", leapYear = TRUE)
+alignData(mdata, dataCol, modellSettings = NULL, startDate = NULL,
+  endDate = NULL, formatString = "\%Y-\%m-\%d", leapYear = TRUE,
+  continious = TRUE)
 }
 \description{
 This function align the data to the model and the model to the data

@@ -251,7 +251,7 @@ plotMuso <- function(settings = NULL, variable = 1,
 #' @export
 plotMusoWithData <- function(mdata, plotName=NULL,
                              startDate, endDate,
-                             colour=c("black","blue"),dataVar, modelVar, settings = setupMuso(), silent = TRUE){
+                             colour=c("black","blue"),dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = TRUE){
 
     dataCol<- grep(paste0("^",dataVar,"$"), colnames(mdata))
     selVar <- grep(modelVar,(settings$dailyVarCodes))+4
@@ -259,14 +259,14 @@ plotMusoWithData <- function(mdata, plotName=NULL,
     list2env(alignData(mdata, dataCol = dataCol,
                        modellSettings = settings,
                        startDate = startDate,
-                       endDate = endDate, leapYear = FALSE),envir=environment())
+                       endDate = endDate, leapYear = FALSE, continious = continious),envir=environment())
     
     
     ## measuredData is created
     baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
     baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
     selVarName <- colnames(baseData)[selVar]
-    if(colnames(baseData) != unique(colnames(baseData))){
+    if(!all.equal(colnames(baseData),unique(colnames(baseData)))){
         notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
         stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
     }
