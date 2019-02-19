@@ -5,11 +5,11 @@
 \title{optiMuso}
 \usage{
 optiMuso(measuredData, parameters = NULL, startDate, endDate,
-  formatString = "\%Y-\%m-\%d", leapYear = TRUE, dataVar,
+  formatString = "\%Y-\%m-\%d", leapYearHandling = TRUE, dataVar,
   outLoc = "./calib", preTag = "cal-", settings = NULL,
   outVars = NULL, iterations = 30, skipSpinup = TRUE,
   constrains = NULL, plotName = "calib.jpg", likelihood = function(x,
-  y) {     exp(-sqrt(mean((x - y)^2))) }, calPar = 3009)
+  y) {     exp(-sqrt(mean((x - y)^2))) }, continious, modelVar = 3009)
 }
 \arguments{
 \item{parameters}{b}
@@ -19,8 +19,6 @@ optiMuso(measuredData, parameters = NULL, startDate, endDate,
 \item{endDate}{e}
 
 \item{formatString}{a}
-
-\item{leapYear}{b}
 
 \item{outLoc}{c}
 
@@ -36,8 +34,6 @@ optiMuso(measuredData, parameters = NULL, startDate, endDate,
 
 \item{likelihood}{d}
 
-\item{calPar}{a}
-
 \item{measuredDataFile}{a}
 
 \item{sep}{c}
@@ -49,6 +45,10 @@ optiMuso(measuredData, parameters = NULL, startDate, endDate,
 \item{selVar}{c}
 
 \item{pretag}{a}
+
+\item{calPar}{a}
+
+\item{leapYear}{b}
 }
 \description{
 This function calculates the -users specified- likelihood for random model input.

@@ -31,7 +31,8 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       silent=FALSE, aggressive=FALSE,
                       keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
+                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE,
+                      postProcString = NULL){ #
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
@@ -321,6 +322,9 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         stop("Modell Failure")
     }
 
+    
+
+    
     if(timee=="d"){
         if(!prettyOut){
             colnames(Reva) <- unlist(settings$outputVars[[1]])
@@ -338,7 +342,9 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
             colnames(Reva) <- unlist(settings$outputVars[[2]])
     }
 
-
+    if(!is.null(postProcString)){
+        Reva <- postProcMuso(Reva,postProcString)
+    }
 
     ## if(leapYear){
     ##     Reva <- corrigMuso(settings,Reva)
@@ -372,5 +378,6 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         
     } else{
         setwd(whereAmI)
-        return(Reva)}
+        return(Reva)
+    }
 }
