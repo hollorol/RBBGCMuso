@@ -35,7 +35,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
-    if(is.null(settings)){
+    if(is.null(settings)|(length(settings) == 0)){
         settings <- setupMuso()
     }
     

@@ -27,26 +27,24 @@
 #' @importFrom tidyr separate gather
 #' @export
 
-plotMuso <- function(settings = NULL, variable = 1,
-                     ##compare, ##plotname,
-                     timee = "d", silent = TRUE,
-                     calibrationPar = NULL, parameters = NULL,
-                     debugging = FALSE, keepEpc = FALSE,
-                     fileToChange = "epc", logfilename = NULL,
-                     aggressive = FALSE, leapYear = FALSE,
+plotMuso <- function(variable = 1,
                      plotName = NULL, plotType = "cts",
-                     layerPlot = FALSE, colour = "blue",
-                     skipSpinup = TRUE, fromData = FALSE,
+                     layerPlot = FALSE, colour = "blue", fromData = FALSE,
                     timeFrame = "day", selectYear = NULL,
-                    groupFun = mean, separateFile = FALSE, dpi=300){
+                    groupFun = mean, separateFile = FALSE, dpi=300, ...){
 
+    calibArgs <- list(...)
+    
     if( plotType!="cts" && plotType != "dts"){
         warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
         plotType <- "cts"
     }
     
-    if(is.null(settings)){
+    if(!is.element("settings",names(calibArgs))){
         settings <- setupMuso()
+        calibArgs$settings <- settings
+    } else {
+        settings <- calibArgs$settings
     }
     
     numberOfYears <- settings$numYears
@@ -84,7 +82,7 @@ plotMuso <- function(settings = NULL, variable = 1,
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
-            musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
+            musoData <- calibMuso(calibArgs) %>%
                 as.data.frame() %>%
                 rownames_to_column("date") %>%
                 mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
@@ -97,7 +95,7 @@ plotMuso <- function(settings = NULL, variable = 1,
                 musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
                                      error=function(e){stop("The timeFrame or the gropFun is not found")})
             }} else {
-                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
+                 musoData <- calibMuso(calibArgs) %>%
                      as.data.frame() %>%
                      rownames_to_column("date") %>%
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
@@ -164,7 +162,7 @@ plotMuso <- function(settings = NULL, variable = 1,
                                 axis.title.y = element_blank()
                             )
                         if(!is.null(plotName)){
-                            ggsave(as.character(plotName),p)
+                            ggsave(as.character(plotName),p) 
                         }
                         p
                     
@@ -333,6 +331,7 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
     if(is.null(settings)){
         settings <- setupMuso()
     }
+    calibArgs$prettyOut <- TRUE
     
     dailyVarCodes <- settings$dailyVarCodes
     annualVarCodes <-settings$annualVarCodes
