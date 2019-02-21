@@ -25,6 +25,7 @@
 #' @importFrom dplyr filter group_by summarize mutate '%>%'
 #' @importFrom tibble rownames_to_column
 #' @importFrom tidyr separate gather
+#' @importFrom data.table ':=' data.table
 #' @export
 
 plotMuso <- function(settings = NULL, variable = 1,
@@ -38,7 +39,7 @@ plotMuso <- function(settings = NULL, variable = 1,
                      layerPlot = FALSE, colour = "blue",
                      skipSpinup = TRUE, fromData = FALSE,
                     timeFrame = "day", selectYear = NULL,
-                    groupFun = mean, separateFile = FALSE, dpi=300){
+                    groupFun = mean, separateFile = FALSE, dpi=300, postProcString = NULL){
 
     if( plotType!="cts" && plotType != "dts"){
         warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
@@ -60,13 +61,12 @@ plotMuso <- function(settings = NULL, variable = 1,
     ##                        logfilename=logfilename,
     ##                        export=export)
     
-    groupByTimeFrame <- function(data, timeFrame, groupFun){
-        datas <- data %>%
-            group_by(eval(parse(text=timeFrame))) %>%
-            summarize(variable=groupFun(eval(parse(text=variable))))
-        datas[,1]<-as.numeric(unlist(datas[,1]))
-        colnames(datas) <- c("date",variable)
-        datas
+    groupByTimeFrame <- function(Data, timeFrame, groupFun){
+        Data <- data.table(Data)
+        Data[,c(variable):=groupFun(get(variable)),get(timeFrame)]
+        Data <- as.data.frame(Data) 
+        Data[,1] <- as.Date(Data[,1],"%d.%m.%Y")
+        Data
     }
     
     if(fromData){
@@ -84,20 +84,16 @@ plotMuso <- function(settings = NULL, variable = 1,
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
-            musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
-                as.data.frame() %>%
-                rownames_to_column("date") %>%
-                mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
-                separate(date2,c("day","month","year"),sep="\\.")
+            musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
             if(!is.null(selectYear)){
             musoData <- musoData %>% filter(year == get("selectYear"))    
             }
             
             if(timeFrame!="day"){
-                musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
-                                     error=function(e){stop("The timeFrame or the gropFun is not found")})
+                musoData <- tryCatch(groupByTimeFrame(Data=musoData, timeFrame = timeFrame, groupFun = groupFun),
+                                     error=function(e){stop("The timeFrame or the groupFun is not found")})
             }} else {
-                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
+                 musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
                      as.data.frame() %>%
                      rownames_to_column("date") %>%
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
@@ -204,7 +200,12 @@ plotMuso <- function(settings = NULL, variable = 1,
             if(identical(character(0),setdiff(variable,as.character(settings$outputVars[[1]])))){
                 variableName <- variable
             } else {
-                stop("The symmetric difference of the set of the output variables specified in the ini files and the set specified with your variable parameter is not the empty set.")
+                if(!is.null(postProcString)){
+                 variableName <- variable     
+                } else {
+                    stop("The symmetric difference of the set of the output variables specified in the ini files and the set specified with your variable parameter is not the empty set.")                    
+                }
+
             }   
         }
         
