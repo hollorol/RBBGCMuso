@@ -65,9 +65,9 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
         dir.create(outLoc)
         warning(paste(outLoc," is not exists, so it was created"))
     }
- 
+    
     outLoc <- normalizePath(outLoc)
- 
+    
     if(is.null(settings)){
         settings <- setupMuso()
     }
@@ -93,18 +93,18 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     
     pretag <- file.path(outLoc,preTag)
     
- ## Creating function for generating separate
+    ## Creating function for generating separate
     ## csv files for each run
     
     progBar <- txtProgressBar(1,iterations,style=3)
     colNumb <- which(settings$dailyVarCodes == modelVar)
     settings$iniInput[2] %>%
-     (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
-     unlink
+        (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
+        unlink
     randValues <- randVals[[2]]
     settings$calibrationPar <- randVals[[1]]
     list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
- 
+    
     modellOut <- numeric(iterations + 1) # single variable solution
     rmse <- numeric(iterations + 1)
     origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup)
@@ -129,29 +129,32 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
         write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
         setTxtProgressBar(progBar,i)
     }
- paramLines <- parameters[,2]
- paramLines <- order(paramLines)
- randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
- randInd <- order(randInd)
- 
-        
+    paramLines <- parameters[,2]
+    paramLines <- order(paramLines)
+    randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
+    randInd <- order(randInd)
+    
+    
 
- epcStrip <- rbind(origEpc[order(parameters[,2])],
-                   randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
- 
- 
- preservedCalib <- cbind(epcStrip,rmsr,
-                         modellOut)
- colnames(preservedCalib) <- c(parameterNames[paramLines], "likelihood")
- p<-list()
- 
- for(i in seq_along(colnames(preservedCalib)[-ncol(preservedCalib)])){
-     p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(size=0.9)
- }
+    epcStrip <- rbind(origEpc[order(parameters[,2])],
+                      randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
+    
+    
+    preservedCalib <- cbind(epcStrip,rmse,
+                            modellOut)
+    columNames <-  c(parameterNames[paramLines],"rmse", "likelihood")
+    colnames(preservedCalib) <- columNames
+    write.csv(preservedCalib,"preservedCalib.csv")
+    p<-list()
+    preservedCalib <- preservedCalib[-1,]
+    dontInclude <-c((ncol(preservedCalib)-1),ncol(preservedCalib))
+    for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
+        p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(size=0.9)
+    }
 
- ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 3000)
- write.csv(preservedCalib,"preservedCalib.csv")
- return(preservedCalib[preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"]),])
+    ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 3000)
+    
+    return(preservedCalib[preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"],na.rm = TRUE),])
 }
 
 
