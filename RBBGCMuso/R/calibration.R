@@ -149,7 +149,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     preservedCalib <- preservedCalib[-1,]
     dontInclude <-c((ncol(preservedCalib)-1),ncol(preservedCalib))
     for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
-        p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(size=0.9)
+        p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(shape='.',size=1,alpha=0.8)
     }
 
     ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 3000)
