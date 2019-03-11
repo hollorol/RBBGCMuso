@@ -25,7 +25,7 @@
 #' @importFrom ggplot2 ggplot aes_string geom_point ggsave
 #' @importFrom magrittr '%>%'
 #' @importFrom gridExtra grid.arrange
-#' @export 
+#' @export
 optiMuso <- function(measuredData, parameters = NULL, startDate,
                      endDate, formatString = "%Y-%m-%d",
                      leapYearHandling = TRUE,
@@ -44,8 +44,9 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
 		     modelVar = 3009,
                      postProcString = NULL)
 {
+    mdata <- measuredData
     dataCol <- grep(dataVar, colnames(measuredData))
-    
+
     if(is.null(parameters)){
         parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
             stop("You need to specify a path for the parameters.csv, or a matrix.")
@@ -56,26 +57,26 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
                 stop("Cannot find neither parameters file neither the parameters matrix")
             })
         }}
-    
+
     outLoc <- normalizePath(outLoc)
     outLocPlain <- basename(outLoc)
     currDir <- getwd()
-    
+
     if(!dir.exists(outLoc)){
         dir.create(outLoc)
         warning(paste(outLoc," is not exists, so it was created"))
     }
-    
+
     outLoc <- normalizePath(outLoc)
-    
+
     if(is.null(settings)){
         settings <- setupMuso()
     }
-    
+
     parameterNames <- parameters[,1]
     pretag <- file.path(outLoc,preTag)
     npar <- length(settings$calibrationPar)
-    
+
     ##reading the original epc file at the specified
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
@@ -85,17 +86,17 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     } else {
         randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
     }
-    
+
     origEpc <- readValuesFromFile(settings$epc[2],parameters[,2])
-    
+
     ## Prepare the preservedCalib matrix for the faster
     ##  run.
-    
+
     pretag <- file.path(outLoc,preTag)
-    
+
     ## Creating function for generating separate
     ## csv files for each run
-    
+
     progBar <- txtProgressBar(1,iterations,style=3)
     colNumb <- which(settings$dailyVarCodes == modelVar)
     settings$iniInput[2] %>%
@@ -104,12 +105,13 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     randValues <- randVals[[2]]
     settings$calibrationPar <- randVals[[1]]
     list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
-    
+    ## modIndex and measuredData are created.  
+
     modellOut <- numeric(iterations + 1) # single variable solution
     rmse <- numeric(iterations + 1)
     origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup)
-    
-    
+
+
     write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
     modellOut[1] <- likelihood(measuredData,origModellOut[modIndex,colNumb])
     print("Running the model with the random epc values...", quote = FALSE)
@@ -117,13 +119,13 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     if(!is.null(postProcString)){
         colNumb <- length(settings$dailyVarCodes) + 1
     }
-    
+
     for(i in 2:(iterations+1)){
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
                                   skipSpinup = skipSpinup, postProcString = postProcString)[modIndex,colNumb], error = function (e) NA)
-        
+
         modellOut[i]<- likelihood(measuredData,tmp)
         rmse[i] <- sqrt(mean((measuredData-tmp)^2))
         write.csv(x=tmp, file=paste0(pretag,(i+1),".csv"))
@@ -133,13 +135,13 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     paramLines <- order(paramLines)
     randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
     randInd <- order(randInd)
-    
-    
+
+
 
     epcStrip <- rbind(origEpc[order(parameters[,2])],
                       randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
-    
-    
+
+
     preservedCalib <- cbind(epcStrip,rmse,
                             modellOut)
     columNames <-  c(parameterNames[paramLines],"rmse", "likelihood")
@@ -149,12 +151,21 @@ optiMuso <- function(measuredData, parameters = NULL, startDate,
     preservedCalib <- preservedCalib[-1,]
     dontInclude <-c((ncol(preservedCalib)-1),ncol(preservedCalib))
     for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
-        p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood"))+geom_point(shape='.',size=1,alpha=0.8)
+        p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood")) +
+            geom_point(shape='.',size=1,alpha=0.8)
     }
 
-    ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 3000)
-    
-    return(preservedCalib[preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"],na.rm = TRUE),])
+    ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 300)
+    maxLikelihoodPlace  <- which(preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"],na.rm = TRUE))
+    resPlot <- plotMusoWithData(mdata = mdata, startDate = startDate, endDate = endDate,
+                                dataVar = dataVar, modelVar = modelVar, settings = settings, continious = continious) +
+        plotMuso(settings = settings, parameters = randValues[maxLikelihoodPlace,],
+                 postProcString = postProcString, skipSpinup = FALSE, variable = colNumb, layerPlot = TRUE, colour = "green")
+
+    print(resPlot)
+    tempEpc <- paste0(tools::file_path_sans_ext(basename(settings$epcInput[2])),"-tmp.",tools::file_ext(settings$epcInput[2]))
+    file.rename(tempEpc, "optimizedEpc.epc")
+    return(preservedCalib[maxLikelihoodPlace,])
 }
 
 

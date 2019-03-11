@@ -251,8 +251,12 @@ plotMuso <- function(settings = NULL, variable = 1,
 #' @importFrom ggplot2 ggplot geom_line geom_point aes aes_string labs theme element_blank 
 #' @export
 plotMusoWithData <- function(mdata, plotName=NULL,
-                             startDate, endDate,
-                             colour=c("black","blue"),dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = TRUE){
+                             startDate = NULL, endDate = NULL,
+                             colour=c("black","blue"), dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = FALSE){
+
+    if(continious  & (is.null(startDate) | is.null(endDate))){
+        stop("If your date is continuous, you have to provide both startDate and endDate. ")
+    }
 
     dataCol<- grep(paste0("^",dataVar,"$"), colnames(mdata))
     selVar <- grep(modelVar,(settings$dailyVarCodes))+4
@@ -261,24 +265,36 @@ plotMusoWithData <- function(mdata, plotName=NULL,
                        modellSettings = settings,
                        startDate = startDate,
                        endDate = endDate, leapYear = FALSE, continious = continious),envir=environment())
-    
-    
+    mesData <- numeric(settings$numYears*365)
+    k <- 1
+    for(i in seq(mesData)){
+        if(i %in% modIndex){
+            mesData[i] <- measuredData[k]
+            k <- k + 1
+        } else {
+            mesData[i] <- NA
+        }
+    }
+    rm(k)
+    # modIndex and measuredData are created.
     ## measuredData is created
-    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
+    ## baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
+    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)
     baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
     selVarName <- colnames(baseData)[selVar]
     if(!all.equal(colnames(baseData),unique(colnames(baseData)))){
         notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
         stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
     }
-    
+    mesData<-cbind.data.frame(baseData[,1],mesData)
+    colnames(mesData) <- c("date", "measured")
     p <- baseData  %>%
         ggplot(aes_string("date",selVarName)) +
         geom_line(colour=colour[1]) +
-        geom_point(colour=colour[2], aes(date,measuredData)) +
+        geom_point(data = mesData, colour=colour[2], aes(date,measured)) +
         labs(y = paste0(selVarName,"_measured"))+
         theme(axis.title.x = element_blank())
-    if(!is.null(plotName)){
+    if(!is.null(plotName)){ 
         ggsave(plotName,p)
         return(p)
     } else {

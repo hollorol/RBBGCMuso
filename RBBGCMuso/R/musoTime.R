@@ -59,16 +59,21 @@ musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leap
 #' This function align the data to the model and the model to the data
 #' @importFrom lubridate leap_year
 #' @keywords internal
-alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, endDate=NULL, formatString = "%Y-%m-%d", leapYear = TRUE, continious = TRUE){
+alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, endDate=NULL, formatString = "%Y-%m-%d", leapYear = TRUE, continious = FALSE){
 
-    
-    startDate <- as.Date(startDate, format = formatString)
-    endDate <- as.Date(endDate, format = formatString)
-    mdata <- as.data.frame(mdata)
-    
+    if(continious){
+        if((is.null(startDate) | is.null(endDate))){
+            stop("If your date is continuous, you have to provide both startDate and endDate. ")
+        }
+        startDate <- as.Date(startDate, format = formatString)
+        endDate <- as.Date(endDate, format = formatString)
+    }
+
     if(is.null(modellSettings)){
         modellSettings <- setupMuso()
     }
+
+    mdata <- as.data.frame(mdata)
 
     if(continious){
         dates <- seq(startDate, to = endDate, by= "day")
