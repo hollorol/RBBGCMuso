@@ -26,8 +26,8 @@
 #' @importFrom magrittr '%>%'
 #' @importFrom gridExtra grid.arrange
 #' @export
-optiMuso <- function(measuredData, parameters = NULL, startDate,
-                     endDate, formatString = "%Y-%m-%d",
+optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
+                     endDate = NULL, formatString = "%Y-%m-%d",
                      leapYearHandling = TRUE,
                      dataVar, outLoc = "./calib",
                      preTag = "cal-",
