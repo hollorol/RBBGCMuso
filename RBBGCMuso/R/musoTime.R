@@ -81,11 +81,11 @@ alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, en
         dates <- do.call(c,lapply(seq(nrow(mdata)), function(i){ as.Date(paste0(mdata[i,1],sprintf("%02d",mdata[i,2]),mdata[i,3]),format = "%Y%m%d")}))
     }
 
-    if(!leapYear){
-        casualDays <- which(format(dates,"%m%d") != "0229")
-        #mdata <- mdata[casualDays,]
-        dates <- dates[casualDays]
-    }
+    ## if(!leapYear){
+    ##     casualDays <- which(format(dates,"%m%d") != "0229")
+    ##     #mdata <- mdata[casualDays,]
+    ##     dates <- dates[casualDays]
+    ## }
     
     mdata <- mdata[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d"),]
     dates <- dates[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d")]
@@ -102,7 +102,7 @@ alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, en
     }
     realDate <- dates[which(format(dates,"%m%d") != "0229")]
     if(leapYear){
-        mdata <- cbind.data.frame(realDate,mdata)        
+        mdata <- cbind.data.frame(realDate,mdata[goodInd,])        
     } else {
         mdata <- cbind.data.frame(dates,mdata)
     }

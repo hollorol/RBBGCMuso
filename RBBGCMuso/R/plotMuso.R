@@ -252,7 +252,7 @@ plotMuso <- function(settings = NULL, variable = 1,
 #' @export
 plotMusoWithData <- function(mdata, plotName=NULL,
                              startDate = NULL, endDate = NULL,
-                             colour=c("black","blue"), dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = FALSE){
+                             colour=c("black","blue"), dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = FALSE, leapYearHandling = FALSE){
 
     if(continious  & (is.null(startDate) | is.null(endDate))){
         stop("If your date is continuous, you have to provide both startDate and endDate. ")
@@ -264,7 +264,7 @@ plotMusoWithData <- function(mdata, plotName=NULL,
     list2env(alignData(mdata, dataCol = dataCol,
                        modellSettings = settings,
                        startDate = startDate,
-                       endDate = endDate, leapYear = FALSE, continious = continious),envir=environment())
+                       endDate = endDate, leapYear = leapYearHandling, continious = continious),envir=environment())
     mesData <- numeric(settings$numYears*365)
     k <- 1
     for(i in seq(mesData)){
