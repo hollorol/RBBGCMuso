@@ -3,7 +3,7 @@
   installedp<- sapply(packagesToInstall, function(pkgs){
     if(!is.element(pkgs,installed.packages()[,1])){
       install.packages(pkgs)
-      if(!is.element(pkgs,installed.packages([,1]))){
+      if(!is.element(pkgs,installed.packages())[,1]){
         return(FALSE)
       } else {
         return(TRUE)
