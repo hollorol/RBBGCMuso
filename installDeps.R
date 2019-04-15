@@ -1,5 +1,5 @@
 (function(){
-  packagesToInstall <- c("shiny","shinyjs","plotly","promises","future","data.table","rhandsontable")
+  packagesToInstall <- c("shiny","shinyjs","plotly","promises","future","data.table","rhandsontable", "dplyr", "digest", "ggplot2", "magrittr", "tibble", "limSolve", "rmarkdown")
   installedp<- sapply(packagesToInstall, function(pkgs){
     if(!is.element(pkgs,installed.packages()[,1])){
       install.packages(pkgs)
