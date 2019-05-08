@@ -300,7 +300,7 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
 #' @param fileToChange You can change any line of the EPC or the INI file. Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user. 
 #' @import ggplot2
 #' @export
-compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NULL, fileToChange="epc", skipSpinup=TRUE, timeFrame="day"){
+compareMuso <- function(settings=NULL, parameters, variable=1, calibrationPar=NULL, fileToChange="epc", skipSpinup=TRUE, timeFrame="day"){
 
     if(is.null(settings)){
         settings <- setupMuso()
