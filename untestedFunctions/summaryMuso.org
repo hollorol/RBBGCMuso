@@ -1,0 +1,26 @@
+#+TITLE: summaryMuso function
+
+* Is it possible to print before return value?
+
+#+BEGIN_SRC R :session
+  testFunction <- function(){
+    print("This is the result")
+  testEnv <- new.env()
+    testEnv$a <-5*6
+    testEnv
+  }
+  testFunction()
+#+END_SRC
+
+#+RESULTS:
+
+
+#+BEGIN_SRC R :session
+testFunction()$a+1
+#+END_SRC
+
+#+RESULTS:
+: 31
+* Conclusion
+
+It is possible to use print messages along with the data. In this case, we have to use environments. 
