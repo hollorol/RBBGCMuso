@@ -28,7 +28,9 @@ LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 6.1.1
-Suggests: knitr,
+Suggests: 
+    knitr,
     rmarkdown,
+    testthat
 VignetteBuilder: knitr
 ByteCompile: true
