@@ -4,7 +4,7 @@
 \alias{metReportMuso}
 \title{metReportMuso}
 \usage{
-metReportMuso(metFileName, skip = 4)
+metReportMuso(metFileName, skip = 4, numericReport = FALSE)
 }
 \arguments{
 \item{metFileName}{The name of the meteorology file (mtc43)}

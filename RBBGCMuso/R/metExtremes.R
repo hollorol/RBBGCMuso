@@ -46,6 +46,7 @@ metReportMuso <- function(metFileName, skip = 4, numericReport = FALSE){
       Minimum and maximum of yearly averages:", round(min(yearlyVpdAvg, na.rm=TRUE), digits=1), "Pa and", round(max(yearlyVpdAvg, na.rm=TRUE), digits=1), "Pa.\n")
  } else {
    report <- list()
+   cat("Numeric report:\n")
    report["precipitation"] <- list(data.frame(minimum = c(daily = intMin(metTable$V6),
                                                      yearly = intMin(yearlyPrcpSum)),
                                          maximum = c(daily = intMax(metTable$V6),
