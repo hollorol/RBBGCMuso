@@ -7,13 +7,17 @@
 metReportMuso(metFileName, skip = 4, numericReport = FALSE)
 }
 \arguments{
-\item{metFileName}{The name of the meteorology file (mtc43)}
+\item{metFileName}{The name of the meteorology file (mtc43).}
 
-\item{skip}{number of header lines in meteorology file}
+\item{skip}{Number of header lines in meteorology file.}
+
+\item{numericReport}{If numericReport is set to FALSE, the function returns with a text report. If numericReport is set to TRUE, the function returns with a numeric report.}
+}
+\value{
+It depends on the numericReport parameter. The function returns with a text report, or with a numeric report.
 }
 \description{
 This function calculates the daily and yearly statistics for a given meteorology file (mtc43).
-Statistics are available as text and numeric report.
 }
 \author{
 Erzsebet Kristof

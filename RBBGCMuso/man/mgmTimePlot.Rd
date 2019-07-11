@@ -10,10 +10,10 @@ mgmTimePlot(mgmDir = "./")
 \item{mgmDir}{This folder contains the management files.}
 }
 \value{
-An interactive plot about time and management
+An interactive plot about time and management.
 }
 \description{
-Overal description
+This function shows the timeline of the plant management types.
 }
 \author{
 Erzsebet Kristof
