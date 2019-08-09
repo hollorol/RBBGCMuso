@@ -5,30 +5,33 @@
 #' @author Erzsebet Kristof
 #' @param mgmDir This folder contains the management files.
 #' @importFrom data.table fread
-#' @importFrom ggplot2 ggplot geom_bar scale_fill_manual theme
 #' @importFrom magrittr '%>%'
+# @importFrom ggplot2 ggplot geom_bar scale_fill_manual theme
+#' @importFrom plotly plot_ly
 #' @return An interactive plot about time and management.
 #' @export
 
-mgmTimePlot <- function(mgmDir = "./"){
-
+mgmTimePlot <- function(mgmDir = "./",plotName=".*"){
+plotName <- ".*hhs.*"
   mgm <- data.frame("type"=c("planting", "thinning",
                              "mowing", "grazing",
                              "harvesting", "ploughing",
                              "fertilizing", "irrigating"),
-                    "ext"=c("plt", "thi", "mow", "gra",
-                            "hrv", "plg", "frz" ,"irr"),
+                    "ext"=c("plt", "thn", "mow", "grz",
+                            "hrv", "plg", "frz" ,"irg"),
                     "num"=1:8, stringsAsFactors = FALSE)
 
   # Reading files:
-
-  mgmNames <- list.files(mgmDir)
-
+ mgmDir <- tcltk::tkchooseDirectory()
+    mgmNames <- (function(fileNames){
+    fileNames[(fileNames %>% tools::file_ext()) %in% mgm$ext]
+  })(list.files(mgmDir,pattern = plotName, recursive = TRUE))
+  
   mgmDates <- lapply(mgmNames, function(mgmFiles){
-    fread(paste(mgmDir, mgmFiles, sep = "/"), skip=1, select=1, fill=TRUE, header=F, stringsAsFactors = FALSE)
+    fread(file.path(mgmDir, mgmFiles), skip=1, select=1, fill=TRUE, header=FALSE, stringsAsFactors = FALSE)
   })
 
-  mgmTimeTable<- lapply(seq_along(mgmNames),function(fileNameIndex){
+  mgmTimeTable <- lapply(seq_along(mgmNames),function(fileNameIndex){
     extension  <- gsub(".*\\.","",mgmNames[fileNameIndex])
     cbind.data.frame(mgmDates[[fileNameIndex]],mgm$type[grep(extension, mgm$ext)])
   })
@@ -51,7 +54,9 @@ mgmTimePlot <- function(mgmDir = "./"){
     # 
    
     # Visualisation with plotly:
-    plot_ly() %>%
+    colorbar <- c("blue", "deepskyblue", "chartreuse", "dark orange", "red", "purple", "dark green", "grey50")
+  
+    plotly::plot_ly() %>%
      add_trace(x = mgmTimeTable$date, y = mgmTimeTable$type, type = "bar",
           transforms = list(
             list(
@@ -60,14 +65,9 @@ mgmTimePlot <- function(mgmDir = "./"){
               text = mgm$type,
               hoverinfo = 'text',
               styles = list(
-                list(target = "planting", value = list(marker = list(color = "blue"))),
-                list(target = "thinning", value = list(marker = list(color = "deepskyblue"))),
-                list(target = "mowing", value = list(marker = list(color = "chartreuse"))),
-                list(target = "grazing", value = list(marker = list(color = "dark orange"))),
-                list(target = "harvesting", value = list(marker = list(color = "red"))),
-                list(target = "ploughing", value = list(marker = list(color = "purple"))),
-                list(target = "fertilizing", value = list(marker = list(color = "dark green"))),
-                list(target = "irrigating", value = list(marker = list(color = "grey50")))
+              for (i in 1:dim(mgm)[1]) {
+                list(target = mgm[i,1], value = list(marker = list(color = colorbar[i]))) 
+              }
               )
             )
           )
@@ -76,7 +76,7 @@ mgmTimePlot <- function(mgmDir = "./"){
            yaxis = list(title = "", range = c(0,length(unique(mgmTimeTable$type)))),
            barmode = "stack")
   
-  return(managementPlot)
+  return(mgmTimePlot)
 }
 
     

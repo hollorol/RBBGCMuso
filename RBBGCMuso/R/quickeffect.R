@@ -7,6 +7,7 @@
 #' @param endVal The maximum of the given parameter. 
 #' @param nSteps Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot. 
 #' @param fileTochange Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user. 
+#' @param colouredGraphs If it is set to TRUE, the function returns with coloured graphs. If it is set to FALSE, the function returns with grey-shaded graphs.
 #' @return Graph showing the runs with the selected parameters with color coding. The graph will show data from the last simulation year. 
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
 #' @importFrom dplyr filter group_by summarize mutate '%>%' tbl_df select
@@ -15,49 +16,82 @@
 #' @importFrom tidyr separate
 #' @export
 
-musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc", outVar, parName = "parVal"){
+musoQuickEffect <- function(settings = NULL,
+                            calibrationPar = NULL,
+                            startVal, endVal, nSteps = 1,
+                            fileToChange="epc", outVar, parName = "parVal",
+                            colouredGraphs = TRUE){
 
-    if(is.character(outVar)){
-                      varNames <- as.data.frame(musoMappingFind(outVar))
-                      if(nrow(varNames)!=1){
-                          warning("There are more than one output variable in conection with ", outVar, ". The first possibility were choosen.")
-                          print(varNames)
-                          outVarIndex <- unlist(varNames[1,1])
-                          varNames <- as.character(unlist(varNames[1,2]))
-                      } else {
-                          outVarIndex <- unlist(varNames[1,1])
-                          varNames <- as.character(unlist(varNames[1,2]))
-                      }
-                  } else {
-                      varNames <- musoMapping(outVar)
-                      outVarIndex<-outVar
-                  }
-    
-    if(is.null(settings)){
-        settings <- setupMuso()
+  if(is.character(outVar)){
+    varNames <- as.data.frame(musoMappingFind(outVar))
+    if(nrow(varNames)!=1){
+      warning("There are more than one output variable in conection with ",
+              outVar, ". The first possibility were choosen.")
+      print(varNames)
+      outVarIndex <- unlist(varNames[1,1])
+      varNames <- as.character(unlist(varNames[1,2]))
+    } else {
+      outVarIndex <- unlist(varNames[1,1])
+      varNames <- as.character(unlist(varNames[1,2]))
     }
-     if(is.null(calibrationPar)){
-         calibrationPar <- settings$calibrationPar
-     }
+  } else {
+    varNames <- musoMapping(outVar)
+    outVarIndex<-outVar
+  }
+  
+  if(is.null(settings)){
+    settings <- setupMuso()
+  }
+  if(is.null(calibrationPar)){
+    calibrationPar <- settings$calibrationPar
+  }
+  
+  parVals <- seq(startVal, endVal, length = (nSteps + 1))
+  parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
+  a <- do.call(rbind,lapply(parVals, function(parVal){
+    calResult <- tryCatch(calibMuso(settings = settings,
+                                    calibrationPar = calibrationPar,
+                                    parameters = parVal, outVars = outVarIndex,
+                                    silent = TRUE,fileToChange = fileToChange),
+                          error = function(e){NA})
+    if(all(is.na(calResult))){
+      b <- cbind(rep(NA,365),parVal)
+      rownames(b) <- tail(musoDate(startYear = settings$startYear, numYears = settings$numYears),365)
+      colnames(b)[1] <- varNames
+      return(b)
+    } else {
+      return(cbind(tail(calResult,365), parVal))
+    }
     
-    parVals <- seq(startVal, endVal, length = (nSteps + 1))
-    parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
-    a <- do.call(rbind,lapply(parVals, function(parVal){
-        calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
-        if(all(is.na(calResult))){
-            b <- cbind(rep(NA,365),parVal)
-            rownames(b) <- tail(musoDate(startYear = settings$startYear, numYears = settings$numYears),365)
-            colnames(b)[1] <- varNames
-            return(b)
-        } else {
-            return(cbind(tail(calResult,365), parVal))
-        }
-        
-    }))
+  }))
+  
+  a %<>%
+    tbl_df %>%
+    mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
+    select(date,as.character(varNames),parVal)
+  
+  
+  # grey-shaded graphs with different transparency:
+  if(!colouredGraphs){
+    print(suppressWarnings(
+       ggplot(data = a, aes_string(x= "date", y= varNames)) +
+       geom_line(aes(alpha = factor(parVal)), size = 1.2) +
+       labs(y = varNames, alpha = parName) +
+       scale_alpha_discrete(range=c(0.25,1)))
+  )
+  
+  } else {
     
-    a %<>%
-        tbl_df %>%
-        mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
-        select(date,as.character(varNames),parVal)
-    print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(parVal))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.25,1))))
-}
+  # graphs with different colours:
+  cols <- rainbow(length(unique(a$parVal)))
+  number <- length(cols)
+  
+    suppressWarnings(  
+      ggplot(data = a, aes_string(x= "date", y= varNames)) +
+        geom_line(aes(colour = factor(parVal)), size = 1.2) +
+        labs(y = varNames, alpha = parName) +
+        discrete_scale("colour", "foo", palette = function(number){cols[seq_len(number)]}) +
+        scale_alpha_discrete(range=c(0.25,1))
+    )
+  }
+}  
