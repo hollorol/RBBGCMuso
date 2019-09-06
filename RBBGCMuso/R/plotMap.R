@@ -9,6 +9,9 @@
 #' @param reverseColorScale If it is TRUE, the colorscale is reversed (default setting is FALSE)
 #' @param colorset Name of the colorscale which is available in the list numBaseColors
 #' @param center A number around which diverging colorscales will be centralised
+#' @param lonlat Geographical latitudes and longitudes per 1� can be addded to the plot
+#' @param plotTitle Main title can added to the plot
+#' @param fileTitle File name of the plot
 #' @param minim Minium value of the visualised dataset
 #' @param maxim Maximum value of the visualised dataset
 #' 
@@ -61,10 +64,26 @@ trimColorSet <- function(minim, maxim, center=NULL, nticks=6, roundPrecision=NUL
 length(seq(45.8,48.5,0.1))
 length(seq(16.2,22.8,0.1))
 
-plotMap <- function(data, nticks=6, roundPrecision=NULL, reverseColorScale=FALSE,
-                    colorSet="RdYlGn",center=NULL){
-  
+plotMap <- function(data, nticks=NULL, binwidth=NULL, minimum=NULL, maximum=NULL, roundPrecision=NULL, reverseColorScale=FALSE,
+                    colorSet="RdYlGn", center=NULL, plotTitle=NULL, fileTitle="Termes.png", lonlat=FALSE) {
 
+  if(missing(nticks) & missing(binwidth))  {
+     stop("Please, choose the number of colors (nticks) or the bin width (binwidth).\n
+         The latter requires choosing the minimum and maximum of the displayed values (minim, maxim).")
+  }
+  
+  if((is.numeric(nticks)==TRUE) & (is.numeric(binwidth)==TRUE)) {
+    stop("Please, choose only one of the following parameters: nticks, binwidth")
+  }
+  
+  if((is.numeric(binwidth)) & ((missing(minimum)) | (missing(maximum))) ) {
+    stop("Please, define the minimum and maximum values of the displayed data (minim, maxim).")
+  }
+  
+  if((is.numeric(nticks)) & ((is.numeric(minimum)) | (is.numeric(maximum))) ) {
+    stop("Parameters minim and maxim can only used with the parameter binwidth.")
+  }
+  
   lon <- seq(16.2,22.8,0.1)
   lat <- seq(45.8,48.5,0.1)
   
@@ -113,38 +132,76 @@ plotMap <- function(data, nticks=6, roundPrecision=NULL, reverseColorScale=FALSE
              1670,	1671,	1672,	1718,	1719,	1720,	1721,	1722,	1723,	1724,	1725,	1726,	1727,	1728,	1729,	1730,	1731,	1732,	1733,	1734,	1735,	1736,	1737,	1786,	1787,	1788,	1789,
              1790,	1791,	1792,	1793,	1794,	1795,	1796,	1797,	1803,	1854,	1855,	1856,	1857,	1858,	1860,	1861,	1862,	1863,	1864)
 
+  data <- read.table(file.choose(), header=TRUE)
+  
+  data <- as.numeric(data[1:1104,1])
   
   grid_vect <- array(NA, dim=1876)
-  
   
   grid_vect[index] <- data
   
   grid_array <- matrix(grid_vect, nrow=length(lon), ncol=length(lat))
-   
-  # breaks <- seq(floor(min(data)),ceiling(max(data)),nticks)
-
- # png("map.png", units="in", width=14, height=7, pointsize=14, res=100)
-    colorbar <- trimColorSet(min(data),max(data),center=center, nticks=nticks,
-                             roundPrecision=roundPrecision, reverseColorScale=reverseColorScale, colorSet=colorSet)
   
-
-  windows()
-  if(is.null(roundPrecision)){
-
-    image.plot(lon, lat, grid_array2, xaxt="n", yaxt="n", ann=FALSE, col=colorbar$colors, lab.breaks=colorbar$breaks)
-  }else {
-    #browser()
-    image.plot(lon, lat, grid_array2, xaxt="n", yaxt="n", ann=FALSE, col=colorbar$colors, lab.breaks=round(colorbar$breaks, digits=roundPrecision))
+  
+  if (missing(binwidth)) {
+   
+    colorbar <- trimColorSet(min(data),max(data),center=center, nticks=nticks,
+                               roundPrecision=roundPrecision, reverseColorScale=reverseColorScale, colorSet=colorSet)
+    
+    png(fileTitle, units="in", width=14, height=9, pointsize=14, res=100)
+    # windows()
+      if(is.null(roundPrecision)) {
+  
+        image.plot(lon, lat, grid_array, xaxt="n", yaxt="n", ann=FALSE, col=colorbar$colors, lab.breaks=colorbar$breaks)
+         } else {
+        image.plot(lon, lat, grid_array, xaxt="n", yaxt="n", ann=FALSE, col=colorbar$colors, lab.breaks=round(colorbar$breaks, digits=roundPrecision))
+      }
+      # map("world", xlim=c(lon[1],lon[length(lon)]), ylim=c(lat[1],lat[length(lat)]), add=TRUE) # require(maps)
+      if(lonlat==TRUE) {
+        abline(h=seq(46,48,1), v=seq(15,23,1), lty=2)
+      }
+      title(main=plotTitle, cex.lab=1.2)
+      axis(1, at=seq(17,23,1), labels=c("17캞","18캞","19캞","20캞","21캞","22캞","23캞"), cex.axis=1.2)
+      axis(1, at=seq(17,23,0.5), labels=FALSE, tck=-0.01)
+      axis(2, at=seq(46,48,1), labels=c("46캮","47캮","48캮"), cex.axis=1.2, las=2)
+      axis(2, at=seq(46,48,0.5), labels=FALSE, tck=-0.01)
+      graphics.off()
   }
-  # map("world", xlim=c(lon[1],lon[length(lon)]), ylim=c(lat[1],lat[length(lat)]), add=TRUE)
-  # abline(h=seq(46,48,1), v=seq(15,23,1), lty=2)
-  axis(1, at=seq(17,23,1), labels=c("17째E","18째E","19째E","20째E","21째E","22째E","23째E"), cex.axis=1.2)
-  axis(1, at=seq(17,23,0.5), labels=FALSE, tck=-0.01)
-  axis(2, at=seq(46,48,1), labels=c("46째N","47째N","48째N"), cex.axis=1.2, las=2)
-  axis(2, at=seq(46,48,0.5), labels=FALSE, tck=-0.01)
- # graphics.off()
+  
+  else {
+    numBaseColors <- brewer.pal.info[colorSet,1]
+    brks <- seq(minimum, maximum, binwidth)
+    
+    if(reverseColorScale==TRUE) {
+      colorbar <- rev(colorRampPalette(brewer.pal(numBaseColors,colorSet))(length(brks)-1))
+    } else {
+      colorbar <- colorRampPalette(brewer.pal(numBaseColors,colorSet))(length(brks)-1)
+
+    }
+    
+    png(fileTitle, units="in", width=14, height=9, pointsize=14, res=100)
+    # windows()
+      image.plot(lon, lat, grid_array, xaxt="n", yaxt="n", ann=FALSE, col=colorbar, breaks=brks, lab.breaks=brks)
+      if(lonlat==TRUE) {
+        abline(h=seq(46,48,1), v=seq(15,23,1), lty=2)
+      }
+      title(main=plotTitle, cex.lab=1.2)
+      axis(1, at=seq(17,23,1), labels=c("17캞","18캞","19캞","20캞","21캞","22캞","23캞"), cex.axis=1.2)
+      axis(1, at=seq(17,23,0.5), labels=FALSE, tck=-0.01)
+      axis(2, at=seq(46,48,1), labels=c("46캮","47캮","48캮"), cex.axis=1.2, las=2)
+      axis(2, at=seq(46,48,0.5), labels=FALSE, tck=-0.01)
+      graphics.off()
+  }
 }
 
-testData <- runif(1104,-50,30)
-plotMap(data = testData,nticks = 20,roundPrecision = 0,reverseColorScale = TRUE, colorSet = "RdBu",center = 0)
-plotMap(data = testData,nticks = 6,roundPrecision = 0,reverseColorScale = TRUE, colorSet = "RdBu")
+# Examples:
+# require(fields)
+# require(RColorBrewer)
+plotMap(nticks = 6, roundPrecision = 0, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Max yield", fileTitle = "Max_yield.png", lonlat = FALSE)
+plotMap(minimum = 900, maximum = 8500, binwidth = 400, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Max yield", fileTitle = "Max_yield_v2.png", lonlat = FALSE)
+
+plotMap(nticks = 6, roundPrecision = 0, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Min yield", fileTitle = "Min_yield.png", lonlat = FALSE)
+plotMap(minimum = 900, maximum = 8500, binwidth = 400, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Min yield", fileTitle = "Min_yield_v2.png", lonlat = FALSE)
+
+plotMap(nticks = 6, roundPrecision = 0, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Mean yield", fileTitle = "Mean_yield.png", lonlat = FALSE)
+plotMap(minimum = 900, maximum = 8500, binwidth = 400, reverseColorScale = FALSE, colorSet = "RdYlGn", plotTitle = "Mean yield", fileTitle = "Mean_yield_v2.png", lonlat = FALSE)
