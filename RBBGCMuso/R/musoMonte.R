@@ -138,7 +138,7 @@ musoMonte <- function(settings=NULL,
         for(i in 2:(iterations+1)){
             tmp <- tryCatch(calibMuso(settings = settings,
                              parameters = randValues[(i-1),],
-                             silent= FALSE,
+                             silent= TRUE,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
