@@ -27,7 +27,7 @@ changemulline <- function(filePaths, calibrationPar, contents, fileOut, fileToCh
 
     if(fileToChange == "epc" | fileToChange == "ini"){
         parMat<-cbind(calibrationPar, contents)
-        parMat[order(parMat[,1]),]
+        parMat <- parMat[order(parMat[,1]),]
         changeMusoC(inFile = filePaths[selectFileToWrite(filePaths, fileToChange)],
                     outFile = fileOut[selectFileToWrite(filePaths, fileToChange)],
                     parMat)
@@ -36,9 +36,9 @@ changemulline <- function(filePaths, calibrationPar, contents, fileOut, fileToCh
     if(fileToChange == "both"){
         parMat<-list()
         parMat[[1]]<-cbind(calibrationPar[[1]], contents[[1]])
-        parMat[[1]][order(parMat[[1]][,1]),]
+        parMat[[1]]<- parMat[[1]][order(parMat[[1]][,1]),]
         parMat[[2]]<-cbind(calibrationPar[[2]], contents[[2]])
-        parMat[[2]][order(parMat[[2]][,1]),]
+        parmat[[2]]<- parMat[[2]][order(parMat[[2]][,1]),]
         
         changeMusoC(filePaths[1],fileOut[1],parMat[[1]] )
         changeMusoC(filePaths[2],fileOut[2],parMat[[2]] )

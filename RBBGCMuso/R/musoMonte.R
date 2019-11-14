@@ -93,10 +93,10 @@ musoMonte <- function(settings=NULL,
     ##reading the original epc file at the specified
     ## row numbers
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = 3000)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = iterations)
     }
     
     origEpc <- readValuesFromEpc(settings$epc[2],parameters[,2])
@@ -129,7 +129,7 @@ musoMonte <- function(settings=NULL,
         }
             
         tmp2 <- numeric(numVars)
-
+# browser()
         for(j in 1:numVars){
             tmp2[j]<-funct[[j]](origModellOut[,j])
         }
@@ -138,19 +138,19 @@ musoMonte <- function(settings=NULL,
         for(i in 2:(iterations+1)){
             tmp <- tryCatch(calibMuso(settings = settings,
                              parameters = randValues[(i-1),],
-                             silent= TRUE,
+                             silent= FALSE,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
                              outVars = outVars), error = function (e) NA)
             
-            if(!is.na(tmp)){
+            if(length(dim(tmp))>=1){
                 for(j in 1:numVars){
                     tmp2[j]<-funct[[j]](tmp[,j])
                 }
             } else {
                 for(j in 1:numVars){
-                    tmp2[j]<-rep(NA,length(settings$outputVars[[1]]))
+                    tmp2[j]<-NA
                 }
             }
 

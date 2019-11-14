@@ -103,11 +103,11 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
     {
-        
+       # browser() 
         toModif <- sapply(toModif, function (x){
             paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
         })
-        
+       toModif[[1]] <- file.path(dirname(epc[2]),toModif[[1]])
     }
     
     ##change the epc file if and only if there are given parameters
@@ -119,15 +119,18 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars))){
+        # browser()
     epc[2]<-file.path(dirname(epc[2]),toModif[1]) # Writing back the lost path
     toModif[2]<-file.path(dirname(iniInput[2]),toModif[2]) #for the Initmp, also
     if((!is.null(outVars) | !file.exists(toModif[2])) & !modifyOriginal){
+        # browser()
         file.copy(iniInput[2],toModif[2],overwrite = TRUE)
     }
 
     iniInput[2] <- toModif[2]}
 
     if(!is.null(parameters) & ((fileToChange == "epc") | (fileToChange == "both")) & !modifyOriginal){
+        # browser()
         tmp<-readLines(iniInput[2])
         tmpInd<-grep("EPC_FILE",tmp)+1
         tmp[tmpInd]<-file.path(dirname(tmp[tmpInd]),basename(epc[2]))

@@ -1,0 +1,9978 @@
+[
+  {
+    "codes": 0,
+    "names": "phen_remdays_curgrowth"
+  },
+  {
+    "codes": 1,
+    "names": "phen_remdays_transfer"
+  },
+  {
+    "codes": 2,
+    "names": "phen_remdays_litfall"
+  },
+  {
+    "codes": 3,
+    "names": "phen_predays_transfer"
+  },
+  {
+    "codes": 4,
+    "names": "phen_predays_litfall"
+  },
+  {
+    "codes": 5,
+    "names": "phen_n_growthday"
+  },
+  {
+    "codes": 6,
+    "names": "phen_n_transferday"
+  },
+  {
+    "codes": 7,
+    "names": "phen_n_litfallday"
+  },
+  {
+    "codes": 8,
+    "names": "phen_yday_total"
+  },
+  {
+    "codes": 9,
+    "names": "phen_phpsl_dev_rate"
+  },
+  {
+    "codes": 10,
+    "names": "phen_vern_dev_rate"
+  },
+  {
+    "codes": 11,
+    "names": "phen_vern_days"
+  },
+  {
+    "codes": 12,
+    "names": "phen_GDD_limit"
+  },
+  {
+    "codes": 13,
+    "names": "phen_GDD_crit_0"
+  },
+  {
+    "codes": 14,
+    "names": "phen_GDD_crit_1"
+  },
+  {
+    "codes": 15,
+    "names": "phen_GDD_crit_2"
+  },
+  {
+    "codes": 16,
+    "names": "phen_GDD_crit_3"
+  },
+  {
+    "codes": 17,
+    "names": "phen_GDD_crit_4"
+  },
+  {
+    "codes": 18,
+    "names": "phen_GDD_crit_5"
+  },
+  {
+    "codes": 19,
+    "names": "phen_GDD_crit_6"
+  },
+  {
+    "codes": 20,
+    "names": "phen_GDD_emergSTART"
+  },
+  {
+    "codes": 21,
+    "names": "phen_GDD_emergEND"
+  },
+  {
+    "codes": 22,
+    "names": "phen_onday"
+  },
+  {
+    "codes": 23,
+    "names": "phen_offday"
+  },
+  {
+    "codes": 40,
+    "names": "metv_tACCLIM"
+  },
+  {
+    "codes": 41,
+    "names": "metv_tnight"
+  },
+  {
+    "codes": 42,
+    "names": "metv_tavg11_ra"
+  },
+  {
+    "codes": 43,
+    "names": "metv_tavg10_ra"
+  },
+  {
+    "codes": 44,
+    "names": "metv_tavg30_ra"
+  },
+  {
+    "codes": 45,
+    "names": "metv_F_temprad"
+  },
+  {
+    "codes": 46,
+    "names": "metv_F_temprad_ra"
+  },
+  {
+    "codes": 47,
+    "names": "metv_tsoil_surface"
+  },
+  {
+    "codes": 48,
+    "names": "metv_tsoil_surface_pre"
+  },
+  {
+    "codes": 49,
+    "names": "metv_tsoil_avg"
+  },
+  {
+    "codes": 50,
+    "names": "metv_tsoil_0"
+  },
+  {
+    "codes": 51,
+    "names": "metv_tsoil_1"
+  },
+  {
+    "codes": 52,
+    "names": "metv_tsoil_2"
+  },
+  {
+    "codes": 53,
+    "names": "metv_tsoil_3"
+  },
+  {
+    "codes": 54,
+    "names": "metv_tsoil_4"
+  },
+  {
+    "codes": 55,
+    "names": "metv_tsoil_5"
+  },
+  {
+    "codes": 56,
+    "names": "metv_tsoil_6"
+  },
+  {
+    "codes": 57,
+    "names": "metv_tsoil_7"
+  },
+  {
+    "codes": 58,
+    "names": "metv_tsoil_8"
+  },
+  {
+    "codes": 59,
+    "names": "metv_tsoil_9"
+  },
+  {
+    "codes": 60,
+    "names": "metv_swRADnet"
+  },
+  {
+    "codes": 61,
+    "names": "metv_lwRADnet"
+  },
+  {
+    "codes": 62,
+    "names": "metv_RADnet"
+  },
+  {
+    "codes": 63,
+    "names": "metv_RADnet_per_plaisun"
+  },
+  {
+    "codes": 64,
+    "names": "metv_RADnet_per_plaishade"
+  },
+  {
+    "codes": 65,
+    "names": "metv_swavgfd"
+  },
+  {
+    "codes": 66,
+    "names": "metv_swabs"
+  },
+  {
+    "codes": 67,
+    "names": "metv_swtrans"
+  },
+  {
+    "codes": 68,
+    "names": "metv_swabs_per_plaisun"
+  },
+  {
+    "codes": 69,
+    "names": "metv_swabs_per_plaishade"
+  },
+  {
+    "codes": 70,
+    "names": "metv_ppfd_per_plaisun"
+  },
+  {
+    "codes": 71,
+    "names": "metv_ppfd_per_plaishade"
+  },
+  {
+    "codes": 72,
+    "names": "metv_parabs"
+  },
+  {
+    "codes": 73,
+    "names": "metv_parabs_plaisun"
+  },
+  {
+    "codes": 74,
+    "names": "metv_parabs_plaishade"
+  },
+  {
+    "codes": 75,
+    "names": "metv_GDD"
+  },
+  {
+    "codes": 76,
+    "names": "metv_GDD_wMOD"
+  },
+  {
+    "codes": 77,
+    "names": "metv_GDDpre"
+  },
+  {
+    "codes": 78,
+    "names": "metv_pa"
+  },
+  {
+    "codes": 80,
+    "names": "ws_soilw_0"
+  },
+  {
+    "codes": 81,
+    "names": "ws_soilw_1"
+  },
+  {
+    "codes": 82,
+    "names": "ws_soilw_2"
+  },
+  {
+    "codes": 83,
+    "names": "ws_soilw_3"
+  },
+  {
+    "codes": 84,
+    "names": "ws_soilw_4"
+  },
+  {
+    "codes": 85,
+    "names": "ws_soilw_5"
+  },
+  {
+    "codes": 86,
+    "names": "ws_soilw_6"
+  },
+  {
+    "codes": 87,
+    "names": "ws_soilw_7"
+  },
+  {
+    "codes": 88,
+    "names": "ws_soilw_8"
+  },
+  {
+    "codes": 89,
+    "names": "ws_soilw_9"
+  },
+  {
+    "codes": 90,
+    "names": "ws_soilw_SUM"
+  },
+  {
+    "codes": 91,
+    "names": "ws_pond_water"
+  },
+  {
+    "codes": 92,
+    "names": "ws_snoww"
+  },
+  {
+    "codes": 93,
+    "names": "ws_canopyw"
+  },
+  {
+    "codes": 94,
+    "names": "ws_prcp_src"
+  },
+  {
+    "codes": 95,
+    "names": "ws_soilevap_snk"
+  },
+  {
+    "codes": 96,
+    "names": "ws_snowsubl_snk"
+  },
+  {
+    "codes": 97,
+    "names": "ws_canopyevap_snk"
+  },
+  {
+    "codes": 98,
+    "names": "ws_pondwevap_snk"
+  },
+  {
+    "codes": 99,
+    "names": "ws_trans_snk"
+  },
+  {
+    "codes": 100,
+    "names": "ws_runoff_snk"
+  },
+  {
+    "codes": 101,
+    "names": "ws_deeppercolation_snk"
+  },
+  {
+    "codes": 102,
+    "names": "ws_groundwater_src"
+  },
+  {
+    "codes": 103,
+    "names": "ws_canopyw_THNsnk"
+  },
+  {
+    "codes": 104,
+    "names": "ws_canopyw_MOWsnk"
+  },
+  {
+    "codes": 105,
+    "names": "ws_canopyw_HRVsnk"
+  },
+  {
+    "codes": 106,
+    "names": "ws_canopyw_PLGsnk"
+  },
+  {
+    "codes": 107,
+    "names": "ws_canopyw_GRZsnk"
+  },
+  {
+    "codes": 108,
+    "names": "ws_IRGsrc_W"
+  },
+  {
+    "codes": 109,
+    "names": "ws_FRZsrc_W"
+  },
+  {
+    "codes": 110,
+    "names": "ws_WbalanceERR"
+  },
+  {
+    "codes": 111,
+    "names": "ws_inW"
+  },
+  {
+    "codes": 112,
+    "names": "ws_outW"
+  },
+  {
+    "codes": 113,
+    "names": "ws_storeW"
+  },
+  {
+    "codes": 114,
+    "names": "ws_soil_evapCUM1"
+  },
+  {
+    "codes": 115,
+    "names": "ws_soil_evapCUM2"
+  },
+  {
+    "codes": 150,
+    "names": "wf_prcp_to_canopyw"
+  },
+  {
+    "codes": 151,
+    "names": "wf_prcp_to_soilw"
+  },
+  {
+    "codes": 152,
+    "names": "wf_prcp_to_snoww"
+  },
+  {
+    "codes": 153,
+    "names": "wf_prcp_to_runoff"
+  },
+  {
+    "codes": 154,
+    "names": "wf_canopyw_evap"
+  },
+  {
+    "codes": 155,
+    "names": "wf_canopyw_to_soilw"
+  },
+  {
+    "codes": 156,
+    "names": "wf_pondw_evap"
+  },
+  {
+    "codes": 157,
+    "names": "wf_snoww_subl"
+  },
+  {
+    "codes": 158,
+    "names": "wf_snoww_to_soilw"
+  },
+  {
+    "codes": 159,
+    "names": "wf_soilw_evap"
+  },
+  {
+    "codes": 160,
+    "names": "wf_soilw_trans_0"
+  },
+  {
+    "codes": 161,
+    "names": "wf_soilw_trans_1"
+  },
+  {
+    "codes": 162,
+    "names": "wf_soilw_trans_2"
+  },
+  {
+    "codes": 163,
+    "names": "wf_soilw_trans_3"
+  },
+  {
+    "codes": 164,
+    "names": "wf_soilw_trans_4"
+  },
+  {
+    "codes": 165,
+    "names": "wf_soilw_trans_5"
+  },
+  {
+    "codes": 166,
+    "names": "wf_soilw_trans_6"
+  },
+  {
+    "codes": 167,
+    "names": "wf_soilw_trans_7"
+  },
+  {
+    "codes": 168,
+    "names": "wf_soilw_trans_8"
+  },
+  {
+    "codes": 169,
+    "names": "wf_soilw_trans_9"
+  },
+  {
+    "codes": 170,
+    "names": "wf_soilw_trans_SUM"
+  },
+  {
+    "codes": 171,
+    "names": "wf_evapotransp"
+  },
+  {
+    "codes": 172,
+    "names": "wf_pondw_to_soilw"
+  },
+  {
+    "codes": 173,
+    "names": "wf_soilw_to_pondw"
+  },
+  {
+    "codes": 174,
+    "names": "wf_soilw_percolated_0"
+  },
+  {
+    "codes": 175,
+    "names": "wf_soilw_percolated_1"
+  },
+  {
+    "codes": 176,
+    "names": "wf_soilw_percolated_2"
+  },
+  {
+    "codes": 177,
+    "names": "wf_soilw_percolated_3"
+  },
+  {
+    "codes": 178,
+    "names": "wf_soilw_percolated_4"
+  },
+  {
+    "codes": 179,
+    "names": "wf_soilw_percolated_5"
+  },
+  {
+    "codes": 180,
+    "names": "wf_soilw_percolated_6"
+  },
+  {
+    "codes": 181,
+    "names": "wf_soilw_percolated_7"
+  },
+  {
+    "codes": 182,
+    "names": "wf_soilw_percolated_8"
+  },
+  {
+    "codes": 183,
+    "names": "wf_soilw_percolated_9"
+  },
+  {
+    "codes": 184,
+    "names": "wf_soilw_diffused_0"
+  },
+  {
+    "codes": 185,
+    "names": "wf_soilw_diffused_1"
+  },
+  {
+    "codes": 186,
+    "names": "wf_soilw_diffused_2"
+  },
+  {
+    "codes": 187,
+    "names": "wf_soilw_diffused_3"
+  },
+  {
+    "codes": 188,
+    "names": "wf_soilw_diffused_4"
+  },
+  {
+    "codes": 189,
+    "names": "wf_soilw_diffused_5"
+  },
+  {
+    "codes": 190,
+    "names": "wf_soilw_diffused_6"
+  },
+  {
+    "codes": 191,
+    "names": "wf_soilw_diffused_7"
+  },
+  {
+    "codes": 192,
+    "names": "wf_soilw_diffused_8"
+  },
+  {
+    "codes": 193,
+    "names": "wf_soilw_diffused_9"
+  },
+  {
+    "codes": 194,
+    "names": "wf_soilw_from_GW_0"
+  },
+  {
+    "codes": 195,
+    "names": "wf_soilw_from_GW_1"
+  },
+  {
+    "codes": 196,
+    "names": "wf_soilw_from_GW_2"
+  },
+  {
+    "codes": 197,
+    "names": "wf_soilw_from_GW_3"
+  },
+  {
+    "codes": 198,
+    "names": "wf_soilw_from_GW_4"
+  },
+  {
+    "codes": 199,
+    "names": "wf_soilw_from_GW_5"
+  },
+  {
+    "codes": 200,
+    "names": "wf_soilw_from_GW_6"
+  },
+  {
+    "codes": 201,
+    "names": "wf_soilw_from_GW_7"
+  },
+  {
+    "codes": 202,
+    "names": "wf_soilw_from_GW_8"
+  },
+  {
+    "codes": 203,
+    "names": "wf_soilw_from_GW_9"
+  },
+  {
+    "codes": 204,
+    "names": "wf_soilw_rootzone_leach"
+  },
+  {
+    "codes": 205,
+    "names": "wf_canopyw_to_THN"
+  },
+  {
+    "codes": 206,
+    "names": "wf_canopyw_to_MOW"
+  },
+  {
+    "codes": 207,
+    "names": "wf_canopyw_to_HRV"
+  },
+  {
+    "codes": 208,
+    "names": "wf_canopyw_to_PLG"
+  },
+  {
+    "codes": 209,
+    "names": "wf_canopyw_to_GRZ"
+  },
+  {
+    "codes": 210,
+    "names": "wf_IRG_to_prcp"
+  },
+  {
+    "codes": 211,
+    "names": "wf_FRZ_to_soilw"
+  },
+  {
+    "codes": 212,
+    "names": "wf_pot_evap"
+  },
+  {
+    "codes": 213,
+    "names": "wf_pot_infilt"
+  },
+  {
+    "codes": 300,
+    "names": "cs_leafcSUM_phenphase_0"
+  },
+  {
+    "codes": 301,
+    "names": "cs_leafcSUM_phenphase_1"
+  },
+  {
+    "codes": 302,
+    "names": "cs_leafcSUM_phenphase_2"
+  },
+  {
+    "codes": 303,
+    "names": "cs_leafcSUM_phenphase_3"
+  },
+  {
+    "codes": 304,
+    "names": "cs_leafcSUM_phenphase_4"
+  },
+  {
+    "codes": 305,
+    "names": "cs_leafcSUM_phenphase_5"
+  },
+  {
+    "codes": 306,
+    "names": "cs_leafcSUM_phenphase_6"
+  },
+  {
+    "codes": 307,
+    "names": "cs_leafc"
+  },
+  {
+    "codes": 308,
+    "names": "cs_leafc_storage"
+  },
+  {
+    "codes": 309,
+    "names": "cs_leafc_transfer"
+  },
+  {
+    "codes": 310,
+    "names": "cs_frootc"
+  },
+  {
+    "codes": 311,
+    "names": "cs_frootc_storage"
+  },
+  {
+    "codes": 312,
+    "names": "cs_frootc_transfer"
+  },
+  {
+    "codes": 313,
+    "names": "cs_fruitc"
+  },
+  {
+    "codes": 314,
+    "names": "cs_fruitc_storage"
+  },
+  {
+    "codes": 315,
+    "names": "cs_fruitc_transfer"
+  },
+  {
+    "codes": 316,
+    "names": "cs_softstemc"
+  },
+  {
+    "codes": 317,
+    "names": "cs_softstemc_storage"
+  },
+  {
+    "codes": 318,
+    "names": "cs_softstemc_transfer"
+  },
+  {
+    "codes": 319,
+    "names": "cs_livestemc"
+  },
+  {
+    "codes": 320,
+    "names": "cs_livestemc_storage"
+  },
+  {
+    "codes": 321,
+    "names": "cs_livestemc_transfer"
+  },
+  {
+    "codes": 322,
+    "names": "cs_deadstemc"
+  },
+  {
+    "codes": 323,
+    "names": "cs_deadstemc_storage"
+  },
+  {
+    "codes": 324,
+    "names": "cs_deadstemc_transfer"
+  },
+  {
+    "codes": 325,
+    "names": "cs_livecrootc"
+  },
+  {
+    "codes": 326,
+    "names": "cs_livecrootc_storage"
+  },
+  {
+    "codes": 327,
+    "names": "cs_livecrootc_transfer"
+  },
+  {
+    "codes": 328,
+    "names": "cs_deadcrootc"
+  },
+  {
+    "codes": 329,
+    "names": "cs_deadcrootc_storage"
+  },
+  {
+    "codes": 330,
+    "names": "cs_deadcrootc_transfer"
+  },
+  {
+    "codes": 331,
+    "names": "cs_gresp_storage"
+  },
+  {
+    "codes": 332,
+    "names": "cs_gresp_transfer"
+  },
+  {
+    "codes": 333,
+    "names": "cs_nsc_w"
+  },
+  {
+    "codes": 334,
+    "names": "cs_nsc_nw"
+  },
+  {
+    "codes": 335,
+    "names": "cs_sc_w"
+  },
+  {
+    "codes": 336,
+    "names": "cs_sc_nw"
+  },
+  {
+    "codes": 337,
+    "names": "cs_cwdc_0"
+  },
+  {
+    "codes": 338,
+    "names": "cs_cwdc_1"
+  },
+  {
+    "codes": 339,
+    "names": "cs_cwdc_2"
+  },
+  {
+    "codes": 340,
+    "names": "cs_cwdc_3"
+  },
+  {
+    "codes": 341,
+    "names": "cs_cwdc_4"
+  },
+  {
+    "codes": 342,
+    "names": "cs_cwdc_5"
+  },
+  {
+    "codes": 343,
+    "names": "cs_cwdc_6"
+  },
+  {
+    "codes": 344,
+    "names": "cs_cwdc_7"
+  },
+  {
+    "codes": 345,
+    "names": "cs_cwdc_8"
+  },
+  {
+    "codes": 346,
+    "names": "cs_cwdc_9"
+  },
+  {
+    "codes": 347,
+    "names": "cs_litr1c_0"
+  },
+  {
+    "codes": 348,
+    "names": "cs_litr1c_1"
+  },
+  {
+    "codes": 349,
+    "names": "cs_litr1c_2"
+  },
+  {
+    "codes": 350,
+    "names": "cs_litr1c_3"
+  },
+  {
+    "codes": 351,
+    "names": "cs_litr1c_4"
+  },
+  {
+    "codes": 352,
+    "names": "cs_litr1c_5"
+  },
+  {
+    "codes": 353,
+    "names": "cs_litr1c_6"
+  },
+  {
+    "codes": 354,
+    "names": "cs_litr1c_7"
+  },
+  {
+    "codes": 355,
+    "names": "cs_litr1c_8"
+  },
+  {
+    "codes": 356,
+    "names": "cs_litr1c_9"
+  },
+  {
+    "codes": 357,
+    "names": "cs_litr2c_0"
+  },
+  {
+    "codes": 358,
+    "names": "cs_litr2c_1"
+  },
+  {
+    "codes": 359,
+    "names": "cs_litr2c_2"
+  },
+  {
+    "codes": 360,
+    "names": "cs_litr2c_3"
+  },
+  {
+    "codes": 361,
+    "names": "cs_litr2c_4"
+  },
+  {
+    "codes": 362,
+    "names": "cs_litr2c_5"
+  },
+  {
+    "codes": 363,
+    "names": "cs_litr2c_6"
+  },
+  {
+    "codes": 364,
+    "names": "cs_litr2c_7"
+  },
+  {
+    "codes": 365,
+    "names": "cs_litr2c_8"
+  },
+  {
+    "codes": 366,
+    "names": "cs_litr2c_9"
+  },
+  {
+    "codes": 367,
+    "names": "cs_litr3c_0"
+  },
+  {
+    "codes": 368,
+    "names": "cs_litr3c_1"
+  },
+  {
+    "codes": 369,
+    "names": "cs_litr3c_2"
+  },
+  {
+    "codes": 370,
+    "names": "cs_litr3c_3"
+  },
+  {
+    "codes": 371,
+    "names": "cs_litr3c_4"
+  },
+  {
+    "codes": 372,
+    "names": "cs_litr3c_5"
+  },
+  {
+    "codes": 373,
+    "names": "cs_litr3c_6"
+  },
+  {
+    "codes": 374,
+    "names": "cs_litr3c_7"
+  },
+  {
+    "codes": 375,
+    "names": "cs_litr3c_8"
+  },
+  {
+    "codes": 376,
+    "names": "cs_litr3c_9"
+  },
+  {
+    "codes": 377,
+    "names": "cs_litr4c_0"
+  },
+  {
+    "codes": 378,
+    "names": "cs_litr4c_1"
+  },
+  {
+    "codes": 379,
+    "names": "cs_litr4c_2"
+  },
+  {
+    "codes": 380,
+    "names": "cs_litr4c_3"
+  },
+  {
+    "codes": 381,
+    "names": "cs_litr4c_4"
+  },
+  {
+    "codes": 382,
+    "names": "cs_litr4c_5"
+  },
+  {
+    "codes": 383,
+    "names": "cs_litr4c_6"
+  },
+  {
+    "codes": 384,
+    "names": "cs_litr4c_7"
+  },
+  {
+    "codes": 385,
+    "names": "cs_litr4c_8"
+  },
+  {
+    "codes": 386,
+    "names": "cs_litr4c_9"
+  },
+  {
+    "codes": 387,
+    "names": "cs_litrC_0"
+  },
+  {
+    "codes": 388,
+    "names": "cs_litrC_1"
+  },
+  {
+    "codes": 389,
+    "names": "cs_litrC_2"
+  },
+  {
+    "codes": 390,
+    "names": "cs_litrC_3"
+  },
+  {
+    "codes": 391,
+    "names": "cs_litrC_4"
+  },
+  {
+    "codes": 392,
+    "names": "cs_litrC_5"
+  },
+  {
+    "codes": 393,
+    "names": "cs_litrC_6"
+  },
+  {
+    "codes": 394,
+    "names": "cs_litrC_7"
+  },
+  {
+    "codes": 395,
+    "names": "cs_litrC_8"
+  },
+  {
+    "codes": 396,
+    "names": "cs_litrC_9"
+  },
+  {
+    "codes": 397,
+    "names": "cs_litr1c_total"
+  },
+  {
+    "codes": 398,
+    "names": "cs_litr2c_total"
+  },
+  {
+    "codes": 399,
+    "names": "cs_litr3c_total"
+  },
+  {
+    "codes": 400,
+    "names": "cs_litr4c_total"
+  },
+  {
+    "codes": 401,
+    "names": "cs_cwdc_total"
+  },
+  {
+    "codes": 402,
+    "names": "cs_STDBc_leaf"
+  },
+  {
+    "codes": 403,
+    "names": "cs_STDBc_froot"
+  },
+  {
+    "codes": 404,
+    "names": "cs_STDBc_fruit"
+  },
+  {
+    "codes": 405,
+    "names": "cs_STDBc_softstem"
+  },
+  {
+    "codes": 406,
+    "names": "cs_STDBc_transfer"
+  },
+  {
+    "codes": 407,
+    "names": "cs_STDBc_above"
+  },
+  {
+    "codes": 408,
+    "names": "cs_STDBc_below"
+  },
+  {
+    "codes": 409,
+    "names": "cs_CTDBc_leaf"
+  },
+  {
+    "codes": 410,
+    "names": "cs_CTDBc_froot"
+  },
+  {
+    "codes": 411,
+    "names": "cs_CTDBc_fruit"
+  },
+  {
+    "codes": 412,
+    "names": "cs_CTDBc_softstem"
+  },
+  {
+    "codes": 413,
+    "names": "cs_CTDBc_transfer"
+  },
+  {
+    "codes": 414,
+    "names": "cs_CTDBc_cstem"
+  },
+  {
+    "codes": 415,
+    "names": "cs_CTDBc_croot"
+  },
+  {
+    "codes": 416,
+    "names": "cs_CTDBc_above"
+  },
+  {
+    "codes": 417,
+    "names": "cs_CTDBc_below"
+  },
+  {
+    "codes": 418,
+    "names": "cs_soil1c_0"
+  },
+  {
+    "codes": 419,
+    "names": "cs_soil1c_1"
+  },
+  {
+    "codes": 420,
+    "names": "cs_soil1c_2"
+  },
+  {
+    "codes": 421,
+    "names": "cs_soil1c_3"
+  },
+  {
+    "codes": 422,
+    "names": "cs_soil1c_4"
+  },
+  {
+    "codes": 423,
+    "names": "cs_soil1c_5"
+  },
+  {
+    "codes": 424,
+    "names": "cs_soil1c_6"
+  },
+  {
+    "codes": 425,
+    "names": "cs_soil1c_7"
+  },
+  {
+    "codes": 426,
+    "names": "cs_soil1c_8"
+  },
+  {
+    "codes": 427,
+    "names": "cs_soil1c_9"
+  },
+  {
+    "codes": 428,
+    "names": "cs_soil2c_0"
+  },
+  {
+    "codes": 429,
+    "names": "cs_soil2c_1"
+  },
+  {
+    "codes": 430,
+    "names": "cs_soil2c_2"
+  },
+  {
+    "codes": 431,
+    "names": "cs_soil2c_3"
+  },
+  {
+    "codes": 432,
+    "names": "cs_soil2c_4"
+  },
+  {
+    "codes": 433,
+    "names": "cs_soil2c_5"
+  },
+  {
+    "codes": 434,
+    "names": "cs_soil2c_6"
+  },
+  {
+    "codes": 435,
+    "names": "cs_soil2c_7"
+  },
+  {
+    "codes": 436,
+    "names": "cs_soil2c_8"
+  },
+  {
+    "codes": 437,
+    "names": "cs_soil2c_9"
+  },
+  {
+    "codes": 438,
+    "names": "cs_soil3c_0"
+  },
+  {
+    "codes": 439,
+    "names": "cs_soil3c_1"
+  },
+  {
+    "codes": 440,
+    "names": "cs_soil3c_2"
+  },
+  {
+    "codes": 441,
+    "names": "cs_soil3c_3"
+  },
+  {
+    "codes": 442,
+    "names": "cs_soil3c_4"
+  },
+  {
+    "codes": 443,
+    "names": "cs_soil3c_5"
+  },
+  {
+    "codes": 444,
+    "names": "cs_soil3c_6"
+  },
+  {
+    "codes": 445,
+    "names": "cs_soil3c_7"
+  },
+  {
+    "codes": 446,
+    "names": "cs_soil3c_8"
+  },
+  {
+    "codes": 447,
+    "names": "cs_soil3c_9"
+  },
+  {
+    "codes": 448,
+    "names": "cs_soil4c_0"
+  },
+  {
+    "codes": 449,
+    "names": "cs_soil4c_1"
+  },
+  {
+    "codes": 450,
+    "names": "cs_soil4c_2"
+  },
+  {
+    "codes": 451,
+    "names": "cs_soil4c_3"
+  },
+  {
+    "codes": 452,
+    "names": "cs_soil4c_4"
+  },
+  {
+    "codes": 453,
+    "names": "cs_soil4c_5"
+  },
+  {
+    "codes": 454,
+    "names": "cs_soil4c_6"
+  },
+  {
+    "codes": 455,
+    "names": "cs_soil4c_7"
+  },
+  {
+    "codes": 456,
+    "names": "cs_soil4c_8"
+  },
+  {
+    "codes": 457,
+    "names": "cs_soil4c_9"
+  },
+  {
+    "codes": 458,
+    "names": "cs_soilC_0"
+  },
+  {
+    "codes": 459,
+    "names": "cs_soilC_1"
+  },
+  {
+    "codes": 460,
+    "names": "cs_soilC_2"
+  },
+  {
+    "codes": 461,
+    "names": "cs_soilC_3"
+  },
+  {
+    "codes": 462,
+    "names": "cs_soilC_4"
+  },
+  {
+    "codes": 463,
+    "names": "cs_soilC_5"
+  },
+  {
+    "codes": 464,
+    "names": "cs_soilC_6"
+  },
+  {
+    "codes": 465,
+    "names": "cs_soilC_7"
+  },
+  {
+    "codes": 466,
+    "names": "cs_soilC_8"
+  },
+  {
+    "codes": 467,
+    "names": "cs_soilC_9"
+  },
+  {
+    "codes": 468,
+    "names": "cs_soil1_DOC_0"
+  },
+  {
+    "codes": 469,
+    "names": "cs_soil1_DOC_1"
+  },
+  {
+    "codes": 470,
+    "names": "cs_soil1_DOC_2"
+  },
+  {
+    "codes": 471,
+    "names": "cs_soil1_DOC_3"
+  },
+  {
+    "codes": 472,
+    "names": "cs_soil1_DOC_4"
+  },
+  {
+    "codes": 473,
+    "names": "cs_soil1_DOC_5"
+  },
+  {
+    "codes": 474,
+    "names": "cs_soil1_DOC_6"
+  },
+  {
+    "codes": 475,
+    "names": "cs_soil1_DOC_7"
+  },
+  {
+    "codes": 476,
+    "names": "cs_soil1_DOC_8"
+  },
+  {
+    "codes": 477,
+    "names": "cs_soil1_DOC_9"
+  },
+  {
+    "codes": 478,
+    "names": "cs_soil2_DOC_0"
+  },
+  {
+    "codes": 479,
+    "names": "cs_soil2_DOC_1"
+  },
+  {
+    "codes": 480,
+    "names": "cs_soil2_DOC_2"
+  },
+  {
+    "codes": 481,
+    "names": "cs_soil2_DOC_3"
+  },
+  {
+    "codes": 482,
+    "names": "cs_soil2_DOC_4"
+  },
+  {
+    "codes": 483,
+    "names": "cs_soil2_DOC_5"
+  },
+  {
+    "codes": 484,
+    "names": "cs_soil2_DOC_6"
+  },
+  {
+    "codes": 485,
+    "names": "cs_soil2_DOC_7"
+  },
+  {
+    "codes": 486,
+    "names": "cs_soil2_DOC_8"
+  },
+  {
+    "codes": 487,
+    "names": "cs_soil2_DOC_9"
+  },
+  {
+    "codes": 488,
+    "names": "cs_soil3_DOC_0"
+  },
+  {
+    "codes": 489,
+    "names": "cs_soil3_DOC_1"
+  },
+  {
+    "codes": 490,
+    "names": "cs_soil3_DOC_2"
+  },
+  {
+    "codes": 491,
+    "names": "cs_soil3_DOC_3"
+  },
+  {
+    "codes": 492,
+    "names": "cs_soil3_DOC_4"
+  },
+  {
+    "codes": 493,
+    "names": "cs_soil3_DOC_5"
+  },
+  {
+    "codes": 494,
+    "names": "cs_soil3_DOC_6"
+  },
+  {
+    "codes": 495,
+    "names": "cs_soil3_DOC_7"
+  },
+  {
+    "codes": 496,
+    "names": "cs_soil3_DOC_8"
+  },
+  {
+    "codes": 497,
+    "names": "cs_soil3_DOC_9"
+  },
+  {
+    "codes": 498,
+    "names": "cs_soil4_DOC_0"
+  },
+  {
+    "codes": 499,
+    "names": "cs_soil4_DOC_1"
+  },
+  {
+    "codes": 500,
+    "names": "cs_soil4_DOC_2"
+  },
+  {
+    "codes": 501,
+    "names": "cs_soil4_DOC_3"
+  },
+  {
+    "codes": 502,
+    "names": "cs_soil4_DOC_4"
+  },
+  {
+    "codes": 503,
+    "names": "cs_soil4_DOC_5"
+  },
+  {
+    "codes": 504,
+    "names": "cs_soil4_DOC_6"
+  },
+  {
+    "codes": 505,
+    "names": "cs_soil4_DOC_7"
+  },
+  {
+    "codes": 506,
+    "names": "cs_soil4_DOC_8"
+  },
+  {
+    "codes": 507,
+    "names": "cs_soil4_DOC_9"
+  },
+  {
+    "codes": 508,
+    "names": "cs_soil_DOC_0"
+  },
+  {
+    "codes": 509,
+    "names": "cs_soil_DOC_1"
+  },
+  {
+    "codes": 510,
+    "names": "cs_soil_DOC_2"
+  },
+  {
+    "codes": 511,
+    "names": "cs_soil_DOC_3"
+  },
+  {
+    "codes": 512,
+    "names": "cs_soil_DOC_4"
+  },
+  {
+    "codes": 513,
+    "names": "cs_soil_DOC_5"
+  },
+  {
+    "codes": 514,
+    "names": "cs_soil_DOC_6"
+  },
+  {
+    "codes": 515,
+    "names": "cs_soil_DOC_7"
+  },
+  {
+    "codes": 516,
+    "names": "cs_soil_DOC_8"
+  },
+  {
+    "codes": 517,
+    "names": "cs_soil_DOC_9"
+  },
+  {
+    "codes": 518,
+    "names": "cs_soil1c_total"
+  },
+  {
+    "codes": 519,
+    "names": "cs_soil2c_total"
+  },
+  {
+    "codes": 520,
+    "names": "cs_soil3c_total"
+  },
+  {
+    "codes": 521,
+    "names": "cs_soil4c_total"
+  },
+  {
+    "codes": 522,
+    "names": "cs_cpool"
+  },
+  {
+    "codes": 523,
+    "names": "cs_psnsun_src"
+  },
+  {
+    "codes": 524,
+    "names": "cs_psnshade_src"
+  },
+  {
+    "codes": 525,
+    "names": "cs_NSC_mr_snk"
+  },
+  {
+    "codes": 526,
+    "names": "cs_actC_mr_snk"
+  },
+  {
+    "codes": 527,
+    "names": "cs_leaf_mr_snk"
+  },
+  {
+    "codes": 528,
+    "names": "cs_froot_mr_snk"
+  },
+  {
+    "codes": 529,
+    "names": "cs_fruit_mr_snk"
+  },
+  {
+    "codes": 530,
+    "names": "cs_softstem_mr_snk"
+  },
+  {
+    "codes": 531,
+    "names": "cs_livestem_mr_snk"
+  },
+  {
+    "codes": 532,
+    "names": "cs_livecroot_mr_snk"
+  },
+  {
+    "codes": 533,
+    "names": "cs_leaf_gr_snk"
+  },
+  {
+    "codes": 534,
+    "names": "cs_froot_gr_snk"
+  },
+  {
+    "codes": 535,
+    "names": "cs_fruit_gr_snk"
+  },
+  {
+    "codes": 536,
+    "names": "cs_softstem_gr_snk"
+  },
+  {
+    "codes": 537,
+    "names": "cs_livestem_gr_snk"
+  },
+  {
+    "codes": 538,
+    "names": "cs_livecroot_gr_snk"
+  },
+  {
+    "codes": 539,
+    "names": "cs_deadstem_gr_snk"
+  },
+  {
+    "codes": 540,
+    "names": "cs_deadcroot_gr_snk"
+  },
+  {
+    "codes": 541,
+    "names": "cs_litr1_hr_snk"
+  },
+  {
+    "codes": 542,
+    "names": "cs_litr2_hr_snk"
+  },
+  {
+    "codes": 543,
+    "names": "cs_litr4_hr_snk"
+  },
+  {
+    "codes": 544,
+    "names": "cs_soil1_hr_snk"
+  },
+  {
+    "codes": 545,
+    "names": "cs_soil2_hr_snk"
+  },
+  {
+    "codes": 546,
+    "names": "cs_soil3_hr_snk"
+  },
+  {
+    "codes": 547,
+    "names": "cs_soil4_hr_snk"
+  },
+  {
+    "codes": 548,
+    "names": "cs_FIREsnk_C"
+  },
+  {
+    "codes": 549,
+    "names": "cs_SNSCsnk_C"
+  },
+  {
+    "codes": 550,
+    "names": "cs_PLTsrc_C"
+  },
+  {
+    "codes": 551,
+    "names": "cs_THN_transportC"
+  },
+  {
+    "codes": 552,
+    "names": "cs_HRV_transportC"
+  },
+  {
+    "codes": 553,
+    "names": "cs_MOW_transportC"
+  },
+  {
+    "codes": 554,
+    "names": "cs_GRZsnk_C"
+  },
+  {
+    "codes": 555,
+    "names": "cs_GRZsrc_C"
+  },
+  {
+    "codes": 556,
+    "names": "cs_FRZsrc_C"
+  },
+  {
+    "codes": 557,
+    "names": "cs_fruitC_HRV"
+  },
+  {
+    "codes": 558,
+    "names": "cs_vegC_HRV"
+  },
+  {
+    "codes": 559,
+    "names": "cs_CbalanceERR"
+  },
+  {
+    "codes": 560,
+    "names": "cs_inC"
+  },
+  {
+    "codes": 561,
+    "names": "cs_outC"
+  },
+  {
+    "codes": 562,
+    "names": "cs_storeC"
+  },
+  {
+    "codes": 600,
+    "names": "cf_m_leafc_to_litr1c"
+  },
+  {
+    "codes": 601,
+    "names": "cf_m_leafc_to_litr2c"
+  },
+  {
+    "codes": 602,
+    "names": "cf_m_leafc_to_litr3c"
+  },
+  {
+    "codes": 603,
+    "names": "cf_m_leafc_to_litr4c"
+  },
+  {
+    "codes": 604,
+    "names": "cf_m_frootc_to_litr1c"
+  },
+  {
+    "codes": 605,
+    "names": "cf_m_frootc_to_litr2c"
+  },
+  {
+    "codes": 606,
+    "names": "cf_m_frootc_to_litr3c"
+  },
+  {
+    "codes": 607,
+    "names": "cf_m_frootc_to_litr4c"
+  },
+  {
+    "codes": 608,
+    "names": "cf_m_fruitc_to_litr1c"
+  },
+  {
+    "codes": 609,
+    "names": "cf_m_fruitc_to_litr2c"
+  },
+  {
+    "codes": 610,
+    "names": "cf_m_fruitc_to_litr3c"
+  },
+  {
+    "codes": 611,
+    "names": "cf_m_fruitc_to_litr4c"
+  },
+  {
+    "codes": 612,
+    "names": "cf_m_softstemc_to_litr1c"
+  },
+  {
+    "codes": 613,
+    "names": "cf_m_softstemc_to_litr2c"
+  },
+  {
+    "codes": 614,
+    "names": "cf_m_softstemc_to_litr3c"
+  },
+  {
+    "codes": 615,
+    "names": "cf_m_softstemc_to_litr4c"
+  },
+  {
+    "codes": 616,
+    "names": "cf_m_leafc_storage_to_litr1c"
+  },
+  {
+    "codes": 617,
+    "names": "cf_m_frootc_storage_to_litr1c"
+  },
+  {
+    "codes": 618,
+    "names": "cf_m_softstemc_storage_to_litr1c"
+  },
+  {
+    "codes": 619,
+    "names": "cf_m_fruitc_storage_to_litr1c"
+  },
+  {
+    "codes": 620,
+    "names": "cf_m_livestemc_storage_to_litr1c"
+  },
+  {
+    "codes": 621,
+    "names": "cf_m_deadstemc_storage_to_litr1c"
+  },
+  {
+    "codes": 622,
+    "names": "cf_m_livecrootc_storage_to_litr1c"
+  },
+  {
+    "codes": 623,
+    "names": "cf_m_deadcrootc_storage_to_litr1c"
+  },
+  {
+    "codes": 624,
+    "names": "cf_m_leafc_transfer_to_litr1c"
+  },
+  {
+    "codes": 625,
+    "names": "cf_m_frootc_transfer_to_litr1c"
+  },
+  {
+    "codes": 626,
+    "names": "cf_m_fruitc_transfer_to_litr1c"
+  },
+  {
+    "codes": 627,
+    "names": "cf_m_softstemc_transfer_to_litr1c"
+  },
+  {
+    "codes": 628,
+    "names": "cf_m_livestemc_transfer_to_litr1c"
+  },
+  {
+    "codes": 629,
+    "names": "cf_m_deadstemc_transfer_to_litr1c"
+  },
+  {
+    "codes": 630,
+    "names": "cf_m_livecrootc_transfer_to_litr1c"
+  },
+  {
+    "codes": 631,
+    "names": "cf_m_deadcrootc_transfer_to_litr1c"
+  },
+  {
+    "codes": 632,
+    "names": "cf_m_livestemc_to_cwdc"
+  },
+  {
+    "codes": 633,
+    "names": "cf_m_deadstemc_to_cwdc"
+  },
+  {
+    "codes": 634,
+    "names": "cf_m_livecrootc_to_cwdc"
+  },
+  {
+    "codes": 635,
+    "names": "cf_m_deadcrootc_to_cwdc"
+  },
+  {
+    "codes": 636,
+    "names": "cf_m_gresp_storage_to_litr1c"
+  },
+  {
+    "codes": 637,
+    "names": "cf_m_gresp_transfer_to_litr1c"
+  },
+  {
+    "codes": 638,
+    "names": "cf_m_leafc_to_fire"
+  },
+  {
+    "codes": 639,
+    "names": "cf_m_frootc_to_fire"
+  },
+  {
+    "codes": 640,
+    "names": "cf_m_fruitc_to_fire"
+  },
+  {
+    "codes": 641,
+    "names": "cf_m_softstemc_to_fire"
+  },
+  {
+    "codes": 642,
+    "names": "cf_m_STDBc_to_fire"
+  },
+  {
+    "codes": 643,
+    "names": "cf_m_CTDBc_to_fire"
+  },
+  {
+    "codes": 644,
+    "names": "cf_m_leafc_storage_to_fire"
+  },
+  {
+    "codes": 645,
+    "names": "cf_m_frootc_storage_to_fire"
+  },
+  {
+    "codes": 646,
+    "names": "cf_m_fruitc_storage_to_fire"
+  },
+  {
+    "codes": 647,
+    "names": "cf_m_softstemc_storage_to_fire"
+  },
+  {
+    "codes": 648,
+    "names": "cf_m_livestemc_storage_to_fire"
+  },
+  {
+    "codes": 649,
+    "names": "cf_m_deadstemc_storage_to_fire"
+  },
+  {
+    "codes": 650,
+    "names": "cf_m_livecrootc_storage_to_fire"
+  },
+  {
+    "codes": 651,
+    "names": "cf_m_deadcrootc_storage_to_fire"
+  },
+  {
+    "codes": 652,
+    "names": "cf_m_leafc_transfer_to_fire"
+  },
+  {
+    "codes": 653,
+    "names": "cf_m_frootc_transfer_to_fire"
+  },
+  {
+    "codes": 654,
+    "names": "cf_m_fruitc_transfer_to_fire"
+  },
+  {
+    "codes": 655,
+    "names": "cf_m_softstemc_transfer_to_fire"
+  },
+  {
+    "codes": 656,
+    "names": "cf_m_livestemc_transfer_to_fire"
+  },
+  {
+    "codes": 657,
+    "names": "cf_m_deadstemc_transfer_to_fire"
+  },
+  {
+    "codes": 658,
+    "names": "cf_m_livecrootc_transfer_to_fire"
+  },
+  {
+    "codes": 659,
+    "names": "cf_m_deadcrootc_transfer_to_fire"
+  },
+  {
+    "codes": 660,
+    "names": "cf_m_livestemc_to_fire"
+  },
+  {
+    "codes": 661,
+    "names": "cf_m_deadstemc_to_fire"
+  },
+  {
+    "codes": 662,
+    "names": "cf_m_livecrootc_to_fire"
+  },
+  {
+    "codes": 663,
+    "names": "cf_m_deadcrootc_to_fire"
+  },
+  {
+    "codes": 664,
+    "names": "cf_m_gresp_storage_to_fire"
+  },
+  {
+    "codes": 665,
+    "names": "cf_m_gresp_transfer_to_fire"
+  },
+  {
+    "codes": 666,
+    "names": "cf_m_litr1c_to_fire"
+  },
+  {
+    "codes": 667,
+    "names": "cf_m_litr2c_to_fire"
+  },
+  {
+    "codes": 668,
+    "names": "cf_m_litr3c_to_fire"
+  },
+  {
+    "codes": 669,
+    "names": "cf_m_litr4c_to_fire"
+  },
+  {
+    "codes": 670,
+    "names": "cf_m_cwdc_to_fire"
+  },
+  {
+    "codes": 671,
+    "names": "cf_m_vegc_to_SNSC"
+  },
+  {
+    "codes": 672,
+    "names": "cf_m_leafc_to_SNSC"
+  },
+  {
+    "codes": 673,
+    "names": "cf_m_leafc_to_SNSCgenprog"
+  },
+  {
+    "codes": 674,
+    "names": "cf_m_frootc_to_SNSC"
+  },
+  {
+    "codes": 675,
+    "names": "cf_m_fruitc_to_SNSC"
+  },
+  {
+    "codes": 676,
+    "names": "cf_m_softstemc_to_SNSC"
+  },
+  {
+    "codes": 677,
+    "names": "cf_m_leafc_storage_to_SNSC"
+  },
+  {
+    "codes": 678,
+    "names": "cf_m_frootc_storage_to_SNSC"
+  },
+  {
+    "codes": 679,
+    "names": "cf_m_leafc_transfer_to_SNSC"
+  },
+  {
+    "codes": 680,
+    "names": "cf_m_frootc_transfer_to_SNSC"
+  },
+  {
+    "codes": 681,
+    "names": "cf_m_fruitc_storage_to_SNSC"
+  },
+  {
+    "codes": 682,
+    "names": "cf_m_fruitc_transfer_to_SNSC"
+  },
+  {
+    "codes": 683,
+    "names": "cf_m_softstemc_storage_to_SNSC"
+  },
+  {
+    "codes": 684,
+    "names": "cf_m_softstemc_transfer_to_SNSC"
+  },
+  {
+    "codes": 685,
+    "names": "cf_m_gresp_storage_to_SNSC"
+  },
+  {
+    "codes": 686,
+    "names": "cf_m_gresp_transfer_to_SNSC"
+  },
+  {
+    "codes": 687,
+    "names": "cf_HRV_leafc_storage_to_SNSC"
+  },
+  {
+    "codes": 688,
+    "names": "cf_HRV_leafc_transfer_to_SNSC"
+  },
+  {
+    "codes": 689,
+    "names": "cf_HRV_fruitc_storage_to_SNSC"
+  },
+  {
+    "codes": 690,
+    "names": "cf_HRV_fruitc_transfer_to_SNSC"
+  },
+  {
+    "codes": 691,
+    "names": "cf_HRV_frootc_to_SNSC"
+  },
+  {
+    "codes": 692,
+    "names": "cf_HRV_softstemc_to_SNSC"
+  },
+  {
+    "codes": 693,
+    "names": "cf_HRV_frootc_storage_to_SNSC"
+  },
+  {
+    "codes": 694,
+    "names": "cf_HRV_frootc_transfer_to_SNSC"
+  },
+  {
+    "codes": 695,
+    "names": "cf_HRV_softstemc_storage_to_SNSC"
+  },
+  {
+    "codes": 696,
+    "names": "cf_HRV_softstemc_transfer_to_SNSC"
+  },
+  {
+    "codes": 697,
+    "names": "cf_HRV_gresp_storage_to_SNSC"
+  },
+  {
+    "codes": 698,
+    "names": "cf_HRV_gresp_transfer_to_SNSC"
+  },
+  {
+    "codes": 699,
+    "names": "cf_fruitc_to_flowHS"
+  },
+  {
+    "codes": 700,
+    "names": "cf_STDBc_leaf_to_litr"
+  },
+  {
+    "codes": 701,
+    "names": "cf_STDBc_froot_to_litr"
+  },
+  {
+    "codes": 702,
+    "names": "cf_STDBc_fruit_to_litr"
+  },
+  {
+    "codes": 703,
+    "names": "cf_STDBc_softstem_to_litr"
+  },
+  {
+    "codes": 704,
+    "names": "cf_STDBc_transfer_to_litr"
+  },
+  {
+    "codes": 705,
+    "names": "cf_STDBc_to_litr"
+  },
+  {
+    "codes": 706,
+    "names": "cf_CTDBc_leaf_to_litr"
+  },
+  {
+    "codes": 707,
+    "names": "cf_CTDBc_froot_to_litr"
+  },
+  {
+    "codes": 708,
+    "names": "cf_CTDBc_fruit_to_litr"
+  },
+  {
+    "codes": 709,
+    "names": "cf_CTDBc_softstem_to_litr"
+  },
+  {
+    "codes": 710,
+    "names": "cf_CTDBc_transfer_to_litr"
+  },
+  {
+    "codes": 711,
+    "names": "cf_CTDBc_cstem_to_cwd"
+  },
+  {
+    "codes": 712,
+    "names": "cf_CTDBc_croot_to_cwd"
+  },
+  {
+    "codes": 713,
+    "names": "cf_CTDBc_to_litr"
+  },
+  {
+    "codes": 714,
+    "names": "cf_leafc_transfer_to_leafc"
+  },
+  {
+    "codes": 715,
+    "names": "cf_frootc_transfer_to_frootc"
+  },
+  {
+    "codes": 716,
+    "names": "cf_fruitc_transfer_to_fruitc"
+  },
+  {
+    "codes": 717,
+    "names": "cf_softstemc_transfer_to_softstemc"
+  },
+  {
+    "codes": 718,
+    "names": "cf_livestemc_transfer_to_livestemc"
+  },
+  {
+    "codes": 719,
+    "names": "cf_deadstemc_transfer_to_deadstemc"
+  },
+  {
+    "codes": 720,
+    "names": "cf_livecrootc_transfer_to_livecrootc"
+  },
+  {
+    "codes": 721,
+    "names": "cf_deadcrootc_transfer_to_deadcrootc"
+  },
+  {
+    "codes": 722,
+    "names": "cf_leafc_to_litr1c"
+  },
+  {
+    "codes": 723,
+    "names": "cf_leafc_to_litr2c"
+  },
+  {
+    "codes": 724,
+    "names": "cf_leafc_to_litr3c"
+  },
+  {
+    "codes": 725,
+    "names": "cf_leafc_to_litr4c"
+  },
+  {
+    "codes": 726,
+    "names": "cf_frootc_to_litr1c"
+  },
+  {
+    "codes": 727,
+    "names": "cf_frootc_to_litr2c"
+  },
+  {
+    "codes": 728,
+    "names": "cf_frootc_to_litr3c"
+  },
+  {
+    "codes": 729,
+    "names": "cf_frootc_to_litr4c"
+  },
+  {
+    "codes": 730,
+    "names": "cf_fruitc_to_litr1c"
+  },
+  {
+    "codes": 731,
+    "names": "cf_fruitc_to_litr2c"
+  },
+  {
+    "codes": 732,
+    "names": "cf_fruitc_to_litr3c"
+  },
+  {
+    "codes": 733,
+    "names": "cf_fruitc_to_litr4c"
+  },
+  {
+    "codes": 734,
+    "names": "cf_softstemc_to_litr1c"
+  },
+  {
+    "codes": 735,
+    "names": "cf_softstemc_to_litr2c"
+  },
+  {
+    "codes": 736,
+    "names": "cf_softstemc_to_litr3c"
+  },
+  {
+    "codes": 737,
+    "names": "cf_softstemc_to_litr4c"
+  },
+  {
+    "codes": 738,
+    "names": "cf_leaf_day_mr"
+  },
+  {
+    "codes": 739,
+    "names": "cf_leaf_night_mr"
+  },
+  {
+    "codes": 740,
+    "names": "cf_froot_mr"
+  },
+  {
+    "codes": 741,
+    "names": "cf_fruit_mr"
+  },
+  {
+    "codes": 742,
+    "names": "cf_softstem_mr"
+  },
+  {
+    "codes": 743,
+    "names": "cf_livestem_mr"
+  },
+  {
+    "codes": 744,
+    "names": "cf_livecroot_mr"
+  },
+  {
+    "codes": 745,
+    "names": "cf_psnsun_to_cpool"
+  },
+  {
+    "codes": 746,
+    "names": "cf_psnshade_to_cpool"
+  },
+  {
+    "codes": 747,
+    "names": "cf_cwdc_to_litr2c_0"
+  },
+  {
+    "codes": 748,
+    "names": "cf_cwdc_to_litr2c_1"
+  },
+  {
+    "codes": 749,
+    "names": "cf_cwdc_to_litr2c_2"
+  },
+  {
+    "codes": 750,
+    "names": "cf_cwdc_to_litr2c_3"
+  },
+  {
+    "codes": 751,
+    "names": "cf_cwdc_to_litr2c_4"
+  },
+  {
+    "codes": 752,
+    "names": "cf_cwdc_to_litr2c_5"
+  },
+  {
+    "codes": 753,
+    "names": "cf_cwdc_to_litr2c_6"
+  },
+  {
+    "codes": 754,
+    "names": "cf_cwdc_to_litr2c_7"
+  },
+  {
+    "codes": 755,
+    "names": "cf_cwdc_to_litr2c_8"
+  },
+  {
+    "codes": 756,
+    "names": "cf_cwdc_to_litr2c_9"
+  },
+  {
+    "codes": 757,
+    "names": "cf_cwdc_to_litr3c_0"
+  },
+  {
+    "codes": 758,
+    "names": "cf_cwdc_to_litr3c_1"
+  },
+  {
+    "codes": 759,
+    "names": "cf_cwdc_to_litr3c_2"
+  },
+  {
+    "codes": 760,
+    "names": "cf_cwdc_to_litr3c_3"
+  },
+  {
+    "codes": 761,
+    "names": "cf_cwdc_to_litr3c_4"
+  },
+  {
+    "codes": 762,
+    "names": "cf_cwdc_to_litr3c_5"
+  },
+  {
+    "codes": 763,
+    "names": "cf_cwdc_to_litr3c_6"
+  },
+  {
+    "codes": 764,
+    "names": "cf_cwdc_to_litr3c_7"
+  },
+  {
+    "codes": 765,
+    "names": "cf_cwdc_to_litr3c_8"
+  },
+  {
+    "codes": 766,
+    "names": "cf_cwdc_to_litr3c_9"
+  },
+  {
+    "codes": 767,
+    "names": "cf_cwdc_to_litr4c_0"
+  },
+  {
+    "codes": 768,
+    "names": "cf_cwdc_to_litr4c_1"
+  },
+  {
+    "codes": 769,
+    "names": "cf_cwdc_to_litr4c_2"
+  },
+  {
+    "codes": 770,
+    "names": "cf_cwdc_to_litr4c_3"
+  },
+  {
+    "codes": 771,
+    "names": "cf_cwdc_to_litr4c_4"
+  },
+  {
+    "codes": 772,
+    "names": "cf_cwdc_to_litr4c_5"
+  },
+  {
+    "codes": 773,
+    "names": "cf_cwdc_to_litr4c_6"
+  },
+  {
+    "codes": 774,
+    "names": "cf_cwdc_to_litr4c_7"
+  },
+  {
+    "codes": 775,
+    "names": "cf_cwdc_to_litr4c_8"
+  },
+  {
+    "codes": 776,
+    "names": "cf_cwdc_to_litr4c_9"
+  },
+  {
+    "codes": 777,
+    "names": "cf_litr1_hr_0"
+  },
+  {
+    "codes": 778,
+    "names": "cf_litr1_hr_1"
+  },
+  {
+    "codes": 779,
+    "names": "cf_litr1_hr_2"
+  },
+  {
+    "codes": 780,
+    "names": "cf_litr1_hr_3"
+  },
+  {
+    "codes": 781,
+    "names": "cf_litr1_hr_4"
+  },
+  {
+    "codes": 782,
+    "names": "cf_litr1_hr_5"
+  },
+  {
+    "codes": 783,
+    "names": "cf_litr1_hr_6"
+  },
+  {
+    "codes": 784,
+    "names": "cf_litr1_hr_7"
+  },
+  {
+    "codes": 785,
+    "names": "cf_litr1_hr_8"
+  },
+  {
+    "codes": 786,
+    "names": "cf_litr1_hr_9"
+  },
+  {
+    "codes": 787,
+    "names": "cf_litr1c_to_soil1c_0"
+  },
+  {
+    "codes": 788,
+    "names": "cf_litr1c_to_soil1c_1"
+  },
+  {
+    "codes": 789,
+    "names": "cf_litr1c_to_soil1c_2"
+  },
+  {
+    "codes": 790,
+    "names": "cf_litr1c_to_soil1c_3"
+  },
+  {
+    "codes": 791,
+    "names": "cf_litr1c_to_soil1c_4"
+  },
+  {
+    "codes": 792,
+    "names": "cf_litr1c_to_soil1c_5"
+  },
+  {
+    "codes": 793,
+    "names": "cf_litr1c_to_soil1c_6"
+  },
+  {
+    "codes": 794,
+    "names": "cf_litr1c_to_soil1c_7"
+  },
+  {
+    "codes": 795,
+    "names": "cf_litr1c_to_soil1c_8"
+  },
+  {
+    "codes": 796,
+    "names": "cf_litr1c_to_soil1c_9"
+  },
+  {
+    "codes": 797,
+    "names": "cf_litr2_hr_0"
+  },
+  {
+    "codes": 798,
+    "names": "cf_litr2_hr_1"
+  },
+  {
+    "codes": 799,
+    "names": "cf_litr2_hr_2"
+  },
+  {
+    "codes": 800,
+    "names": "cf_litr2_hr_3"
+  },
+  {
+    "codes": 801,
+    "names": "cf_litr2_hr_4"
+  },
+  {
+    "codes": 802,
+    "names": "cf_litr2_hr_5"
+  },
+  {
+    "codes": 803,
+    "names": "cf_litr2_hr_6"
+  },
+  {
+    "codes": 804,
+    "names": "cf_litr2_hr_7"
+  },
+  {
+    "codes": 805,
+    "names": "cf_litr2_hr_8"
+  },
+  {
+    "codes": 806,
+    "names": "cf_litr2_hr_9"
+  },
+  {
+    "codes": 807,
+    "names": "cf_litr2c_to_soil2c_0"
+  },
+  {
+    "codes": 808,
+    "names": "cf_litr2c_to_soil2c_1"
+  },
+  {
+    "codes": 809,
+    "names": "cf_litr2c_to_soil2c_2"
+  },
+  {
+    "codes": 810,
+    "names": "cf_litr2c_to_soil2c_3"
+  },
+  {
+    "codes": 811,
+    "names": "cf_litr2c_to_soil2c_4"
+  },
+  {
+    "codes": 812,
+    "names": "cf_litr2c_to_soil2c_5"
+  },
+  {
+    "codes": 813,
+    "names": "cf_litr2c_to_soil2c_6"
+  },
+  {
+    "codes": 814,
+    "names": "cf_litr2c_to_soil2c_7"
+  },
+  {
+    "codes": 815,
+    "names": "cf_litr2c_to_soil2c_8"
+  },
+  {
+    "codes": 816,
+    "names": "cf_litr2c_to_soil2c_9"
+  },
+  {
+    "codes": 817,
+    "names": "cf_litr3c_to_litr2c_0"
+  },
+  {
+    "codes": 818,
+    "names": "cf_litr3c_to_litr2c_1"
+  },
+  {
+    "codes": 819,
+    "names": "cf_litr3c_to_litr2c_2"
+  },
+  {
+    "codes": 820,
+    "names": "cf_litr3c_to_litr2c_3"
+  },
+  {
+    "codes": 821,
+    "names": "cf_litr3c_to_litr2c_4"
+  },
+  {
+    "codes": 822,
+    "names": "cf_litr3c_to_litr2c_5"
+  },
+  {
+    "codes": 823,
+    "names": "cf_litr3c_to_litr2c_6"
+  },
+  {
+    "codes": 824,
+    "names": "cf_litr3c_to_litr2c_7"
+  },
+  {
+    "codes": 825,
+    "names": "cf_litr3c_to_litr2c_8"
+  },
+  {
+    "codes": 826,
+    "names": "cf_litr3c_to_litr2c_9"
+  },
+  {
+    "codes": 827,
+    "names": "cf_litr4_hr_0"
+  },
+  {
+    "codes": 828,
+    "names": "cf_litr4_hr_1"
+  },
+  {
+    "codes": 829,
+    "names": "cf_litr4_hr_2"
+  },
+  {
+    "codes": 830,
+    "names": "cf_litr4_hr_3"
+  },
+  {
+    "codes": 831,
+    "names": "cf_litr4_hr_4"
+  },
+  {
+    "codes": 832,
+    "names": "cf_litr4_hr_5"
+  },
+  {
+    "codes": 833,
+    "names": "cf_litr4_hr_6"
+  },
+  {
+    "codes": 834,
+    "names": "cf_litr4_hr_7"
+  },
+  {
+    "codes": 835,
+    "names": "cf_litr4_hr_8"
+  },
+  {
+    "codes": 836,
+    "names": "cf_litr4_hr_9"
+  },
+  {
+    "codes": 837,
+    "names": "cf_litr4c_to_soil3c_0"
+  },
+  {
+    "codes": 838,
+    "names": "cf_litr4c_to_soil3c_1"
+  },
+  {
+    "codes": 839,
+    "names": "cf_litr4c_to_soil3c_2"
+  },
+  {
+    "codes": 840,
+    "names": "cf_litr4c_to_soil3c_3"
+  },
+  {
+    "codes": 841,
+    "names": "cf_litr4c_to_soil3c_4"
+  },
+  {
+    "codes": 842,
+    "names": "cf_litr4c_to_soil3c_5"
+  },
+  {
+    "codes": 843,
+    "names": "cf_litr4c_to_soil3c_6"
+  },
+  {
+    "codes": 844,
+    "names": "cf_litr4c_to_soil3c_7"
+  },
+  {
+    "codes": 845,
+    "names": "cf_litr4c_to_soil3c_8"
+  },
+  {
+    "codes": 846,
+    "names": "cf_litr4c_to_soil3c_9"
+  },
+  {
+    "codes": 847,
+    "names": "cf_soil1_hr_0"
+  },
+  {
+    "codes": 848,
+    "names": "cf_soil1_hr_1"
+  },
+  {
+    "codes": 849,
+    "names": "cf_soil1_hr_2"
+  },
+  {
+    "codes": 850,
+    "names": "cf_soil1_hr_3"
+  },
+  {
+    "codes": 851,
+    "names": "cf_soil1_hr_4"
+  },
+  {
+    "codes": 852,
+    "names": "cf_soil1_hr_5"
+  },
+  {
+    "codes": 853,
+    "names": "cf_soil1_hr_6"
+  },
+  {
+    "codes": 854,
+    "names": "cf_soil1_hr_7"
+  },
+  {
+    "codes": 855,
+    "names": "cf_soil1_hr_8"
+  },
+  {
+    "codes": 856,
+    "names": "cf_soil1_hr_9"
+  },
+  {
+    "codes": 857,
+    "names": "cf_soil1c_to_soil2c_0"
+  },
+  {
+    "codes": 858,
+    "names": "cf_soil1c_to_soil2c_1"
+  },
+  {
+    "codes": 859,
+    "names": "cf_soil1c_to_soil2c_2"
+  },
+  {
+    "codes": 860,
+    "names": "cf_soil1c_to_soil2c_3"
+  },
+  {
+    "codes": 861,
+    "names": "cf_soil1c_to_soil2c_4"
+  },
+  {
+    "codes": 862,
+    "names": "cf_soil1c_to_soil2c_5"
+  },
+  {
+    "codes": 863,
+    "names": "cf_soil1c_to_soil2c_6"
+  },
+  {
+    "codes": 864,
+    "names": "cf_soil1c_to_soil2c_7"
+  },
+  {
+    "codes": 865,
+    "names": "cf_soil1c_to_soil2c_8"
+  },
+  {
+    "codes": 866,
+    "names": "cf_soil1c_to_soil2c_9"
+  },
+  {
+    "codes": 867,
+    "names": "cf_soil2_hr_0"
+  },
+  {
+    "codes": 868,
+    "names": "cf_soil2_hr_1"
+  },
+  {
+    "codes": 869,
+    "names": "cf_soil2_hr_2"
+  },
+  {
+    "codes": 870,
+    "names": "cf_soil2_hr_3"
+  },
+  {
+    "codes": 871,
+    "names": "cf_soil2_hr_4"
+  },
+  {
+    "codes": 872,
+    "names": "cf_soil2_hr_5"
+  },
+  {
+    "codes": 873,
+    "names": "cf_soil2_hr_6"
+  },
+  {
+    "codes": 874,
+    "names": "cf_soil2_hr_7"
+  },
+  {
+    "codes": 875,
+    "names": "cf_soil2_hr_8"
+  },
+  {
+    "codes": 876,
+    "names": "cf_soil2_hr_9"
+  },
+  {
+    "codes": 877,
+    "names": "cf_soil2c_to_soil3c_0"
+  },
+  {
+    "codes": 878,
+    "names": "cf_soil2c_to_soil3c_1"
+  },
+  {
+    "codes": 879,
+    "names": "cf_soil2c_to_soil3c_2"
+  },
+  {
+    "codes": 880,
+    "names": "cf_soil2c_to_soil3c_3"
+  },
+  {
+    "codes": 881,
+    "names": "cf_soil2c_to_soil3c_4"
+  },
+  {
+    "codes": 882,
+    "names": "cf_soil2c_to_soil3c_5"
+  },
+  {
+    "codes": 883,
+    "names": "cf_soil2c_to_soil3c_6"
+  },
+  {
+    "codes": 884,
+    "names": "cf_soil2c_to_soil3c_7"
+  },
+  {
+    "codes": 885,
+    "names": "cf_soil2c_to_soil3c_8"
+  },
+  {
+    "codes": 886,
+    "names": "cf_soil2c_to_soil3c_9"
+  },
+  {
+    "codes": 887,
+    "names": "cf_soil3_hr_0"
+  },
+  {
+    "codes": 888,
+    "names": "cf_soil3_hr_1"
+  },
+  {
+    "codes": 889,
+    "names": "cf_soil3_hr_2"
+  },
+  {
+    "codes": 890,
+    "names": "cf_soil3_hr_3"
+  },
+  {
+    "codes": 891,
+    "names": "cf_soil3_hr_4"
+  },
+  {
+    "codes": 892,
+    "names": "cf_soil3_hr_5"
+  },
+  {
+    "codes": 893,
+    "names": "cf_soil3_hr_6"
+  },
+  {
+    "codes": 894,
+    "names": "cf_soil3_hr_7"
+  },
+  {
+    "codes": 895,
+    "names": "cf_soil3_hr_8"
+  },
+  {
+    "codes": 896,
+    "names": "cf_soil3_hr_9"
+  },
+  {
+    "codes": 897,
+    "names": "cf_soil3c_to_soil4c_0"
+  },
+  {
+    "codes": 898,
+    "names": "cf_soil3c_to_soil4c_1"
+  },
+  {
+    "codes": 899,
+    "names": "cf_soil3c_to_soil4c_2"
+  },
+  {
+    "codes": 900,
+    "names": "cf_soil3c_to_soil4c_3"
+  },
+  {
+    "codes": 901,
+    "names": "cf_soil3c_to_soil4c_4"
+  },
+  {
+    "codes": 902,
+    "names": "cf_soil3c_to_soil4c_5"
+  },
+  {
+    "codes": 903,
+    "names": "cf_soil3c_to_soil4c_6"
+  },
+  {
+    "codes": 904,
+    "names": "cf_soil3c_to_soil4c_7"
+  },
+  {
+    "codes": 905,
+    "names": "cf_soil3c_to_soil4c_8"
+  },
+  {
+    "codes": 906,
+    "names": "cf_soil3c_to_soil4c_9"
+  },
+  {
+    "codes": 907,
+    "names": "cf_soil4_hr_0"
+  },
+  {
+    "codes": 908,
+    "names": "cf_soil4_hr_1"
+  },
+  {
+    "codes": 909,
+    "names": "cf_soil4_hr_2"
+  },
+  {
+    "codes": 910,
+    "names": "cf_soil4_hr_3"
+  },
+  {
+    "codes": 911,
+    "names": "cf_soil4_hr_4"
+  },
+  {
+    "codes": 912,
+    "names": "cf_soil4_hr_5"
+  },
+  {
+    "codes": 913,
+    "names": "cf_soil4_hr_6"
+  },
+  {
+    "codes": 914,
+    "names": "cf_soil4_hr_7"
+  },
+  {
+    "codes": 915,
+    "names": "cf_soil4_hr_8"
+  },
+  {
+    "codes": 916,
+    "names": "cf_soil4_hr_9"
+  },
+  {
+    "codes": 917,
+    "names": "cf_soil1_DOC_leached_0"
+  },
+  {
+    "codes": 918,
+    "names": "cf_soil1_DOC_leached_1"
+  },
+  {
+    "codes": 919,
+    "names": "cf_soil1_DOC_leached_2"
+  },
+  {
+    "codes": 920,
+    "names": "cf_soil1_DOC_leached_3"
+  },
+  {
+    "codes": 921,
+    "names": "cf_soil1_DOC_leached_4"
+  },
+  {
+    "codes": 922,
+    "names": "cf_soil1_DOC_leached_5"
+  },
+  {
+    "codes": 923,
+    "names": "cf_soil1_DOC_leached_6"
+  },
+  {
+    "codes": 924,
+    "names": "cf_soil1_DOC_leached_7"
+  },
+  {
+    "codes": 925,
+    "names": "cf_soil1_DOC_leached_8"
+  },
+  {
+    "codes": 926,
+    "names": "cf_soil1_DOC_leached_9"
+  },
+  {
+    "codes": 927,
+    "names": "cf_soil2_DOC_leached_0"
+  },
+  {
+    "codes": 928,
+    "names": "cf_soil2_DOC_leached_1"
+  },
+  {
+    "codes": 929,
+    "names": "cf_soil2_DOC_leached_2"
+  },
+  {
+    "codes": 930,
+    "names": "cf_soil2_DOC_leached_3"
+  },
+  {
+    "codes": 931,
+    "names": "cf_soil2_DOC_leached_4"
+  },
+  {
+    "codes": 932,
+    "names": "cf_soil2_DOC_leached_5"
+  },
+  {
+    "codes": 933,
+    "names": "cf_soil2_DOC_leached_6"
+  },
+  {
+    "codes": 934,
+    "names": "cf_soil2_DOC_leached_7"
+  },
+  {
+    "codes": 935,
+    "names": "cf_soil2_DOC_leached_8"
+  },
+  {
+    "codes": 936,
+    "names": "cf_soil2_DOC_leached_9"
+  },
+  {
+    "codes": 937,
+    "names": "cf_soil3_DOC_leached_0"
+  },
+  {
+    "codes": 938,
+    "names": "cf_soil3_DOC_leached_1"
+  },
+  {
+    "codes": 939,
+    "names": "cf_soil3_DOC_leached_2"
+  },
+  {
+    "codes": 940,
+    "names": "cf_soil3_DOC_leached_3"
+  },
+  {
+    "codes": 941,
+    "names": "cf_soil3_DOC_leached_4"
+  },
+  {
+    "codes": 942,
+    "names": "cf_soil3_DOC_leached_5"
+  },
+  {
+    "codes": 943,
+    "names": "cf_soil3_DOC_leached_6"
+  },
+  {
+    "codes": 944,
+    "names": "cf_soil3_DOC_leached_7"
+  },
+  {
+    "codes": 945,
+    "names": "cf_soil3_DOC_leached_8"
+  },
+  {
+    "codes": 946,
+    "names": "cf_soil3_DOC_leached_9"
+  },
+  {
+    "codes": 947,
+    "names": "cf_soil4_DOC_leached_0"
+  },
+  {
+    "codes": 948,
+    "names": "cf_soil4_DOC_leached_1"
+  },
+  {
+    "codes": 949,
+    "names": "cf_soil4_DOC_leached_2"
+  },
+  {
+    "codes": 950,
+    "names": "cf_soil4_DOC_leached_3"
+  },
+  {
+    "codes": 951,
+    "names": "cf_soil4_DOC_leached_4"
+  },
+  {
+    "codes": 952,
+    "names": "cf_soil4_DOC_leached_5"
+  },
+  {
+    "codes": 953,
+    "names": "cf_soil4_DOC_leached_6"
+  },
+  {
+    "codes": 954,
+    "names": "cf_soil4_DOC_leached_7"
+  },
+  {
+    "codes": 955,
+    "names": "cf_soil4_DOC_leached_8"
+  },
+  {
+    "codes": 956,
+    "names": "cf_soil4_DOC_leached_9"
+  },
+  {
+    "codes": 957,
+    "names": "cf_soil1_DOC_diffused_0"
+  },
+  {
+    "codes": 958,
+    "names": "cf_soil1_DOC_diffused_1"
+  },
+  {
+    "codes": 959,
+    "names": "cf_soil1_DOC_diffused_2"
+  },
+  {
+    "codes": 960,
+    "names": "cf_soil1_DOC_diffused_3"
+  },
+  {
+    "codes": 961,
+    "names": "cf_soil1_DOC_diffused_4"
+  },
+  {
+    "codes": 962,
+    "names": "cf_soil1_DOC_diffused_5"
+  },
+  {
+    "codes": 963,
+    "names": "cf_soil1_DOC_diffused_6"
+  },
+  {
+    "codes": 964,
+    "names": "cf_soil1_DOC_diffused_7"
+  },
+  {
+    "codes": 965,
+    "names": "cf_soil1_DOC_diffused_8"
+  },
+  {
+    "codes": 966,
+    "names": "cf_soil1_DOC_diffused_9"
+  },
+  {
+    "codes": 967,
+    "names": "cf_soil2_DOC_diffused_0"
+  },
+  {
+    "codes": 968,
+    "names": "cf_soil2_DOC_diffused_1"
+  },
+  {
+    "codes": 969,
+    "names": "cf_soil2_DOC_diffused_2"
+  },
+  {
+    "codes": 970,
+    "names": "cf_soil2_DOC_diffused_3"
+  },
+  {
+    "codes": 971,
+    "names": "cf_soil2_DOC_diffused_4"
+  },
+  {
+    "codes": 972,
+    "names": "cf_soil2_DOC_diffused_5"
+  },
+  {
+    "codes": 973,
+    "names": "cf_soil2_DOC_diffused_6"
+  },
+  {
+    "codes": 974,
+    "names": "cf_soil2_DOC_diffused_7"
+  },
+  {
+    "codes": 975,
+    "names": "cf_soil2_DOC_diffused_8"
+  },
+  {
+    "codes": 976,
+    "names": "cf_soil2_DOC_diffused_9"
+  },
+  {
+    "codes": 977,
+    "names": "cf_soil3_DOC_diffused_0"
+  },
+  {
+    "codes": 978,
+    "names": "cf_soil3_DOC_diffused_1"
+  },
+  {
+    "codes": 979,
+    "names": "cf_soil3_DOC_diffused_2"
+  },
+  {
+    "codes": 980,
+    "names": "cf_soil3_DOC_diffused_3"
+  },
+  {
+    "codes": 981,
+    "names": "cf_soil3_DOC_diffused_4"
+  },
+  {
+    "codes": 982,
+    "names": "cf_soil3_DOC_diffused_5"
+  },
+  {
+    "codes": 983,
+    "names": "cf_soil3_DOC_diffused_6"
+  },
+  {
+    "codes": 984,
+    "names": "cf_soil3_DOC_diffused_7"
+  },
+  {
+    "codes": 985,
+    "names": "cf_soil3_DOC_diffused_8"
+  },
+  {
+    "codes": 986,
+    "names": "cf_soil3_DOC_diffused_9"
+  },
+  {
+    "codes": 987,
+    "names": "cf_soil4_DOC_diffused_0"
+  },
+  {
+    "codes": 988,
+    "names": "cf_soil4_DOC_diffused_1"
+  },
+  {
+    "codes": 989,
+    "names": "cf_soil4_DOC_diffused_2"
+  },
+  {
+    "codes": 990,
+    "names": "cf_soil4_DOC_diffused_3"
+  },
+  {
+    "codes": 991,
+    "names": "cf_soil4_DOC_diffused_4"
+  },
+  {
+    "codes": 992,
+    "names": "cf_soil4_DOC_diffused_5"
+  },
+  {
+    "codes": 993,
+    "names": "cf_soil4_DOC_diffused_6"
+  },
+  {
+    "codes": 994,
+    "names": "cf_soil4_DOC_diffused_7"
+  },
+  {
+    "codes": 995,
+    "names": "cf_soil4_DOC_diffused_8"
+  },
+  {
+    "codes": 996,
+    "names": "cf_soil4_DOC_diffused_9"
+  },
+  {
+    "codes": 997,
+    "names": "cf_DOC_rootzone_leach"
+  },
+  {
+    "codes": 998,
+    "names": "cf_cpool_to_leafc"
+  },
+  {
+    "codes": 999,
+    "names": "cf_cpool_to_leafc_storage"
+  },
+  {
+    "codes": 1000,
+    "names": "cf_cpool_to_frootc"
+  },
+  {
+    "codes": 1001,
+    "names": "cf_cpool_to_frootc_storage"
+  },
+  {
+    "codes": 1002,
+    "names": "cf_cpool_to_fruitc"
+  },
+  {
+    "codes": 1003,
+    "names": "cf_cpool_to_fruitc_storage"
+  },
+  {
+    "codes": 1004,
+    "names": "cf_cpool_to_softstemc"
+  },
+  {
+    "codes": 1005,
+    "names": "cf_cpool_to_softstemc_storage"
+  },
+  {
+    "codes": 1006,
+    "names": "cf_cpool_to_livestemc"
+  },
+  {
+    "codes": 1007,
+    "names": "cf_cpool_to_livestemc_storage"
+  },
+  {
+    "codes": 1008,
+    "names": "cf_cpool_to_deadstemc"
+  },
+  {
+    "codes": 1009,
+    "names": "cf_cpool_to_deadstemc_storage"
+  },
+  {
+    "codes": 1010,
+    "names": "cf_cpool_to_livecrootc"
+  },
+  {
+    "codes": 1011,
+    "names": "cf_cpool_to_livecrootc_storage"
+  },
+  {
+    "codes": 1012,
+    "names": "cf_cpool_to_deadcrootc"
+  },
+  {
+    "codes": 1013,
+    "names": "cf_cpool_to_deadcrootc_storage"
+  },
+  {
+    "codes": 1014,
+    "names": "cf_cpool_to_gresp_storage"
+  },
+  {
+    "codes": 1015,
+    "names": "cf_cpool_leaf_gr"
+  },
+  {
+    "codes": 1016,
+    "names": "cf_cpool_leaf_storage_gr"
+  },
+  {
+    "codes": 1017,
+    "names": "cf_transfer_leaf_gr"
+  },
+  {
+    "codes": 1018,
+    "names": "cf_cpool_froot_gr"
+  },
+  {
+    "codes": 1019,
+    "names": "cf_cpool_froot_storage_gr"
+  },
+  {
+    "codes": 1020,
+    "names": "cf_transfer_froot_gr"
+  },
+  {
+    "codes": 1021,
+    "names": "cf_cpool_fruit_gr"
+  },
+  {
+    "codes": 1022,
+    "names": "cf_cpool_fruit_storage_gr"
+  },
+  {
+    "codes": 1023,
+    "names": "cf_transfer_fruit_gr"
+  },
+  {
+    "codes": 1024,
+    "names": "cf_cpool_softstem_gr"
+  },
+  {
+    "codes": 1025,
+    "names": "cf_cpool_softstem_storage_gr"
+  },
+  {
+    "codes": 1026,
+    "names": "cf_transfer_softstem_gr"
+  },
+  {
+    "codes": 1027,
+    "names": "cf_cpool_livestem_gr"
+  },
+  {
+    "codes": 1028,
+    "names": "cf_cpool_livestem_storage_gr"
+  },
+  {
+    "codes": 1029,
+    "names": "cf_transfer_livestem_gr"
+  },
+  {
+    "codes": 1030,
+    "names": "cf_cpool_deadstem_gr"
+  },
+  {
+    "codes": 1031,
+    "names": "cf_cpool_deadstem_storage_gr"
+  },
+  {
+    "codes": 1032,
+    "names": "cf_transfer_deadstem_gr"
+  },
+  {
+    "codes": 1033,
+    "names": "cf_cpool_livecroot_gr"
+  },
+  {
+    "codes": 1034,
+    "names": "cf_cpool_livecroot_storage_gr"
+  },
+  {
+    "codes": 1035,
+    "names": "cf_transfer_livecroot_gr"
+  },
+  {
+    "codes": 1036,
+    "names": "cf_cpool_deadcroot_gr"
+  },
+  {
+    "codes": 1037,
+    "names": "cf_cpool_deadcroot_storage_gr"
+  },
+  {
+    "codes": 1038,
+    "names": "cf_transfer_deadcroot_gr"
+  },
+  {
+    "codes": 1039,
+    "names": "cf_leafc_storage_to_maintresp"
+  },
+  {
+    "codes": 1040,
+    "names": "cf_frootc_storage_to_maintresp"
+  },
+  {
+    "codes": 1041,
+    "names": "cf_fruitc_storage_to_maintresp"
+  },
+  {
+    "codes": 1042,
+    "names": "cf_softstemc_storage_to_maintresp"
+  },
+  {
+    "codes": 1043,
+    "names": "cf_livestemc_storage_to_maintresp"
+  },
+  {
+    "codes": 1044,
+    "names": "cf_livecrootc_storage_to_maintresp"
+  },
+  {
+    "codes": 1045,
+    "names": "cf_deadstemc_storage_to_maintresp"
+  },
+  {
+    "codes": 1046,
+    "names": "cf_deadcrootc_storage_to_maintresp"
+  },
+  {
+    "codes": 1047,
+    "names": "cf_leafc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1048,
+    "names": "cf_frootc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1049,
+    "names": "cf_fruitc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1050,
+    "names": "cf_softstemc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1051,
+    "names": "cf_livestemc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1052,
+    "names": "cf_livecrootc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1053,
+    "names": "cf_deadstemc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1054,
+    "names": "cf_deadcrootc_transfer_to_maintresp"
+  },
+  {
+    "codes": 1055,
+    "names": "cf_leafc_to_maintresp"
+  },
+  {
+    "codes": 1056,
+    "names": "cf_frootc_to_maintresp"
+  },
+  {
+    "codes": 1057,
+    "names": "cf_fruitc_to_maintresp"
+  },
+  {
+    "codes": 1058,
+    "names": "cf_softstemc_to_maintresp"
+  },
+  {
+    "codes": 1059,
+    "names": "cf_livestemc_to_maintresp"
+  },
+  {
+    "codes": 1060,
+    "names": "cf_livecrootc_to_maintresp"
+  },
+  {
+    "codes": 1061,
+    "names": "cf_NSC_nw_to_maintresp"
+  },
+  {
+    "codes": 1062,
+    "names": "cf_actC_nw_to_maintresp"
+  },
+  {
+    "codes": 1063,
+    "names": "cf_NSC_w_to_maintresp"
+  },
+  {
+    "codes": 1064,
+    "names": "cf_actC_w_to_maintresp"
+  },
+  {
+    "codes": 1065,
+    "names": "cf_leafc_storage_to_leafc_transfer"
+  },
+  {
+    "codes": 1066,
+    "names": "cf_frootc_storage_to_frootc_transfer"
+  },
+  {
+    "codes": 1067,
+    "names": "cf_fruitc_storage_to_fruitc_transfer"
+  },
+  {
+    "codes": 1068,
+    "names": "cf_softstemc_storage_to_softstemc_transfer"
+  },
+  {
+    "codes": 1069,
+    "names": "cf_livestemc_storage_to_livestemc_transfer"
+  },
+  {
+    "codes": 1070,
+    "names": "cf_deadstemc_storage_to_deadstemc_transfer"
+  },
+  {
+    "codes": 1071,
+    "names": "cf_livecrootc_storage_to_livecrootc_transfer"
+  },
+  {
+    "codes": 1072,
+    "names": "cf_deadcrootc_storage_to_deadcrootc_transfer"
+  },
+  {
+    "codes": 1073,
+    "names": "cf_gresp_storage_to_gresp_transfer"
+  },
+  {
+    "codes": 1074,
+    "names": "cf_livestemc_to_deadstemc"
+  },
+  {
+    "codes": 1075,
+    "names": "cf_livecrootc_to_deadcrootc"
+  },
+  {
+    "codes": 1076,
+    "names": "cf_leafc_transfer_from_PLT"
+  },
+  {
+    "codes": 1077,
+    "names": "cf_frootc_transfer_from_PLT"
+  },
+  {
+    "codes": 1078,
+    "names": "cf_fruitc_transfer_from_PLT"
+  },
+  {
+    "codes": 1079,
+    "names": "cf_softstemc_transfer_from_PLT"
+  },
+  {
+    "codes": 1080,
+    "names": "cf_leafc_to_THN"
+  },
+  {
+    "codes": 1081,
+    "names": "cf_leafc_storage_to_THN"
+  },
+  {
+    "codes": 1082,
+    "names": "cf_leafc_transfer_to_THN"
+  },
+  {
+    "codes": 1083,
+    "names": "cf_fruitc_to_THN"
+  },
+  {
+    "codes": 1084,
+    "names": "cf_fruitc_storage_to_THN"
+  },
+  {
+    "codes": 1085,
+    "names": "cf_fruitc_transfer_to_THN"
+  },
+  {
+    "codes": 1086,
+    "names": "cf_livestemc_to_THN"
+  },
+  {
+    "codes": 1087,
+    "names": "cf_livestemc_storage_to_THN"
+  },
+  {
+    "codes": 1088,
+    "names": "cf_livestemc_transfer_to_THN"
+  },
+  {
+    "codes": 1089,
+    "names": "cf_deadstemc_to_THN"
+  },
+  {
+    "codes": 1090,
+    "names": "cf_deadstemc_storage_to_THN"
+  },
+  {
+    "codes": 1091,
+    "names": "cf_deadstemc_transfer_to_THN"
+  },
+  {
+    "codes": 1092,
+    "names": "cf_gresp_storage_to_THN"
+  },
+  {
+    "codes": 1093,
+    "names": "cf_gresp_transfer_to_THN"
+  },
+  {
+    "codes": 1094,
+    "names": "cf_THN_to_CTDBc_leaf"
+  },
+  {
+    "codes": 1095,
+    "names": "cf_THN_to_CTDBc_fruit"
+  },
+  {
+    "codes": 1096,
+    "names": "cf_THN_to_CTDBc_transfer"
+  },
+  {
+    "codes": 1097,
+    "names": "cf_THN_to_CTDBc_cstem"
+  },
+  {
+    "codes": 1098,
+    "names": "cf_STDBc_leaf_to_THN"
+  },
+  {
+    "codes": 1099,
+    "names": "cf_STDBc_fruit_to_THN"
+  },
+  {
+    "codes": 1100,
+    "names": "cf_STDBc_transfer_to_THN"
+  },
+  {
+    "codes": 1101,
+    "names": "cf_leafc_to_MOW"
+  },
+  {
+    "codes": 1102,
+    "names": "cf_leafc_storage_to_MOW"
+  },
+  {
+    "codes": 1103,
+    "names": "cf_leafc_transfer_to_MOW"
+  },
+  {
+    "codes": 1104,
+    "names": "cf_fruitc_to_MOW"
+  },
+  {
+    "codes": 1105,
+    "names": "cf_fruitc_storage_to_MOW"
+  },
+  {
+    "codes": 1106,
+    "names": "cf_fruitc_transfer_to_MOW"
+  },
+  {
+    "codes": 1107,
+    "names": "cf_softstemc_to_MOW"
+  },
+  {
+    "codes": 1108,
+    "names": "cf_softstemc_storage_to_MOW"
+  },
+  {
+    "codes": 1109,
+    "names": "cf_softstemc_transfer_to_MOW"
+  },
+  {
+    "codes": 1110,
+    "names": "cf_gresp_storage_to_MOW"
+  },
+  {
+    "codes": 1111,
+    "names": "cf_gresp_transfer_to_MOW"
+  },
+  {
+    "codes": 1112,
+    "names": "cf_MOW_to_CTDBc_leaf"
+  },
+  {
+    "codes": 1113,
+    "names": "cf_MOW_to_CTDBc_fruit"
+  },
+  {
+    "codes": 1114,
+    "names": "cf_MOW_to_CTDBc_softstem"
+  },
+  {
+    "codes": 1115,
+    "names": "cf_MOW_to_CTDBc_transfer"
+  },
+  {
+    "codes": 1116,
+    "names": "cf_STDBc_leaf_to_MOW"
+  },
+  {
+    "codes": 1117,
+    "names": "cf_STDBc_fruit_to_MOW"
+  },
+  {
+    "codes": 1118,
+    "names": "cf_STDBc_softstem_to_MOW"
+  },
+  {
+    "codes": 1119,
+    "names": "cf_STDBc_transfer_to_MOW"
+  },
+  {
+    "codes": 1120,
+    "names": "cf_leafc_to_HRV"
+  },
+  {
+    "codes": 1121,
+    "names": "cf_leafc_storage_to_HRV"
+  },
+  {
+    "codes": 1122,
+    "names": "cf_leafc_transfer_to_HRV"
+  },
+  {
+    "codes": 1123,
+    "names": "cf_fruitc_to_HRV"
+  },
+  {
+    "codes": 1124,
+    "names": "cf_fruitc_storage_to_HRV"
+  },
+  {
+    "codes": 1125,
+    "names": "cf_fruitc_transfer_to_HRV"
+  },
+  {
+    "codes": 1126,
+    "names": "cf_softstemc_to_HRV"
+  },
+  {
+    "codes": 1127,
+    "names": "cf_softstemc_storage_to_HRV"
+  },
+  {
+    "codes": 1128,
+    "names": "cf_softstemc_transfer_to_HRV"
+  },
+  {
+    "codes": 1129,
+    "names": "cf_gresp_storage_to_HRV"
+  },
+  {
+    "codes": 1130,
+    "names": "cf_gresp_transfer_to_HRV"
+  },
+  {
+    "codes": 1131,
+    "names": "cf_HRV_to_CTDBc_leaf"
+  },
+  {
+    "codes": 1132,
+    "names": "cf_HRV_to_CTDBc_fruit"
+  },
+  {
+    "codes": 1133,
+    "names": "cf_HRV_to_CTDBc_softstem"
+  },
+  {
+    "codes": 1134,
+    "names": "cf_HRV_to_CTDBc_transfer"
+  },
+  {
+    "codes": 1135,
+    "names": "cf_STDBc_leaf_to_HRV"
+  },
+  {
+    "codes": 1136,
+    "names": "cf_STDBc_fruit_to_HRV"
+  },
+  {
+    "codes": 1137,
+    "names": "cf_STDBc_softstem_to_HRV"
+  },
+  {
+    "codes": 1138,
+    "names": "cf_STDBc_transfer_to_HRV"
+  },
+  {
+    "codes": 1139,
+    "names": "cf_leafc_to_PLG"
+  },
+  {
+    "codes": 1140,
+    "names": "cf_leafc_storage_to_PLG"
+  },
+  {
+    "codes": 1141,
+    "names": "cf_leafc_transfer_to_PLG"
+  },
+  {
+    "codes": 1142,
+    "names": "cf_frootc_to_PLG"
+  },
+  {
+    "codes": 1143,
+    "names": "cf_frootc_storage_to_PLG"
+  },
+  {
+    "codes": 1144,
+    "names": "cf_frootc_transfer_to_PLG"
+  },
+  {
+    "codes": 1145,
+    "names": "cf_fruitc_to_PLG"
+  },
+  {
+    "codes": 1146,
+    "names": "cf_fruitc_storage_to_PLG"
+  },
+  {
+    "codes": 1147,
+    "names": "cf_fruitc_transfer_to_PLG"
+  },
+  {
+    "codes": 1148,
+    "names": "cf_softstemc_to_PLG"
+  },
+  {
+    "codes": 1149,
+    "names": "cf_softstemc_storage_to_PLG"
+  },
+  {
+    "codes": 1150,
+    "names": "cf_softstemc_transfer_to_PLG"
+  },
+  {
+    "codes": 1151,
+    "names": "cf_gresp_storage_to_PLG"
+  },
+  {
+    "codes": 1152,
+    "names": "cf_gresp_transfer_to_PLG"
+  },
+  {
+    "codes": 1153,
+    "names": "cf_STDBc_leaf_to_PLG"
+  },
+  {
+    "codes": 1154,
+    "names": "cf_STDBc_froot_to_PLG"
+  },
+  {
+    "codes": 1155,
+    "names": "cf_STDBc_fruit_to_PLG"
+  },
+  {
+    "codes": 1156,
+    "names": "cf_STDBc_softstem_to_PLG"
+  },
+  {
+    "codes": 1157,
+    "names": "cf_STDBc_transfer_to_PLG"
+  },
+  {
+    "codes": 1158,
+    "names": "cf_CTDBc_leaf_to_PLG"
+  },
+  {
+    "codes": 1159,
+    "names": "cf_CTDBc_fruit_to_PLG"
+  },
+  {
+    "codes": 1160,
+    "names": "cf_CTDBc_softstem_to_PLG"
+  },
+  {
+    "codes": 1161,
+    "names": "cf_leafc_to_GRZ"
+  },
+  {
+    "codes": 1162,
+    "names": "cf_leafc_storage_to_GRZ"
+  },
+  {
+    "codes": 1163,
+    "names": "cf_leafc_transfer_to_GRZ"
+  },
+  {
+    "codes": 1164,
+    "names": "cf_fruitc_to_GRZ"
+  },
+  {
+    "codes": 1165,
+    "names": "cf_fruitc_storage_to_GRZ"
+  },
+  {
+    "codes": 1166,
+    "names": "cf_fruitc_transfer_to_GRZ"
+  },
+  {
+    "codes": 1167,
+    "names": "cf_softstemc_to_GRZ"
+  },
+  {
+    "codes": 1168,
+    "names": "cf_softstemc_storage_to_GRZ"
+  },
+  {
+    "codes": 1169,
+    "names": "cf_softstemc_transfer_to_GRZ"
+  },
+  {
+    "codes": 1170,
+    "names": "cf_gresp_storage_to_GRZ"
+  },
+  {
+    "codes": 1171,
+    "names": "cf_gresp_transfer_to_GRZ"
+  },
+  {
+    "codes": 1172,
+    "names": "cf_STDBc_leaf_to_GRZ"
+  },
+  {
+    "codes": 1173,
+    "names": "cf_STDBc_fruit_to_GRZ"
+  },
+  {
+    "codes": 1174,
+    "names": "cf_STDBc_softstem_to_GRZ"
+  },
+  {
+    "codes": 1175,
+    "names": "cf_STDBc_transfer_to_GRZ"
+  },
+  {
+    "codes": 1176,
+    "names": "cf_GRZ_to_litr1c"
+  },
+  {
+    "codes": 1177,
+    "names": "cf_GRZ_to_litr2c"
+  },
+  {
+    "codes": 1178,
+    "names": "cf_GRZ_to_litr3c"
+  },
+  {
+    "codes": 1179,
+    "names": "cf_GRZ_to_litr4c"
+  },
+  {
+    "codes": 1180,
+    "names": "cf_FRZ_to_litr1c"
+  },
+  {
+    "codes": 1181,
+    "names": "cf_FRZ_to_litr2c"
+  },
+  {
+    "codes": 1182,
+    "names": "cf_FRZ_to_litr3c"
+  },
+  {
+    "codes": 1183,
+    "names": "cf_FRZ_to_litr4c"
+  },
+  {
+    "codes": 1184,
+    "names": "cf_CH4_flux_soil"
+  },
+  {
+    "codes": 1185,
+    "names": "cf_CH4_flux_MANURE"
+  },
+  {
+    "codes": 1186,
+    "names": "cf_CH4_flux_FERMENT"
+  },
+  {
+    "codes": 1300,
+    "names": "ns_leafn"
+  },
+  {
+    "codes": 1301,
+    "names": "ns_leafn_storage"
+  },
+  {
+    "codes": 1302,
+    "names": "ns_leafn_transfer"
+  },
+  {
+    "codes": 1303,
+    "names": "ns_frootn"
+  },
+  {
+    "codes": 1304,
+    "names": "ns_frootn_storage"
+  },
+  {
+    "codes": 1305,
+    "names": "ns_frootn_transfer"
+  },
+  {
+    "codes": 1306,
+    "names": "ns_fruitn"
+  },
+  {
+    "codes": 1307,
+    "names": "ns_fruitn_storage"
+  },
+  {
+    "codes": 1308,
+    "names": "ns_fruitn_transfer"
+  },
+  {
+    "codes": 1309,
+    "names": "ns_softstemn"
+  },
+  {
+    "codes": 1310,
+    "names": "ns_softstemn_storage"
+  },
+  {
+    "codes": 1311,
+    "names": "ns_softstemn_transfer"
+  },
+  {
+    "codes": 1312,
+    "names": "ns_livestemn"
+  },
+  {
+    "codes": 1313,
+    "names": "ns_livestemn_storage"
+  },
+  {
+    "codes": 1314,
+    "names": "ns_livestemn_transfer"
+  },
+  {
+    "codes": 1315,
+    "names": "ns_deadstemn"
+  },
+  {
+    "codes": 1316,
+    "names": "ns_deadstemn_storage"
+  },
+  {
+    "codes": 1317,
+    "names": "ns_deadstemn_transfer"
+  },
+  {
+    "codes": 1318,
+    "names": "ns_livecrootn"
+  },
+  {
+    "codes": 1319,
+    "names": "ns_livecrootn_storage"
+  },
+  {
+    "codes": 1320,
+    "names": "ns_livecrootn_transfer"
+  },
+  {
+    "codes": 1321,
+    "names": "ns_deadcrootn"
+  },
+  {
+    "codes": 1322,
+    "names": "ns_deadcrootn_storage"
+  },
+  {
+    "codes": 1323,
+    "names": "ns_deadcrootn_transfer"
+  },
+  {
+    "codes": 1324,
+    "names": "ns_npool"
+  },
+  {
+    "codes": 1325,
+    "names": "ns_cwdn_0"
+  },
+  {
+    "codes": 1326,
+    "names": "ns_cwdn_1"
+  },
+  {
+    "codes": 1327,
+    "names": "ns_cwdn_2"
+  },
+  {
+    "codes": 1328,
+    "names": "ns_cwdn_3"
+  },
+  {
+    "codes": 1329,
+    "names": "ns_cwdn_4"
+  },
+  {
+    "codes": 1330,
+    "names": "ns_cwdn_5"
+  },
+  {
+    "codes": 1331,
+    "names": "ns_cwdn_6"
+  },
+  {
+    "codes": 1332,
+    "names": "ns_cwdn_7"
+  },
+  {
+    "codes": 1333,
+    "names": "ns_cwdn_8"
+  },
+  {
+    "codes": 1334,
+    "names": "ns_cwdn_9"
+  },
+  {
+    "codes": 1335,
+    "names": "ns_litr1n_0"
+  },
+  {
+    "codes": 1336,
+    "names": "ns_litr1n_1"
+  },
+  {
+    "codes": 1337,
+    "names": "ns_litr1n_2"
+  },
+  {
+    "codes": 1338,
+    "names": "ns_litr1n_3"
+  },
+  {
+    "codes": 1339,
+    "names": "ns_litr1n_4"
+  },
+  {
+    "codes": 1340,
+    "names": "ns_litr1n_5"
+  },
+  {
+    "codes": 1341,
+    "names": "ns_litr1n_6"
+  },
+  {
+    "codes": 1342,
+    "names": "ns_litr1n_7"
+  },
+  {
+    "codes": 1343,
+    "names": "ns_litr1n_8"
+  },
+  {
+    "codes": 1344,
+    "names": "ns_litr1n_9"
+  },
+  {
+    "codes": 1345,
+    "names": "ns_litr2n_0"
+  },
+  {
+    "codes": 1346,
+    "names": "ns_litr2n_1"
+  },
+  {
+    "codes": 1347,
+    "names": "ns_litr2n_2"
+  },
+  {
+    "codes": 1348,
+    "names": "ns_litr2n_3"
+  },
+  {
+    "codes": 1349,
+    "names": "ns_litr2n_4"
+  },
+  {
+    "codes": 1350,
+    "names": "ns_litr2n_5"
+  },
+  {
+    "codes": 1351,
+    "names": "ns_litr2n_6"
+  },
+  {
+    "codes": 1352,
+    "names": "ns_litr2n_7"
+  },
+  {
+    "codes": 1353,
+    "names": "ns_litr2n_8"
+  },
+  {
+    "codes": 1354,
+    "names": "ns_litr2n_9"
+  },
+  {
+    "codes": 1355,
+    "names": "ns_litr3n_0"
+  },
+  {
+    "codes": 1356,
+    "names": "ns_litr3n_1"
+  },
+  {
+    "codes": 1357,
+    "names": "ns_litr3n_2"
+  },
+  {
+    "codes": 1358,
+    "names": "ns_litr3n_3"
+  },
+  {
+    "codes": 1359,
+    "names": "ns_litr3n_4"
+  },
+  {
+    "codes": 1360,
+    "names": "ns_litr3n_5"
+  },
+  {
+    "codes": 1361,
+    "names": "ns_litr3n_6"
+  },
+  {
+    "codes": 1362,
+    "names": "ns_litr3n_7"
+  },
+  {
+    "codes": 1363,
+    "names": "ns_litr3n_8"
+  },
+  {
+    "codes": 1364,
+    "names": "ns_litr3n_9"
+  },
+  {
+    "codes": 1365,
+    "names": "ns_litr4n_0"
+  },
+  {
+    "codes": 1366,
+    "names": "ns_litr4n_1"
+  },
+  {
+    "codes": 1367,
+    "names": "ns_litr4n_2"
+  },
+  {
+    "codes": 1368,
+    "names": "ns_litr4n_3"
+  },
+  {
+    "codes": 1369,
+    "names": "ns_litr4n_4"
+  },
+  {
+    "codes": 1370,
+    "names": "ns_litr4n_5"
+  },
+  {
+    "codes": 1371,
+    "names": "ns_litr4n_6"
+  },
+  {
+    "codes": 1372,
+    "names": "ns_litr4n_7"
+  },
+  {
+    "codes": 1373,
+    "names": "ns_litr4n_8"
+  },
+  {
+    "codes": 1374,
+    "names": "ns_litr4n_9"
+  },
+  {
+    "codes": 1375,
+    "names": "ns_litrN_0"
+  },
+  {
+    "codes": 1376,
+    "names": "ns_litrN_1"
+  },
+  {
+    "codes": 1377,
+    "names": "ns_litrN_2"
+  },
+  {
+    "codes": 1378,
+    "names": "ns_litrN_3"
+  },
+  {
+    "codes": 1379,
+    "names": "ns_litrN_4"
+  },
+  {
+    "codes": 1380,
+    "names": "ns_litrN_5"
+  },
+  {
+    "codes": 1381,
+    "names": "ns_litrN_6"
+  },
+  {
+    "codes": 1382,
+    "names": "ns_litrN_7"
+  },
+  {
+    "codes": 1383,
+    "names": "ns_litrN_8"
+  },
+  {
+    "codes": 1384,
+    "names": "ns_litrN_9"
+  },
+  {
+    "codes": 1385,
+    "names": "ns_litr1n_total"
+  },
+  {
+    "codes": 1386,
+    "names": "ns_litr2n_total"
+  },
+  {
+    "codes": 1387,
+    "names": "ns_litr3n_total"
+  },
+  {
+    "codes": 1388,
+    "names": "ns_litr4n_total"
+  },
+  {
+    "codes": 1389,
+    "names": "ns_cwdn_total"
+  },
+  {
+    "codes": 1390,
+    "names": "ns_STDBn_leaf"
+  },
+  {
+    "codes": 1391,
+    "names": "ns_STDBn_froot"
+  },
+  {
+    "codes": 1392,
+    "names": "ns_STDBn_fruit"
+  },
+  {
+    "codes": 1393,
+    "names": "ns_STDBn_softstem"
+  },
+  {
+    "codes": 1394,
+    "names": "ns_STDBn_transfer"
+  },
+  {
+    "codes": 1395,
+    "names": "ns_STDBn_above"
+  },
+  {
+    "codes": 1396,
+    "names": "ns_STDBn_below"
+  },
+  {
+    "codes": 1397,
+    "names": "ns_CTDBn_leaf"
+  },
+  {
+    "codes": 1398,
+    "names": "ns_CTDBn_froot"
+  },
+  {
+    "codes": 1399,
+    "names": "ns_CTDBn_fruit"
+  },
+  {
+    "codes": 1400,
+    "names": "ns_CTDBn_softstem"
+  },
+  {
+    "codes": 1401,
+    "names": "ns_CTDBn_transfer"
+  },
+  {
+    "codes": 1402,
+    "names": "ns_CTDBn_cstem"
+  },
+  {
+    "codes": 1403,
+    "names": "ns_CTDBn_croot"
+  },
+  {
+    "codes": 1404,
+    "names": "ns_CTDBn_above"
+  },
+  {
+    "codes": 1405,
+    "names": "ns_CTDBn_below"
+  },
+  {
+    "codes": 1406,
+    "names": "ns_soil1n_0"
+  },
+  {
+    "codes": 1407,
+    "names": "ns_soil1n_1"
+  },
+  {
+    "codes": 1408,
+    "names": "ns_soil1n_2"
+  },
+  {
+    "codes": 1409,
+    "names": "ns_soil1n_3"
+  },
+  {
+    "codes": 1410,
+    "names": "ns_soil1n_4"
+  },
+  {
+    "codes": 1411,
+    "names": "ns_soil1n_5"
+  },
+  {
+    "codes": 1412,
+    "names": "ns_soil1n_6"
+  },
+  {
+    "codes": 1413,
+    "names": "ns_soil1n_7"
+  },
+  {
+    "codes": 1414,
+    "names": "ns_soil1n_8"
+  },
+  {
+    "codes": 1415,
+    "names": "ns_soil1n_9"
+  },
+  {
+    "codes": 1416,
+    "names": "ns_soil2n_0"
+  },
+  {
+    "codes": 1417,
+    "names": "ns_soil2n_1"
+  },
+  {
+    "codes": 1418,
+    "names": "ns_soil2n_2"
+  },
+  {
+    "codes": 1419,
+    "names": "ns_soil2n_3"
+  },
+  {
+    "codes": 1420,
+    "names": "ns_soil2n_4"
+  },
+  {
+    "codes": 1421,
+    "names": "ns_soil2n_5"
+  },
+  {
+    "codes": 1422,
+    "names": "ns_soil2n_6"
+  },
+  {
+    "codes": 1423,
+    "names": "ns_soil2n_7"
+  },
+  {
+    "codes": 1424,
+    "names": "ns_soil2n_8"
+  },
+  {
+    "codes": 1425,
+    "names": "ns_soil2n_9"
+  },
+  {
+    "codes": 1426,
+    "names": "ns_soil3n_0"
+  },
+  {
+    "codes": 1427,
+    "names": "ns_soil3n_1"
+  },
+  {
+    "codes": 1428,
+    "names": "ns_soil3n_2"
+  },
+  {
+    "codes": 1429,
+    "names": "ns_soil3n_3"
+  },
+  {
+    "codes": 1430,
+    "names": "ns_soil3n_4"
+  },
+  {
+    "codes": 1431,
+    "names": "ns_soil3n_5"
+  },
+  {
+    "codes": 1432,
+    "names": "ns_soil3n_6"
+  },
+  {
+    "codes": 1433,
+    "names": "ns_soil3n_7"
+  },
+  {
+    "codes": 1434,
+    "names": "ns_soil3n_8"
+  },
+  {
+    "codes": 1435,
+    "names": "ns_soil3n_9"
+  },
+  {
+    "codes": 1436,
+    "names": "ns_soil4n_0"
+  },
+  {
+    "codes": 1437,
+    "names": "ns_soil4n_1"
+  },
+  {
+    "codes": 1438,
+    "names": "ns_soil4n_2"
+  },
+  {
+    "codes": 1439,
+    "names": "ns_soil4n_3"
+  },
+  {
+    "codes": 1440,
+    "names": "ns_soil4n_4"
+  },
+  {
+    "codes": 1441,
+    "names": "ns_soil4n_5"
+  },
+  {
+    "codes": 1442,
+    "names": "ns_soil4n_6"
+  },
+  {
+    "codes": 1443,
+    "names": "ns_soil4n_7"
+  },
+  {
+    "codes": 1444,
+    "names": "ns_soil4n_8"
+  },
+  {
+    "codes": 1445,
+    "names": "ns_soil4n_9"
+  },
+  {
+    "codes": 1446,
+    "names": "ns_soilN_0"
+  },
+  {
+    "codes": 1447,
+    "names": "ns_soilN_1"
+  },
+  {
+    "codes": 1448,
+    "names": "ns_soilN_2"
+  },
+  {
+    "codes": 1449,
+    "names": "ns_soilN_3"
+  },
+  {
+    "codes": 1450,
+    "names": "ns_soilN_4"
+  },
+  {
+    "codes": 1451,
+    "names": "ns_soilN_5"
+  },
+  {
+    "codes": 1452,
+    "names": "ns_soilN_6"
+  },
+  {
+    "codes": 1453,
+    "names": "ns_soilN_7"
+  },
+  {
+    "codes": 1454,
+    "names": "ns_soilN_8"
+  },
+  {
+    "codes": 1455,
+    "names": "ns_soilN_9"
+  },
+  {
+    "codes": 1456,
+    "names": "ns_soil1_DON_0"
+  },
+  {
+    "codes": 1457,
+    "names": "ns_soil1_DON_1"
+  },
+  {
+    "codes": 1458,
+    "names": "ns_soil1_DON_2"
+  },
+  {
+    "codes": 1459,
+    "names": "ns_soil1_DON_3"
+  },
+  {
+    "codes": 1460,
+    "names": "ns_soil1_DON_4"
+  },
+  {
+    "codes": 1461,
+    "names": "ns_soil1_DON_5"
+  },
+  {
+    "codes": 1462,
+    "names": "ns_soil1_DON_6"
+  },
+  {
+    "codes": 1463,
+    "names": "ns_soil1_DON_7"
+  },
+  {
+    "codes": 1464,
+    "names": "ns_soil1_DON_8"
+  },
+  {
+    "codes": 1465,
+    "names": "ns_soil1_DON_9"
+  },
+  {
+    "codes": 1466,
+    "names": "ns_soil2_DON_0"
+  },
+  {
+    "codes": 1467,
+    "names": "ns_soil2_DON_1"
+  },
+  {
+    "codes": 1468,
+    "names": "ns_soil2_DON_2"
+  },
+  {
+    "codes": 1469,
+    "names": "ns_soil2_DON_3"
+  },
+  {
+    "codes": 1470,
+    "names": "ns_soil2_DON_4"
+  },
+  {
+    "codes": 1471,
+    "names": "ns_soil2_DON_5"
+  },
+  {
+    "codes": 1472,
+    "names": "ns_soil2_DON_6"
+  },
+  {
+    "codes": 1473,
+    "names": "ns_soil2_DON_7"
+  },
+  {
+    "codes": 1474,
+    "names": "ns_soil2_DON_8"
+  },
+  {
+    "codes": 1475,
+    "names": "ns_soil2_DON_9"
+  },
+  {
+    "codes": 1476,
+    "names": "ns_soil3_DON_0"
+  },
+  {
+    "codes": 1477,
+    "names": "ns_soil3_DON_1"
+  },
+  {
+    "codes": 1478,
+    "names": "ns_soil3_DON_2"
+  },
+  {
+    "codes": 1479,
+    "names": "ns_soil3_DON_3"
+  },
+  {
+    "codes": 1480,
+    "names": "ns_soil3_DON_4"
+  },
+  {
+    "codes": 1481,
+    "names": "ns_soil3_DON_5"
+  },
+  {
+    "codes": 1482,
+    "names": "ns_soil3_DON_6"
+  },
+  {
+    "codes": 1483,
+    "names": "ns_soil3_DON_7"
+  },
+  {
+    "codes": 1484,
+    "names": "ns_soil3_DON_8"
+  },
+  {
+    "codes": 1485,
+    "names": "ns_soil3_DON_9"
+  },
+  {
+    "codes": 1486,
+    "names": "ns_soil4_DON_0"
+  },
+  {
+    "codes": 1487,
+    "names": "ns_soil4_DON_1"
+  },
+  {
+    "codes": 1488,
+    "names": "ns_soil4_DON_2"
+  },
+  {
+    "codes": 1489,
+    "names": "ns_soil4_DON_3"
+  },
+  {
+    "codes": 1490,
+    "names": "ns_soil4_DON_4"
+  },
+  {
+    "codes": 1491,
+    "names": "ns_soil4_DON_5"
+  },
+  {
+    "codes": 1492,
+    "names": "ns_soil4_DON_6"
+  },
+  {
+    "codes": 1493,
+    "names": "ns_soil4_DON_7"
+  },
+  {
+    "codes": 1494,
+    "names": "ns_soil4_DON_8"
+  },
+  {
+    "codes": 1495,
+    "names": "ns_soil4_DON_9"
+  },
+  {
+    "codes": 1496,
+    "names": "ns_soil_DON_0"
+  },
+  {
+    "codes": 1497,
+    "names": "ns_soil_DON_1"
+  },
+  {
+    "codes": 1498,
+    "names": "ns_soil_DON_2"
+  },
+  {
+    "codes": 1499,
+    "names": "ns_soil_DON_3"
+  },
+  {
+    "codes": 1500,
+    "names": "ns_soil_DON_4"
+  },
+  {
+    "codes": 1501,
+    "names": "ns_soil_DON_5"
+  },
+  {
+    "codes": 1502,
+    "names": "ns_soil_DON_6"
+  },
+  {
+    "codes": 1503,
+    "names": "ns_soil_DON_7"
+  },
+  {
+    "codes": 1504,
+    "names": "ns_soil_DON_8"
+  },
+  {
+    "codes": 1505,
+    "names": "ns_soil_DON_9"
+  },
+  {
+    "codes": 1506,
+    "names": "ns_soil1n_total"
+  },
+  {
+    "codes": 1507,
+    "names": "ns_soil2n_total"
+  },
+  {
+    "codes": 1508,
+    "names": "ns_soil3n_total"
+  },
+  {
+    "codes": 1509,
+    "names": "ns_soil4n_total"
+  },
+  {
+    "codes": 1510,
+    "names": "ns_retransn"
+  },
+  {
+    "codes": 1511,
+    "names": "ns_sminNH4_0"
+  },
+  {
+    "codes": 1512,
+    "names": "ns_sminNH4_1"
+  },
+  {
+    "codes": 1513,
+    "names": "ns_sminNH4_2"
+  },
+  {
+    "codes": 1514,
+    "names": "ns_sminNH4_3"
+  },
+  {
+    "codes": 1515,
+    "names": "ns_sminNH4_4"
+  },
+  {
+    "codes": 1516,
+    "names": "ns_sminNH4_5"
+  },
+  {
+    "codes": 1517,
+    "names": "ns_sminNH4_6"
+  },
+  {
+    "codes": 1518,
+    "names": "ns_sminNH4_7"
+  },
+  {
+    "codes": 1519,
+    "names": "ns_sminNH4_8"
+  },
+  {
+    "codes": 1520,
+    "names": "ns_sminNH4_9"
+  },
+  {
+    "codes": 1521,
+    "names": "ns_sminNO3_0"
+  },
+  {
+    "codes": 1522,
+    "names": "ns_sminNO3_1"
+  },
+  {
+    "codes": 1523,
+    "names": "ns_sminNO3_2"
+  },
+  {
+    "codes": 1524,
+    "names": "ns_sminNO3_3"
+  },
+  {
+    "codes": 1525,
+    "names": "ns_sminNO3_4"
+  },
+  {
+    "codes": 1526,
+    "names": "ns_sminNO3_5"
+  },
+  {
+    "codes": 1527,
+    "names": "ns_sminNO3_6"
+  },
+  {
+    "codes": 1528,
+    "names": "ns_sminNO3_7"
+  },
+  {
+    "codes": 1529,
+    "names": "ns_sminNO3_8"
+  },
+  {
+    "codes": 1530,
+    "names": "ns_sminNO3_9"
+  },
+  {
+    "codes": 1531,
+    "names": "ns_sminNH4_total"
+  },
+  {
+    "codes": 1532,
+    "names": "ns_sminNO3_total"
+  },
+  {
+    "codes": 1533,
+    "names": "ns_nfix_src"
+  },
+  {
+    "codes": 1534,
+    "names": "ns_ndep_src"
+  },
+  {
+    "codes": 1535,
+    "names": "ns_nleached_snk"
+  },
+  {
+    "codes": 1536,
+    "names": "ns_nvol_snk"
+  },
+  {
+    "codes": 1537,
+    "names": "ns_FIREsnk_N"
+  },
+  {
+    "codes": 1538,
+    "names": "ns_ndiffused_snk"
+  },
+  {
+    "codes": 1539,
+    "names": "ns_SNSCsnk_N"
+  },
+  {
+    "codes": 1540,
+    "names": "ns_FRZsrc_N"
+  },
+  {
+    "codes": 1541,
+    "names": "ns_PLTsrc_N"
+  },
+  {
+    "codes": 1542,
+    "names": "ns_THN_transportN"
+  },
+  {
+    "codes": 1543,
+    "names": "ns_HRV_transportN"
+  },
+  {
+    "codes": 1544,
+    "names": "ns_MOW_transportN"
+  },
+  {
+    "codes": 1545,
+    "names": "ns_GRZsnk_N"
+  },
+  {
+    "codes": 1546,
+    "names": "ns_GRZsrc_N"
+  },
+  {
+    "codes": 1548,
+    "names": "ns_SPINUPsrc"
+  },
+  {
+    "codes": 1549,
+    "names": "ns_sum_ndemand"
+  },
+  {
+    "codes": 1550,
+    "names": "ns_NbalanceERR"
+  },
+  {
+    "codes": 1551,
+    "names": "ns_inN"
+  },
+  {
+    "codes": 1552,
+    "names": "ns_outN"
+  },
+  {
+    "codes": 1553,
+    "names": "ns_storeN"
+  },
+  {
+    "codes": 1700,
+    "names": "nf_m_leafn_to_litr1n"
+  },
+  {
+    "codes": 1701,
+    "names": "nf_m_leafn_to_litr2n"
+  },
+  {
+    "codes": 1702,
+    "names": "nf_m_leafn_to_litr3n"
+  },
+  {
+    "codes": 1703,
+    "names": "nf_m_leafn_to_litr4n"
+  },
+  {
+    "codes": 1704,
+    "names": "nf_m_frootn_to_litr1n"
+  },
+  {
+    "codes": 1705,
+    "names": "nf_m_frootn_to_litr2n"
+  },
+  {
+    "codes": 1706,
+    "names": "nf_m_frootn_to_litr3n"
+  },
+  {
+    "codes": 1707,
+    "names": "nf_m_frootn_to_litr4n"
+  },
+  {
+    "codes": 1708,
+    "names": "nf_m_fruitn_to_litr1n"
+  },
+  {
+    "codes": 1709,
+    "names": "nf_m_fruitn_to_litr2n"
+  },
+  {
+    "codes": 1710,
+    "names": "nf_m_fruitn_to_litr3n"
+  },
+  {
+    "codes": 1711,
+    "names": "nf_m_fruitn_to_litr4n"
+  },
+  {
+    "codes": 1712,
+    "names": "nf_m_softstemn_to_litr1n"
+  },
+  {
+    "codes": 1713,
+    "names": "nf_m_softstemn_to_litr2n"
+  },
+  {
+    "codes": 1714,
+    "names": "nf_m_softstemn_to_litr3n"
+  },
+  {
+    "codes": 1715,
+    "names": "nf_m_softstemn_to_litr4n"
+  },
+  {
+    "codes": 1716,
+    "names": "nf_m_leafn_storage_to_litr1n"
+  },
+  {
+    "codes": 1717,
+    "names": "nf_m_frootn_storage_to_litr1n"
+  },
+  {
+    "codes": 1718,
+    "names": "nf_m_fruitn_storage_to_litr1n"
+  },
+  {
+    "codes": 1719,
+    "names": "nf_m_fruitn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1720,
+    "names": "nf_m_softstemn_storage_to_litr1n"
+  },
+  {
+    "codes": 1721,
+    "names": "nf_m_softstemn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1722,
+    "names": "nf_m_livestemn_storage_to_litr1n"
+  },
+  {
+    "codes": 1723,
+    "names": "nf_m_deadstemn_storage_to_litr1n"
+  },
+  {
+    "codes": 1724,
+    "names": "nf_m_livecrootn_storage_to_litr1n"
+  },
+  {
+    "codes": 1725,
+    "names": "nf_m_deadcrootn_storage_to_litr1n"
+  },
+  {
+    "codes": 1726,
+    "names": "nf_m_leafn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1727,
+    "names": "nf_m_frootn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1728,
+    "names": "nf_m_livestemn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1729,
+    "names": "nf_m_deadstemn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1730,
+    "names": "nf_m_livecrootn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1731,
+    "names": "nf_m_deadcrootn_transfer_to_litr1n"
+  },
+  {
+    "codes": 1732,
+    "names": "nf_m_livestemn_to_litr1n"
+  },
+  {
+    "codes": 1733,
+    "names": "nf_m_livestemn_to_cwdn"
+  },
+  {
+    "codes": 1734,
+    "names": "nf_m_deadstemn_to_cwdn"
+  },
+  {
+    "codes": 1735,
+    "names": "nf_m_livecrootn_to_litr1n"
+  },
+  {
+    "codes": 1736,
+    "names": "nf_m_livecrootn_to_cwdn"
+  },
+  {
+    "codes": 1737,
+    "names": "nf_m_deadcrootn_to_cwdn"
+  },
+  {
+    "codes": 1738,
+    "names": "nf_m_retransn_to_litr1n"
+  },
+  {
+    "codes": 1739,
+    "names": "nf_m_vegn_to_SNSC"
+  },
+  {
+    "codes": 1740,
+    "names": "nf_m_leafn_to_SNSC"
+  },
+  {
+    "codes": 1741,
+    "names": "nf_m_leafn_to_SNSCgenprog"
+  },
+  {
+    "codes": 1742,
+    "names": "nf_m_frootn_to_SNSC"
+  },
+  {
+    "codes": 1743,
+    "names": "nf_m_leafn_storage_to_SNSC"
+  },
+  {
+    "codes": 1744,
+    "names": "nf_m_frootn_storage_to_SNSC"
+  },
+  {
+    "codes": 1745,
+    "names": "nf_m_leafn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1746,
+    "names": "nf_m_frootn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1747,
+    "names": "nf_m_fruitn_to_SNSC"
+  },
+  {
+    "codes": 1748,
+    "names": "nf_m_fruitn_storage_to_SNSC"
+  },
+  {
+    "codes": 1749,
+    "names": "nf_m_fruitn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1750,
+    "names": "nf_m_softstemn_to_SNSC"
+  },
+  {
+    "codes": 1751,
+    "names": "nf_m_softstemn_storage_to_SNSC"
+  },
+  {
+    "codes": 1752,
+    "names": "nf_m_softstemn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1753,
+    "names": "nf_m_retransn_to_SNSC"
+  },
+  {
+    "codes": 1754,
+    "names": "nf_HRV_leafn_storage_to_SNSC"
+  },
+  {
+    "codes": 1755,
+    "names": "nf_HRV_leafn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1756,
+    "names": "nf_HRV_fruitn_storage_to_SNSC"
+  },
+  {
+    "codes": 1757,
+    "names": "nf_HRV_fruitn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1758,
+    "names": "nf_HRV_frootn_to_SNSC"
+  },
+  {
+    "codes": 1759,
+    "names": "nf_HRV_softstemn_to_SNSC"
+  },
+  {
+    "codes": 1760,
+    "names": "nf_HRV_frootn_storage_to_SNSC"
+  },
+  {
+    "codes": 1761,
+    "names": "nf_HRV_frootn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1762,
+    "names": "nf_HRV_softstemn_storage_to_SNSC"
+  },
+  {
+    "codes": 1763,
+    "names": "nf_HRV_softstemn_transfer_to_SNSC"
+  },
+  {
+    "codes": 1764,
+    "names": "nf_HRV_retransn_to_SNSC"
+  },
+  {
+    "codes": 1765,
+    "names": "nf_fruitn_to_flowHS"
+  },
+  {
+    "codes": 1766,
+    "names": "nf_STDBn_leaf_to_litr"
+  },
+  {
+    "codes": 1767,
+    "names": "nf_STDBn_froot_to_litr"
+  },
+  {
+    "codes": 1768,
+    "names": "nf_STDBn_fruit_to_litr"
+  },
+  {
+    "codes": 1769,
+    "names": "nf_STDBn_softstem_to_litr"
+  },
+  {
+    "codes": 1770,
+    "names": "nf_STDBn_transfer_to_litr"
+  },
+  {
+    "codes": 1771,
+    "names": "nf_STDBn_to_litr"
+  },
+  {
+    "codes": 1772,
+    "names": "nf_CTDBn_leaf_to_litr"
+  },
+  {
+    "codes": 1773,
+    "names": "nf_CTDBn_froot_to_litr"
+  },
+  {
+    "codes": 1774,
+    "names": "nf_CTDBn_fruit_to_litr"
+  },
+  {
+    "codes": 1775,
+    "names": "nf_CTDBn_softstem_to_litr"
+  },
+  {
+    "codes": 1776,
+    "names": "nf_CTDBn_transfer_to_litr"
+  },
+  {
+    "codes": 1777,
+    "names": "nf_CTDBn_cstem_to_cwd"
+  },
+  {
+    "codes": 1778,
+    "names": "nf_CTDBn_croot_to_cwd"
+  },
+  {
+    "codes": 1779,
+    "names": "nf_CTDBn_to_litr"
+  },
+  {
+    "codes": 1780,
+    "names": "nf_m_leafn_to_fire"
+  },
+  {
+    "codes": 1781,
+    "names": "nf_m_frootn_to_fire"
+  },
+  {
+    "codes": 1782,
+    "names": "nf_m_fruitn_to_fire"
+  },
+  {
+    "codes": 1783,
+    "names": "nf_m_softstemn_to_fire"
+  },
+  {
+    "codes": 1784,
+    "names": "nf_m_STDBn_to_fire"
+  },
+  {
+    "codes": 1785,
+    "names": "nf_m_CTDBn_to_fire"
+  },
+  {
+    "codes": 1786,
+    "names": "nf_m_leafn_storage_to_fire"
+  },
+  {
+    "codes": 1787,
+    "names": "nf_m_frootn_storage_to_fire"
+  },
+  {
+    "codes": 1788,
+    "names": "nf_m_fruitn_storage_to_fire"
+  },
+  {
+    "codes": 1789,
+    "names": "nf_m_fruitn_transfer_to_fire"
+  },
+  {
+    "codes": 1790,
+    "names": "nf_m_softstemn_storage_to_fire"
+  },
+  {
+    "codes": 1791,
+    "names": "nf_m_softstemn_transfer_to_fire"
+  },
+  {
+    "codes": 1792,
+    "names": "nf_m_livestemn_storage_to_fire"
+  },
+  {
+    "codes": 1793,
+    "names": "nf_m_deadstemn_storage_to_fire"
+  },
+  {
+    "codes": 1794,
+    "names": "nf_m_livecrootn_storage_to_fire"
+  },
+  {
+    "codes": 1795,
+    "names": "nf_m_deadcrootn_storage_to_fire"
+  },
+  {
+    "codes": 1796,
+    "names": "nf_m_leafn_transfer_to_fire"
+  },
+  {
+    "codes": 1797,
+    "names": "nf_m_frootn_transfer_to_fire"
+  },
+  {
+    "codes": 1798,
+    "names": "nf_m_livestemn_transfer_to_fire"
+  },
+  {
+    "codes": 1799,
+    "names": "nf_m_deadstemn_transfer_to_fire"
+  },
+  {
+    "codes": 1800,
+    "names": "nf_m_livecrootn_transfer_to_fire"
+  },
+  {
+    "codes": 1801,
+    "names": "nf_m_deadcrootn_transfer_to_fire"
+  },
+  {
+    "codes": 1802,
+    "names": "nf_m_livestemn_to_fire"
+  },
+  {
+    "codes": 1803,
+    "names": "nf_m_deadstemn_to_fire"
+  },
+  {
+    "codes": 1804,
+    "names": "nf_m_livecrootn_to_fire"
+  },
+  {
+    "codes": 1805,
+    "names": "nf_m_deadcrootn_to_fire"
+  },
+  {
+    "codes": 1806,
+    "names": "nf_m_retransn_to_fire"
+  },
+  {
+    "codes": 1807,
+    "names": "nf_m_litr1n_to_fire"
+  },
+  {
+    "codes": 1808,
+    "names": "nf_m_litr2n_to_fire"
+  },
+  {
+    "codes": 1809,
+    "names": "nf_m_litr3n_to_fire"
+  },
+  {
+    "codes": 1810,
+    "names": "nf_m_litr4n_to_fire"
+  },
+  {
+    "codes": 1811,
+    "names": "nf_m_cwdn_to_fire"
+  },
+  {
+    "codes": 1812,
+    "names": "nf_leafn_transfer_to_leafn"
+  },
+  {
+    "codes": 1813,
+    "names": "nf_frootn_transfer_to_frootn"
+  },
+  {
+    "codes": 1814,
+    "names": "nf_fruitn_transfer_to_fruitn"
+  },
+  {
+    "codes": 1815,
+    "names": "nf_softstemn_transfer_to_softstemn"
+  },
+  {
+    "codes": 1816,
+    "names": "nf_livestemn_transfer_to_livestemn"
+  },
+  {
+    "codes": 1817,
+    "names": "nf_deadstemn_transfer_to_deadstemn"
+  },
+  {
+    "codes": 1818,
+    "names": "nf_livecrootn_transfer_to_livecrootn"
+  },
+  {
+    "codes": 1819,
+    "names": "nf_deadcrootn_transfer_to_deadcrootn"
+  },
+  {
+    "codes": 1820,
+    "names": "nf_leafn_to_litr1n"
+  },
+  {
+    "codes": 1821,
+    "names": "nf_leafn_to_litr2n"
+  },
+  {
+    "codes": 1822,
+    "names": "nf_leafn_to_litr3n"
+  },
+  {
+    "codes": 1823,
+    "names": "nf_leafn_to_litr4n"
+  },
+  {
+    "codes": 1824,
+    "names": "nf_leafn_to_retransn"
+  },
+  {
+    "codes": 1825,
+    "names": "nf_frootn_to_litr1n"
+  },
+  {
+    "codes": 1826,
+    "names": "nf_frootn_to_litr2n"
+  },
+  {
+    "codes": 1827,
+    "names": "nf_frootn_to_litr3n"
+  },
+  {
+    "codes": 1828,
+    "names": "nf_frootn_to_litr4n"
+  },
+  {
+    "codes": 1829,
+    "names": "nf_fruitn_to_litr1n"
+  },
+  {
+    "codes": 1830,
+    "names": "nf_fruitn_to_litr2n"
+  },
+  {
+    "codes": 1831,
+    "names": "nf_fruitn_to_litr3n"
+  },
+  {
+    "codes": 1832,
+    "names": "nf_fruitn_to_litr4n"
+  },
+  {
+    "codes": 1833,
+    "names": "nf_softstemn_to_litr1n"
+  },
+  {
+    "codes": 1834,
+    "names": "nf_softstemn_to_litr2n"
+  },
+  {
+    "codes": 1835,
+    "names": "nf_softstemn_to_litr3n"
+  },
+  {
+    "codes": 1836,
+    "names": "nf_softstemn_to_litr4n"
+  },
+  {
+    "codes": 1837,
+    "names": "nf_ndep_to_sminn"
+  },
+  {
+    "codes": 1838,
+    "names": "nf_nfix_to_sminn"
+  },
+  {
+    "codes": 1839,
+    "names": "nf_cwdn_to_litr2n_0"
+  },
+  {
+    "codes": 1840,
+    "names": "nf_cwdn_to_litr2n_1"
+  },
+  {
+    "codes": 1841,
+    "names": "nf_cwdn_to_litr2n_2"
+  },
+  {
+    "codes": 1842,
+    "names": "nf_cwdn_to_litr2n_3"
+  },
+  {
+    "codes": 1843,
+    "names": "nf_cwdn_to_litr2n_4"
+  },
+  {
+    "codes": 1844,
+    "names": "nf_cwdn_to_litr2n_5"
+  },
+  {
+    "codes": 1845,
+    "names": "nf_cwdn_to_litr2n_6"
+  },
+  {
+    "codes": 1846,
+    "names": "nf_cwdn_to_litr2n_7"
+  },
+  {
+    "codes": 1847,
+    "names": "nf_cwdn_to_litr2n_8"
+  },
+  {
+    "codes": 1848,
+    "names": "nf_cwdn_to_litr2n_9"
+  },
+  {
+    "codes": 1849,
+    "names": "nf_cwdn_to_litr3n_0"
+  },
+  {
+    "codes": 1850,
+    "names": "nf_cwdn_to_litr3n_1"
+  },
+  {
+    "codes": 1851,
+    "names": "nf_cwdn_to_litr3n_2"
+  },
+  {
+    "codes": 1852,
+    "names": "nf_cwdn_to_litr3n_3"
+  },
+  {
+    "codes": 1853,
+    "names": "nf_cwdn_to_litr3n_4"
+  },
+  {
+    "codes": 1854,
+    "names": "nf_cwdn_to_litr3n_5"
+  },
+  {
+    "codes": 1855,
+    "names": "nf_cwdn_to_litr3n_6"
+  },
+  {
+    "codes": 1856,
+    "names": "nf_cwdn_to_litr3n_7"
+  },
+  {
+    "codes": 1857,
+    "names": "nf_cwdn_to_litr3n_8"
+  },
+  {
+    "codes": 1858,
+    "names": "nf_cwdn_to_litr3n_9"
+  },
+  {
+    "codes": 1859,
+    "names": "nf_cwdn_to_litr4n_0"
+  },
+  {
+    "codes": 1860,
+    "names": "nf_cwdn_to_litr4n_1"
+  },
+  {
+    "codes": 1861,
+    "names": "nf_cwdn_to_litr4n_2"
+  },
+  {
+    "codes": 1862,
+    "names": "nf_cwdn_to_litr4n_3"
+  },
+  {
+    "codes": 1863,
+    "names": "nf_cwdn_to_litr4n_4"
+  },
+  {
+    "codes": 1864,
+    "names": "nf_cwdn_to_litr4n_5"
+  },
+  {
+    "codes": 1865,
+    "names": "nf_cwdn_to_litr4n_6"
+  },
+  {
+    "codes": 1866,
+    "names": "nf_cwdn_to_litr4n_7"
+  },
+  {
+    "codes": 1867,
+    "names": "nf_cwdn_to_litr4n_8"
+  },
+  {
+    "codes": 1868,
+    "names": "nf_cwdn_to_litr4n_9"
+  },
+  {
+    "codes": 1869,
+    "names": "nf_litr1n_to_soil1n_0"
+  },
+  {
+    "codes": 1870,
+    "names": "nf_litr1n_to_soil1n_1"
+  },
+  {
+    "codes": 1871,
+    "names": "nf_litr1n_to_soil1n_2"
+  },
+  {
+    "codes": 1872,
+    "names": "nf_litr1n_to_soil1n_3"
+  },
+  {
+    "codes": 1873,
+    "names": "nf_litr1n_to_soil1n_4"
+  },
+  {
+    "codes": 1874,
+    "names": "nf_litr1n_to_soil1n_5"
+  },
+  {
+    "codes": 1875,
+    "names": "nf_litr1n_to_soil1n_6"
+  },
+  {
+    "codes": 1876,
+    "names": "nf_litr1n_to_soil1n_7"
+  },
+  {
+    "codes": 1877,
+    "names": "nf_litr1n_to_soil1n_8"
+  },
+  {
+    "codes": 1878,
+    "names": "nf_litr1n_to_soil1n_9"
+  },
+  {
+    "codes": 1879,
+    "names": "nf_litr2n_to_soil2n_0"
+  },
+  {
+    "codes": 1880,
+    "names": "nf_litr2n_to_soil2n_1"
+  },
+  {
+    "codes": 1881,
+    "names": "nf_litr2n_to_soil2n_2"
+  },
+  {
+    "codes": 1882,
+    "names": "nf_litr2n_to_soil2n_3"
+  },
+  {
+    "codes": 1883,
+    "names": "nf_litr2n_to_soil2n_4"
+  },
+  {
+    "codes": 1884,
+    "names": "nf_litr2n_to_soil2n_5"
+  },
+  {
+    "codes": 1885,
+    "names": "nf_litr2n_to_soil2n_6"
+  },
+  {
+    "codes": 1886,
+    "names": "nf_litr2n_to_soil2n_7"
+  },
+  {
+    "codes": 1887,
+    "names": "nf_litr2n_to_soil2n_8"
+  },
+  {
+    "codes": 1888,
+    "names": "nf_litr2n_to_soil2n_9"
+  },
+  {
+    "codes": 1889,
+    "names": "nf_litr3n_to_litr2n_0"
+  },
+  {
+    "codes": 1890,
+    "names": "nf_litr3n_to_litr2n_1"
+  },
+  {
+    "codes": 1891,
+    "names": "nf_litr3n_to_litr2n_2"
+  },
+  {
+    "codes": 1892,
+    "names": "nf_litr3n_to_litr2n_3"
+  },
+  {
+    "codes": 1893,
+    "names": "nf_litr3n_to_litr2n_4"
+  },
+  {
+    "codes": 1894,
+    "names": "nf_litr3n_to_litr2n_5"
+  },
+  {
+    "codes": 1895,
+    "names": "nf_litr3n_to_litr2n_6"
+  },
+  {
+    "codes": 1896,
+    "names": "nf_litr3n_to_litr2n_7"
+  },
+  {
+    "codes": 1897,
+    "names": "nf_litr3n_to_litr2n_8"
+  },
+  {
+    "codes": 1898,
+    "names": "nf_litr3n_to_litr2n_9"
+  },
+  {
+    "codes": 1899,
+    "names": "nf_litr4n_to_soil3n_0"
+  },
+  {
+    "codes": 1900,
+    "names": "nf_litr4n_to_soil3n_1"
+  },
+  {
+    "codes": 1901,
+    "names": "nf_litr4n_to_soil3n_2"
+  },
+  {
+    "codes": 1902,
+    "names": "nf_litr4n_to_soil3n_3"
+  },
+  {
+    "codes": 1903,
+    "names": "nf_litr4n_to_soil3n_4"
+  },
+  {
+    "codes": 1904,
+    "names": "nf_litr4n_to_soil3n_5"
+  },
+  {
+    "codes": 1905,
+    "names": "nf_litr4n_to_soil3n_6"
+  },
+  {
+    "codes": 1906,
+    "names": "nf_litr4n_to_soil3n_7"
+  },
+  {
+    "codes": 1907,
+    "names": "nf_litr4n_to_soil3n_8"
+  },
+  {
+    "codes": 1908,
+    "names": "nf_litr4n_to_soil3n_9"
+  },
+  {
+    "codes": 1909,
+    "names": "nf_soil1n_to_soil2n_0"
+  },
+  {
+    "codes": 1910,
+    "names": "nf_soil1n_to_soil2n_1"
+  },
+  {
+    "codes": 1911,
+    "names": "nf_soil1n_to_soil2n_2"
+  },
+  {
+    "codes": 1912,
+    "names": "nf_soil1n_to_soil2n_3"
+  },
+  {
+    "codes": 1913,
+    "names": "nf_soil1n_to_soil2n_4"
+  },
+  {
+    "codes": 1914,
+    "names": "nf_soil1n_to_soil2n_5"
+  },
+  {
+    "codes": 1915,
+    "names": "nf_soil1n_to_soil2n_6"
+  },
+  {
+    "codes": 1916,
+    "names": "nf_soil1n_to_soil2n_7"
+  },
+  {
+    "codes": 1917,
+    "names": "nf_soil1n_to_soil2n_8"
+  },
+  {
+    "codes": 1918,
+    "names": "nf_soil1n_to_soil2n_9"
+  },
+  {
+    "codes": 1919,
+    "names": "nf_soil2n_to_soil3n_0"
+  },
+  {
+    "codes": 1920,
+    "names": "nf_soil2n_to_soil3n_1"
+  },
+  {
+    "codes": 1921,
+    "names": "nf_soil2n_to_soil3n_2"
+  },
+  {
+    "codes": 1922,
+    "names": "nf_soil2n_to_soil3n_3"
+  },
+  {
+    "codes": 1923,
+    "names": "nf_soil2n_to_soil3n_4"
+  },
+  {
+    "codes": 1924,
+    "names": "nf_soil2n_to_soil3n_5"
+  },
+  {
+    "codes": 1925,
+    "names": "nf_soil2n_to_soil3n_6"
+  },
+  {
+    "codes": 1926,
+    "names": "nf_soil2n_to_soil3n_7"
+  },
+  {
+    "codes": 1927,
+    "names": "nf_soil2n_to_soil3n_8"
+  },
+  {
+    "codes": 1928,
+    "names": "nf_soil2n_to_soil3n_9"
+  },
+  {
+    "codes": 1929,
+    "names": "nf_soil3n_to_soil4n_0"
+  },
+  {
+    "codes": 1930,
+    "names": "nf_soil3n_to_soil4n_1"
+  },
+  {
+    "codes": 1931,
+    "names": "nf_soil3n_to_soil4n_2"
+  },
+  {
+    "codes": 1932,
+    "names": "nf_soil3n_to_soil4n_3"
+  },
+  {
+    "codes": 1933,
+    "names": "nf_soil3n_to_soil4n_4"
+  },
+  {
+    "codes": 1934,
+    "names": "nf_soil3n_to_soil4n_5"
+  },
+  {
+    "codes": 1935,
+    "names": "nf_soil3n_to_soil4n_6"
+  },
+  {
+    "codes": 1936,
+    "names": "nf_soil3n_to_soil4n_7"
+  },
+  {
+    "codes": 1937,
+    "names": "nf_soil3n_to_soil4n_8"
+  },
+  {
+    "codes": 1938,
+    "names": "nf_soil3n_to_soil4n_9"
+  },
+  {
+    "codes": 1939,
+    "names": "nf_soil4n_to_sminNH4_0"
+  },
+  {
+    "codes": 1940,
+    "names": "nf_soil4n_to_sminNH4_1"
+  },
+  {
+    "codes": 1941,
+    "names": "nf_soil4n_to_sminNH4_2"
+  },
+  {
+    "codes": 1942,
+    "names": "nf_soil4n_to_sminNH4_3"
+  },
+  {
+    "codes": 1943,
+    "names": "nf_soil4n_to_sminNH4_4"
+  },
+  {
+    "codes": 1944,
+    "names": "nf_soil4n_to_sminNH4_5"
+  },
+  {
+    "codes": 1945,
+    "names": "nf_soil4n_to_sminNH4_6"
+  },
+  {
+    "codes": 1946,
+    "names": "nf_soil4n_to_sminNH4_7"
+  },
+  {
+    "codes": 1947,
+    "names": "nf_soil4n_to_sminNH4_8"
+  },
+  {
+    "codes": 1948,
+    "names": "nf_soil4n_to_sminNH4_9"
+  },
+  {
+    "codes": 1949,
+    "names": "nf_soil4n_to_sminNH4_total"
+  },
+  {
+    "codes": 1950,
+    "names": "nf_sminn_to_soil_SUM_0"
+  },
+  {
+    "codes": 1951,
+    "names": "nf_sminn_to_soil_SUM_1"
+  },
+  {
+    "codes": 1952,
+    "names": "nf_sminn_to_soil_SUM_2"
+  },
+  {
+    "codes": 1953,
+    "names": "nf_sminn_to_soil_SUM_3"
+  },
+  {
+    "codes": 1954,
+    "names": "nf_sminn_to_soil_SUM_4"
+  },
+  {
+    "codes": 1955,
+    "names": "nf_sminn_to_soil_SUM_5"
+  },
+  {
+    "codes": 1956,
+    "names": "nf_sminn_to_soil_SUM_6"
+  },
+  {
+    "codes": 1957,
+    "names": "nf_sminn_to_soil_SUM_7"
+  },
+  {
+    "codes": 1958,
+    "names": "nf_sminn_to_soil_SUM_8"
+  },
+  {
+    "codes": 1959,
+    "names": "nf_sminn_to_soil_SUM_9"
+  },
+  {
+    "codes": 1960,
+    "names": "nf_sminNH4_to_soil_SUM_0"
+  },
+  {
+    "codes": 1961,
+    "names": "nf_sminNH4_to_soil_SUM_1"
+  },
+  {
+    "codes": 1962,
+    "names": "nf_sminNH4_to_soil_SUM_2"
+  },
+  {
+    "codes": 1963,
+    "names": "nf_sminNH4_to_soil_SUM_3"
+  },
+  {
+    "codes": 1964,
+    "names": "nf_sminNH4_to_soil_SUM_4"
+  },
+  {
+    "codes": 1965,
+    "names": "nf_sminNH4_to_soil_SUM_5"
+  },
+  {
+    "codes": 1966,
+    "names": "nf_sminNH4_to_soil_SUM_6"
+  },
+  {
+    "codes": 1967,
+    "names": "nf_sminNH4_to_soil_SUM_7"
+  },
+  {
+    "codes": 1968,
+    "names": "nf_sminNH4_to_soil_SUM_8"
+  },
+  {
+    "codes": 1969,
+    "names": "nf_sminNH4_to_soil_SUM_9"
+  },
+  {
+    "codes": 1970,
+    "names": "nf_sminNO3_to_soil_SUM_0"
+  },
+  {
+    "codes": 1971,
+    "names": "nf_sminNO3_to_soil_SUM_1"
+  },
+  {
+    "codes": 1972,
+    "names": "nf_sminNO3_to_soil_SUM_2"
+  },
+  {
+    "codes": 1973,
+    "names": "nf_sminNO3_to_soil_SUM_3"
+  },
+  {
+    "codes": 1974,
+    "names": "nf_sminNO3_to_soil_SUM_4"
+  },
+  {
+    "codes": 1975,
+    "names": "nf_sminNO3_to_soil_SUM_5"
+  },
+  {
+    "codes": 1976,
+    "names": "nf_sminNO3_to_soil_SUM_6"
+  },
+  {
+    "codes": 1977,
+    "names": "nf_sminNO3_to_soil_SUM_7"
+  },
+  {
+    "codes": 1978,
+    "names": "nf_sminNO3_to_soil_SUM_8"
+  },
+  {
+    "codes": 1979,
+    "names": "nf_sminNO3_to_soil_SUM_9"
+  },
+  {
+    "codes": 1980,
+    "names": "nf_sminn_to_soil1n_l1_0"
+  },
+  {
+    "codes": 1981,
+    "names": "nf_sminn_to_soil1n_l1_1"
+  },
+  {
+    "codes": 1982,
+    "names": "nf_sminn_to_soil1n_l1_2"
+  },
+  {
+    "codes": 1983,
+    "names": "nf_sminn_to_soil1n_l1_3"
+  },
+  {
+    "codes": 1984,
+    "names": "nf_sminn_to_soil1n_l1_4"
+  },
+  {
+    "codes": 1985,
+    "names": "nf_sminn_to_soil1n_l1_5"
+  },
+  {
+    "codes": 1986,
+    "names": "nf_sminn_to_soil1n_l1_6"
+  },
+  {
+    "codes": 1987,
+    "names": "nf_sminn_to_soil1n_l1_7"
+  },
+  {
+    "codes": 1988,
+    "names": "nf_sminn_to_soil1n_l1_8"
+  },
+  {
+    "codes": 1989,
+    "names": "nf_sminn_to_soil1n_l1_9"
+  },
+  {
+    "codes": 1990,
+    "names": "nf_sminn_to_soil2n_l2_0"
+  },
+  {
+    "codes": 1991,
+    "names": "nf_sminn_to_soil2n_l2_1"
+  },
+  {
+    "codes": 1992,
+    "names": "nf_sminn_to_soil2n_l2_2"
+  },
+  {
+    "codes": 1993,
+    "names": "nf_sminn_to_soil2n_l2_3"
+  },
+  {
+    "codes": 1994,
+    "names": "nf_sminn_to_soil2n_l2_4"
+  },
+  {
+    "codes": 1995,
+    "names": "nf_sminn_to_soil2n_l2_5"
+  },
+  {
+    "codes": 1996,
+    "names": "nf_sminn_to_soil2n_l2_6"
+  },
+  {
+    "codes": 1997,
+    "names": "nf_sminn_to_soil2n_l2_7"
+  },
+  {
+    "codes": 1998,
+    "names": "nf_sminn_to_soil2n_l2_8"
+  },
+  {
+    "codes": 1999,
+    "names": "nf_sminn_to_soil2n_l2_9"
+  },
+  {
+    "codes": 2000,
+    "names": "nf_sminn_to_soil3n_l4_0"
+  },
+  {
+    "codes": 2001,
+    "names": "nf_sminn_to_soil3n_l4_1"
+  },
+  {
+    "codes": 2002,
+    "names": "nf_sminn_to_soil3n_l4_2"
+  },
+  {
+    "codes": 2003,
+    "names": "nf_sminn_to_soil3n_l4_3"
+  },
+  {
+    "codes": 2004,
+    "names": "nf_sminn_to_soil3n_l4_4"
+  },
+  {
+    "codes": 2005,
+    "names": "nf_sminn_to_soil3n_l4_5"
+  },
+  {
+    "codes": 2006,
+    "names": "nf_sminn_to_soil3n_l4_6"
+  },
+  {
+    "codes": 2007,
+    "names": "nf_sminn_to_soil3n_l4_7"
+  },
+  {
+    "codes": 2008,
+    "names": "nf_sminn_to_soil3n_l4_8"
+  },
+  {
+    "codes": 2009,
+    "names": "nf_sminn_to_soil3n_l4_9"
+  },
+  {
+    "codes": 2010,
+    "names": "nf_sminn_to_soil2n_s1_0"
+  },
+  {
+    "codes": 2011,
+    "names": "nf_sminn_to_soil2n_s1_1"
+  },
+  {
+    "codes": 2012,
+    "names": "nf_sminn_to_soil2n_s1_2"
+  },
+  {
+    "codes": 2013,
+    "names": "nf_sminn_to_soil2n_s1_3"
+  },
+  {
+    "codes": 2014,
+    "names": "nf_sminn_to_soil2n_s1_4"
+  },
+  {
+    "codes": 2015,
+    "names": "nf_sminn_to_soil2n_s1_5"
+  },
+  {
+    "codes": 2016,
+    "names": "nf_sminn_to_soil2n_s1_6"
+  },
+  {
+    "codes": 2017,
+    "names": "nf_sminn_to_soil2n_s1_7"
+  },
+  {
+    "codes": 2018,
+    "names": "nf_sminn_to_soil2n_s1_8"
+  },
+  {
+    "codes": 2019,
+    "names": "nf_sminn_to_soil2n_s1_9"
+  },
+  {
+    "codes": 2020,
+    "names": "nf_sminn_to_soil3n_s2_0"
+  },
+  {
+    "codes": 2021,
+    "names": "nf_sminn_to_soil3n_s2_1"
+  },
+  {
+    "codes": 2022,
+    "names": "nf_sminn_to_soil3n_s2_2"
+  },
+  {
+    "codes": 2023,
+    "names": "nf_sminn_to_soil3n_s2_3"
+  },
+  {
+    "codes": 2024,
+    "names": "nf_sminn_to_soil3n_s2_4"
+  },
+  {
+    "codes": 2025,
+    "names": "nf_sminn_to_soil3n_s2_5"
+  },
+  {
+    "codes": 2026,
+    "names": "nf_sminn_to_soil3n_s2_6"
+  },
+  {
+    "codes": 2027,
+    "names": "nf_sminn_to_soil3n_s2_7"
+  },
+  {
+    "codes": 2028,
+    "names": "nf_sminn_to_soil3n_s2_8"
+  },
+  {
+    "codes": 2029,
+    "names": "nf_sminn_to_soil3n_s2_9"
+  },
+  {
+    "codes": 2030,
+    "names": "nf_sminn_to_soil4n_s3_0"
+  },
+  {
+    "codes": 2031,
+    "names": "nf_sminn_to_soil4n_s3_1"
+  },
+  {
+    "codes": 2032,
+    "names": "nf_sminn_to_soil4n_s3_2"
+  },
+  {
+    "codes": 2033,
+    "names": "nf_sminn_to_soil4n_s3_3"
+  },
+  {
+    "codes": 2034,
+    "names": "nf_sminn_to_soil4n_s3_4"
+  },
+  {
+    "codes": 2035,
+    "names": "nf_sminn_to_soil4n_s3_5"
+  },
+  {
+    "codes": 2036,
+    "names": "nf_sminn_to_soil4n_s3_6"
+  },
+  {
+    "codes": 2037,
+    "names": "nf_sminn_to_soil4n_s3_7"
+  },
+  {
+    "codes": 2038,
+    "names": "nf_sminn_to_soil4n_s3_8"
+  },
+  {
+    "codes": 2039,
+    "names": "nf_sminn_to_soil4n_s3_9"
+  },
+  {
+    "codes": 2040,
+    "names": "nf_sminn_to_soil_SUM_total"
+  },
+  {
+    "codes": 2041,
+    "names": "nf_sminNH4_to_soil_SUM_total"
+  },
+  {
+    "codes": 2042,
+    "names": "nf_sminNO3_to_soil_SUM_total"
+  },
+  {
+    "codes": 2043,
+    "names": "nf_sminNO3_to_denitr_0"
+  },
+  {
+    "codes": 2044,
+    "names": "nf_sminNO3_to_denitr_1"
+  },
+  {
+    "codes": 2045,
+    "names": "nf_sminNO3_to_denitr_2"
+  },
+  {
+    "codes": 2046,
+    "names": "nf_sminNO3_to_denitr_3"
+  },
+  {
+    "codes": 2047,
+    "names": "nf_sminNO3_to_denitr_4"
+  },
+  {
+    "codes": 2048,
+    "names": "nf_sminNO3_to_denitr_5"
+  },
+  {
+    "codes": 2049,
+    "names": "nf_sminNO3_to_denitr_6"
+  },
+  {
+    "codes": 2050,
+    "names": "nf_sminNO3_to_denitr_7"
+  },
+  {
+    "codes": 2051,
+    "names": "nf_sminNO3_to_denitr_8"
+  },
+  {
+    "codes": 2052,
+    "names": "nf_sminNO3_to_denitr_9"
+  },
+  {
+    "codes": 2053,
+    "names": "nf_sminNH4_to_nitrif_0"
+  },
+  {
+    "codes": 2054,
+    "names": "nf_sminNH4_to_nitrif_1"
+  },
+  {
+    "codes": 2055,
+    "names": "nf_sminNH4_to_nitrif_2"
+  },
+  {
+    "codes": 2056,
+    "names": "nf_sminNH4_to_nitrif_3"
+  },
+  {
+    "codes": 2057,
+    "names": "nf_sminNH4_to_nitrif_4"
+  },
+  {
+    "codes": 2058,
+    "names": "nf_sminNH4_to_nitrif_5"
+  },
+  {
+    "codes": 2059,
+    "names": "nf_sminNH4_to_nitrif_6"
+  },
+  {
+    "codes": 2060,
+    "names": "nf_sminNH4_to_nitrif_7"
+  },
+  {
+    "codes": 2061,
+    "names": "nf_sminNH4_to_nitrif_8"
+  },
+  {
+    "codes": 2062,
+    "names": "nf_sminNH4_to_nitrif_9"
+  },
+  {
+    "codes": 2063,
+    "names": "nf_N2_flux_DENITR_0"
+  },
+  {
+    "codes": 2064,
+    "names": "nf_N2_flux_DENITR_1"
+  },
+  {
+    "codes": 2065,
+    "names": "nf_N2_flux_DENITR_2"
+  },
+  {
+    "codes": 2066,
+    "names": "nf_N2_flux_DENITR_3"
+  },
+  {
+    "codes": 2067,
+    "names": "nf_N2_flux_DENITR_4"
+  },
+  {
+    "codes": 2068,
+    "names": "nf_N2_flux_DENITR_5"
+  },
+  {
+    "codes": 2069,
+    "names": "nf_N2_flux_DENITR_6"
+  },
+  {
+    "codes": 2070,
+    "names": "nf_N2_flux_DENITR_7"
+  },
+  {
+    "codes": 2071,
+    "names": "nf_N2_flux_DENITR_8"
+  },
+  {
+    "codes": 2072,
+    "names": "nf_N2_flux_DENITR_9"
+  },
+  {
+    "codes": 2073,
+    "names": "nf_N2O_flux_NITRIF_0"
+  },
+  {
+    "codes": 2074,
+    "names": "nf_N2O_flux_NITRIF_1"
+  },
+  {
+    "codes": 2075,
+    "names": "nf_N2O_flux_NITRIF_2"
+  },
+  {
+    "codes": 2076,
+    "names": "nf_N2O_flux_NITRIF_3"
+  },
+  {
+    "codes": 2077,
+    "names": "nf_N2O_flux_NITRIF_4"
+  },
+  {
+    "codes": 2078,
+    "names": "nf_N2O_flux_NITRIF_5"
+  },
+  {
+    "codes": 2079,
+    "names": "nf_N2O_flux_NITRIF_6"
+  },
+  {
+    "codes": 2080,
+    "names": "nf_N2O_flux_NITRIF_7"
+  },
+  {
+    "codes": 2081,
+    "names": "nf_N2O_flux_NITRIF_8"
+  },
+  {
+    "codes": 2082,
+    "names": "nf_N2O_flux_NITRIF_9"
+  },
+  {
+    "codes": 2083,
+    "names": "nf_N2O_flux_DENITR_0"
+  },
+  {
+    "codes": 2084,
+    "names": "nf_N2O_flux_DENITR_1"
+  },
+  {
+    "codes": 2085,
+    "names": "nf_N2O_flux_DENITR_2"
+  },
+  {
+    "codes": 2086,
+    "names": "nf_N2O_flux_DENITR_3"
+  },
+  {
+    "codes": 2087,
+    "names": "nf_N2O_flux_DENITR_4"
+  },
+  {
+    "codes": 2088,
+    "names": "nf_N2O_flux_DENITR_5"
+  },
+  {
+    "codes": 2089,
+    "names": "nf_N2O_flux_DENITR_6"
+  },
+  {
+    "codes": 2090,
+    "names": "nf_N2O_flux_DENITR_7"
+  },
+  {
+    "codes": 2091,
+    "names": "nf_N2O_flux_DENITR_8"
+  },
+  {
+    "codes": 2092,
+    "names": "nf_N2O_flux_DENITR_9"
+  },
+  {
+    "codes": 2093,
+    "names": "nf_sminNO3_to_denitr_total"
+  },
+  {
+    "codes": 2094,
+    "names": "nf_sminNH4_to_nitrif_total"
+  },
+  {
+    "codes": 2095,
+    "names": "nf_N2_flux_DENITR_total"
+  },
+  {
+    "codes": 2096,
+    "names": "nf_N2O_flux_NITRIF_total"
+  },
+  {
+    "codes": 2097,
+    "names": "nf_N2O_flux_DENITR_total"
+  },
+  {
+    "codes": 2098,
+    "names": "nf_sminNH4_to_npool_0"
+  },
+  {
+    "codes": 2099,
+    "names": "nf_sminNH4_to_npool_1"
+  },
+  {
+    "codes": 2100,
+    "names": "nf_sminNH4_to_npool_2"
+  },
+  {
+    "codes": 2101,
+    "names": "nf_sminNH4_to_npool_3"
+  },
+  {
+    "codes": 2102,
+    "names": "nf_sminNH4_to_npool_4"
+  },
+  {
+    "codes": 2103,
+    "names": "nf_sminNH4_to_npool_5"
+  },
+  {
+    "codes": 2104,
+    "names": "nf_sminNH4_to_npool_6"
+  },
+  {
+    "codes": 2105,
+    "names": "nf_sminNH4_to_npool_7"
+  },
+  {
+    "codes": 2106,
+    "names": "nf_sminNH4_to_npool_8"
+  },
+  {
+    "codes": 2107,
+    "names": "nf_sminNH4_to_npool_9"
+  },
+  {
+    "codes": 2108,
+    "names": "nf_sminNO3_to_npool_0"
+  },
+  {
+    "codes": 2109,
+    "names": "nf_sminNO3_to_npool_1"
+  },
+  {
+    "codes": 2110,
+    "names": "nf_sminNO3_to_npool_2"
+  },
+  {
+    "codes": 2111,
+    "names": "nf_sminNO3_to_npool_3"
+  },
+  {
+    "codes": 2112,
+    "names": "nf_sminNO3_to_npool_4"
+  },
+  {
+    "codes": 2113,
+    "names": "nf_sminNO3_to_npool_5"
+  },
+  {
+    "codes": 2114,
+    "names": "nf_sminNO3_to_npool_6"
+  },
+  {
+    "codes": 2115,
+    "names": "nf_sminNO3_to_npool_7"
+  },
+  {
+    "codes": 2116,
+    "names": "nf_sminNO3_to_npool_8"
+  },
+  {
+    "codes": 2117,
+    "names": "nf_sminNO3_to_npool_9"
+  },
+  {
+    "codes": 2118,
+    "names": "nf_sminNH4_to_npool_total"
+  },
+  {
+    "codes": 2119,
+    "names": "nf_sminNO3_to_npool_total"
+  },
+  {
+    "codes": 2120,
+    "names": "nf_sminn_to_npool"
+  },
+  {
+    "codes": 2121,
+    "names": "nf_sminNH4_leached_0"
+  },
+  {
+    "codes": 2122,
+    "names": "nf_sminNH4_leached_1"
+  },
+  {
+    "codes": 2123,
+    "names": "nf_sminNH4_leached_2"
+  },
+  {
+    "codes": 2124,
+    "names": "nf_sminNH4_leached_3"
+  },
+  {
+    "codes": 2125,
+    "names": "nf_sminNH4_leached_4"
+  },
+  {
+    "codes": 2126,
+    "names": "nf_sminNH4_leached_5"
+  },
+  {
+    "codes": 2127,
+    "names": "nf_sminNH4_leached_6"
+  },
+  {
+    "codes": 2128,
+    "names": "nf_sminNH4_leached_7"
+  },
+  {
+    "codes": 2129,
+    "names": "nf_sminNH4_leached_8"
+  },
+  {
+    "codes": 2130,
+    "names": "nf_sminNH4_leached_9"
+  },
+  {
+    "codes": 2131,
+    "names": "nf_sminNH4_diffused_0"
+  },
+  {
+    "codes": 2132,
+    "names": "nf_sminNH4_diffused_1"
+  },
+  {
+    "codes": 2133,
+    "names": "nf_sminNH4_diffused_2"
+  },
+  {
+    "codes": 2134,
+    "names": "nf_sminNH4_diffused_3"
+  },
+  {
+    "codes": 2135,
+    "names": "nf_sminNH4_diffused_4"
+  },
+  {
+    "codes": 2136,
+    "names": "nf_sminNH4_diffused_5"
+  },
+  {
+    "codes": 2137,
+    "names": "nf_sminNH4_diffused_6"
+  },
+  {
+    "codes": 2138,
+    "names": "nf_sminNH4_diffused_7"
+  },
+  {
+    "codes": 2139,
+    "names": "nf_sminNH4_diffused_8"
+  },
+  {
+    "codes": 2140,
+    "names": "nf_sminNH4_diffused_9"
+  },
+  {
+    "codes": 2141,
+    "names": "nf_sminNO3_leached_0"
+  },
+  {
+    "codes": 2142,
+    "names": "nf_sminNO3_leached_1"
+  },
+  {
+    "codes": 2143,
+    "names": "nf_sminNO3_leached_2"
+  },
+  {
+    "codes": 2144,
+    "names": "nf_sminNO3_leached_3"
+  },
+  {
+    "codes": 2145,
+    "names": "nf_sminNO3_leached_4"
+  },
+  {
+    "codes": 2146,
+    "names": "nf_sminNO3_leached_5"
+  },
+  {
+    "codes": 2147,
+    "names": "nf_sminNO3_leached_6"
+  },
+  {
+    "codes": 2148,
+    "names": "nf_sminNO3_leached_7"
+  },
+  {
+    "codes": 2149,
+    "names": "nf_sminNO3_leached_8"
+  },
+  {
+    "codes": 2150,
+    "names": "nf_sminNO3_leached_9"
+  },
+  {
+    "codes": 2151,
+    "names": "nf_sminNO3_diffused_0"
+  },
+  {
+    "codes": 2152,
+    "names": "nf_sminNO3_diffused_1"
+  },
+  {
+    "codes": 2153,
+    "names": "nf_sminNO3_diffused_2"
+  },
+  {
+    "codes": 2154,
+    "names": "nf_sminNO3_diffused_3"
+  },
+  {
+    "codes": 2155,
+    "names": "nf_sminNO3_diffused_4"
+  },
+  {
+    "codes": 2156,
+    "names": "nf_sminNO3_diffused_5"
+  },
+  {
+    "codes": 2157,
+    "names": "nf_sminNO3_diffused_6"
+  },
+  {
+    "codes": 2158,
+    "names": "nf_sminNO3_diffused_7"
+  },
+  {
+    "codes": 2159,
+    "names": "nf_sminNO3_diffused_8"
+  },
+  {
+    "codes": 2160,
+    "names": "nf_sminNO3_diffused_9"
+  },
+  {
+    "codes": 2161,
+    "names": "nf_sminN_rootzone_leach"
+  },
+  {
+    "codes": 2162,
+    "names": "nf_soil1_DON_leached_0"
+  },
+  {
+    "codes": 2163,
+    "names": "nf_soil1_DON_leached_1"
+  },
+  {
+    "codes": 2164,
+    "names": "nf_soil1_DON_leached_2"
+  },
+  {
+    "codes": 2165,
+    "names": "nf_soil1_DON_leached_3"
+  },
+  {
+    "codes": 2166,
+    "names": "nf_soil1_DON_leached_4"
+  },
+  {
+    "codes": 2167,
+    "names": "nf_soil1_DON_leached_5"
+  },
+  {
+    "codes": 2168,
+    "names": "nf_soil1_DON_leached_6"
+  },
+  {
+    "codes": 2169,
+    "names": "nf_soil1_DON_leached_7"
+  },
+  {
+    "codes": 2170,
+    "names": "nf_soil1_DON_leached_8"
+  },
+  {
+    "codes": 2171,
+    "names": "nf_soil1_DON_leached_9"
+  },
+  {
+    "codes": 2172,
+    "names": "nf_soil2_DON_leached_0"
+  },
+  {
+    "codes": 2173,
+    "names": "nf_soil2_DON_leached_1"
+  },
+  {
+    "codes": 2174,
+    "names": "nf_soil2_DON_leached_2"
+  },
+  {
+    "codes": 2175,
+    "names": "nf_soil2_DON_leached_3"
+  },
+  {
+    "codes": 2176,
+    "names": "nf_soil2_DON_leached_4"
+  },
+  {
+    "codes": 2177,
+    "names": "nf_soil2_DON_leached_5"
+  },
+  {
+    "codes": 2178,
+    "names": "nf_soil2_DON_leached_6"
+  },
+  {
+    "codes": 2179,
+    "names": "nf_soil2_DON_leached_7"
+  },
+  {
+    "codes": 2180,
+    "names": "nf_soil2_DON_leached_8"
+  },
+  {
+    "codes": 2181,
+    "names": "nf_soil2_DON_leached_9"
+  },
+  {
+    "codes": 2182,
+    "names": "nf_soil3_DON_leached_0"
+  },
+  {
+    "codes": 2183,
+    "names": "nf_soil3_DON_leached_1"
+  },
+  {
+    "codes": 2184,
+    "names": "nf_soil3_DON_leached_2"
+  },
+  {
+    "codes": 2185,
+    "names": "nf_soil3_DON_leached_3"
+  },
+  {
+    "codes": 2186,
+    "names": "nf_soil3_DON_leached_4"
+  },
+  {
+    "codes": 2187,
+    "names": "nf_soil3_DON_leached_5"
+  },
+  {
+    "codes": 2188,
+    "names": "nf_soil3_DON_leached_6"
+  },
+  {
+    "codes": 2189,
+    "names": "nf_soil3_DON_leached_7"
+  },
+  {
+    "codes": 2190,
+    "names": "nf_soil3_DON_leached_8"
+  },
+  {
+    "codes": 2191,
+    "names": "nf_soil3_DON_leached_9"
+  },
+  {
+    "codes": 2192,
+    "names": "nf_soil4_DON_leached_0"
+  },
+  {
+    "codes": 2193,
+    "names": "nf_soil4_DON_leached_1"
+  },
+  {
+    "codes": 2194,
+    "names": "nf_soil4_DON_leached_2"
+  },
+  {
+    "codes": 2195,
+    "names": "nf_soil4_DON_leached_3"
+  },
+  {
+    "codes": 2196,
+    "names": "nf_soil4_DON_leached_4"
+  },
+  {
+    "codes": 2197,
+    "names": "nf_soil4_DON_leached_5"
+  },
+  {
+    "codes": 2198,
+    "names": "nf_soil4_DON_leached_6"
+  },
+  {
+    "codes": 2199,
+    "names": "nf_soil4_DON_leached_7"
+  },
+  {
+    "codes": 2200,
+    "names": "nf_soil4_DON_leached_8"
+  },
+  {
+    "codes": 2201,
+    "names": "nf_soil4_DON_leached_9"
+  },
+  {
+    "codes": 2202,
+    "names": "nf_soil1_DON_diffused_0"
+  },
+  {
+    "codes": 2203,
+    "names": "nf_soil1_DON_diffused_1"
+  },
+  {
+    "codes": 2204,
+    "names": "nf_soil1_DON_diffused_2"
+  },
+  {
+    "codes": 2205,
+    "names": "nf_soil1_DON_diffused_3"
+  },
+  {
+    "codes": 2206,
+    "names": "nf_soil1_DON_diffused_4"
+  },
+  {
+    "codes": 2207,
+    "names": "nf_soil1_DON_diffused_5"
+  },
+  {
+    "codes": 2208,
+    "names": "nf_soil1_DON_diffused_6"
+  },
+  {
+    "codes": 2209,
+    "names": "nf_soil1_DON_diffused_7"
+  },
+  {
+    "codes": 2210,
+    "names": "nf_soil1_DON_diffused_8"
+  },
+  {
+    "codes": 2211,
+    "names": "nf_soil1_DON_diffused_9"
+  },
+  {
+    "codes": 2212,
+    "names": "nf_soil2_DON_diffused_0"
+  },
+  {
+    "codes": 2213,
+    "names": "nf_soil2_DON_diffused_1"
+  },
+  {
+    "codes": 2214,
+    "names": "nf_soil2_DON_diffused_2"
+  },
+  {
+    "codes": 2215,
+    "names": "nf_soil2_DON_diffused_3"
+  },
+  {
+    "codes": 2216,
+    "names": "nf_soil2_DON_diffused_4"
+  },
+  {
+    "codes": 2217,
+    "names": "nf_soil2_DON_diffused_5"
+  },
+  {
+    "codes": 2218,
+    "names": "nf_soil2_DON_diffused_6"
+  },
+  {
+    "codes": 2219,
+    "names": "nf_soil2_DON_diffused_7"
+  },
+  {
+    "codes": 2220,
+    "names": "nf_soil2_DON_diffused_8"
+  },
+  {
+    "codes": 2221,
+    "names": "nf_soil2_DON_diffused_9"
+  },
+  {
+    "codes": 2222,
+    "names": "nf_soil3_DON_diffused_0"
+  },
+  {
+    "codes": 2223,
+    "names": "nf_soil3_DON_diffused_1"
+  },
+  {
+    "codes": 2224,
+    "names": "nf_soil3_DON_diffused_2"
+  },
+  {
+    "codes": 2225,
+    "names": "nf_soil3_DON_diffused_3"
+  },
+  {
+    "codes": 2226,
+    "names": "nf_soil3_DON_diffused_4"
+  },
+  {
+    "codes": 2227,
+    "names": "nf_soil3_DON_diffused_5"
+  },
+  {
+    "codes": 2228,
+    "names": "nf_soil3_DON_diffused_6"
+  },
+  {
+    "codes": 2229,
+    "names": "nf_soil3_DON_diffused_7"
+  },
+  {
+    "codes": 2230,
+    "names": "nf_soil3_DON_diffused_8"
+  },
+  {
+    "codes": 2231,
+    "names": "nf_soil3_DON_diffused_9"
+  },
+  {
+    "codes": 2232,
+    "names": "nf_soil4_DON_diffused_0"
+  },
+  {
+    "codes": 2233,
+    "names": "nf_soil4_DON_diffused_1"
+  },
+  {
+    "codes": 2234,
+    "names": "nf_soil4_DON_diffused_2"
+  },
+  {
+    "codes": 2235,
+    "names": "nf_soil4_DON_diffused_3"
+  },
+  {
+    "codes": 2236,
+    "names": "nf_soil4_DON_diffused_4"
+  },
+  {
+    "codes": 2237,
+    "names": "nf_soil4_DON_diffused_5"
+  },
+  {
+    "codes": 2238,
+    "names": "nf_soil4_DON_diffused_6"
+  },
+  {
+    "codes": 2239,
+    "names": "nf_soil4_DON_diffused_7"
+  },
+  {
+    "codes": 2240,
+    "names": "nf_soil4_DON_diffused_8"
+  },
+  {
+    "codes": 2241,
+    "names": "nf_soil4_DON_diffused_9"
+  },
+  {
+    "codes": 2242,
+    "names": "nf_DON_rootzone_leach"
+  },
+  {
+    "codes": 2243,
+    "names": "nf_retransn_to_npool"
+  },
+  {
+    "codes": 2244,
+    "names": "nf_npool_to_leafn"
+  },
+  {
+    "codes": 2245,
+    "names": "nf_npool_to_leafn_storage"
+  },
+  {
+    "codes": 2246,
+    "names": "nf_npool_to_frootn"
+  },
+  {
+    "codes": 2247,
+    "names": "nf_npool_to_frootn_storage"
+  },
+  {
+    "codes": 2248,
+    "names": "nf_npool_to_fruitn"
+  },
+  {
+    "codes": 2249,
+    "names": "nf_npool_to_fruitn_storage"
+  },
+  {
+    "codes": 2250,
+    "names": "nf_npool_to_softstemn"
+  },
+  {
+    "codes": 2251,
+    "names": "nf_npool_to_softstemn_storage"
+  },
+  {
+    "codes": 2252,
+    "names": "nf_npool_to_livestemn"
+  },
+  {
+    "codes": 2253,
+    "names": "nf_npool_to_livestemn_storage"
+  },
+  {
+    "codes": 2254,
+    "names": "nf_npool_to_deadstemn"
+  },
+  {
+    "codes": 2255,
+    "names": "nf_npool_to_deadstemn_storage"
+  },
+  {
+    "codes": 2256,
+    "names": "nf_npool_to_livecrootn"
+  },
+  {
+    "codes": 2257,
+    "names": "nf_npool_to_livecrootn_storage"
+  },
+  {
+    "codes": 2258,
+    "names": "nf_npool_to_deadcrootn"
+  },
+  {
+    "codes": 2259,
+    "names": "nf_npool_to_deadcrootn_storage"
+  },
+  {
+    "codes": 2260,
+    "names": "nf_leafn_storage_to_maintresp"
+  },
+  {
+    "codes": 2261,
+    "names": "nf_frootn_storage_to_maintresp"
+  },
+  {
+    "codes": 2262,
+    "names": "nf_fruitn_storage_to_maintresp"
+  },
+  {
+    "codes": 2263,
+    "names": "nf_softstemn_storage_to_maintresp"
+  },
+  {
+    "codes": 2264,
+    "names": "nf_livestemn_storage_to_maintresp"
+  },
+  {
+    "codes": 2265,
+    "names": "nf_livecrootn_storage_to_maintresp"
+  },
+  {
+    "codes": 2266,
+    "names": "nf_deadstemn_storage_to_maintresp"
+  },
+  {
+    "codes": 2267,
+    "names": "nf_deadcrootn_storage_to_maintresp"
+  },
+  {
+    "codes": 2268,
+    "names": "nf_leafn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2269,
+    "names": "nf_frootn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2270,
+    "names": "nf_fruitn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2271,
+    "names": "nf_softstemn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2272,
+    "names": "nf_livestemn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2273,
+    "names": "nf_livecrootn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2274,
+    "names": "nf_deadstemn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2275,
+    "names": "nf_deadcrootn_transfer_to_maintresp"
+  },
+  {
+    "codes": 2276,
+    "names": "nf_leafn_to_maintresp"
+  },
+  {
+    "codes": 2277,
+    "names": "nf_frootn_to_maintresp"
+  },
+  {
+    "codes": 2278,
+    "names": "nf_fruitn_to_maintresp"
+  },
+  {
+    "codes": 2279,
+    "names": "nf_softstemn_to_maintresp"
+  },
+  {
+    "codes": 2280,
+    "names": "nf_livestemn_to_maintresp"
+  },
+  {
+    "codes": 2281,
+    "names": "nf_livecrootn_to_maintresp"
+  },
+  {
+    "codes": 2282,
+    "names": "nf_NSN_nw_to_maintresp"
+  },
+  {
+    "codes": 2283,
+    "names": "nf_actN_nw_to_maintresp"
+  },
+  {
+    "codes": 2284,
+    "names": "nf_NSN_w_to_maintresp"
+  },
+  {
+    "codes": 2285,
+    "names": "nf_actN_w_to_maintresp"
+  },
+  {
+    "codes": 2286,
+    "names": "nf_leafn_storage_to_leafn_transfer"
+  },
+  {
+    "codes": 2287,
+    "names": "nf_frootn_storage_to_frootn_transfer"
+  },
+  {
+    "codes": 2288,
+    "names": "nf_livestemn_storage_to_livestemn_transfer"
+  },
+  {
+    "codes": 2289,
+    "names": "nf_deadstemn_storage_to_deadstemn_transfer"
+  },
+  {
+    "codes": 2290,
+    "names": "nf_livecrootn_storage_to_livecrootn_transfer"
+  },
+  {
+    "codes": 2291,
+    "names": "nf_deadcrootn_storage_to_deadcrootn_transfer"
+  },
+  {
+    "codes": 2292,
+    "names": "nf_fruitn_storage_to_fruitn_transfer"
+  },
+  {
+    "codes": 2293,
+    "names": "nf_softstemn_storage_to_softstemn_transfer"
+  },
+  {
+    "codes": 2294,
+    "names": "nf_livestemn_to_deadstemn"
+  },
+  {
+    "codes": 2295,
+    "names": "nf_livestemn_to_retransn"
+  },
+  {
+    "codes": 2296,
+    "names": "nf_livecrootn_to_deadcrootn"
+  },
+  {
+    "codes": 2297,
+    "names": "nf_livecrootn_to_retransn"
+  },
+  {
+    "codes": 2298,
+    "names": "nf_leafn_transfer_from_PLT"
+  },
+  {
+    "codes": 2299,
+    "names": "nf_frootn_transfer_from_PLT"
+  },
+  {
+    "codes": 2300,
+    "names": "nf_fruitn_transfer_from_PLT"
+  },
+  {
+    "codes": 2301,
+    "names": "nf_softstemn_transfer_from_PLT"
+  },
+  {
+    "codes": 2302,
+    "names": "nf_leafn_to_THN"
+  },
+  {
+    "codes": 2303,
+    "names": "nf_leafn_storage_to_THN"
+  },
+  {
+    "codes": 2304,
+    "names": "nf_leafn_transfer_to_THN"
+  },
+  {
+    "codes": 2305,
+    "names": "nf_fruitn_to_THN"
+  },
+  {
+    "codes": 2306,
+    "names": "nf_fruitn_storage_to_THN"
+  },
+  {
+    "codes": 2307,
+    "names": "nf_fruitn_transfer_to_THN"
+  },
+  {
+    "codes": 2308,
+    "names": "nf_livestemn_to_THN"
+  },
+  {
+    "codes": 2309,
+    "names": "nf_livestemn_storage_to_THN"
+  },
+  {
+    "codes": 2310,
+    "names": "nf_livestemn_transfer_to_THN"
+  },
+  {
+    "codes": 2311,
+    "names": "nf_deadstemn_to_THN"
+  },
+  {
+    "codes": 2312,
+    "names": "nf_deadstemn_storage_to_THN"
+  },
+  {
+    "codes": 2313,
+    "names": "nf_deadstemn_transfer_to_THN"
+  },
+  {
+    "codes": 2314,
+    "names": "nf_retransn_to_THN"
+  },
+  {
+    "codes": 2315,
+    "names": "nf_THN_to_CTDBn_leaf"
+  },
+  {
+    "codes": 2316,
+    "names": "nf_THN_to_CTDBn_fruit"
+  },
+  {
+    "codes": 2317,
+    "names": "nf_THN_to_CTDBn_transfer"
+  },
+  {
+    "codes": 2318,
+    "names": "nf_THN_to_CTDBn_cstem"
+  },
+  {
+    "codes": 2319,
+    "names": "nf_STDBn_leaf_to_THN"
+  },
+  {
+    "codes": 2320,
+    "names": "nf_STDBn_fruit_to_THN"
+  },
+  {
+    "codes": 2321,
+    "names": "nf_STDBn_transfer_to_THN"
+  },
+  {
+    "codes": 2322,
+    "names": "nf_leafn_to_MOW"
+  },
+  {
+    "codes": 2323,
+    "names": "nf_leafn_storage_to_MOW"
+  },
+  {
+    "codes": 2324,
+    "names": "nf_leafn_transfer_to_MOW"
+  },
+  {
+    "codes": 2325,
+    "names": "nf_fruitn_to_MOW"
+  },
+  {
+    "codes": 2326,
+    "names": "nf_fruitn_storage_to_MOW"
+  },
+  {
+    "codes": 2327,
+    "names": "nf_fruitn_transfer_to_MOW"
+  },
+  {
+    "codes": 2328,
+    "names": "nf_softstemn_to_MOW"
+  },
+  {
+    "codes": 2329,
+    "names": "nf_softstemn_storage_to_MOW"
+  },
+  {
+    "codes": 2330,
+    "names": "nf_softstemn_transfer_to_MOW"
+  },
+  {
+    "codes": 2331,
+    "names": "nf_retransn_to_MOW"
+  },
+  {
+    "codes": 2332,
+    "names": "nf_MOW_to_CTDBn_leaf"
+  },
+  {
+    "codes": 2333,
+    "names": "nf_MOW_to_CTDBn_fruit"
+  },
+  {
+    "codes": 2334,
+    "names": "nf_MOW_to_CTDBn_softstem"
+  },
+  {
+    "codes": 2335,
+    "names": "nf_MOW_to_CTDBn_transfer"
+  },
+  {
+    "codes": 2336,
+    "names": "nf_STDBn_leaf_to_MOW"
+  },
+  {
+    "codes": 2337,
+    "names": "nf_STDBn_fruit_to_MOW"
+  },
+  {
+    "codes": 2338,
+    "names": "nf_STDBn_softstem_to_MOW"
+  },
+  {
+    "codes": 2339,
+    "names": "nf_STDBn_transfer_to_MOW"
+  },
+  {
+    "codes": 2340,
+    "names": "nf_leafn_to_HRV"
+  },
+  {
+    "codes": 2341,
+    "names": "nf_leafn_storage_to_HRV"
+  },
+  {
+    "codes": 2342,
+    "names": "nf_leafn_transfer_to_HRV"
+  },
+  {
+    "codes": 2343,
+    "names": "nf_fruitn_to_HRV"
+  },
+  {
+    "codes": 2344,
+    "names": "nf_fruitn_storage_to_HRV"
+  },
+  {
+    "codes": 2345,
+    "names": "nf_fruitn_transfer_to_HRV"
+  },
+  {
+    "codes": 2346,
+    "names": "nf_softstemn_to_HRV"
+  },
+  {
+    "codes": 2347,
+    "names": "nf_softstemn_storage_to_HRV"
+  },
+  {
+    "codes": 2348,
+    "names": "nf_softstemn_transfer_to_HRV"
+  },
+  {
+    "codes": 2349,
+    "names": "nf_retransn_to_HRV"
+  },
+  {
+    "codes": 2350,
+    "names": "nf_HRV_to_CTDBn_leaf"
+  },
+  {
+    "codes": 2351,
+    "names": "nf_HRV_to_CTDBn_fruit"
+  },
+  {
+    "codes": 2352,
+    "names": "nf_HRV_to_CTDBn_softstem"
+  },
+  {
+    "codes": 2353,
+    "names": "nf_HRV_to_CTDBn_transfer"
+  },
+  {
+    "codes": 2354,
+    "names": "nf_STDBn_leaf_to_HRV"
+  },
+  {
+    "codes": 2355,
+    "names": "nf_STDBn_fruit_to_HRV"
+  },
+  {
+    "codes": 2356,
+    "names": "nf_STDBn_softstem_to_HRV"
+  },
+  {
+    "codes": 2357,
+    "names": "nf_STDBn_transfer_to_HRV"
+  },
+  {
+    "codes": 2358,
+    "names": "nf_leafn_to_PLG"
+  },
+  {
+    "codes": 2359,
+    "names": "nf_leafn_storage_to_PLG"
+  },
+  {
+    "codes": 2360,
+    "names": "nf_leafn_transfer_to_PLG"
+  },
+  {
+    "codes": 2361,
+    "names": "nf_frootn_to_PLG"
+  },
+  {
+    "codes": 2362,
+    "names": "nf_frootn_storage_to_PLG"
+  },
+  {
+    "codes": 2363,
+    "names": "nf_frootn_transfer_to_PLG"
+  },
+  {
+    "codes": 2364,
+    "names": "nf_fruitn_to_PLG"
+  },
+  {
+    "codes": 2365,
+    "names": "nf_fruitn_storage_to_PLG"
+  },
+  {
+    "codes": 2366,
+    "names": "nf_fruitn_transfer_to_PLG"
+  },
+  {
+    "codes": 2367,
+    "names": "nf_softstemn_to_PLG"
+  },
+  {
+    "codes": 2368,
+    "names": "nf_softstemn_storage_to_PLG"
+  },
+  {
+    "codes": 2369,
+    "names": "nf_softstemn_transfer_to_PLG"
+  },
+  {
+    "codes": 2370,
+    "names": "nf_retransn_to_PLG"
+  },
+  {
+    "codes": 2371,
+    "names": "nf_STDBn_leaf_to_PLG"
+  },
+  {
+    "codes": 2372,
+    "names": "nf_STDBn_froot_to_PLG"
+  },
+  {
+    "codes": 2373,
+    "names": "nf_STDBn_fruit_to_PLG"
+  },
+  {
+    "codes": 2374,
+    "names": "nf_STDBn_softstem_to_PLG"
+  },
+  {
+    "codes": 2375,
+    "names": "nf_STDBn_transfer_to_PLG"
+  },
+  {
+    "codes": 2376,
+    "names": "nf_CTDBn_leaf_to_PLG"
+  },
+  {
+    "codes": 2377,
+    "names": "nf_CTDBn_fruit_to_PLG"
+  },
+  {
+    "codes": 2378,
+    "names": "nf_CTDBn_softstem_to_PLG"
+  },
+  {
+    "codes": 2379,
+    "names": "nf_leafn_to_GRZ"
+  },
+  {
+    "codes": 2380,
+    "names": "nf_leafn_storage_to_GRZ"
+  },
+  {
+    "codes": 2381,
+    "names": "nf_leafn_transfer_to_GRZ"
+  },
+  {
+    "codes": 2382,
+    "names": "nf_fruitn_to_GRZ"
+  },
+  {
+    "codes": 2383,
+    "names": "nf_fruitn_storage_to_GRZ"
+  },
+  {
+    "codes": 2384,
+    "names": "nf_fruitn_transfer_to_GRZ"
+  },
+  {
+    "codes": 2385,
+    "names": "nf_softstemn_to_GRZ"
+  },
+  {
+    "codes": 2386,
+    "names": "nf_softstemn_storage_to_GRZ"
+  },
+  {
+    "codes": 2387,
+    "names": "nf_softstemn_transfer_to_GRZ"
+  },
+  {
+    "codes": 2388,
+    "names": "nf_STDBn_leaf_to_GRZ"
+  },
+  {
+    "codes": 2389,
+    "names": "nf_STDBn_fruit_to_GRZ"
+  },
+  {
+    "codes": 2390,
+    "names": "nf_STDBn_softstem_to_GRZ"
+  },
+  {
+    "codes": 2391,
+    "names": "nf_STDBn_transfer_to_GRZ"
+  },
+  {
+    "codes": 2392,
+    "names": "nf_retransn_to_GRZ"
+  },
+  {
+    "codes": 2393,
+    "names": "nf_GRZ_to_litr1n"
+  },
+  {
+    "codes": 2394,
+    "names": "nf_GRZ_to_litr2n"
+  },
+  {
+    "codes": 2395,
+    "names": "nf_GRZ_to_litr3n"
+  },
+  {
+    "codes": 2396,
+    "names": "nf_GRZ_to_litr4n"
+  },
+  {
+    "codes": 2397,
+    "names": "nf_FRZ_to_sminNH4"
+  },
+  {
+    "codes": 2398,
+    "names": "nf_FRZ_to_sminNO3"
+  },
+  {
+    "codes": 2399,
+    "names": "nf_FRZ_to_litr1n"
+  },
+  {
+    "codes": 2400,
+    "names": "nf_FRZ_to_litr2n"
+  },
+  {
+    "codes": 2401,
+    "names": "nf_FRZ_to_litr3n"
+  },
+  {
+    "codes": 2402,
+    "names": "nf_FRZ_to_litr4n"
+  },
+  {
+    "codes": 2403,
+    "names": "nf_N2O_flux_GRZ"
+  },
+  {
+    "codes": 2404,
+    "names": "nf_N2O_flux_FRZ"
+  },
+  {
+    "codes": 2500,
+    "names": "epv_thermal_time"
+  },
+  {
+    "codes": 2501,
+    "names": "epv_leafday_lastmort"
+  },
+  {
+    "codes": 2502,
+    "names": "epv_n_actphen"
+  },
+  {
+    "codes": 2503,
+    "names": "epv_thermal_timeSUM_max"
+  },
+  {
+    "codes": 2504,
+    "names": "epv_flowHS_mort"
+  },
+  {
+    "codes": 2505,
+    "names": "epv_transfer_ratio"
+  },
+  {
+    "codes": 2506,
+    "names": "epv_day_leafc_litfall_increment"
+  },
+  {
+    "codes": 2507,
+    "names": "epv_day_fruitc_litfall_increment"
+  },
+  {
+    "codes": 2508,
+    "names": "epv_day_softstemc_litfall_increment"
+  },
+  {
+    "codes": 2509,
+    "names": "epv_day_frootc_litfall_increment"
+  },
+  {
+    "codes": 2510,
+    "names": "epv_day_livestemc_turnover_increment"
+  },
+  {
+    "codes": 2511,
+    "names": "epv_day_livecrootc_turnover_increment"
+  },
+  {
+    "codes": 2512,
+    "names": "epv_annmax_leafc"
+  },
+  {
+    "codes": 2513,
+    "names": "epv_annmax_fruitc"
+  },
+  {
+    "codes": 2514,
+    "names": "epv_annmax_softstemc"
+  },
+  {
+    "codes": 2515,
+    "names": "epv_annmax_frootc"
+  },
+  {
+    "codes": 2516,
+    "names": "epv_annmax_livestemc"
+  },
+  {
+    "codes": 2517,
+    "names": "epv_annmax_livecrootc"
+  },
+  {
+    "codes": 2518,
+    "names": "epv_dsr"
+  },
+  {
+    "codes": 2519,
+    "names": "epv_dsws"
+  },
+  {
+    "codes": 2520,
+    "names": "epv_proj_lai"
+  },
+  {
+    "codes": 2521,
+    "names": "epv_all_lai"
+  },
+  {
+    "codes": 2522,
+    "names": "epv_sla_avg"
+  },
+  {
+    "codes": 2523,
+    "names": "epv_plaisun"
+  },
+  {
+    "codes": 2524,
+    "names": "epv_plaishade"
+  },
+  {
+    "codes": 2525,
+    "names": "epv_sun_proj_sla"
+  },
+  {
+    "codes": 2526,
+    "names": "epv_shade_proj_sla"
+  },
+  {
+    "codes": 2527,
+    "names": "epv_plant_height"
+  },
+  {
+    "codes": 2528,
+    "names": "epv_NDVI"
+  },
+  {
+    "codes": 2529,
+    "names": "epv_rootlength_prop_0"
+  },
+  {
+    "codes": 2530,
+    "names": "epv_rootlength_prop_1"
+  },
+  {
+    "codes": 2531,
+    "names": "epv_rootlength_prop_2"
+  },
+  {
+    "codes": 2532,
+    "names": "epv_rootlength_prop_3"
+  },
+  {
+    "codes": 2533,
+    "names": "epv_rootlength_prop_4"
+  },
+  {
+    "codes": 2534,
+    "names": "epv_rootlength_prop_5"
+  },
+  {
+    "codes": 2535,
+    "names": "epv_rootlength_prop_6"
+  },
+  {
+    "codes": 2536,
+    "names": "epv_rootlength_prop_7"
+  },
+  {
+    "codes": 2537,
+    "names": "epv_rootlength_prop_8"
+  },
+  {
+    "codes": 2538,
+    "names": "epv_rootlength_prop_9"
+  },
+  {
+    "codes": 2539,
+    "names": "epv_psi_0"
+  },
+  {
+    "codes": 2540,
+    "names": "epv_psi_1"
+  },
+  {
+    "codes": 2541,
+    "names": "epv_psi_2"
+  },
+  {
+    "codes": 2542,
+    "names": "epv_psi_3"
+  },
+  {
+    "codes": 2543,
+    "names": "epv_psi_4"
+  },
+  {
+    "codes": 2544,
+    "names": "epv_psi_5"
+  },
+  {
+    "codes": 2545,
+    "names": "epv_psi_6"
+  },
+  {
+    "codes": 2546,
+    "names": "epv_psi_7"
+  },
+  {
+    "codes": 2547,
+    "names": "epv_psi_8"
+  },
+  {
+    "codes": 2548,
+    "names": "epv_psi_9"
+  },
+  {
+    "codes": 2549,
+    "names": "epv_pF_0"
+  },
+  {
+    "codes": 2550,
+    "names": "epv_pF_1"
+  },
+  {
+    "codes": 2551,
+    "names": "epv_pF_2"
+  },
+  {
+    "codes": 2552,
+    "names": "epv_pF_3"
+  },
+  {
+    "codes": 2553,
+    "names": "epv_pF_4"
+  },
+  {
+    "codes": 2554,
+    "names": "epv_pF_5"
+  },
+  {
+    "codes": 2555,
+    "names": "epv_pF_6"
+  },
+  {
+    "codes": 2556,
+    "names": "epv_pF_7"
+  },
+  {
+    "codes": 2557,
+    "names": "epv_pF_8"
+  },
+  {
+    "codes": 2558,
+    "names": "epv_pF_9"
+  },
+  {
+    "codes": 2559,
+    "names": "epv_hydr_conduct_S_0"
+  },
+  {
+    "codes": 2560,
+    "names": "epv_hydr_conduct_S_1"
+  },
+  {
+    "codes": 2561,
+    "names": "epv_hydr_conduct_S_2"
+  },
+  {
+    "codes": 2562,
+    "names": "epv_hydr_conduct_S_3"
+  },
+  {
+    "codes": 2563,
+    "names": "epv_hydr_conduct_S_4"
+  },
+  {
+    "codes": 2564,
+    "names": "epv_hydr_conduct_S_5"
+  },
+  {
+    "codes": 2565,
+    "names": "epv_hydr_conduct_S_6"
+  },
+  {
+    "codes": 2566,
+    "names": "epv_hydr_conduct_S_7"
+  },
+  {
+    "codes": 2567,
+    "names": "epv_hydr_conduct_S_8"
+  },
+  {
+    "codes": 2568,
+    "names": "epv_hydr_conduct_S_9"
+  },
+  {
+    "codes": 2569,
+    "names": "epv_hydr_diffus_S_0"
+  },
+  {
+    "codes": 2570,
+    "names": "epv_hydr_diffus_S_1"
+  },
+  {
+    "codes": 2571,
+    "names": "epv_hydr_diffus_S_2"
+  },
+  {
+    "codes": 2572,
+    "names": "epv_hydr_diffus_S_3"
+  },
+  {
+    "codes": 2573,
+    "names": "epv_hydr_diffus_S_4"
+  },
+  {
+    "codes": 2574,
+    "names": "epv_hydr_diffus_S_5"
+  },
+  {
+    "codes": 2575,
+    "names": "epv_hydr_diffus_S_6"
+  },
+  {
+    "codes": 2576,
+    "names": "epv_hydr_diffus_S_7"
+  },
+  {
+    "codes": 2577,
+    "names": "epv_hydr_diffus_S_8"
+  },
+  {
+    "codes": 2578,
+    "names": "epv_hydr_diffus_S_9"
+  },
+  {
+    "codes": 2579,
+    "names": "epv_hydr_conduct_E_0"
+  },
+  {
+    "codes": 2580,
+    "names": "epv_hydr_conduct_E_1"
+  },
+  {
+    "codes": 2581,
+    "names": "epv_hydr_conduct_E_2"
+  },
+  {
+    "codes": 2582,
+    "names": "epv_hydr_conduct_E_3"
+  },
+  {
+    "codes": 2583,
+    "names": "epv_hydr_conduct_E_4"
+  },
+  {
+    "codes": 2584,
+    "names": "epv_hydr_conduct_E_5"
+  },
+  {
+    "codes": 2585,
+    "names": "epv_hydr_conduct_E_6"
+  },
+  {
+    "codes": 2586,
+    "names": "epv_hydr_conduct_E_7"
+  },
+  {
+    "codes": 2587,
+    "names": "epv_hydr_conduct_E_8"
+  },
+  {
+    "codes": 2588,
+    "names": "epv_hydr_conduct_E_9"
+  },
+  {
+    "codes": 2589,
+    "names": "epv_hydr_diffus_E_0"
+  },
+  {
+    "codes": 2590,
+    "names": "epv_hydr_diffus_E_1"
+  },
+  {
+    "codes": 2591,
+    "names": "epv_hydr_diffus_E_2"
+  },
+  {
+    "codes": 2592,
+    "names": "epv_hydr_diffus_E_3"
+  },
+  {
+    "codes": 2593,
+    "names": "epv_hydr_diffus_E_4"
+  },
+  {
+    "codes": 2594,
+    "names": "epv_hydr_diffus_E_5"
+  },
+  {
+    "codes": 2595,
+    "names": "epv_hydr_diffus_E_6"
+  },
+  {
+    "codes": 2596,
+    "names": "epv_hydr_diffus_E_7"
+  },
+  {
+    "codes": 2597,
+    "names": "epv_hydr_diffus_E_8"
+  },
+  {
+    "codes": 2598,
+    "names": "epv_hydr_diffus_E_9"
+  },
+  {
+    "codes": 2599,
+    "names": "epv_vwcSAT_RZ"
+  },
+  {
+    "codes": 2600,
+    "names": "epv_vwcFC_RZ"
+  },
+  {
+    "codes": 2601,
+    "names": "epv_vwcWP_RZ"
+  },
+  {
+    "codes": 2602,
+    "names": "epv_vwcHW_RZ"
+  },
+  {
+    "codes": 2603,
+    "names": "epv_vwc_0"
+  },
+  {
+    "codes": 2604,
+    "names": "epv_vwc_1"
+  },
+  {
+    "codes": 2605,
+    "names": "epv_vwc_2"
+  },
+  {
+    "codes": 2606,
+    "names": "epv_vwc_3"
+  },
+  {
+    "codes": 2607,
+    "names": "epv_vwc_4"
+  },
+  {
+    "codes": 2608,
+    "names": "epv_vwc_5"
+  },
+  {
+    "codes": 2609,
+    "names": "epv_vwc_6"
+  },
+  {
+    "codes": 2610,
+    "names": "epv_vwc_7"
+  },
+  {
+    "codes": 2611,
+    "names": "epv_vwc_8"
+  },
+  {
+    "codes": 2612,
+    "names": "epv_vwc_9"
+  },
+  {
+    "codes": 2613,
+    "names": "epv_vwc_crit1_0"
+  },
+  {
+    "codes": 2614,
+    "names": "epv_vwc_crit1_1"
+  },
+  {
+    "codes": 2615,
+    "names": "epv_vwc_crit1_2"
+  },
+  {
+    "codes": 2616,
+    "names": "epv_vwc_crit1_3"
+  },
+  {
+    "codes": 2617,
+    "names": "epv_vwc_crit1_4"
+  },
+  {
+    "codes": 2618,
+    "names": "epv_vwc_crit1_5"
+  },
+  {
+    "codes": 2619,
+    "names": "epv_vwc_crit1_6"
+  },
+  {
+    "codes": 2620,
+    "names": "epv_vwc_crit1_7"
+  },
+  {
+    "codes": 2621,
+    "names": "epv_vwc_crit1_8"
+  },
+  {
+    "codes": 2622,
+    "names": "epv_vwc_crit1_9"
+  },
+  {
+    "codes": 2623,
+    "names": "epv_vwc_crit2_0"
+  },
+  {
+    "codes": 2624,
+    "names": "epv_vwc_crit2_1"
+  },
+  {
+    "codes": 2625,
+    "names": "epv_vwc_crit2_2"
+  },
+  {
+    "codes": 2626,
+    "names": "epv_vwc_crit2_3"
+  },
+  {
+    "codes": 2627,
+    "names": "epv_vwc_crit2_4"
+  },
+  {
+    "codes": 2628,
+    "names": "epv_vwc_crit2_5"
+  },
+  {
+    "codes": 2629,
+    "names": "epv_vwc_crit2_6"
+  },
+  {
+    "codes": 2630,
+    "names": "epv_vwc_crit2_7"
+  },
+  {
+    "codes": 2631,
+    "names": "epv_vwc_crit2_8"
+  },
+  {
+    "codes": 2632,
+    "names": "epv_vwc_crit2_9"
+  },
+  {
+    "codes": 2633,
+    "names": "epv_vwc_avg"
+  },
+  {
+    "codes": 2634,
+    "names": "epv_vwc_RZ"
+  },
+  {
+    "codes": 2635,
+    "names": "epv_psi_avg"
+  },
+  {
+    "codes": 2636,
+    "names": "epv_rooting_depth"
+  },
+  {
+    "codes": 2637,
+    "names": "epv_dlmr_area_sun"
+  },
+  {
+    "codes": 2638,
+    "names": "epv_dlmr_area_shade"
+  },
+  {
+    "codes": 2639,
+    "names": "epv_gl_t_wv_sun"
+  },
+  {
+    "codes": 2640,
+    "names": "epv_gl_t_wv_shade"
+  },
+  {
+    "codes": 2641,
+    "names": "epv_assim_sun"
+  },
+  {
+    "codes": 2642,
+    "names": "epv_assim_shade"
+  },
+  {
+    "codes": 2643,
+    "names": "epv_t_scalar_0"
+  },
+  {
+    "codes": 2644,
+    "names": "epv_t_scalar_1"
+  },
+  {
+    "codes": 2645,
+    "names": "epv_t_scalar_2"
+  },
+  {
+    "codes": 2646,
+    "names": "epv_t_scalar_3"
+  },
+  {
+    "codes": 2647,
+    "names": "epv_t_scalar_4"
+  },
+  {
+    "codes": 2648,
+    "names": "epv_t_scalar_5"
+  },
+  {
+    "codes": 2649,
+    "names": "epv_t_scalar_6"
+  },
+  {
+    "codes": 2650,
+    "names": "epv_t_scalar_7"
+  },
+  {
+    "codes": 2651,
+    "names": "epv_t_scalar_8"
+  },
+  {
+    "codes": 2652,
+    "names": "epv_t_scalar_9"
+  },
+  {
+    "codes": 2653,
+    "names": "epv_w_scalar_0"
+  },
+  {
+    "codes": 2654,
+    "names": "epv_w_scalar_1"
+  },
+  {
+    "codes": 2655,
+    "names": "epv_w_scalar_2"
+  },
+  {
+    "codes": 2656,
+    "names": "epv_w_scalar_3"
+  },
+  {
+    "codes": 2657,
+    "names": "epv_w_scalar_4"
+  },
+  {
+    "codes": 2658,
+    "names": "epv_w_scalar_5"
+  },
+  {
+    "codes": 2659,
+    "names": "epv_w_scalar_6"
+  },
+  {
+    "codes": 2660,
+    "names": "epv_w_scalar_7"
+  },
+  {
+    "codes": 2661,
+    "names": "epv_w_scalar_8"
+  },
+  {
+    "codes": 2662,
+    "names": "epv_w_scalar_9"
+  },
+  {
+    "codes": 2663,
+    "names": "epv_rate_scalar_0"
+  },
+  {
+    "codes": 2664,
+    "names": "epv_rate_scalar_1"
+  },
+  {
+    "codes": 2665,
+    "names": "epv_rate_scalar_2"
+  },
+  {
+    "codes": 2666,
+    "names": "epv_rate_scalar_3"
+  },
+  {
+    "codes": 2667,
+    "names": "epv_rate_scalar_4"
+  },
+  {
+    "codes": 2668,
+    "names": "epv_rate_scalar_5"
+  },
+  {
+    "codes": 2669,
+    "names": "epv_rate_scalar_6"
+  },
+  {
+    "codes": 2670,
+    "names": "epv_rate_scalar_7"
+  },
+  {
+    "codes": 2671,
+    "names": "epv_rate_scalar_8"
+  },
+  {
+    "codes": 2672,
+    "names": "epv_rate_scalar_9"
+  },
+  {
+    "codes": 2673,
+    "names": "epv_rate_scalar_avg"
+  },
+  {
+    "codes": 2674,
+    "names": "epv_daily_gross_nmin_0"
+  },
+  {
+    "codes": 2675,
+    "names": "epv_daily_gross_nmin_1"
+  },
+  {
+    "codes": 2676,
+    "names": "epv_daily_gross_nmin_2"
+  },
+  {
+    "codes": 2677,
+    "names": "epv_daily_gross_nmin_3"
+  },
+  {
+    "codes": 2678,
+    "names": "epv_daily_gross_nmin_4"
+  },
+  {
+    "codes": 2679,
+    "names": "epv_daily_gross_nmin_5"
+  },
+  {
+    "codes": 2680,
+    "names": "epv_daily_gross_nmin_6"
+  },
+  {
+    "codes": 2681,
+    "names": "epv_daily_gross_nmin_7"
+  },
+  {
+    "codes": 2682,
+    "names": "epv_daily_gross_nmin_8"
+  },
+  {
+    "codes": 2683,
+    "names": "epv_daily_gross_nmin_9"
+  },
+  {
+    "codes": 2684,
+    "names": "epv_daily_gross_nimmob_0"
+  },
+  {
+    "codes": 2685,
+    "names": "epv_daily_gross_nimmob_1"
+  },
+  {
+    "codes": 2686,
+    "names": "epv_daily_gross_nimmob_2"
+  },
+  {
+    "codes": 2687,
+    "names": "epv_daily_gross_nimmob_3"
+  },
+  {
+    "codes": 2688,
+    "names": "epv_daily_gross_nimmob_4"
+  },
+  {
+    "codes": 2689,
+    "names": "epv_daily_gross_nimmob_5"
+  },
+  {
+    "codes": 2690,
+    "names": "epv_daily_gross_nimmob_6"
+  },
+  {
+    "codes": 2691,
+    "names": "epv_daily_gross_nimmob_7"
+  },
+  {
+    "codes": 2692,
+    "names": "epv_daily_gross_nimmob_8"
+  },
+  {
+    "codes": 2693,
+    "names": "epv_daily_gross_nimmob_9"
+  },
+  {
+    "codes": 2694,
+    "names": "epv_daily_net_nmin_0"
+  },
+  {
+    "codes": 2695,
+    "names": "epv_daily_net_nmin_1"
+  },
+  {
+    "codes": 2696,
+    "names": "epv_daily_net_nmin_2"
+  },
+  {
+    "codes": 2697,
+    "names": "epv_daily_net_nmin_3"
+  },
+  {
+    "codes": 2698,
+    "names": "epv_daily_net_nmin_4"
+  },
+  {
+    "codes": 2699,
+    "names": "epv_daily_net_nmin_5"
+  },
+  {
+    "codes": 2700,
+    "names": "epv_daily_net_nmin_6"
+  },
+  {
+    "codes": 2701,
+    "names": "epv_daily_net_nmin_7"
+  },
+  {
+    "codes": 2702,
+    "names": "epv_daily_net_nmin_8"
+  },
+  {
+    "codes": 2703,
+    "names": "epv_daily_net_nmin_9"
+  },
+  {
+    "codes": 2704,
+    "names": "epv_max_conduct"
+  },
+  {
+    "codes": 2705,
+    "names": "epv_m_tmin"
+  },
+  {
+    "codes": 2706,
+    "names": "epv_m_soilstress_layer_0"
+  },
+  {
+    "codes": 2707,
+    "names": "epv_m_soilstress_layer_1"
+  },
+  {
+    "codes": 2708,
+    "names": "epv_m_soilstress_layer_2"
+  },
+  {
+    "codes": 2709,
+    "names": "epv_m_soilstress_layer_3"
+  },
+  {
+    "codes": 2710,
+    "names": "epv_m_soilstress_layer_4"
+  },
+  {
+    "codes": 2711,
+    "names": "epv_m_soilstress_layer_5"
+  },
+  {
+    "codes": 2712,
+    "names": "epv_m_soilstress_layer_6"
+  },
+  {
+    "codes": 2713,
+    "names": "epv_m_soilstress_layer_7"
+  },
+  {
+    "codes": 2714,
+    "names": "epv_m_soilstress_layer_8"
+  },
+  {
+    "codes": 2715,
+    "names": "epv_m_soilstress_layer_9"
+  },
+  {
+    "codes": 2716,
+    "names": "epv_m_soilstress"
+  },
+  {
+    "codes": 2717,
+    "names": "epv_m_ppfd_sun"
+  },
+  {
+    "codes": 2718,
+    "names": "epv_m_ppfd_shade"
+  },
+  {
+    "codes": 2719,
+    "names": "epv_m_vpd"
+  },
+  {
+    "codes": 2720,
+    "names": "epv_m_final_sun"
+  },
+  {
+    "codes": 2721,
+    "names": "epv_m_final_shade"
+  },
+  {
+    "codes": 2722,
+    "names": "epv_m_dsws"
+  },
+  {
+    "codes": 2723,
+    "names": "epv_m_extremT"
+  },
+  {
+    "codes": 2724,
+    "names": "epv_SMSI"
+  },
+  {
+    "codes": 2725,
+    "names": "epv_gcorr"
+  },
+  {
+    "codes": 2726,
+    "names": "epv_gl_bl"
+  },
+  {
+    "codes": 2727,
+    "names": "epv_gl_c"
+  },
+  {
+    "codes": 2728,
+    "names": "epv_gl_s_sun"
+  },
+  {
+    "codes": 2729,
+    "names": "epv_gl_s_shade"
+  },
+  {
+    "codes": 2730,
+    "names": "epv_gl_e_wv"
+  },
+  {
+    "codes": 2731,
+    "names": "epv_gl_sh"
+  },
+  {
+    "codes": 2732,
+    "names": "epv_gc_e_wv"
+  },
+  {
+    "codes": 2733,
+    "names": "epv_gc_sh"
+  },
+  {
+    "codes": 2734,
+    "names": "epv_annmax_lai"
+  },
+  {
+    "codes": 2735,
+    "names": "epv_n_limitation_0"
+  },
+  {
+    "codes": 2736,
+    "names": "epv_n_limitation_1"
+  },
+  {
+    "codes": 2737,
+    "names": "epv_n_limitation_2"
+  },
+  {
+    "codes": 2738,
+    "names": "epv_n_limitation_3"
+  },
+  {
+    "codes": 2739,
+    "names": "epv_n_limitation_4"
+  },
+  {
+    "codes": 2740,
+    "names": "epv_n_limitation_5"
+  },
+  {
+    "codes": 2741,
+    "names": "epv_n_limitation_6"
+  },
+  {
+    "codes": 2742,
+    "names": "epv_n_limitation_7"
+  },
+  {
+    "codes": 2743,
+    "names": "epv_n_limitation_8"
+  },
+  {
+    "codes": 2744,
+    "names": "epv_n_limitation_9"
+  },
+  {
+    "codes": 2745,
+    "names": "epv_plant_calloc"
+  },
+  {
+    "codes": 2746,
+    "names": "epv_plant_nalloc"
+  },
+  {
+    "codes": 2747,
+    "names": "epv_excess_c"
+  },
+  {
+    "codes": 2748,
+    "names": "epv_pnow"
+  },
+  {
+    "codes": 2749,
+    "names": "epv_NSC_limit_nw"
+  },
+  {
+    "codes": 2750,
+    "names": "epv_NSC_limit_w"
+  },
+  {
+    "codes": 2800,
+    "names": "sprop_RCN"
+  },
+  {
+    "codes": 2801,
+    "names": "sprop_soil_b_0"
+  },
+  {
+    "codes": 2802,
+    "names": "sprop_soil_b_1"
+  },
+  {
+    "codes": 2803,
+    "names": "sprop_soil_b_2"
+  },
+  {
+    "codes": 2804,
+    "names": "sprop_soil_b_3"
+  },
+  {
+    "codes": 2805,
+    "names": "sprop_soil_b_4"
+  },
+  {
+    "codes": 2806,
+    "names": "sprop_soil_b_5"
+  },
+  {
+    "codes": 2807,
+    "names": "sprop_soil_b_6"
+  },
+  {
+    "codes": 2808,
+    "names": "sprop_soil_b_7"
+  },
+  {
+    "codes": 2809,
+    "names": "sprop_soil_b_8"
+  },
+  {
+    "codes": 2810,
+    "names": "sprop_soil_b_9"
+  },
+  {
+    "codes": 2811,
+    "names": "sprop_BD_0"
+  },
+  {
+    "codes": 2812,
+    "names": "sprop_BD_1"
+  },
+  {
+    "codes": 2813,
+    "names": "sprop_BD_2"
+  },
+  {
+    "codes": 2814,
+    "names": "sprop_BD_3"
+  },
+  {
+    "codes": 2815,
+    "names": "sprop_BD_4"
+  },
+  {
+    "codes": 2816,
+    "names": "sprop_BD_5"
+  },
+  {
+    "codes": 2817,
+    "names": "sprop_BD_6"
+  },
+  {
+    "codes": 2818,
+    "names": "sprop_BD_7"
+  },
+  {
+    "codes": 2819,
+    "names": "sprop_BD_8"
+  },
+  {
+    "codes": 2820,
+    "names": "sprop_BD_9"
+  },
+  {
+    "codes": 2821,
+    "names": "sprop_vwc_sat_0"
+  },
+  {
+    "codes": 2822,
+    "names": "sprop_vwc_sat_1"
+  },
+  {
+    "codes": 2823,
+    "names": "sprop_vwc_sat_2"
+  },
+  {
+    "codes": 2824,
+    "names": "sprop_vwc_sat_3"
+  },
+  {
+    "codes": 2825,
+    "names": "sprop_vwc_sat_4"
+  },
+  {
+    "codes": 2826,
+    "names": "sprop_vwc_sat_5"
+  },
+  {
+    "codes": 2827,
+    "names": "sprop_vwc_sat_6"
+  },
+  {
+    "codes": 2828,
+    "names": "sprop_vwc_sat_7"
+  },
+  {
+    "codes": 2829,
+    "names": "sprop_vwc_sat_8"
+  },
+  {
+    "codes": 2830,
+    "names": "sprop_vwc_sat_9"
+  },
+  {
+    "codes": 2831,
+    "names": "sprop_vwc_fc_0"
+  },
+  {
+    "codes": 2832,
+    "names": "sprop_vwc_fc_1"
+  },
+  {
+    "codes": 2833,
+    "names": "sprop_vwc_fc_2"
+  },
+  {
+    "codes": 2834,
+    "names": "sprop_vwc_fc_3"
+  },
+  {
+    "codes": 2835,
+    "names": "sprop_vwc_fc_4"
+  },
+  {
+    "codes": 2836,
+    "names": "sprop_vwc_fc_5"
+  },
+  {
+    "codes": 2837,
+    "names": "sprop_vwc_fc_6"
+  },
+  {
+    "codes": 2838,
+    "names": "sprop_vwc_fc_7"
+  },
+  {
+    "codes": 2839,
+    "names": "sprop_vwc_fc_8"
+  },
+  {
+    "codes": 2840,
+    "names": "sprop_vwc_fc_9"
+  },
+  {
+    "codes": 2841,
+    "names": "sprop_vwc_wp_0"
+  },
+  {
+    "codes": 2842,
+    "names": "sprop_vwc_wp_1"
+  },
+  {
+    "codes": 2843,
+    "names": "sprop_vwc_wp_2"
+  },
+  {
+    "codes": 2844,
+    "names": "sprop_vwc_wp_3"
+  },
+  {
+    "codes": 2845,
+    "names": "sprop_vwc_wp_4"
+  },
+  {
+    "codes": 2846,
+    "names": "sprop_vwc_wp_5"
+  },
+  {
+    "codes": 2847,
+    "names": "sprop_vwc_wp_6"
+  },
+  {
+    "codes": 2848,
+    "names": "sprop_vwc_wp_7"
+  },
+  {
+    "codes": 2849,
+    "names": "sprop_vwc_wp_8"
+  },
+  {
+    "codes": 2850,
+    "names": "sprop_vwc_wp_9"
+  },
+  {
+    "codes": 2851,
+    "names": "sprop_vwc_hw_0"
+  },
+  {
+    "codes": 2852,
+    "names": "sprop_vwc_hw_1"
+  },
+  {
+    "codes": 2853,
+    "names": "sprop_vwc_hw_2"
+  },
+  {
+    "codes": 2854,
+    "names": "sprop_vwc_hw_3"
+  },
+  {
+    "codes": 2855,
+    "names": "sprop_vwc_hw_4"
+  },
+  {
+    "codes": 2856,
+    "names": "sprop_vwc_hw_5"
+  },
+  {
+    "codes": 2857,
+    "names": "sprop_vwc_hw_6"
+  },
+  {
+    "codes": 2858,
+    "names": "sprop_vwc_hw_7"
+  },
+  {
+    "codes": 2859,
+    "names": "sprop_vwc_hw_8"
+  },
+  {
+    "codes": 2860,
+    "names": "sprop_vwc_hw_9"
+  },
+  {
+    "codes": 2861,
+    "names": "sprop_psi_sat_0"
+  },
+  {
+    "codes": 2862,
+    "names": "sprop_psi_sat_1"
+  },
+  {
+    "codes": 2863,
+    "names": "sprop_psi_sat_2"
+  },
+  {
+    "codes": 2864,
+    "names": "sprop_psi_sat_3"
+  },
+  {
+    "codes": 2865,
+    "names": "sprop_psi_sat_4"
+  },
+  {
+    "codes": 2866,
+    "names": "sprop_psi_sat_5"
+  },
+  {
+    "codes": 2867,
+    "names": "sprop_psi_sat_6"
+  },
+  {
+    "codes": 2868,
+    "names": "sprop_psi_sat_7"
+  },
+  {
+    "codes": 2869,
+    "names": "sprop_psi_sat_8"
+  },
+  {
+    "codes": 2870,
+    "names": "sprop_psi_sat_9"
+  },
+  {
+    "codes": 2871,
+    "names": "sprop_psi_fc_0"
+  },
+  {
+    "codes": 2872,
+    "names": "sprop_psi_fc_1"
+  },
+  {
+    "codes": 2873,
+    "names": "sprop_psi_fc_2"
+  },
+  {
+    "codes": 2874,
+    "names": "sprop_psi_fc_3"
+  },
+  {
+    "codes": 2875,
+    "names": "sprop_psi_fc_4"
+  },
+  {
+    "codes": 2876,
+    "names": "sprop_psi_fc_5"
+  },
+  {
+    "codes": 2877,
+    "names": "sprop_psi_fc_6"
+  },
+  {
+    "codes": 2878,
+    "names": "sprop_psi_fc_7"
+  },
+  {
+    "codes": 2879,
+    "names": "sprop_psi_fc_8"
+  },
+  {
+    "codes": 2880,
+    "names": "sprop_psi_fc_9"
+  },
+  {
+    "codes": 2881,
+    "names": "sprop_psi_wp_0"
+  },
+  {
+    "codes": 2882,
+    "names": "sprop_psi_wp_1"
+  },
+  {
+    "codes": 2883,
+    "names": "sprop_psi_wp_2"
+  },
+  {
+    "codes": 2884,
+    "names": "sprop_psi_wp_3"
+  },
+  {
+    "codes": 2885,
+    "names": "sprop_psi_wp_4"
+  },
+  {
+    "codes": 2886,
+    "names": "sprop_psi_wp_5"
+  },
+  {
+    "codes": 2887,
+    "names": "sprop_psi_wp_6"
+  },
+  {
+    "codes": 2888,
+    "names": "sprop_psi_wp_7"
+  },
+  {
+    "codes": 2889,
+    "names": "sprop_psi_wp_8"
+  },
+  {
+    "codes": 2890,
+    "names": "sprop_psi_wp_9"
+  },
+  {
+    "codes": 2891,
+    "names": "sprop_hydr_conduct_sat_0"
+  },
+  {
+    "codes": 2892,
+    "names": "sprop_hydr_conduct_sat_1"
+  },
+  {
+    "codes": 2893,
+    "names": "sprop_hydr_conduct_sat_2"
+  },
+  {
+    "codes": 2894,
+    "names": "sprop_hydr_conduct_sat_3"
+  },
+  {
+    "codes": 2895,
+    "names": "sprop_hydr_conduct_sat_4"
+  },
+  {
+    "codes": 2896,
+    "names": "sprop_hydr_conduct_sat_5"
+  },
+  {
+    "codes": 2897,
+    "names": "sprop_hydr_conduct_sat_6"
+  },
+  {
+    "codes": 2898,
+    "names": "sprop_hydr_conduct_sat_7"
+  },
+  {
+    "codes": 2899,
+    "names": "sprop_hydr_conduct_sat_8"
+  },
+  {
+    "codes": 2900,
+    "names": "sprop_hydr_conduct_sat_9"
+  },
+  {
+    "codes": 2901,
+    "names": "sprop_hydr_diffus_sat_0"
+  },
+  {
+    "codes": 2902,
+    "names": "sprop_hydr_diffus_sat_1"
+  },
+  {
+    "codes": 2903,
+    "names": "sprop_hydr_diffus_sat_2"
+  },
+  {
+    "codes": 2904,
+    "names": "sprop_hydr_diffus_sat_3"
+  },
+  {
+    "codes": 2905,
+    "names": "sprop_hydr_diffus_sat_4"
+  },
+  {
+    "codes": 2906,
+    "names": "sprop_hydr_diffus_sat_5"
+  },
+  {
+    "codes": 2907,
+    "names": "sprop_hydr_diffus_sat_6"
+  },
+  {
+    "codes": 2908,
+    "names": "sprop_hydr_diffus_sat_7"
+  },
+  {
+    "codes": 2909,
+    "names": "sprop_hydr_diffus_sat_8"
+  },
+  {
+    "codes": 2910,
+    "names": "sprop_hydr_diffus_sat_9"
+  },
+  {
+    "codes": 2911,
+    "names": "sprop_hydr_conduct_fc_0"
+  },
+  {
+    "codes": 2912,
+    "names": "sprop_hydr_conduct_fc_1"
+  },
+  {
+    "codes": 2913,
+    "names": "sprop_hydr_conduct_fc_2"
+  },
+  {
+    "codes": 2914,
+    "names": "sprop_hydr_conduct_fc_3"
+  },
+  {
+    "codes": 2915,
+    "names": "sprop_hydr_conduct_fc_4"
+  },
+  {
+    "codes": 2916,
+    "names": "sprop_hydr_conduct_fc_5"
+  },
+  {
+    "codes": 2917,
+    "names": "sprop_hydr_conduct_fc_6"
+  },
+  {
+    "codes": 2918,
+    "names": "sprop_hydr_conduct_fc_7"
+  },
+  {
+    "codes": 2919,
+    "names": "sprop_hydr_conduct_fc_8"
+  },
+  {
+    "codes": 2920,
+    "names": "sprop_hydr_conduct_fc_9"
+  },
+  {
+    "codes": 2921,
+    "names": "sprop_hydr_diffus_fc_0"
+  },
+  {
+    "codes": 2922,
+    "names": "sprop_hydr_diffus_fc_1"
+  },
+  {
+    "codes": 2923,
+    "names": "sprop_hydr_diffus_fc_2"
+  },
+  {
+    "codes": 2924,
+    "names": "sprop_hydr_diffus_fc_3"
+  },
+  {
+    "codes": 2925,
+    "names": "sprop_hydr_diffus_fc_4"
+  },
+  {
+    "codes": 2926,
+    "names": "sprop_hydr_diffus_fc_5"
+  },
+  {
+    "codes": 2927,
+    "names": "sprop_hydr_diffus_fc_6"
+  },
+  {
+    "codes": 2928,
+    "names": "sprop_hydr_diffus_fc_7"
+  },
+  {
+    "codes": 2929,
+    "names": "sprop_hydr_diffus_fc_8"
+  },
+  {
+    "codes": 2930,
+    "names": "sprop_hydr_diffus_fc_9"
+  },
+  {
+    "codes": 2950,
+    "names": "psn_sun_pa"
+  },
+  {
+    "codes": 2951,
+    "names": "psn_shade_pa"
+  },
+  {
+    "codes": 2952,
+    "names": "psn_sun_co2"
+  },
+  {
+    "codes": 2953,
+    "names": "psn_shade_co2"
+  },
+  {
+    "codes": 2954,
+    "names": "psn_sun_t"
+  },
+  {
+    "codes": 2955,
+    "names": "psn_shade_t"
+  },
+  {
+    "codes": 2956,
+    "names": "psn_sun_lnc"
+  },
+  {
+    "codes": 2957,
+    "names": "psn_shade_lnc"
+  },
+  {
+    "codes": 2958,
+    "names": "psn_sun_flnr"
+  },
+  {
+    "codes": 2959,
+    "names": "psn_shade_flnr"
+  },
+  {
+    "codes": 2960,
+    "names": "psn_sun_flnp"
+  },
+  {
+    "codes": 2961,
+    "names": "psn_shade_flnp"
+  },
+  {
+    "codes": 2962,
+    "names": "psn_sun_ppfd"
+  },
+  {
+    "codes": 2963,
+    "names": "psn_shade_ppfd"
+  },
+  {
+    "codes": 2964,
+    "names": "psn_sun_g"
+  },
+  {
+    "codes": 2965,
+    "names": "psn_shade_g"
+  },
+  {
+    "codes": 2966,
+    "names": "psn_sun_dlmr"
+  },
+  {
+    "codes": 2967,
+    "names": "psn_shade_dlmr"
+  },
+  {
+    "codes": 2968,
+    "names": "psn_sun_Ci"
+  },
+  {
+    "codes": 2969,
+    "names": "psn_shade_Ci"
+  },
+  {
+    "codes": 2970,
+    "names": "psn_sun_O2"
+  },
+  {
+    "codes": 2971,
+    "names": "psn_shade_O2"
+  },
+  {
+    "codes": 2972,
+    "names": "psn_sun_Ca"
+  },
+  {
+    "codes": 2973,
+    "names": "psn_shade_Ca"
+  },
+  {
+    "codes": 2974,
+    "names": "psn_sun_gamma"
+  },
+  {
+    "codes": 2975,
+    "names": "psn_shade_gamma"
+  },
+  {
+    "codes": 2976,
+    "names": "psn_sun_Kc"
+  },
+  {
+    "codes": 2977,
+    "names": "psn_shade_Kc"
+  },
+  {
+    "codes": 2978,
+    "names": "psn_sun_Ko"
+  },
+  {
+    "codes": 2979,
+    "names": "psn_shade_Ko"
+  },
+  {
+    "codes": 2980,
+    "names": "psn_sun_Vmax"
+  },
+  {
+    "codes": 2981,
+    "names": "psn_shade_Vmax"
+  },
+  {
+    "codes": 2982,
+    "names": "psn_sun_Jmax"
+  },
+  {
+    "codes": 2983,
+    "names": "psn_shade_Jmax"
+  },
+  {
+    "codes": 2984,
+    "names": "psn_sun_J"
+  },
+  {
+    "codes": 2985,
+    "names": "psn_shade_J"
+  },
+  {
+    "codes": 2986,
+    "names": "psn_sun_Av"
+  },
+  {
+    "codes": 2987,
+    "names": "psn_shade_Av"
+  },
+  {
+    "codes": 2988,
+    "names": "psn_sun_Aj"
+  },
+  {
+    "codes": 2989,
+    "names": "psn_shade_Aj"
+  },
+  {
+    "codes": 2990,
+    "names": "psn_sun_A"
+  },
+  {
+    "codes": 2991,
+    "names": "psn_shade_A"
+  },
+  {
+    "codes": 3000,
+    "names": "summary_annprcp"
+  },
+  {
+    "codes": 3001,
+    "names": "summary_anntavg"
+  },
+  {
+    "codes": 3002,
+    "names": "summary_annrunoff"
+  },
+  {
+    "codes": 3003,
+    "names": "summary_annoutflow"
+  },
+  {
+    "codes": 3004,
+    "names": "summary_daily_n2o"
+  },
+  {
+    "codes": 3005,
+    "names": "summary_daily_nep"
+  },
+  {
+    "codes": 3006,
+    "names": "summary_daily_npp"
+  },
+  {
+    "codes": 3007,
+    "names": "summary_daily_nee"
+  },
+  {
+    "codes": 3008,
+    "names": "summary_daily_nbp"
+  },
+  {
+    "codes": 3009,
+    "names": "summary_daily_gpp"
+  },
+  {
+    "codes": 3010,
+    "names": "summary_daily_mr"
+  },
+  {
+    "codes": 3011,
+    "names": "summary_daily_gr"
+  },
+  {
+    "codes": 3012,
+    "names": "summary_daily_hr"
+  },
+  {
+    "codes": 3013,
+    "names": "summary_daily_sr"
+  },
+  {
+    "codes": 3014,
+    "names": "summary_daily_tr"
+  },
+  {
+    "codes": 3015,
+    "names": "summary_daily_fire"
+  },
+  {
+    "codes": 3016,
+    "names": "summary_daily_litfallc"
+  },
+  {
+    "codes": 3017,
+    "names": "summary_daily_litfallc_above"
+  },
+  {
+    "codes": 3018,
+    "names": "summary_daily_litfallc_below"
+  },
+  {
+    "codes": 3019,
+    "names": "summary_daily_litdecomp"
+  },
+  {
+    "codes": 3020,
+    "names": "summary_daily_litfire"
+  },
+  {
+    "codes": 3021,
+    "names": "summary_daily_litter"
+  },
+  {
+    "codes": 3022,
+    "names": "summary_cum_npp"
+  },
+  {
+    "codes": 3023,
+    "names": "summary_cum_nep"
+  },
+  {
+    "codes": 3024,
+    "names": "summary_cum_nee"
+  },
+  {
+    "codes": 3025,
+    "names": "summary_cum_gpp"
+  },
+  {
+    "codes": 3026,
+    "names": "summary_cum_mr"
+  },
+  {
+    "codes": 3027,
+    "names": "summary_cum_gr"
+  },
+  {
+    "codes": 3028,
+    "names": "summary_cum_hr"
+  },
+  {
+    "codes": 3029,
+    "names": "summary_cum_tr"
+  },
+  {
+    "codes": 3030,
+    "names": "summary_cum_n2o"
+  },
+  {
+    "codes": 3031,
+    "names": "summary_cum_Closs_MGM"
+  },
+  {
+    "codes": 3032,
+    "names": "summary_cum_Cplus_MGM"
+  },
+  {
+    "codes": 3033,
+    "names": "summary_cum_Closs_THN_w"
+  },
+  {
+    "codes": 3034,
+    "names": "summary_cum_Closs_THN_nw"
+  },
+  {
+    "codes": 3035,
+    "names": "summary_cum_Closs_MOW"
+  },
+  {
+    "codes": 3036,
+    "names": "summary_cum_Closs_HRV"
+  },
+  {
+    "codes": 3037,
+    "names": "summary_cum_yieldC_HRV"
+  },
+  {
+    "codes": 3038,
+    "names": "summary_cum_Closs_PLG"
+  },
+  {
+    "codes": 3039,
+    "names": "summary_cum_Closs_GRZ"
+  },
+  {
+    "codes": 3040,
+    "names": "summary_cum_Cplus_GRZ"
+  },
+  {
+    "codes": 3041,
+    "names": "summary_cum_Cplus_FRZ"
+  },
+  {
+    "codes": 3042,
+    "names": "summary_cum_Cplus_PLT"
+  },
+  {
+    "codes": 3043,
+    "names": "summary_cum_Nplus_GRZ"
+  },
+  {
+    "codes": 3044,
+    "names": "summary_cum_Nplus_FRZ"
+  },
+  {
+    "codes": 3045,
+    "names": "summary_cum_Closs_SNSC"
+  },
+  {
+    "codes": 3046,
+    "names": "summary_cum_Cplus_STDB"
+  },
+  {
+    "codes": 3047,
+    "names": "summary_cum_Cplus_CTDB"
+  },
+  {
+    "codes": 3048,
+    "names": "summary_cum_evap"
+  },
+  {
+    "codes": 3049,
+    "names": "summary_cum_transp"
+  },
+  {
+    "codes": 3050,
+    "names": "summary_cum_ET"
+  },
+  {
+    "codes": 3051,
+    "names": "summary_leaf_DM"
+  },
+  {
+    "codes": 3052,
+    "names": "summary_leaflitr_DM"
+  },
+  {
+    "codes": 3053,
+    "names": "summary_froot_DM"
+  },
+  {
+    "codes": 3054,
+    "names": "summary_fruit_DM"
+  },
+  {
+    "codes": 3055,
+    "names": "summary_softstem_DM"
+  },
+  {
+    "codes": 3056,
+    "names": "summary_livewood_DM"
+  },
+  {
+    "codes": 3057,
+    "names": "summary_deadwood_DM"
+  },
+  {
+    "codes": 3058,
+    "names": "summary_vegc"
+  },
+  {
+    "codes": 3059,
+    "names": "summary_abgc"
+  },
+  {
+    "codes": 3060,
+    "names": "summary_litrc"
+  },
+  {
+    "codes": 3061,
+    "names": "summary_soilc"
+  },
+  {
+    "codes": 3062,
+    "names": "summary_soiln"
+  },
+  {
+    "codes": 3063,
+    "names": "summary_sminn"
+  },
+  {
+    "codes": 3064,
+    "names": "summary_totalc"
+  },
+  {
+    "codes": 3065,
+    "names": "summary_humusC_top30"
+  },
+  {
+    "codes": 3066,
+    "names": "summary_SOM_C_top30"
+  },
+  {
+    "codes": 3067,
+    "names": "summary_SOM_N_top30"
+  },
+  {
+    "codes": 3068,
+    "names": "summary_NH4_top30"
+  },
+  {
+    "codes": 3069,
+    "names": "summary_NO3_top30"
+  },
+  {
+    "codes": 3070,
+    "names": "summary_SOM_C_30to60"
+  },
+  {
+    "codes": 3071,
+    "names": "summary_SOM_C_60to90"
+  },
+  {
+    "codes": 3072,
+    "names": "summary_daily_gross_nmin_total"
+  },
+  {
+    "codes": 3073,
+    "names": "summary_daily_gross_nimmob_total"
+  },
+  {
+    "codes": 3074,
+    "names": "summary_daily_net_nmin_total"
+  },
+  {
+    "codes": 3075,
+    "names": "summary_leafc_LandD"
+  },
+  {
+    "codes": 3076,
+    "names": "summary_frootc_LandD"
+  },
+  {
+    "codes": 3077,
+    "names": "summary_fruitc_LandD"
+  },
+  {
+    "codes": 3078,
+    "names": "summary_softstemc_LandD"
+  },
+  {
+    "codes": 3079,
+    "names": "summary_sminNH4_ppm_0"
+  },
+  {
+    "codes": 3080,
+    "names": "summary_sminNH4_ppm_1"
+  },
+  {
+    "codes": 3081,
+    "names": "summary_sminNH4_ppm_2"
+  },
+  {
+    "codes": 3082,
+    "names": "summary_sminNH4_ppm_3"
+  },
+  {
+    "codes": 3083,
+    "names": "summary_sminNH4_ppm_4"
+  },
+  {
+    "codes": 3084,
+    "names": "summary_sminNH4_ppm_5"
+  },
+  {
+    "codes": 3085,
+    "names": "summary_sminNH4_ppm_6"
+  },
+  {
+    "codes": 3086,
+    "names": "summary_sminNH4_ppm_7"
+  },
+  {
+    "codes": 3087,
+    "names": "summary_sminNH4_ppm_8"
+  },
+  {
+    "codes": 3088,
+    "names": "summary_sminNH4_ppm_9"
+  },
+  {
+    "codes": 3089,
+    "names": "summary_sminNO3_ppm_0"
+  },
+  {
+    "codes": 3090,
+    "names": "summary_sminNO3_ppm_1"
+  },
+  {
+    "codes": 3091,
+    "names": "summary_sminNO3_ppm_2"
+  },
+  {
+    "codes": 3092,
+    "names": "summary_sminNO3_ppm_3"
+  },
+  {
+    "codes": 3093,
+    "names": "summary_sminNO3_ppm_4"
+  },
+  {
+    "codes": 3094,
+    "names": "summary_sminNO3_ppm_5"
+  },
+  {
+    "codes": 3095,
+    "names": "summary_sminNO3_ppm_6"
+  },
+  {
+    "codes": 3096,
+    "names": "summary_sminNO3_ppm_7"
+  },
+  {
+    "codes": 3097,
+    "names": "summary_sminNO3_ppm_8"
+  },
+  {
+    "codes": 3098,
+    "names": "summary_sminNO3_ppm_9"
+  }
+]

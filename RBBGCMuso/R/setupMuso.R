@@ -55,44 +55,45 @@ setupMuso <- function(executable=NULL,
                       epcInput=NULL,
                       mapData=NULL,
                       leapYear=FALSE,
-                      version=5,
+                      version=6,
                       doCopy=TRUE
                       ){
 
     Linuxp <-(Sys.info()[1]=="Linux")
     writep <- 0
 
-    if(is.null(mapData)&version==4){
-        mData <- mMapping4
-    }
-    
+    # if(is.null(mapData)&version==4){
+    #     mData <- mMapping4
+    # }
+    #
+
     inputParser <- function(string,fileName,counter,value=TRUE){
         unlist(strsplit(grep(string,fileName,value=TRUE),"[\ \t]"))[counter]
     }
 
-    outMaker <- function(inputVar,grepString,filep){
-        tempVar <- eval(parse(text=inputVar))
-        if(is.null(tempVar)){
-            writep <<- writep+1
-            if(filep)
-            {
-                tempVar["spinup"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE))
-                tempVar["normal"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE))
-            } else {
-                tempVar["spinup"] <- inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE)
-                tempVar["normal"] <- inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE)
-                
-            }
-
-        } else {
-            iniFiles$spinup[grep(grepString,iniFiles$spinup)] <<- paste0(tempVar[1],"\t ",grepString)
-            
-            if(length(tempVar)==2){
-                iniFiles$normal[grep(" grepString",iniFiles$normal)] <<- paste0(tempVar[2],"\t ",grepString)
-            }
-        }
-        return(tempVar)
-    }
+    # outMaker <- function(inputVar,grepString,filep){
+    #     tempVar <- eval(parse(text=inputVar))
+    #     if(is.null(tempVar)){
+    #         writep <<- writep+1
+    #         if(filep)
+    #         {
+    #             tempVar["spinup"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE))
+    #             tempVar["normal"] <- file.path(inputLoc,inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE))
+    #         } else {
+    #             tempVar["spinup"] <- inputParser(string=grepString,fileName=iniFiles$spinup,counter=1,value=TRUE)
+    #             tempVar["normal"] <- inputParser(string=grepString,fileName=iniFiles$normal,counter=1,value=TRUE)
+    #             
+    #         }
+    #
+    #     } else {
+    #         iniFiles$spinup[grep(grepString,iniFiles$spinup)] <<- paste0(tempVar[1],"\t ",grepString)
+    #         
+    #         if(length(tempVar)==2){
+    #             iniFiles$normal[grep(" grepString",iniFiles$normal)] <<- paste0(tempVar[2],"\t ",grepString)
+    #         }
+    #     }
+    #     return(tempVar)
+    # }
     
     if(is.null(inputLoc)){
         inputLoc<- normalizePath("./")
@@ -126,12 +127,12 @@ setupMuso <- function(executable=NULL,
 
 
     
-    inputs <- lapply(1:nrow(grepHelper), function (x) {
-
-        outMaker(grepHelper[x,1],grepHelper[x,2],grepHelper[x,3])
-        
-    })   
-    names(inputs) <- grepHelper$inputVar   
+    # inputs <- lapply(1:nrow(grepHelper), function (x) {
+    #
+    #     outMaker(grepHelper[x,1],grepHelper[x,2],grepHelper[x,3])
+    #     
+    # })   
+    # names(inputs) <- grepHelper$inputVar   
     ## grepHelper is in sysdata.rda it is a table like this:
     ##
     ## inputVar         string      isFile  
@@ -150,36 +151,38 @@ setupMuso <- function(executable=NULL,
    # return(inputs) debug element 
 
     
-    if(is.null(mapData)){
-        
+    # if(is.null(mapData)){
+    #     
         outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
         numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
         dailyVarCodes<-tryCatch(iniFiles[[2]][(outIndex+1):(outIndex+numVar)],
                                 error = function(e){
         stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
         })
-        dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
+        dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
 
         outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
         numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
         annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
-        annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1]))
-        outputVars<-list(dailyVarnames,annualVarnames)} else {
-
-                                                          c<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
-                                                          numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
-                                                          dailyVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
-                                                          dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
-
-                                                          c<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
-                                                          numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
-                                                          annualVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
-                                                          annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
-                                                          outputVars<-list(dailyVarnames,annualVarnames)
-
-
-                                                          
-                                                      }
+        annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
+        outputVars<-list(dailyVarnames,annualVarnames)
+        # browser()
+# } else {
+#
+#                                                           c<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
+#                                                           numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
+#                                                           dailyVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
+#                                                           dailyVarnames<-lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
+#
+#                                                           c<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
+#                                                           numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][c],"[\ \t]"))[1])
+#                                                           annualVarCodes<-iniFiles[[2]][(c+1):(c+numVar)]
+#                                                           annualVarnames<-lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1],mapData))
+#                                                           outputVars<-list(dailyVarnames,annualVarnames)
+#
+#
+#                                                           
+#                                                       }
     
     
     
@@ -223,12 +226,12 @@ setupMuso <- function(executable=NULL,
     
     inputFiles<-c(iniInput,epcInput,metInput)
     numData<-rep(NA,3)
-    numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+2],"[\ \t]"))[1])
+    numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+1],"[\ \t]"))[1])
     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
     numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]])+1],"[\ \t]"))[1])
     ## numValues will be replaced to numVar
     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
-    startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+3],"[\ \t]"))[1])
+    startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+2],"[\ \t]"))[1])
     numData[1] <- numValues * sumDaysOfPeriod(startYear,numYears,corrigated=leapYear)
 
     numData[2] <- numYears * numValues*12
@@ -249,6 +252,20 @@ setupMuso <- function(executable=NULL,
     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[1]),".log")))
     ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))
+ 
+    searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
+        
+            if(stringP){
+                unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+"))[1]
+            } else {
+                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+"))[1])
+            }
+    }
+    soilFile <- NULL
+    if(version >=6){
+        soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
+    }
+    epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,
@@ -256,32 +273,33 @@ setupMuso <- function(executable=NULL,
                     outputNames=outputName,
                     inputLoc=inputLoc,
                     iniInput=iniInput,
-                    metInput=inputs$metInput,
-                    epcInput=inputs$epcInput,
-                    thinInput=inputs$thinInput,
-                    CO2Input=inputs$CO2Input,
-                    mowInput=inputs$mowInput,
-                    grazInput=inputs$grazInput,
-                    harvInput=inputs$harvInput,
-                    plougInput=inputs$plougInput,
-                    fertInput=inputs$fertInput,
-                    irrInput=inputs$irrInput,
-                    nitInput=inputs$nitInput,
+                    # metInput=inputs$metInput,
+                    epcInput=epcFiles,
+                    # thinInput=inputs$thinInput,
+                    # CO2Input=inputs$CO2Input,
+                    # mowInput=inputs$mowInput,
+                    # grazInput=inputs$grazInput,
+                    # harvInput=inputs$harvInput,
+                    # plougInput=inputs$plougInput,
+                    # fertInput=inputs$fertInput,
+                    # irrInput=inputs$irrInput,
+                    # nitInput=inputs$nitInput,
                     inputFiles=inputFiles,
                     numData=numData,
                     startYear=startYear,
                     numYears=numYears,
                     outputVars=outputVars,
+                    soilFile=soilFiles,
                     dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
                     annualVarCodes = gsub("\\s.*","",annualVarCodes)
                     )
     
-    if(writep!=nrow(grepHelper)){
-        writeLines(iniFiles[[1]],iniInput[[1]])
-        if(inputs$epcInput[1]!=inputs$epc$Input[2]){ #Change need here
-            writeLines(iniFiles[[2]],iniInput[[2]])      
-        }
-    }
+    # if(writep!=nrow(grepHelper)){
+    #     writeLines(iniFiles[[1]],iniInput[[1]])
+    #     if(inputs$epcInput[1]!=inputs$epc$Input[2]){ #Change need here
+    #         writeLines(iniFiles[[2]],iniInput[[2]])      
+    #     }
+    # }
     return(settings)
 
 }

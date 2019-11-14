@@ -8,9 +8,11 @@
 #' @importFrom limSolve xsample
 #' @export
 
-musoRand <- function(parameters, constrains = NULL, iterations=3000){
-
-    if(!is.null(constrains)){
+musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL){
+    if(is.null(constrains)){
+        constMatrix <- constrains
+        constMatrix <- getOption("RMuso_constMatrix")[[fileType]][[as.character(getOption("RMuso_version"))]]
+    } else {
         constMatrix <- constrains
     }
     
@@ -28,7 +30,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 	constMatrix <- constMatrix[order(apply(constMatrix[,7:8],1,function(x){x[1]/10+abs(x[2])})),]
 	constMatrix
     }
-
+    # browser()
     genMat0 <- function(dep){
 	numberOfVariable <- nrow(dep)
 	G <- rbind(diag(numberOfVariable), -1*diag(numberOfVariable))
@@ -54,7 +56,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
 	    }
 
 	}
-
+# browser()
 	G<-G[dep[,4]!=0,]
         
         if(is.null(nrow(G))){
@@ -148,6 +150,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
     dependences <- depTableMaker(constMatrix, parameters)
     dependences <- cbind(dependences,1:nrow(dependences))
     colnames(dependences)[ncol(dependences)] <- "rowIndex"
+    # browser()
     numberOfVariable <- nrow(dependences)
     nonZeroDeps<-dependences[dependences[,"TYPE"]!=0,]
     if(nrow(nonZeroDeps)!=0){
@@ -171,6 +174,7 @@ musoRand <- function(parameters, constrains = NULL, iterations=3000){
         h <- c(Gh0$h,h)
         E <- do.call(rbind,lapply(Ef,function(x){x$E}))
         f <- do.call(c,lapply(Ef,function(x){x$f}))
+        # browser()
         randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)
