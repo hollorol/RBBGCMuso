@@ -44,9 +44,11 @@ musoSensi <- function(monteCarloFile = NULL,
         }}
 
     doSensi <- function(M){
+        browser()
         npar <- ncol(M)-1
         M <- M[which(!is.na(M[,ncol(M)])),]
         y <- M[,(npar+1)]
+        colnames(M) <- gsub("\\.epc","-epc",colnames(M))
         M <- M[,colnames(M) %in% parameters[,1]]
         npar <- ncol(M)
         M <- apply(M[,1:npar],2,function(x){x-mean(x)})
@@ -103,6 +105,7 @@ musoSensi <- function(monteCarloFile = NULL,
         yInd <-  grep("mod.", colnames(M))[varIndex]
         parNames <- grep("mod.",colnames(M), invert=TRUE, value = TRUE)
         M <- M[,c(grep("mod.", colnames(M),invert=TRUE),yInd)]
+        # browser()
         return(doSensi(M))        
     }
 }
