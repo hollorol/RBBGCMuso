@@ -85,7 +85,8 @@ musoMonte <- function(settings=NULL,
         outVarNames <- sapply(outVars, musoMapping)
     }
     
-    parameterNames <- parameters[,1]
+
+    parameterNames <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
     # settings$calibrationPar <- A[,1] #:LATER:
     pretag <- file.path(outLoc,preTag)
     npar <- length(settings$calibrationPar)
@@ -120,6 +121,7 @@ musoMonte <- function(settings=NULL,
         settings$calibrationPar <- randVals[[1]]
         ## randValues <- randValues[,randVals[[1]] %in% parameters[,2]][,rank(parameters[,2])]
         modellOut <- matrix(ncol = numVars, nrow = iterations + 1)
+
 
         origModellOut <- calibMuso(settings=settings,silent=TRUE)
         write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
@@ -165,8 +167,10 @@ musoMonte <- function(settings=NULL,
         paramLines <- order(paramLines)
         randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
         randInd <- order(randInd)
-        
+    
+
        
+        # browser()
         epcStrip <- rbind(origEpc[order(parameters[,2])],
                           randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
         

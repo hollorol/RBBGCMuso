@@ -20,6 +20,7 @@ musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = N
     constMatrix <- constMatrix[,-1]
     
     depTableMaker <- function(constMatrix,parameters){
+        # browser()
         parameters <- parameters[order(parameters[,1]),] ## BUG!!!
         selectedRows <- constMatrix[,"INDEX"] %in% parameters[,1]
         rankList <- rank(constMatrix[selectedRows,2])
@@ -174,7 +175,7 @@ musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = N
         h <- c(Gh0$h,h)
         E <- do.call(rbind,lapply(Ef,function(x){x$E}))
         f <- do.call(c,lapply(Ef,function(x){x$f}))
-        # browser()
+         # browser()
         randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)

@@ -1,0 +1,189 @@
+X,NAME,INDEX,UNIT,MIN,MAX,DEPENDENCE,GROUP,TYPE
+1,"yearday to start new growth",9,yday,0,364,NA,0,0
+2,"yearday to end new growth",10,yday,0,364,NA,0,0
+3,"transfer growth period as fraction of growing season",11,prop,0,1,NA,0,0
+4,"litterfall as fraction of growing season",12,prop,0,1,NA,0,0
+5,"base temperature",13,Celsius,0,12,NA,0,0
+6,"minimum  temperature for growth displayed on current day",14,Celsius,0,10,0,1,1
+7,"optimal1 temperature for growth displayed on current day",15,Celsius,10,20,1,1,1
+8,"optimal2 temperature for growth displayed on current day",16,Celsius,20,40,2,1,1
+9,"maxmimum temperature for growth displayed on current day",17,Celsius,30,50,3,1,1
+10,"minimum  temperature for carbon assimilation displayed on current day",18,Celsius,0,10,0,2,1
+11,"optimal1 temperature for carbon assimilation displayed on current day",19,Celsius,10,20,1,2,1
+12,"optimal2 temperature for carbon assimilation displayed on current day",20,Celsius,20,40,2,2,1
+13,"maxmimum temperature for carbon assimilation displayed on current day",21,Celsius,30,50,3,2,1
+14,"annual leaf and fine root turnover fraction",22,1/yr,0.1,0.4,NA,0,0
+15,"annual live wood turnover fraction",23,1/yr,0.5,1,NA,0,0
+16,"annual fire mortality fraction",24,1/yr,0,1,NA,0,0
+17,"whole-plant mortality paramter for vegetation period",25,1/vegper,0,0.5,NA,0,0
+18,"C:N of leaves",26,kgC/kgN,10,100,0,3,1
+19,"C:N of leaf litter",27,kgC/kgN,10,60,1,3,1
+20,"C:N of fine roots",28,kgC/kgN,10,60,1,3,1
+21,"C:N of fruit",29,kgC/kgN,10,60,1,3,1
+22,"C:N of softstem",30,kgC/kgN,10,60,1,3,1
+23,"C:N of live wood",31,kgC/kgN,50,100,0,4,1
+24,"C:N of dead wood",32,kgC/kgN,300,800,1,4,1
+25,"dry matter content of leaves",33,kgC/kgDM,0.2,0.6,NA,0,0
+26,"dry matter content of leaf litter",34,kgC/kgDM,0.2,0.6,NA,0,0
+27,"dry matter content of fine roots",35,kgC/kgDM,0.2,0.6,NA,0,0
+28,"dry matter content of fruit",36,kgC/kgDM,0.2,0.6,NA,0,0
+29,"dry matter content of softstem",37,kgC/kgDM,0.2,0.6,NA,0,0
+30,"dry matter content of live wood",38,kgC/kgDM,0.2,0.6,NA,0,0
+31,"dry matter content of dead wood",39,kgC/kgDM,0.2,0.6,NA,0,0
+32,"leaf litter labile proportion",40,prop,0.1,0.6,1,5,2
+33,"leaf litter cellulose proportion",41,prop,0.1,0.6,1,5,2
+34,"fine root labile proportion",42,prop,0.1,0.6,1,6,2
+35,"fine root cellulose proportion",43,prop,0.1,0.6,1,6,2
+36,"fruit labile proportion",44,prop,0.1,0.6,1,7,2
+37,"fruit cellulose proportion",45,prop,0.1,0.6,1,7,2
+38,"softstem labile proportion",46,prop,0.1,0.6,1,8,2
+39,"softstem cellulose proportion",47,prop,0.1,0.6,1,8,2
+40,"dead wood cellulose proportion",48,prop,0.5,0.9,NA,0,0
+41,"canopy water interception coefficient",49,1/LAI/d,0.01,0.1,NA,0,0
+42,"canopy light extinction coefficient",50,dimless,0.2,0.8,NA,0,0
+43,"potential radiation use efficiency",51,g/MJ,2,2,NA,0,0
+44,"radiation parameter1 (Jiang et al.2015)",52,dimless,0.781,0.781,NA,0,0
+45,"radiation parameter1 (Jiang et al.2015)",53,dimless,-13.596,-13.596,NA,0,0
+46,"all-sided to projected leaf area ratio",54,dimless,2,2,NA,0,0
+47,"ratio of shaded SLA:sunlit SLA",55,dimless,2,2,NA,0,0
+48,"fraction of leaf N in Rubisco",56,dimless,0.01,0.2,NA,0,0
+49,"fraction of leaf N in PeP",57,dimless,0.0424,0.0424,NA,0,0
+50,"maximum stomatal conductance",58,m/s,0.001,0.1,NA,0,0
+51,"cuticular conductance",59,m/s,1E-05,0.0001,NA,0,0
+52,"boundary layer conductance",60,m/s,0.01,0.09,NA,0,0
+53,"maximum height of plant",61,m,0.1,10,NA,0,0
+54,"stem weight corresponding to maximum height",62,kgC,0.1,100,NA,0,0
+55,"plant height function shape parameter (slope)",63,dimless,0.5,0.5,NA,0,0
+56,"maximum depth of rooting zone",64,m,0.1,10,NA,0,0
+57,"root distribution parameter",65,prop,3.67,3.67,NA,0,0
+58,"root weight corresponding to max root depth",66,kgC/m2,0.4,0.4,NA,0,0
+59,"root depth function shape parameter (slope)",67,prop,0.5,0.5,NA,0,0
+60,"root weight to rooth length conversion factor",68,m/kg,1000,1000,NA,0,0
+61,"growth resp per unit of C grown",69,prop,0.1,0.5,NA,0,0
+62,"maintenance respiration in kgC/day per kg of tissue N",70,kgC/kgN/d,0.1,0.5,NA,0,0
+63,"theoretical maximum prop. of non-structural and structural carbohydrates",71,dimless,0,1,NA,0,0
+64,"prop. of non-structural carbohydrates available for maintanance resp",72,dimless,0,1,NA,0,0
+65,"symbiotic+asymbiotic fixation of N",73,kgN/m2/yr,0,0.001,NA,0,0
+66,"time delay for temperature in photosynthesis acclimation",74,day,0,50,NA,0,0
+67,"critical VWCratio (prop. to FC-WP) in germination",79,prop,0,1,NA,0,0
+68,"critical photoslow daylength",81,hour,14,18,NA,0,0
+69,"slope of relative photoslow development rate",82,dimless,0.005,0.005,NA,0,0
+70,"critical vernalization temperature 1",84,Celsius,-5,5,0,9,1
+71,"critical vernalization temperature 2",85,Celsius,0,10,1,9,1
+72,"critical vernalization temperature 3",86,Celsius,5,15,2,9,1
+73,"critical vernalization temperature 4",87,Celsius,10,20,3,9,1
+74,"slope of relative vernalization development rate",88,dimless,0.04,0.04,NA,0,0
+75,"required vernalization days (in vernalization development rate)",89,dimless,30,70,NA,0,0
+76,"critical flowering heat stress temperature 1",91,Celsius,30,40,0,10,1
+77,"critical flowering heat stress temperature 2",92,Celsius,30,50,1,10,1
+78,"theoretical maximum of flowering thermal stress mortality",93,prop,0,0.4,NA,0,0
+79,"VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)",96,prop,0.5,1,NA,0,0
+80,"VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)",97,prop,0.5,1,NA,0,0
+81,"minimum of soil moisture limit2 multiplicator (full anoxic stress value)",98,prop,0,1,NA,0,0
+82,"vapor pressure deficit: start of conductance reduction",99,Pa,500,1500,NA,0,0
+83,"vapor pressure deficit: complete conductance reduction",100,Pa,1500,3500,NA,0,0
+84,"maximum senescence mortality coefficient of aboveground plant material",101,prop,0,0.1,NA,0,0
+85,"maximum senescence mortality coefficient of belowground plant material",102,prop,0,0.1,NA,0,0
+86,"maximum senescence mortality coefficient of non-structured plant material",103,prop,0,0.1,NA,0,0
+87,"lower limit extreme high temperature effect on senescence mortality",104,Celsius,30,40,NA,0,0
+88,"upper limit extreme high temperature effect on senescence mortality",105,Celsius,30,50,NA,0,0
+89,"turnover rate of wilted standing biomass to litter",106,prop,0,0.1,NA,0,0
+90,"turnover rate of cut-down non-woody biomass to litter",107,prop,0,0.1,NA,0,0
+91,"turnover rate of cut-down woody biomass to litter",108,prop,0,0.1,NA,0,0
+92,"drought tolerance parameter (critical value of day since water stress)",109,n_day,0,100,NA,0,0
+93,"crit. amount of snow limiting photosyn.",112,kg/m2,0,20,NA,0,0
+94,"limit1 (under:full constrained) of HEATSUM index",113,Celsius,0,50,0,11,1
+95,"limit2 (above:unconstrained) of HEATSUM index",114,Celsius,0,100,1,11,1
+96,"limit1 (under:full constrained) of TMIN index",115,Celsius,-5,5,0,12,1
+97,"limit2 (above:unconstrained) of TMIN index",116,Celsius,0,10,1,12,1
+98,"limit1 (above:full constrained) of VPD index",117,Pa,2000,600,0,13,1
+99,"limit2 (under:unconstrained) of VPD index",118,Pa,500,1500,1,13,1
+100,"limit1 (under:full constrained) of DAYLENGTH index",119,s,0,0,0,14,1
+101,"limit2 (above:unconstrained) of DAYLENGTH index",120,s,0,0,1,14,1
+102,"moving average (to avoid the effects of extreme events)",121,n_day,2,20,NA,0,0
+103,"GSI limit1 (greater that limit -> start of vegper)",122,dimless,0,0.2,NA,0,0
+104,"GSI limit2 (less that limit -> end of vegper)",123,dimless,0,0.1,NA,0,0
+105,"length of phenophase (GDD)-0",127.6,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -0",128.6,prop,0,1,1,15,-3
+107,"fine root ALLOCATION-0",129.6,prop,0,1,1,15,-3
+108,"fruit ALLOCATION -0",130.6,prop,0,1,1,15,-3
+109,"soft stem ALLOCATION-0",131.6,prop,0,1,1,15,-3
+110,"live woody stem ALLOCATION -0",132.6,prop,0,1,1,15,-3
+111,"dead woody stem ALLOCATION -0",133.6,prop,0,1,1,15,-3
+112,"live coarse root ALLOCATION-0",134.6,prop,0,1,1,15,-3
+113,"dead coarse root ALLOCATION -0",135.6,prop,0,1,1,15,-3
+114,"canopy average specific leaf area-0",136.6,m2/kg,0,2,NA,0,0
+115,"current growth proportion-0",137.6,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-0",138.6,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-1",127.61,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -1",128.61,prop,0,1,1,16,-3
+107,"fine root ALLOCATION-1",129.61,prop,0,1,1,16,-3
+108,"fruit ALLOCATION -1",130.61,prop,0,1,1,16,-3
+109,"soft stem ALLOCATION-1",131.61,prop,0,1,1,16,-3
+110,"live woody stem ALLOCATION -1",132.61,prop,0,1,1,16,-3
+111,"dead woody stem ALLOCATION -1",133.61,prop,0,1,1,16,-3
+112,"live coarse root ALLOCATION-1",134.61,prop,0,1,1,16,-3
+113,"dead coarse root ALLOCATION -1",135.61,prop,0,1,1,16,-3
+114,"canopy average specific leaf area-1",136.61,m2/kg,0,2,NA,0,0
+115,"current growth proportion-1",137.61,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-1",138.61,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-2",127.62,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -2",128.62,prop,0,1,1,17,-3
+107,"fine root ALLOCATION-2",129.62,prop,0,1,1,17,-3
+108,"fruit ALLOCATION -2",130.62,prop,0,1,1,17,-3
+109,"soft stem ALLOCATION-2",131.62,prop,0,1,1,17,-3
+110,"live woody stem ALLOCATION -2",132.62,prop,0,1,1,17,-3
+111,"dead woody stem ALLOCATION -2",133.62,prop,0,1,1,17,-3
+112,"live coarse root ALLOCATION-2",134.62,prop,0,1,1,17,-3
+113,"dead coarse root ALLOCATION -2",135.62,prop,0,1,1,17,-3
+114,"canopy average specific leaf area-2",136.62,m2/kg,0,2,NA,0,0
+115,"current growth proportion-2",137.62,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-2",138.62,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-3",127.63,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -3",128.63,prop,0,1,1,18,-3
+107,"fine root ALLOCATION-3",129.63,prop,0,1,1,18,-3
+108,"fruit ALLOCATION -3",130.63,prop,0,1,1,18,-3
+109,"soft stem ALLOCATION-3",131.63,prop,0,1,1,18,-3
+110,"live woody stem ALLOCATION -3",132.63,prop,0,1,1,18,-3
+111,"dead woody stem ALLOCATION -3",133.63,prop,0,1,1,18,-3
+112,"live coarse root ALLOCATION-3",134.63,prop,0,1,1,18,-3
+113,"dead coarse root ALLOCATION -3",135.63,prop,0,1,1,18,-3
+114,"canopy average specific leaf area-3",136.63,m2/kg,0,2,NA,0,0
+115,"current growth proportion-3",137.63,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-3",138.63,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-4",127.64,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -4",128.64,prop,0,1,1,19,-3
+107,"fine root ALLOCATION-4",129.64,prop,0,1,1,19,-3
+108,"fruit ALLOCATION -4",130.64,prop,0,1,1,19,-3
+109,"soft stem ALLOCATION-4",131.64,prop,0,1,1,19,-3
+110,"live woody stem ALLOCATION -4",132.64,prop,0,1,1,19,-3
+111,"dead woody stem ALLOCATION -4",133.64,prop,0,1,1,19,-3
+112,"live coarse root ALLOCATION-4",134.64,prop,0,1,1,19,-3
+113,"dead coarse root ALLOCATION -4",135.64,prop,0,1,1,19,-3
+114,"canopy average specific leaf area-4",136.64,m2/kg,0,2,NA,0,0
+115,"current growth proportion-4",137.64,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-4",138.64,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-5",127.65,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -5",128.65,prop,0,1,1,20,-3
+107,"fine root ALLOCATION-5",129.65,prop,0,1,1,20,-3
+108,"fruit ALLOCATION -5",130.65,prop,0,1,1,20,-3
+109,"soft stem ALLOCATION-5",131.65,prop,0,1,1,20,-3
+110,"live woody stem ALLOCATION -5",132.65,prop,0,1,1,20,-3
+111,"dead woody stem ALLOCATION -5",133.65,prop,0,1,1,20,-3
+112,"live coarse root ALLOCATION-5",134.65,prop,0,1,1,20,-3
+113,"dead coarse root ALLOCATION -5",135.65,prop,0,1,1,20,-3
+114,"canopy average specific leaf area-5",136.65,m2/kg,0,2,NA,0,0
+115,"current growth proportion-5",137.65,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-5",138.65,Celsius,1,20000,NA,0,0
+105,"length of phenophase (GDD)-6",127.6,Celsius,0,10000,NA,0,0
+106,"leaf ALLOCATION -6",128.66,prop,0,1,1,21,-3
+107,"fine root ALLOCATION-6",129.66,prop,0,1,1,21,-3
+108,"fruit ALLOCATION -6",130.66,prop,0,1,1,21,-3
+109,"soft stem ALLOCATION-6",131.66,prop,0,1,1,21,-3
+110,"live woody stem ALLOCATION -6",132.66,prop,0,1,1,21,-3
+111,"dead woody stem ALLOCATION -6",133.66,prop,0,1,1,21,-3
+112,"live coarse root ALLOCATION-6",134.66,prop,0,1,1,21,-3
+113,"dead coarse root ALLOCATION -6",135.66,prop,0,1,1,21,-3
+114,"canopy average specific leaf area-6",136.66,m2/kg,0,2,NA,0,0
+115,"current growth proportion-6",137.66,prop,0,0,NA,0,0
+116,"maximal lifetime of plant tissue-6",138.66,Celsius,1,20000,NA,0,0

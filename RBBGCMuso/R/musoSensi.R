@@ -42,9 +42,9 @@ musoSensi <- function(monteCarloFile = NULL,
                                          stop("Cannot find neither parameters file neither the parameters matrix")
                                      })
         }}
-
+    parameters[,1] <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
     doSensi <- function(M){
-        browser()
+        # browser()
         npar <- ncol(M)-1
         M <- M[which(!is.na(M[,ncol(M)])),]
         y <- M[,(npar+1)]
