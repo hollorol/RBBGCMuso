@@ -37,6 +37,8 @@ copyMusoExampleTo <- function(example = NULL, destination = NULL){
   
   if(is.null(example)){
     cExample<-paste0(system.file("examples","",package = "RBBGCMuso"),"/",chooseExample())       
+  } else {
+    cExample <- paste0(system.file("examples","",package = "RBBGCMuso"),"/","hhs") 
   }
   
   if(is.null(destination)){
@@ -50,5 +52,5 @@ copyMusoExampleTo <- function(example = NULL, destination = NULL){
   } else {
       file.copy(grep("^muso$", list.files(), value = TRUE, invert = TRUE),destination)    
   }
-  setwd(currDir)
+  setwd(destination)
 }

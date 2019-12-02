@@ -44,7 +44,7 @@ plotMuso <- function(settings = NULL, variable = 1,
         warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
         plotType <- "cts"
     }
-    
+   # browser() 
     if(is.null(settings)){
         settings <- setupMuso()
     }
@@ -120,6 +120,7 @@ plotMuso <- function(settings = NULL, variable = 1,
      numVari <- ncol(musoData)-5
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
+        # browser()
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
