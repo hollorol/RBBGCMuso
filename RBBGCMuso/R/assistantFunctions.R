@@ -124,3 +124,65 @@ dynRound <- function(x,y,seqLen){
     return(round(a,digitNum))
 }
 
+
+readValuesFromFile  <- function(epc, linums){
+	epcFile <- readLines(epc)
+	rows <- numeric(2)
+	values <- sapply(linums, function(x){
+	    rows[1] <- as.integer(x)
+	    rows[2] <- as.integer(round(100*x)) %% 10 + 1 
+	    epcFile <- readLines(epc)
+	    selRow <- unlist(strsplit(epcFile[rows[1]], split= "[\t ]"))
+	    selRow <- selRow[selRow!=""]
+	    return(as.numeric(selRow[rows[2]]))
+
+	})
+
+	return(values)
+}
+#' readMeasuredMuso
+#'
+#' MuSo data reader
+#' @importFrom data.table fread data.table
+#' @export
+
+readObservedData <- function(inFile,
+                             naString = NULL, sep = ",",
+                             leapYearHandling = TRUE,
+                             convert.var = NULL,
+                             convert.scalar = 1,
+                             convert.fun = (function (x) {x * convert.scalar}),
+                             convert.file = NULL,
+                             filterCol = NULL,
+                             filterVal = 1,
+                             selVar = NULL
+                             ){
+
+    if(!is.null(naString)){
+        if(is.numeric(naString)){
+            baseData <- fread(file = inFile, sep=sep)
+            baseData <- as.data.frame(baseData)            
+            baseData[baseData[,selVar] == naString,selVar] <- NA        
+        } else {
+            baseData <- fread(file = inFile, sep=sep, naString = naString)
+            baseData <- as.data.frame(baseData)                  
+        }
+        
+    
+    } else {
+        
+            baseData <- fread(file = inFile, sep=sep)
+            baseData <- as.data.frame(baseData)            
+    }
+    
+    if(!is.null(filterCol)){
+        filterVar<- colnames(baseData)[filterCol]
+        baseData[(baseData[,filterVar] == filterVal),selVar] <- NA
+    }
+    head(baseData)
+    if(!is.null(selVar)){
+        baseData[,selVar] <-convert.fun(baseData[,selVar])
+    }
+    
+    return(data.table(baseData))
+}
