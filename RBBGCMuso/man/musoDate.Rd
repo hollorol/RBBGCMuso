@@ -4,8 +4,14 @@
 \alias{musoDate}
 \title{It generates BiomeBGC-MuSo dates}
 \usage{
-musoDate(startYear, numYears, timestep = "d", combined = TRUE,
-  corrigated = TRUE, format = "en")
+musoDate(
+  startYear,
+  numYears,
+  timestep = "d",
+  combined = TRUE,
+  corrigated = TRUE,
+  format = "en"
+)
 }
 \arguments{
 \item{timestep}{timestep, which can be daily ("d"), monthly ("m"), yearly("y")}
