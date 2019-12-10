@@ -85,7 +85,7 @@ In our example s.ini and n.ini follows this convention, so by default RBBGCMuso 
 
 *** Running the model
 
-Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup model, in normal mode, or in both phases (including the so-called transient run; see the Biome-BGCMuSo User's Guide). Using the runMuso functcion (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. Note that runMuso is the same as the obsolete calibMuso function. 
+Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the Biome-BGCMuSo User's Guide). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
 
 In order to execute the simulation, first you have to set the working directory in R so that RBBGCMuso will find the model and the input files. In our example this is as follows:
 
@@ -95,19 +95,19 @@ setwd("c:/model")
 
 (Note the "/" symbol which is different from the "\\" that is typically used in Windows!)
 
-In order to run the model as it is provided simply use the following command in R or RStudio:
+In order to run the model as it is provided, simply use the following command in R or RStudio:
 
 #+BEGIN_SRC R :eval no
 runMuso(skipSpinup = FALSE)
 #+END_SRC
 
-Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. Note that according to the naming convention described above the model will use s.ini and n.ini for spinup and normal phase, repsectively (this can be changed with the parameters of runMuso). As n.ini represents a grass simulation, the results will provide simulation data on C3 grass ecosystem with  management defined by the n.ini file. 
+Note that by default runMuso skips the spinup simulation (in order to speed up the model execution), but in our case we do not yet have the result of the spinup run (the so-called endpoint file which is the initial condition for the normal simulation), so spinup simulation is obligatory. This is performed with the skipSpinup=FALSE parameter. Note that according to the naming convention described above, the model will use s.ini and n.ini for spinup and normal phase, repsectively (this can be changed with the parameters of runMuso if needed). As n.ini represents a grass simulation, the results will provide simulation data on C3 grass ecosystem with management defined by the hhs.mgm file. 
 
-If the simulation is successful, the results can be found in the C:\model directory. In our example two files were created with .log extension that contain some information about the spinup and the normal phase. The hhs.endpoint file is the result of the spinup (and optional transient) run, and can be considered as initial conditions for the normal run. (Here we have to note that now runMuso can be called without the skipSpinup parameter which means that the simulation will be restricted to the normal phase only.) The results of the simulation (carbon fluxes, state variables, whatever was set by the user in the DAILY_OUTPUT block of the normal INI file) are available in the file hegyhatsal.dayout. Note that annual output was not requested in this case. Also note that in the hhs example file set binary daily output is created and further processed by RBBGCMuso. One of the most attractive features of RBBGCMuso is that the model output is handled by the package which means that it will be directly available for the user as a variable for further processing in R. 
+If the simulation is successful, the results can be found in the C:\model directory. In our example two files were created with .log extension that contain some information about the spinup and the normal phase. The hhs.endpoint file is the result of the spinup (and optional transient) run, and can be considered as initial conditions for the normal run. (Here we have to note that now runMuso can be called without the skipSpinup parameter which means that the simulation will be restricted to the normal phase only.) The results of the simulation (carbon fluxes, state variables, whatever was set by the user in the DAILY_OUTPUT block of the normal INI file) are available in the file hegyhatsal.dayout. Note that annual output was not requested in this case. Also note that in the hhs example file set binary daily output is created and further processed by RBBGCMuso. One of the most attractive features of RBBGCMuso is that the model output is handled by the package which means that it will be directly available for the user as a variable for further processing in R environment. 
 
 *** Visualization of the model output
 
-Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 39 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the Biome-BGCMuSo User's Guide). 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the Biome-BGCMuSo User's Guide). 
 
 Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
@@ -121,7 +121,7 @@ Now we extract the 2nd variable from the complete output set and call this R var
 gpp<-results[,2]
 #+END_SRC
 
-Now we are ready to visualize the results, first for all 4 years:
+Now we are ready to visualize the results, first for all 9 years:
 
 #+BEGIN_SRC R :eval no
 plot(gpp*1000)
