@@ -115,10 +115,10 @@ Assume that we would like to visualize Gross Primary Production (GPP) for one si
 results<-runMuso()
 #+END_SRC
 
-Now we extract the 26th variable from the complete output set and call this R variable as gpp:
+Now we extract the 2nd variable from the complete output set and call this R variable as gpp:
 
 #+BEGIN_SRC R :eval no
-gpp<-results[,26]
+gpp<-results[,2]
 #+END_SRC
 
 Now we are ready to visualize the results, first for all 4 years:
