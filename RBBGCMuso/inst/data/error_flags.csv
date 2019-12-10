@@ -1,0 +1,330 @@
+Exit code,Error
+100,NO error:  wrinting on screen the model version
+101,Error in call to presim_state_init() from pointbgc()
+102,Error in reading the name of the main init file from the command line
+103,Error opening the main init file
+201,Error in reading the header string from the init file 
+202,Error in call to met_init - KEYWORD problem
+20201,Error opening met data file
+20202,Error reading met file header lines
+20203,Error reading number of simdays in last simyear
+203,Error in call to restart_init - KEYWORD problem
+20301,Error reading input restart flag
+20302,Error reading output restart flag
+20303,Error opening input restart file
+20304,Error scanning input restart filename
+20305,Error opening output restart file
+20306,Error scanning output restart filename
+204,Error in call to time_init - KEYWORD problem
+20401,Error reading number of met years
+20302,Error reading simyears
+20303,Error reading simstartyear
+20304,Error reading spinup flag
+20305,Error reading max spinup years
+205,Error in call to co2_init - KEYWORD problem
+20501,Error reading variable CO2 flag
+20502,Error reading constant CO2 value
+20503,Error opening annual CO2 file
+20504,Error in CO2 data: file must contain data from the first simyear
+20505,Error reading annual CO2 array
+20506,Error in CO2 data: CO2 must be positive
+20507,Error scanning annual co2 filename
+20508,Error in CO2 data: CO2 file must contain data for each simyear
+206,Error in call to ndep_init - KEYWORD problem
+20601,Error reading varied Ndep flag
+20602,Error reading N deposition
+20603,Error opening annual Ndep file
+20604,Error allocating for annual Ndep array
+20605,Error in Ndep data: file must contain data from the first simyear
+20606,Error in Ndep data: Ndep must be positive
+20607,Error scanning annual Ndep filename
+20608,Error in Ndep data: Ndep file must contain data for each simyear
+207,Error in call to sitec_init - KEYWORD problem
+20701,Error reading elevation
+20702,Error reading site latitude
+20703,Error reading shortwave albedo
+20704,Error reading tair_annavg
+20705,Error reading tair_annrange
+20706,ERROR reading NdepNH4_coeff
+20707,Error in site data: swalb and NdepNH4_coeff must be positive
+208,Error in call to sprop_init - KEYWORD problem
+20800,ERROR opening sproponst file
+20801,ERROR reading 1. dividing line
+20802,ERROR reading denitr_coeff
+20803,ERROR reading nitrif_coeff
+20804,ERROR reading N2Ocoeff_nitrif
+20805,ERROR reading NH4_mobilen_prop
+20806,ERROR reading NO3_mobilen_prop
+20807,ERROR reading e-folding depth
+20808,ERROR reading SOIL_dissolv_prop
+20809,ERROR reading 2. dividing line
+20810,ERROR reading respiration fractions for fluxes between compartments
+20811,ERROR reading base values of rate constants are
+20812,ERROR reading 3. dividing line
+20813,ERROR reading CH4 PARAMETERS
+20814,ERROR reading 4. dividing line
+20815,Error reading soildepth
+2081501,ERROR in sprop data in SOIL file: negative or zero soildepth
+20816,ERROR reading BSE_PE_prop
+20817,Error reading maximum height of pond water
+20818,Error reading measured runoff curve number
+20819,ERROR reading 5. dividing line
+20820,Error reading percent sand
+20821,Error reading percent silt
+20822,Error reading soil pH
+20823,Error reading BD_mes
+20824,Error reading vwc_sat_mes
+20825,Error reading vwc_fc_mes
+20826,Error reading vwc_wp_mes
+20827,Error reading vwc_hw_mes
+20828,Error reading drain_coeff_mes
+20829,Error reading conduct_sat_mes
+20830,All or none measured bulk density and critical VWC data should to be set by the user
+20831,ERROR in multilayer_soilcalc() in sprop_init.c
+209,Error in call to epc_init - KEYWORD problem
+20900,ERROR opening epconst file
+20901,ERROR reading 1. dividing line
+20902,ERROR reading woody/non-woody flag
+20903,ERROR reading evergreen/deciduous flag
+20904,ERROR reading C3/C4 flag
+20905,ERROR reading 2. dividing line
+20906,ERROR reading onday
+20907,ERROR reading offday
+20908,ERROR reading transfer_pdays
+20909,ERROR reading litfall_pdays
+20910,ERROR reading base_temp parameter
+20911,ERROR reading minimum/optimal/maximum temperature for growth displayed on current day
+2091101,ERROR in minimum/optimal/maximum temperature for growth data: All or none temperature data should to be set by the user
+2091102,ERROR in minimum/optimal/maximum temperature for growth data: Correct temperature data: minT <= opt1T <= opt2T <= maxT
+20912,ERROR reading minimum/optimal/maximum temperature for C-assimilation
+2091201,ERROR in minimum/optimal/maximum temperature for C-assimilation: All or none temperature data should to be set by the user
+2091202,ERROR in minimum/optimal/maximum temperature for C-assimilation: Correct temperature data: minT <= opt1T <= opt2T <= maxT
+20913,ERROR reading non-woody biomass turnover
+20914,ERROR reading woody biomass turnover
+20915,ERROR reading fire mortality
+20916,ERROR reading whole-plant mortality
+2091601,ERROR allocating for annual WPM array
+2091602,ERROR reading annual WPM array file must contain a pair of values for each simyear
+2091603,ERROR with annual WPM array: WPM must be positive
+20917,ERROR reading initial C:N ratio
+2091701,ERROR in C:N ratio:  leaf C:N <= other C:N
+2091702,ERROR: livewood C:N must be > 0 in woody simulation
+2091703,ERROR: deadwood C:N must be >= livewood C:N
+20918,ERROR reading dry matter carbon content
+20919,ERROR reading leaf litter proportions
+2091901,ERROR in fractions: leaf litter proportions of labile and cellulose mustless than 1
+20920,ERROR reading froot proportions
+2092001,ERROR in fractions: froot proportions of labile and cellulose mustless than 1
+20921,ERROR reading fruit proportions
+2092101,ERROR in fractions: fruit proportions of labile and cellulose mustless than 1
+20922,ERROR reading fruit proportions
+2092201,ERROR in fractions: fruit proportions of labile and cellulose mustless than 1
+20923,ERROR reading fruit proportions
+2092301,ERROR in fractions: dead wood cellulose must less than 1
+20924,ERROR reading canopy water int coef
+20925,ERROR reading canopy light ext.coef
+20926,ERROR reading potential radiation use efficiency
+20927,ERROR reading radiation parameter
+20928,ERROR reading all to projected LAI ratio
+20929,ERROR reading shaded to sunlit SLA ratio
+20930,ERROR reading Rubisco N fraction
+20931,ERROR reading PeP N fraction
+20932,ERROR reading gl_smax
+2093201,ERROR allocating for annual MSC array
+2091702,ERROR with MSC array:  must contain a pair of values for each
+2091703,ERROR with MSC array:  msc must be positive
+20933,ERROR reading gl_c
+20934,ERROR reading gl_bl
+20935,ERROR reading number of max_plant_height
+20936,ERROR reading plantheight_par
+20937,ERROR reading number of max_rootzone_depth
+2093701,ERROR in epc data in EPC file: negative or zero rootzone_depth
+20938,ERROR reading rootdistrib_param
+20939,ERROR reading rootlenght_par
+20940,ERROR reading rootweight2length
+20941,ERROR reading growth resp.ratio
+20942,ERROR reading mrpern
+20943,ERROR reading NSC_SC_prop
+20944,ERROR reading NSC_avail_prop
+20945,ERROR reading N fixation
+20946,ERROR reading tau (time delay photosynthesis acclim.)
+20947,ERROR reading 3. dividing line
+20948,ERROR reading number of phenophase of germination
+20949,ERROR reading number of phenophase of emergence
+20950,ERROR reading critical VWC ratio in germination
+20951,ERROR reading number of phenophase of photoperiodic slowing effect
+20952,ERROR reading critical photoslow parameters
+20953,ERROR reading number of vernalization phenophase
+20954,ERROR reading critical vernalization temperature
+2095401,ERROR in vernalization temperature data: vern_parT1 <= vern_parT2 <= vern_parT3 <= vern_parT4
+20955,ERROR reading vernalization parameters
+20956,ERROR reading number of phenophase of flowering heat stress
+20957,ERROR reading critical flowering heat stress temperature
+2095401,ERROR in  critical flowering heat stress termparature data: flowHS_T1 <= flowHS_T2 <= flowHS_T3 <= flowHS_T4
+20958,ERROR reading mortality parameter of flowering heat stress
+20959,ERROR reading 4. dividing line
+20960,ERROR reading VWCratio_crit1
+20961,ERROR reading VWCratio_crit2
+20962,ERROR reading m_fullstress2
+20963,ERROR reading vpd_max
+20964,ERROR reading vpd_min
+20965,ERROR reading senescence mortality parameter
+20966,ERROR reading parameters of extreme high temperature effect on senesncene mortality
+2096601,ERROR in extreme high temperature effect data: SNSC_extremT1 < SNSC_extremT2
+20967,ERROR reading turnover rate of biomass to litter parameters
+20968,ERROR reading dsws_crit
+20969,ERROR reading 5. dividing line
+20970,ERROR reading snowcover_limit parameter
+20971,ERROR reading heatsum_limit parameters
+2097101,ERROR in heatsum_limit2 data: limit1 < limit2
+20972,ERROR reading tmin_limit parameters
+2097201,ERROR in tmin_limit2 data: limit1 < limit2
+20973,ERROR reading tmin_limit parameters
+2097301,ERROR in vpd_limit2 data: limit1 < limit2
+20974,ERROR reading vpd_limit parameters
+2097401,ERROR in dayl_limit2 data: limit1 < limit2
+20975,ERROR reading n_moving_avg parameter
+2097501,ERROR in moving average parameter of epc calculation: must greater then 2
+20976,ERROR reading epc_limit_SGS parameter
+20977,ERROR reading epc_limit_EGS parameter
+20978,ERROR reading 6. dividing line
+20979,ERROR reading name of the phenophases
+20980,ERROR reading phenophase_length in phenophase
+20981,ERROR reading alloc_leafc
+20982,ERROR reading alloc_frootc
+20983,ERROR reading alloc_fruitc
+20984,ERROR reading alloc_softstemc
+20985,ERROR reading alloc_woodystemc_live
+20986,ERROR reading alloc_woodystemc_dead
+20987,ERROR reading alloc_crootc_live
+20988,ERROR reading alloc_crootc_dead
+2098101,ERROR in allocation parameters: Allocation parameters must sum to 1.0 in every phenophase
+2098102,ERROR in allocation parameters: In the first phenophase leaf and froot allocation parameter setting is necessary
+2098103,ERROR in allocation parameters: No softstem allocation in case of woody biomass
+2098104,ERROR in allocation parameters: No woody allocation in case of non-woody biomass
+20989,ERROR reading avg_proj_sla
+2098901,ERROR in specific leaf area: Specific leaf area must be positive in every phenophase
+2098902,ERROR in specific leaf area: Specific leaf area must greater than to 0.0 in every phenophase when leafc allocation
+20990,ERROR reading curgrowth_prop
+20991,ERROR reading max_plantlifetime
+2099101,ERROR in max_plantlifetime data: All or none maximal lifetime of plant tissue variables should be set at same time
+210,Error in call to mgm_init - KEYWORD problem
+2101,Error in call to planting_init - KEYWORD problem
+2102,Error in call to thinning_init - KEYWORD problem
+2103,Error in call to mowing_init - KEYWORD problem
+2104,Error in call to grazing_init - KEYWORD problem
+2105,Error in call to harvesting_init - KEYWORD problem
+2106,Error in call to ploughing_init - KEYWORD problem
+2107,Error in call to fertilizing_init - KEYWORD problem
+2108,Error in call to irrigating_init - KEYWORD problem
+2100001,ERROR in management data: number planting and harvest action should be equal
+2100002,ERROR in management data: PLANTING must be before HARVESTING date
+2100003,ERROR in management date: start of GRAZING must be before end of GRAZING
+211,Error in call to simctrl_init - KEYWORD problem
+21101,ERROR reading phenology flag
+21102,ERROR reading flag indicating usage of GSI file
+21103,ERROR reading transferGDD_flag
+2110201,ERROR in phenophase parametrization: if transferGDD_flag = 1 -> n_emerg_phenophase must be specified
+21104,ERROR reading q10depend_flag
+21105,ERROR reading acclimation flag of photosynthesis
+21106,ERROR reading acclimation flag of respiration
+21107,ERROR reading CO2conduct_flag
+21108,ERROR reading soil temperature calculation flag
+21109,ERROR reading soil hydrological calculation method flag
+21110,ERROR reading discretitaion level of VWC calculation
+21111,ERROR reading photosynthesis calculation method flag
+21112,ERROR reading evapotranspiration calculation method flag (not used!)
+21113,ERROR reading radiation calculation method flag
+21114,ERROR reading soilstress calculation method flag
+212,Error in call to wstate_init - KEYWORD problem
+21201,ERROR reading snowpack
+21202,ERROR reading initial soilwater (FCprop)
+2120201,ERROR: initial soil water proportion must be >= 0.0 and <= 1.0
+2120201,ERROR: initial soil water proportion must less than saturation proportion
+213,Error in call to cstate_init - KEYWORD problem
+21301,Error reading Cnstate parameters
+214,Error in call to scc_init - KEYWORD problem
+21401,Error reading SCC parameters
+215,Error in call to conditionalMGM_init - KEYWORD problem
+21501,Error reading condMGM parameters
+2150001,ERROR in critical values of conditional irrigating: critSMSI OR critVWCratio must be used
+2150002,ERROR in VWCratio values of conditional irrigating: befVWC_ratio must less then aftVWC_ratio
+216,Error in call to output_init - KEYWORD problem
+20601,ERROR reading OUTPUT parameters
+20603,ERROR opening log_file
+21604,ERROR opening  outfile
+21605,ERROR reading initialization file block starting with keyword:DAILY_OUTPUT
+21606,ERROR reading initialization file block starting with keyword: ANNUAL_OUTPUT
+217,Error in call to end_init - KEYWORD problem
+218,Error in call to metarr_init - allocating problem
+21801,"ERROR reading MET variables  (must be 9 columns: year,day,tmax,tmin,tday,prcp,vpd,swavgfd,dayl)"
+21802,ERROR reading MET variables: file must contain meteorological data for each simulation day (from the beginning)
+21803,ERROR in met file: negative prcp/vpd/swavgfd/dayl data is not possible
+21804,ERROR reading met array: file must contain meteorological data for each simulation day
+21805,ERROR: run_avg() in metarr_init
+21806,ERROR in meteorological file: in southen hemisphere the number of days in the last simulation year must greater than 182
+219,Error in call to groundwater_init - allocating problem
+21901,ERROR reading annual gwd array: file must contain a pair of values for each simday
+21902,ERROR in groundwater data: negative groundwater data OR too short GW-file
+301,Error allocating for local daily output array in bgc()
+302,Error allocating for monthly average output array in bgc()
+303,Error allocating for annual average output array in bgc()
+304,Error allocating for local annual output array in bgc()
+305,Error allocating for output map in output_map_init()
+401,Error in call to output_map_init() from bgc()
+402,Error in atm_pres()
+403,Error in call to GSI_calculation()
+404,Error in call to conduct_limit_factors()
+405,Error in call to prephenology()
+406,Error in call to restart_input()
+407,Error in call to firstday()
+408,Error in call to zero_srcsnk()
+501,Error in call to make_zero_flux_struct()
+502,Error in dayphen()
+503,Error in management days()
+504,Error in multilayer_hydrolparams()
+505,Error in daymet()
+506,Error in phenphase()
+507,Error in multilayer_tsoil()
+508,Error in phenology()
+509,Error in multilayer_rootdepth()
+510,Error in radtrans()
+511,Error in prcp_route()
+512,Error in snowmelt()
+513,Error in baresoil_evap()
+514,rror in conduct_calc() 
+515,Error in canopy_et()
+516,Error in m_resp()
+517,Error in photosynthesis()
+518,Error in decomp()
+519,Error in daily_allocation() 
+520,Error in flowering_heatstress() 
+521,Error in annual_rates()
+522,Error in daily_growth_resp()
+523,Error in multilayer_transpiration()
+524,Error in irrigating()
+525,Error in groundwater()
+526,Error in multilayer_hydrolprocess()
+527,Error in daily_water_state_update()
+528,Error in daily_CN_state_update()
+529,Error in senescence()
+530,Error in mortality()
+531,Error in multilayer_sminn()
+532,Error in multilayer_leaching() 
+533,Error in planting() 
+534,Error in thinning()
+535,Error in mowing()
+536,Error in grazing()
+537,Error in harvesting()
+538,Error in ploughing() 
+539,Error in fertilizing()
+540,Error in cutdown2litter()
+541,Error in call to precision_control()
+542,Error in check_water_balance()
+543,Error in check_carbon_balance()
+544,Error in check_nitrogen_balance()
+545,Error in varCNcalc()
+546,Error in cnw_summary()
+547,Error in output_handling()
+548,Error in potEVAP_to_actEVAP()
+600,Error in call to restart_output()
