@@ -7,7 +7,7 @@
 
 *Current version: 0.7.0*
 
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo v6]] with RBBGCMuSo. 
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://agromo.agrar.mta.hu/bbgc/download.html][Biome-BGCMuSo v6]] with RBBGCMuSo. 
 
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
@@ -16,8 +16,8 @@ You can install the RBBGCMuso package in several ways depending on the operating
 *Note that in MS Windows first you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
-OR
-b) Install the devtools package first:
+or
+b) Install the devtools package first (recommended):
 #+BEGIN_SRC R :eval no
 install.packages("devtools")
 #+END_SRC
@@ -46,7 +46,7 @@ To start using RBBGCMuso you have to load the package in R with the following co
 library(RBBGCMuso)
 #+END_SRC
 
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do when you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, the soil input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][actual Biome-BGCMuSo User's Guide]].
 
 If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation set to your hard drive:
 
@@ -54,7 +54,7 @@ If you do not yet have a complete, operational model input dataset, you may want
 copyMusoExampleTo()
 #+END_SRC 
 
-Once this command is executed in R it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (=folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
+Once this command is executed in R, it will invoke a small Graphical User Interface (GUI) where you can select the target site for the sample simulation. At present only the "hhs" site is available, which is the abbreviation of the Hegyhátsál eddy covariance station in Hungary. After selecting the site (hhs in this example) the GUI will ask the user to specify a directory (=folder) where the dataset will be stored. In this example we suppose that the user works under MS Windows, and he/she created a directory called C:\model as target directory. It means that after selection of the site the user will select the C:\model directory. 
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
