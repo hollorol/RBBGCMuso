@@ -27,7 +27,7 @@
 calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       parameters=NULL, outVars = NULL, timee="d",
                       debugging=FALSE, logfilename=NULL,
-                      keepEpc=FALSE, export=FALSE,
+                      export=FALSE,
                       silent=FALSE, aggressive=FALSE,
                       leapYear=FALSE,keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
@@ -47,6 +47,8 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     executable <- settings$executable
     iniInput <- settings$iniInput
     epc <- settings$epcInput
+    version <- getOption("RMuso_version")
+    errorCodes <- getOption("RMuso_errorCodes") 
 
     if(is.null(calibrationPar)){
         calibrationPar <- settings$calibrationPar
@@ -58,46 +60,17 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     ## Set the working directory to the inputLoc temporarly.
     setwd(inputLoc)
 
-      
-    if(debugging){#If debugging option turned on
-        #If log or ERROR directory does not exists create it!
-        dirName<-file.path(inputLoc,"LOG")
-        dirERROR<-file.path(inputLoc,"ERROR")
-        
-        if(!dir.exists(dirName)){
-            dir.create(dirName)
-        }
 
-        if(!dir.exists(dirERROR)){
-            dir.create(dirERROR)
-        }
-    }
-    
-    if(keepEpc) {
-        epcdir <- dirname(epc[1])
-        print(epcdir)
-        WRONGEPC<-file.path(inputLoc,"WRONGEPC")
-        EPCS<-file.path(inputLoc,"EPCS")
-        
-        if(!dir.exists(WRONGEPC)){
-            dir.create(WRONGEPC)
-        }
-        
-        if(!dir.exists(EPCS)){
-            dir.create(EPCS)
-        }
-    }   
-
-#############################################################
-############################spinup run############################
-   ########################################################## 
+##########################################################
+############################spinup run####################
+########################################################## 
 
     
-    
-
      if(aggressive==TRUE){
          cleanupMuso(location=outputLoc,deep = TRUE)
      }
+    
+
 
     toModif<-c(epc[2],iniInput[2])
 
@@ -147,96 +120,50 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     ##Run the model for the spinup run.
 
-    if(silent){#silenc mode
-        if(Linuxp){
-            #In this case, in linux machines
-            tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
-                     error= function (e){
-                         setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
-        } else {
-            #In windows machines there is a show.output.on.console option
-            tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
-                     error= function (e){
-                         setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
-        }
-        
-    } else {
-        system(paste(executable,iniInput[1],sep=" "))
-    }
+   errorCode <- system2(executable,iniInput[1],stderr=FALSE,stdout=!silent)
 
-    
-    logspinup <- getLogs(outputLoc,outputNames,type="spinup")
-    ## logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
-    ## logspinup <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
-    
-    if(length(logspinup)==0){
-        if(keepEpc){
-            stampnum<-stamp(EPCS)
-            lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
-            lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
-            setwd(whereAmI)
-            stop("Modell Failure")
-        }
-        setwd(whereAmI)
-        stop("Modell Failure") #in that case the modell did not create even a logfile
-    }
-
-    if(length(logspinup)>1){
-        spincrash<-TRUE
-    } else {
-        if(identical(tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1),character(0))){
-            spincrash<-TRUE
-        } else {
-            spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
-        }
-    }
-    } else {spincrash <- FALSE}
-                                        #If the last line in the logfile is 0 There are mistakes so the spinup crashes
-    
-    if(!spincrash){##If spinup did not crashed, run the normal run.
-        
+   if(errorCode!=0){
+       if(errorCode == 127){
+           stop("Cannot run the model, it is possible that the file is missing,
+                or the path is wrong, check the current value in settings$executable")
+       }
+       if(version >= 6){
+         stop(errorCodes[[as.character(errorCode)]])
+       } else {
+         stop("Error in modell, please see the logfile")
+       }
+   }
+  } 
        ##################################################################### 
        ###########################normal run#########################
       #################################################################
 
-        ##for the sake of safe we set the location again
-        setwd(inputLoc)
+   errorCode <- system2(executable,iniInput[1],stderr=FALSE,stdout=!silent)
 
-        if(silent){
-            if(Linuxp){
-                tryCatch(system(paste(executable,iniInput[2],"> /dev/null",sep=" ")),
-                         error =function (e){
-                             setwd((whereAmI))
-                             stop("Cannot run the modell-check the executable!")})
-            } else {
-                tryCatch(system(paste(executable,iniInput[2],sep=" "),show.output.on.console = FALSE),
-                         error =function (e){
-                             setwd((whereAmI))
-                             stop("Cannot run the modell-check the executable!")} )
-            }
-            
-        } else {
-            tryCatch(system(paste(executable,iniInput[2],sep=" ")),
-                     error =function (e){
-                         setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
-        }
-
-
+   if(errorCode!=0){
+       if(errorCode == 127){
+           stop("Cannot run the model, it is possible that the file is missing,
+                or the path is wrong, check the current value in settings$executable")
+       }
+       if(version >= 6){
+         stop(errorCodes[[as.character(errorCode)]])
+       } else {
+         stop("Error in modell, please see the logfile")
+       }
+   }
+   
         ##read the output
          
         switch(timee,
-               "d"=(Reva <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
+               "d"=(Results <- tryCatch(getdailyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "m"=(Reva <- tryCatch(getmonthlyout(settings), #(:INSIDE: getOutput.R )
+               "m"=(Results <- tryCatch(getmonthlyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})),
-               "y"=(Reva <- tryCatch(getyearlyout(settings), #(:INSIDE: getOutput.R )
+               "y"=(Results <- tryCatch(getyearlyout(settings), #(:INSIDE: getOutput.R )
                                     error = function (e){
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
@@ -249,55 +176,12 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                                          stop("Cannot find output files")})
             stampAndDir(outputLoc = outputLoc,names = possibleNames,stampDir=binaryPlace,type="output")
         }
-    }
-
-    
-    if(skipSpinup){
-       logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="normal"),
-                                error = function (e){
-                                    setwd(whereAmI)
-                                    stop("Cannot find log files, something went wrong")})
-    } else {
-        logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="both"),
-                                error = function (e){
-                                    setwd(whereAmI)
-                                    stop("Cannot find log files, something went wrong")})
-    }
-    ## list.files(outputLoc)[grep("log$",list.files(outputLoc))]#creating a vector for logfilenames
 
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
 
-    if(skipSpinup){
-        errorsign <- readErrors(outputLoc=outputLoc,logfiles=logfiles,type="normal")
-    } else {
-
-        perror <- readErrors(outputLoc=outputLoc,logfiles=logfiles)                                    #vector of spinup and normalrun error
-        
-        
-        ##if errorsign is 1 there is error, if it is 0 everything ok
-        perror[is.na(perror)]<-0
-        if(length(perror)>sum(perror)){
-        errorsign <- 1
-        } else {
-            if(length(perror)==1){
-                errorsign <- 1
-            } else {
-                if(spincrash){
-                    errorsign <- 1
-                } else {
-                    errorsign <- 0
-                } }
-        }
-        
-        
-        
-    }
-        
-    
-    
-
+        errorsign  <- 1
     if(keepEpc){#if keepepc option turned on
 
         if(length(unique(dirname(epc)))>1){
@@ -355,23 +239,12 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     } else {
         if(!prettyOut){
-            rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)    
+            rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)
         }
-        
     }
-
-
     
     if(export!=FALSE){
         setwd(whereAmI)
-
-        ## switch(fextension(export),
-        ##        "csv"=(write.csv(Reva,export)),
-        ##        "xlsx"=(),
-        ##        "odt"=
-                  
-            
-        ## )
         write.csv(Reva,export)
         
     } else{

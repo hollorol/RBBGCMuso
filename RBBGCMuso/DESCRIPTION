@@ -7,7 +7,7 @@ Depends: R (>= 3.3.2)
 License: GPL-2
 LazyData: true
 NeedsCompilation: no
-Packaged:  Wed 13 Nov 2019 02:41:52 PM CET hollorol
+Packaged: Wed 13 Nov 2019 02:41:52 PM CET hollorol
 Author: Roland Hollo's [aut, cre]
 Imports:
 	grDevices,
@@ -24,11 +24,12 @@ Imports:
 	tidyr,
 	tcltk,
 	digest,
-    jsonlite
+    jsonlite,
+    gridExtra
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr

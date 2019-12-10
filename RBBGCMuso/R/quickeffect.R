@@ -39,11 +39,11 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
      if(is.null(calibrationPar)){
          calibrationPar <- settings$calibrationPar
      }
-    
     parVals <- seq(startVal, endVal, length = (nSteps + 1))
     parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
     a <- do.call(rbind,lapply(parVals, function(parVal){
         calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
+         # browser()
         if(all(is.na(calResult))){
             b <- cbind(rep(NA,365),parVal)
             rownames(b) <- tail(musoDate(startYear = settings$startYear, numYears = settings$numYears),365)

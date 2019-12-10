@@ -83,7 +83,7 @@ plotMuso <- function(settings = NULL, variable = 1,
         musoData <-musoData %>%
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
-        if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
+        if(!is.element("summary_cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
             musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
                 as.data.frame() %>%
                 rownames_to_column("date") %>%

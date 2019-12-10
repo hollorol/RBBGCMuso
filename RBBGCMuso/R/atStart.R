@@ -22,10 +22,13 @@
             version <- gsub(".*(\\d)\\.json","\\1",fName)
             RMuso_varTable[[version]] <<- varTable
         })
-
-
-    options(RMuso_version=RMuso_version,
-            RMuso_constMatrix=RMuso_constMatrix,
-            RMuso_varTable=RMuso_varTable)
-    # getOption("RMuso_constMatrix")$soil[[as.character(getOption("RMuso_version"))]]
+    errorCodes <- new.env()
+    errors <- read.csv(file.path(system.file("data",package="RBBGCMuso"), "error_flags.csv"),
+                           stringsAsFactors=FALSE)
+    Map(function(x,y){assign(as.character(x),y,envir=errorCodes)},errors[,1],errors[,2])
+    
+    options(RMuso_version = RMuso_version,
+            RMuso_constMatrix = RMuso_constMatrix,
+            RMuso_varTable = RMuso_varTable,
+            RMuso_errorCodes = errorCodes)
 }

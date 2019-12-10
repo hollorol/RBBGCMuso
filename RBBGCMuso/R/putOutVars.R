@@ -14,8 +14,10 @@ putOutVars <- function(iniFile,outputVars,modifyOriginal = FALSE){
     } else {
         iniOut <- iniFile
     }
+
+
     
-    outNames <- sapply(outputVars,musoMapping)
+    outNames <- sapply(outputVars,musoMapping) 
     partOne <- ini[1:grep("DAILY_OUTPUT",ini)]
     partTwo <- ini[grep("ANNUAL_OUTPUT",ini):(length(ini))]
     numVars <- length(outputVars)
@@ -29,4 +31,3 @@ putOutVars <- function(iniFile,outputVars,modifyOriginal = FALSE){
     writeLines(fileContent,iniOut)
     return(list(names=outNames,ratio=numVars/numVarsOriginal))
 }
-

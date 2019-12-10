@@ -16,6 +16,7 @@ getdailyout<-function(settings){
   d<-file(binaryname,"rb")
   ##leapyear is not implemented yet in this function
   dayoutput<-matrix(readBin(d,"double",size=8,n=(settings$numData[1])),(settings$numYears*365),byrow=TRUE)
+  # browser()
   close(d) 
   return(dayoutput)
 }

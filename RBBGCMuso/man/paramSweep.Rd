@@ -4,9 +4,14 @@
 \alias{paramSweep}
 \title{paramSweep}
 \usage{
-paramSweep(inputDir = "./", parameters = NULL, outputDir = NULL,
-  iterations = 10, outVar = "daily_gpp",
-  htmlOutName = "paramsweep.html")
+paramSweep(
+  inputDir = "./",
+  parameters = NULL,
+  outputDir = NULL,
+  iterations = 10,
+  outVar = "daily_gpp",
+  htmlOutName = "paramsweep.html"
+)
 }
 \arguments{
 \item{inputDir}{The directory which contains the MuSo model's ini files}

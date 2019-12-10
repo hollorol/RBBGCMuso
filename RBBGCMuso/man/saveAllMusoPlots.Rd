@@ -4,9 +4,15 @@
 \alias{saveAllMusoPlots}
 \title{saveAllMusoPlots}
 \usage{
-saveAllMusoPlots(settings = NULL, plotName = ".png", silent = TRUE,
-  type = "line", outFile = "annual.csv", colour = NULL,
-  skipSpinup = FALSE)
+saveAllMusoPlots(
+  settings = NULL,
+  plotName = ".png",
+  silent = TRUE,
+  type = "line",
+  outFile = "annual.csv",
+  colour = NULL,
+  skipSpinup = FALSE
+)
 }
 \arguments{
 \item{settings}{RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.}
