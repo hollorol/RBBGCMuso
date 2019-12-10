@@ -5,7 +5,7 @@
 * The RBBGCMuso Package
 #+AUTHOR: Roland HOLLÓS, Dóra HIDY, Zoltán BARCZA
 
-*Current version: 0.6.3.0*
+*Current version: 0.7.0*
 
 RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
 
@@ -24,7 +24,7 @@ install.packages("devtools")
 
 Then copy the following line into the R session and execute it:
 #+BEGIN_SRC R :eval no
-devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso")
+devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
 #+END_SRC
 
 In Debian (version 8+) you can automate the whole installation process with curl via copying the following line into the Linux terminal:
