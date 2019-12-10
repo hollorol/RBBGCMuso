@@ -7,7 +7,7 @@
 
 *Current version: 0.7.0*
 
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description.
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use Biome-BGCMuSo v6.x with RBBGCMuSo. 
 
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
@@ -58,7 +58,7 @@ Once this command is executed in R it will invoke a small Graphical User Interfa
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
-- muso.exe - this is the Biome-BGCMuSo 5.0 model executable for Windows (version might change in the future)
+- muso.exe - this is the Biome-BGCMuSo 6.0 model executable for Windows (version might change in the future)
 - muso - this is the model executable for Linux
 - cygwin1.dll - a so-called DLL file that supports the model execution under Windows
 - c3grass.epc - ecophysiological constants input file for the model (C3 grass in this case)
