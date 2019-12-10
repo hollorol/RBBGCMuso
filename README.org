@@ -46,7 +46,7 @@ To start using RBBGCMuso you have to load the package in R with the following co
 library(RBBGCMuso)
 #+END_SRC
 
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v5.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do if you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][actual Biome-BGCMuSo User's Guide]].
 
 If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation set to your hard drive:
 
@@ -150,7 +150,7 @@ Advanced visualization of the results is possible with plotMuso.
 Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. Execute the following command in R/RStudio:
 
 #+BEGIN_SRC R :eval no
-musoQuickEffect(calibrationPar = 25, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009)
+musoQuickEffect(calibrationPar = 13, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009)
 #+END_SRC
 
 This command selects the 25th line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 26th variable), so the effect of varying base temperature on GPP is calculated using 5 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. 
