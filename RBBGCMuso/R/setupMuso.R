@@ -198,32 +198,6 @@ setupMuso <- function(executable=NULL,
         }
 
     }
-# browser()
-#     if(getOption("RMuso_version")==6){
-#         manFile <- scan(iniInput[2],what="",n=1,skip=44,sep=" ") # HARDCODED -> UNTIL JSON VERSION
-#         mgm <- readLines(manFile)
-#         mgmConn <- file(manFile,open="r")
-#         manTypes <- c("planting","thinning","mowing","grazing","harvesting","ploughing","fertilizing","irrigating")
-#         mgmFiles <- rep("none",length(manTypes))
-#         if(scan(mgmConn,skip=3,n=1,what=integer())==1){
-#             mgmFiles[1] <- scan(mgmConn,skip=1,n=1,what="", sep = " ")
-#         }
-#         for(i in 2:length(mgmFiles)){
-#            if(scan(mgmConn,skip=2,n=1,what=integer())==1){
-#                mgmFiles[i] <- scan(mgmConn,skip=1,n=1,what="", sep =" " )
-#            } else {
-#                blackhole<-readLines(mgmConn,n=1)
-#            }
-#         }
-#         management <- list()
-#         Map(function(mt,dm){
-#                 if(dm == 1){
-#                     management[[mt]] <-  
-#                 }
-#         },manTypes,doManagement)
-#         manFile <- iniFiles[[2]]
-#        close(mgmConn)
-#     }
 
     outputName <- character(2)
     outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]])+1],"[\ \t]"))[1])
@@ -320,6 +294,28 @@ setupMuso <- function(executable=NULL,
                     dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
                     annualVarCodes = gsub("\\s.*","",annualVarCodes)
                     )
+
+    if(getOption("RMuso_version")==6){
+        manFile <- scan(iniInput[2],what="",n=1,skip=44,sep=" ") # HARDCODED -> UNTIL JSON VERSION
+        mgm <- readLines(manFile)
+        mgmConn <- file(manFile,open="r")
+        manTypes <- c("planting","thinning","mowing","grazing","harvesting","ploughing","fertilizing","irrigating")
+        mgmFiles <- rep("none",length(manTypes))
+        if(scan(mgmConn,skip=3,n=1,what=integer())==1){
+            mgmFiles[1] <- scan(mgmConn,skip=1,n=1,what="", sep = " ")
+        }
+        for(i in 2:length(mgmFiles)){
+           if(scan(mgmConn,skip=2,n=1,what=integer())==1){
+               mgmFiles[i] <- scan(mgmConn,skip=1,n=1,what="", sep =" " )
+           } else {
+               blackhole<-scan(mgmConn,skip =1, n=1,what="")
+           }
+        }
+        names(mgmFiles) <- manTypes
+        settings[["management"]] <- mgmFiles
+        close(manConn)
+    }
+
     
     # if(writep!=nrow(grepHelper)){
     #     writeLines(iniFiles[[1]],iniInput[[1]])
