@@ -25,7 +25,8 @@ Imports:
 	tcltk,
 	digest,
     jsonlite,
-    data.table
+    data.table,
+    gridExtra
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
