@@ -29,9 +29,10 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                       debugging=FALSE, logfilename=NULL,
                       keepEpc=FALSE, export=FALSE,
                       silent=FALSE, aggressive=FALSE,
-                      leapYear=FALSE,keepBinary=FALSE,
+                      keepBinary=FALSE,
                       binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
+                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE,
+                      postProcString = NULL){ #
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
@@ -103,11 +104,11 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
     {
-       # browser() 
+        
         toModif <- sapply(toModif, function (x){
             paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
         })
-       toModif[[1]] <- file.path(dirname(epc[2]),toModif[[1]])
+        
     }
     
     ##change the epc file if and only if there are given parameters
@@ -119,18 +120,15 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars))){
-        # browser()
     epc[2]<-file.path(dirname(epc[2]),toModif[1]) # Writing back the lost path
     toModif[2]<-file.path(dirname(iniInput[2]),toModif[2]) #for the Initmp, also
     if((!is.null(outVars) | !file.exists(toModif[2])) & !modifyOriginal){
-        # browser()
         file.copy(iniInput[2],toModif[2],overwrite = TRUE)
     }
 
     iniInput[2] <- toModif[2]}
 
     if(!is.null(parameters) & ((fileToChange == "epc") | (fileToChange == "both")) & !modifyOriginal){
-        # browser()
         tmp<-readLines(iniInput[2])
         tmpInd<-grep("EPC_FILE",tmp)+1
         tmp[tmpInd]<-file.path(dirname(tmp[tmpInd]),basename(epc[2]))
@@ -324,19 +322,18 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         stop("Modell Failure")
     }
 
+    
+
+    
     if(timee=="d"){
         if(!prettyOut){
             colnames(Reva) <- unlist(settings$outputVars[[1]])
         } else{
-            dates <- as.Date(musoDate(startYear = settings$startYear,
-                                      numYears = settings$numYears,
-                                      timestep="d",combined = TRUE,corrigated = FALSE),
-                             "%d.%m.%Y")
-            Reva <- cbind.data.frame(dates,
-                          musoDate(startYear = settings$startYear,
-                                   numYears = settings$numYears,
-                                   timestep = "d", combined = FALSE, corrigated = FALSE),
-                          Reva)
+            Reva <- cbind.data.frame(
+                musoDate(startYear = settings$startYear,
+                         numYears = settings$numYears,
+                         combined = FALSE, prettyOut = TRUE),
+                Reva)
             colnames(Reva) <- as.character(c("date","day","month","year",unlist(settings$outputVars[[1]])) )
             
         }
@@ -345,21 +342,26 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
             colnames(Reva) <- unlist(settings$outputVars[[2]])
     }
 
-
-
-    if(leapYear){
-        Reva <- corrigMuso(settings,Reva)
-        if(!prettyOut){
-            rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
-        }
-
-    } else {
-        if(!prettyOut){
-            rownames(Reva) <- musoDate(settings$startYear, settings$numYears, corrigated=FALSE)    
-        }
-        
+    if(!is.null(postProcString)){
+        Reva <- postProcMuso(Reva,postProcString)
     }
 
+    ## if(leapYear){
+    ##     Reva <- corrigMuso(settings,Reva)
+    ##     if(!prettyOut){
+    ##         rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
+    ##     }
+
+    ## } else {
+    ##     if(!prettyOut){
+    ##         rownames(Reva) <- musoDate(settings$startYear, settings$numYears)    
+    ##     }
+        
+    ## }
+    
+    if(!prettyOut){
+        rownames(Reva) <- musoDate(settings$startYear, numYears = settings$numYears)
+   }
 
     
     if(export!=FALSE){
@@ -376,5 +378,6 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         
     } else{
         setwd(whereAmI)
-        return(Reva)}
+        return(Reva)
+    }
 }

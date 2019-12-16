@@ -1,160 +1,116 @@
-#' isLeapyear
+#' musoDate
 #'
-#'This function tells us if its argument a leapyear or not.
-#'
-#'@param year a year
-#'@usage isLeapyear(year)
-#'@return TRUE, if leapyear, FALSE if dont.
-#' @keywords internal
-isLeapyear <- function(year){
-    ##This Boolean function tells us whether the given year is leapyear or not
-
-    if(((year%%4==0)&(year%%100!=0))|(year%%400==0)){
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
-}
-
-#' dayOfMonths
-#'
-#'This function gives as a vector which contains the number of the days per each month
-#'
-#'@param year a year
-#'@param corrigated Do you want to handle the leapyears, if yes choose TRUE
-#'@usage dayOfMonths(year, corrigated=TRUE)
-#'@return vector with 12 element. First is January, the last is December. All of the vector element represents the number of the days in that specific month
-#'@keywords internal
-
-
-
-dayOfMonths <- function(year,corrigated=TRUE){
-    ##This function tells us how many days are in the months in the choosen year.
-
-    dayMonths <- c(31,28,31,30,31,30,31,31,30,31,30,31)
-
-    if(corrigated){
-
-        if(isLeapyear(year)==TRUE){
-            dayMonths[2] <-29
-        }
-    }
-
-    return(dayMonths)
-}
-
-
-
-#' This function tells us how many days are in the given year.
-#' 
-#' This function tells us how many days are in the given year.
-#' @author Roland Hollos
-#' @keywords internal
-
-dayOfYears <- function(year, corrigated=TRUE){
-    ##This function tells us how many days are in the given year.
-
-    if(corrigated){
-        if(isLeapyear(year)==TRUE){
-            return(366)   
-        } else {
-            return(365)
-        }
-    } else {
-        return(365)
-    }
-
-}
-
-#' How many days are from the given date and given period length(periodlen)? 
-#' 
-#'How many days are from the given date and given period length(periodlen)? 
-#' @author Roland Hollos
-#' @keywords internal
-
-sumDaysOfPeriod <- function(year, periodlen, corrigated=TRUE){
-    ##How many days are from the given date and given period length(periodlen)?    
-
-    years <- year:(year+periodlen)
-
-    if(corrigated){
-        years100 <-length(which(years%%100==0))
-        years400 <-length(which(years%%400==0))
-        years4 <- length(which(years%%4==0))
-        numberOfLeapdays <- years4-years100+years400
-        days <- periodlen*365+numberOfLeapdays
-        return(days)
-    } else {
-        days <- periodlen*365
-        return(days)
-    }
-}
-
-#' Musoleapyear
-#' 
-#' How many days are from the given date and given period length(periodlen)? 
-#' @author Roland Hollos
-#' @keywords internal
-
-musoLeapYears <- function(settings){
-    days <- 365*settings$numyears
-    years <- settings$startyear:(settings$startyear+settings$numyears-1)
-    Leapyears <-unlist(lapply(years,isLeapyear)) 
-    return(Leapyears)
-}
-
-#' It generates BiomeBGC-MuSo dates
-#' 
-#' It generates all of the day-dates which are between the start and endyear of BiomeBGC-MuSo run.
-#' How many days are from the given date and given period length(periodlen)? 
-#' @author Roland Hollos
-#' @param timestep timestep, which can be daily ("d"), monthly ("m"), yearly("y") 
-#' @param settings You have to run the setupMuso function before musoDate. It is its output which contains all of the necessary system variables. It sets the whole environment.
-#' @param combined If FALSE the output is a vector of 3 string: day, month year, if true, these strings will be concatenated.
-#' @param corrigated If True it counts with leapyears, else dont. 
-#' @param format This is the format of the date. It can be "en" (dd.mm.yyyy), or "hu" (yyyy.mm.dd)
-#' @return The exact date-vectors for the BioBGC-MuSo output. You can use this for labelling purpose for example. 
+#' This function generates MuSo compatibla dates for the data
+#' @author Roland HOLLOS
+#' @param startYear
+#' @param numYears
+#' @param timestep
+#' @param combined
+#' @param corrigated
+#' @param format
+#' @importFrom lubridate leap_year
 #' @export
 
-musoDate <- function(startYear, numYears, timestep="d", combined=TRUE, corrigated=TRUE, format="en"){
-    ##purpose: generate date label for muso
+musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leapYearHandling = FALSE, prettyOut = FALSE){
 
+    if(is.null(endYears) & is.null(numYears)){
+        stop("You should provide endYears or numYears")
+    }
     
-
+    if(is.null(endYears)){
+        endYear <- startYear + numYears -1
+    }
     
-    days <- sumDaysOfPeriod(startYear, numYears, corrigated=corrigated)
-    dates <- matrix(rep(NA,days*3),ncol=3)
-
-        dates[1,] <- c(1,1,startYear)    
-        for(i in 2:days){
-            dates[i,]<-dates[(i-1),]
-            if((dates[i-1,2]==12)&(dates[i-1,1]==31)){
-                dates[i,] <-c(1,1,(dates[(i-1),3]+1)) 
-            } else {
-                
-                if(dates[i-1,1]==(dayOfMonths(dates[(i-1),3],corrigated=corrigated)[dates[(i-1),2]] )){
-                    dates[i,]<-c(1,(dates[(i-1),2]+1),dates[(i-1),3])
-                } else {
-                    dates[i,1]<-dates[(i-1),1]+1   
-                }
-            }
-            
+    dates <- seq(from = as.Date(paste0(startYear,"01","01"),format = "%Y%m%d"), to =  as.Date(paste0(endYear,"12","31"),format = "%Y%m%d"), by = "day")
+    if(leapYearHandling){
+        if(prettyOut){
+            return(cbind(format(dates,"%d.%m.%Y"),
+                         as.numeric(format(dates,"%d")),
+                         as.numeric(format(dates,"%m")),
+                         as.numeric(format(dates,"%Y")))   )
         }
-    if(format=="en"){
         
-    } else {
-        if(format=="hu"){
-         dates<-dates[,c(3,2,1)]   
+        if(combined == FALSE){
+            return(cbind(format(dates,"%d"),format(dates,"%m"),format(dates,"%Y")))
         } else {
-            cat("format is coerced to english, because I don't know what do you mean by:",format)
+            return(format(dates,"%d.%m.%Y"))            
+        }
+
+    } else {
+         dates <- dates[format(dates,"%m%d")!="0229"]
+        if(prettyOut){
+            return(data.frame(date = format(dates,"%d.%m.%Y"),
+                              day = as.numeric(format(dates,"%d")),
+                              month = as.numeric(format(dates,"%m")),
+                              year = as.numeric(format(dates,"%Y"))))
+        }
+       
+
+        if(combined == FALSE){
+            return(cbind(format(dates,"%d"),format(dates,"%m"),format(dates,"%Y")))
+        } else {
+            return(format(dates,"%d.%m.%Y"))            
         }
     }
+    
+}
+#' alignData
+#'
+#' This function align the data to the model and the model to the data
+#' @importFrom lubridate leap_year
+#' @keywords internal
+alignData  <- function(mdata, dataCol, modellSettings = NULL, startDate=NULL, endDate=NULL, formatString = "%Y-%m-%d", leapYear = TRUE, continious = FALSE){
 
-    if(combined==TRUE){
-        dates <- apply(dates,1,function(x) paste(x,collapse="."))
-        return(dates)
+    if(continious){
+        if((is.null(startDate) | is.null(endDate))){
+            stop("If your date is continuous, you have to provide both startDate and endDate. ")
+        }
+        startDate <- as.Date(startDate, format = formatString)
+        endDate <- as.Date(endDate, format = formatString)
     }
+
+    if(is.null(modellSettings)){
+        modellSettings <- setupMuso()
+    }
+
+    mdata <- as.data.frame(mdata)
+
+    if(continious){
+        dates <- seq(startDate, to = endDate, by= "day")
+    } else{
+        dates <- do.call(c,lapply(seq(nrow(mdata)), function(i){ as.Date(paste0(mdata[i,1],sprintf("%02d",mdata[i,2]),mdata[i,3]),format = "%Y%m%d")}))
+    }
+
+    ## if(!leapYear){
+    ##     casualDays <- which(format(dates,"%m%d") != "0229")
+    ##     #mdata <- mdata[casualDays,]
+    ##     dates <- dates[casualDays]
+    ## }
     
-    return(dates)
+    mdata <- mdata[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d"),]
+    dates <- dates[dates >= as.Date(paste0(modellSettings$startYear,"01","01"),format = "%Y%m%d")]
+    ## goodInd <- which(!(leap_year(dates)&
+    ##                    (format(dates,"%m") == "12")&
+    ##                    (format(dates,"%d") == "31")))
     
+    if(leapYear){
+        goodInd <- which(!(leap_year(dates)&
+                       (format(dates,"%m") == "12")&
+                       (format(dates,"%d") == "31")))
+    } else {
+        goodInd <-seq_along(dates)
+    }
+    realDate <- dates[which(format(dates,"%m%d") != "0229")]
+    if(leapYear){
+        mdata <- cbind.data.frame(realDate,mdata[goodInd,])        
+    } else {
+        mdata <- cbind.data.frame(dates,mdata)
+    }
+    modellDates <- as.Date(musoDate(startYear = modellSettings$startYear,numYears = modellSettings$numYears), format = "%d.%m.%Y")
+    mdata <- mdata[mdata[,1] %in% modellDates,]
+    nonEmpty <- which(!is.na(mdata[,dataCol+1]))
+    mdata <- mdata[nonEmpty,]
+    modIndex <- which(modellDates %in% mdata[,1])
+
+    list(measuredData = mdata[,dataCol +1], modIndex = modIndex)
 }

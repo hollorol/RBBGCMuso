@@ -25,6 +25,7 @@
 #' @importFrom dplyr filter group_by summarize mutate '%>%'
 #' @importFrom tibble rownames_to_column
 #' @importFrom tidyr separate gather
+#' @importFrom data.table ':=' data.table
 #' @export
 
 plotMuso <- function(settings = NULL, variable = 1,
@@ -38,13 +39,13 @@ plotMuso <- function(settings = NULL, variable = 1,
                      layerPlot = FALSE, colour = "blue",
                      skipSpinup = TRUE, fromData = FALSE,
                     timeFrame = "day", selectYear = NULL,
-                    groupFun = mean, separateFile = FALSE, dpi=300){
+                    groupFun = mean, separateFile = FALSE, dpi=300, postProcString = NULL){
 
     if( plotType!="cts" && plotType != "dts"){
         warning(paste0("The plotType ", plotType," is not implemented, plotType is set to cts"))
         plotType <- "cts"
     }
-   # browser() 
+    
     if(is.null(settings)){
         settings <- setupMuso()
     }
@@ -60,13 +61,12 @@ plotMuso <- function(settings = NULL, variable = 1,
     ##                        logfilename=logfilename,
     ##                        export=export)
     
-    groupByTimeFrame <- function(data, timeFrame, groupFun){
-        datas <- data %>%
-            group_by(eval(parse(text=timeFrame))) %>%
-            summarize(variable=groupFun(eval(parse(text=variable))))
-        datas[,1]<-as.numeric(unlist(datas[,1]))
-        colnames(datas) <- c("date",variable)
-        datas
+    groupByTimeFrame <- function(Data, timeFrame, groupFun){
+        Data <- data.table(Data)
+        Data[,c(variable):=groupFun(get(variable)),get(timeFrame)]
+        Data <- as.data.frame(Data) 
+        Data[,1] <- as.Date(Data[,1],"%d.%m.%Y")
+        Data
     }
     
     if(fromData){
@@ -84,20 +84,16 @@ plotMuso <- function(settings = NULL, variable = 1,
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
-            musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup) %>%
-                as.data.frame() %>%
-                rownames_to_column("date") %>%
-                mutate(date2=date,date=as.Date(date,"%d.%m.%Y")) %>%
-                separate(date2,c("day","month","year"),sep="\\.")
+            musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
             if(!is.null(selectYear)){
             musoData <- musoData %>% filter(year == get("selectYear"))    
             }
             
             if(timeFrame!="day"){
-                musoData <- tryCatch(groupByTimeFrame(data=musoData, timeFrame = timeFrame, groupFun = groupFun),
-                                     error=function(e){stop("The timeFrame or the gropFun is not found")})
+                musoData <- tryCatch(groupByTimeFrame(Data=musoData, timeFrame = timeFrame, groupFun = groupFun),
+                                     error=function(e){stop("The timeFrame or the groupFun is not found")})
             }} else {
-                 musoData <- calibMuso(settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
+                 musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,parameters = parameters, calibrationPar = calibrationPar,fileToChange = fileToChange) %>%
                      as.data.frame() %>%
                      rownames_to_column("date") %>%
                      mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),
@@ -120,7 +116,6 @@ plotMuso <- function(settings = NULL, variable = 1,
      numVari <- ncol(musoData)-5
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
-        # browser()
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
@@ -205,7 +200,12 @@ plotMuso <- function(settings = NULL, variable = 1,
             if(identical(character(0),setdiff(variable,as.character(settings$outputVars[[1]])))){
                 variableName <- variable
             } else {
-                stop("The symmetric difference of the set of the output variables specified in the ini files and the set specified with your variable parameter is not the empty set.")
+                if(!is.null(postProcString)){
+                 variableName <- variable     
+                } else {
+                    stop("The symmetric difference of the set of the output variables specified in the ini files and the set specified with your variable parameter is not the empty set.")                    
+                }
+
             }   
         }
         
@@ -248,40 +248,54 @@ plotMuso <- function(settings = NULL, variable = 1,
 #' debugging=FALSE, keepEpc=FALSE,
 #' logfilename=NULL, aggressive=FALSE,
 #' leapYear=FALSE, export=FALSE)
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot geom_line geom_point aes aes_string labs theme element_blank 
 #' @export
-plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",", savePlot=NULL,colour=c("black","blue"), calibrationPar=NULL, parameters=NULL){
-    if(!is.na(NACHAR)){
-        warning("NACHAR is not implemented yet")
-    }
-    if(is.null(settings)){
-        settings <- setupMuso()
-    }
-    
-    numberOfYears <- settings$numYears
-    startYear <- settings$startYear
-    yearVec <- seq(from = startYear, length=numberOfYears,by=1)
+plotMusoWithData <- function(mdata, plotName=NULL,
+                             startDate = NULL, endDate = NULL,
+                             colour=c("black","blue"), dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = FALSE, leapYearHandling = FALSE){
 
-    
-    data <- read.table(csvFile,header = TRUE, sep = ",") %>%
-        select(variable)
-    
-    baseData <- calibMuso(settings,silent=TRUE) %>%
-        as.data.frame() %>%
-        rownames_to_column("date") %>%
-        mutate(date2=date,date=as.Date(date,"%d.%m.%Y"),yearDay=rep(1:365,numberOfYears)) %>%
-        separate(date2,c("day","month","year"),sep="\\.")
-    baseData <- cbind(baseData,data)
-    colnames(baseData)[ncol(baseData)] <- "measuredData"
+    if(continious  & (is.null(startDate) | is.null(endDate))){
+        stop("If your date is continuous, you have to provide both startDate and endDate. ")
+    }
 
-    p <- baseData %>%
-        ggplot(aes_string("date",variable)) +
+    dataCol<- grep(paste0("^",dataVar,"$"), colnames(mdata))
+    selVar <- grep(modelVar,(settings$dailyVarCodes))+4
+
+    list2env(alignData(mdata, dataCol = dataCol,
+                       modellSettings = settings,
+                       startDate = startDate,
+                       endDate = endDate, leapYear = leapYearHandling, continious = continious),envir=environment())
+    mesData <- numeric(settings$numYears*365)
+    k <- 1
+    for(i in seq(mesData)){
+        if(i %in% modIndex){
+            mesData[i] <- measuredData[k]
+            k <- k + 1
+        } else {
+            mesData[i] <- NA
+        }
+    }
+    rm(k)
+    # modIndex and measuredData are created.
+    ## measuredData is created
+    ## baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
+    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)
+    baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
+    selVarName <- colnames(baseData)[selVar]
+    if(!all.equal(colnames(baseData),unique(colnames(baseData)))){
+        notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
+        stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
+    }
+    mesData<-cbind.data.frame(baseData[,1],mesData)
+    colnames(mesData) <- c("date", "measured")
+    p <- baseData  %>%
+        ggplot(aes_string("date",selVarName)) +
         geom_line(colour=colour[1]) +
-        geom_point(colour=colour[2], aes(date,measuredData)) +
-        labs(y = paste0(variable,"_measured"))+
+        geom_point(data = mesData, colour=colour[2], aes(date,measured)) +
+        labs(y = paste0(selVarName,"_measured"))+
         theme(axis.title.x = element_blank())
-    if(!is.null(savePlot)){
-        ggsave(savePlot,p)
+    if(!is.null(plotName)){ 
+        ggsave(plotName,p)
         return(p)
     } else {
         return(p)
@@ -301,7 +315,7 @@ plotMusoWithData <- function(csvFile, variable, NACHAR=NA, settings=NULL, sep=",
 #' @param fileToChange You can change any line of the EPC or the INI file. Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user. 
 #' @import ggplot2
 #' @export
-compareMuso <- function(settings=NULL, parameters, variable=1, calibrationPar=NULL, fileToChange="epc", skipSpinup=TRUE, timeFrame="day"){
+compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NULL, fileToChange="epc", skipSpinup=TRUE, timeFrame="day"){
 
     if(is.null(settings)){
         settings <- setupMuso()
