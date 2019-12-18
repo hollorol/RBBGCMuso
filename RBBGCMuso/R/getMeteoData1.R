@@ -1,4 +1,4 @@
-#' ERA5MTClimCreator
+#' getMeteoData1BGC
 #'
 #' This function downloads hourly 2m air temperature and total precipitation values in NetCDF file format
 #' at one grid point to create MTClim files which contain daily data.
@@ -22,7 +22,7 @@
 #' @importFrom tcltk tk_choose.dir tk_choose.files
 #' @export
 
-ERA5MTClimCreator <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
+getMeteoData1BG <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
                               monthList=sprintf("%02d",1:12),
                               dayList=sprintf("%02d",1:31),
                               hourList=sprintf("%02d:00",0:23),

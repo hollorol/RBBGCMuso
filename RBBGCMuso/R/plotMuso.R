@@ -116,10 +116,11 @@ plotMuso <- function(settings = NULL, variable = 1,
      numVari <- ncol(musoData)-5
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
+        musoData$date<- as.Date(as.character(musoData$date),"%d.%m.%Y")
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
-                   p <- ggplot(musoData,aes_string("date",variableName))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
+                   p <- ggplot(musoData,aes_string("date",variableName,group=1))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
                    if(!is.null(plotName)){
                        ggsave(as.character(plotName), plot = p)
                     p
