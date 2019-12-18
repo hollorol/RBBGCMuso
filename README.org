@@ -32,8 +32,8 @@ In Debian (version 8+) you can automate the whole installation process with curl
 bash <(curl -s https://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/debianInstaller.sh)
 #+END_SRC
 
-*** Installation in MS Windows
-You can also install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
+*** Installation in MS Windows (only for experts)
+Alternatively, you can also install the latest RBBGCMuso by copying the following line into the R console (using R or RStudio):
 #+BEGIN_SRC R :eval no
 source("https://raw.githubusercontent.com/hollorol/RBBGCMuso/master/installWin.R")
 #+END_SRC
