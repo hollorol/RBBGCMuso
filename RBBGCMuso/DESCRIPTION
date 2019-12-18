@@ -27,7 +27,10 @@ Imports:
     jsonlite,
     data.table,
     gridExtra,
-    lubridate
+    lubridate,
+    ecmwfr,
+    ncdf4,
+    tcltk
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
