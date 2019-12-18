@@ -4,7 +4,12 @@
 \alias{checkMeteoBGC}
 \title{checkMeteoBGC}
 \usage{
-checkMeteoBGC(settings = NULL, skip = 4, numericReport = FALSE)
+checkMeteoBGC(
+  settings = NULL,
+  skip = 4,
+  numericReport = FALSE,
+  type = "normal"
+)
 }
 \arguments{
 \item{settings}{The output of setupMuso}
@@ -12,6 +17,8 @@ checkMeteoBGC(settings = NULL, skip = 4, numericReport = FALSE)
 \item{skip}{Number of header lines in meteorology file.}
 
 \item{numericReport}{If numericReport is set to FALSE, the function returns with a text report. If numericReport is set to TRUE, the function returns with a numeric report.}
+
+\item{type}{meteorology for spinup or normal run}
 
 \item{metFileName}{The name of the meteorology file (mtc43).}
 }
