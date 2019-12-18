@@ -159,6 +159,8 @@ setupMuso <- function(executable=NULL,
                                 error = function(e){
         stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
         })
+
+        dailyVarCodes<-unlist(lapply(dailyVarCodes, function(x) unlist(strsplit(x,"[\ \t]"))[1]))
         dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
 
         outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
@@ -268,6 +270,10 @@ setupMuso <- function(executable=NULL,
     }
     epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
     metInput <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"MET_INPUT"))}),error = function(e){""})
+    dailyOutputTable <- cbind.data.frame(seq_along(dailyVarCodes),dailyVarCodes,outputVars[[1]])
+    colnames(dailyOutputTable) <- c("index","code","name")
+    annualOutputTable <- cbind.data.frame(seq_along(annualVarCodes),annualVarCodes,outputVars[[2]])
+    colnames(dailyOutputTable) <- c("index","code","name")
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,
@@ -293,7 +299,9 @@ setupMuso <- function(executable=NULL,
                     outputVars=outputVars,
                     soilFile=soilFiles,
                     dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
-                    annualVarCodes = gsub("\\s.*","",annualVarCodes)
+                    annualVarCodes = gsub("\\s.*","",annualVarCodes),
+                    dailyOutputTable=dailyOutputTable,
+                    annualOutputTable=annualOutputTable
                     )
 
     # if(getOption("RMuso_version")==6){
@@ -324,6 +332,9 @@ setupMuso <- function(executable=NULL,
     #         writeLines(iniFiles[[2]],iniInput[[2]])      
     #     }
     # }
+
+    suppressWarnings(dir.create(file.path(inputLoc,"bck")))
+    # sapply(iniFiles,epc)
     return(settings)
 
 }

@@ -141,6 +141,13 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         settings$outputVars[[1]]<-outputVarChanges[[1]]
         settings$numData <- round(settings$numData*outputVarChanges[[2]])
     }
+
+    # if(modifyOriginal){
+    #     suppressWarnings(dir.create())
+    #     sapply(c(iniInput,epc),)
+    #
+    # }
+
     
    if(!skipSpinup) {
 
