@@ -125,7 +125,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                                   parameters = randValues[(i-1),],
                                   silent= FALSE,
                                   skipSpinup = skipSpinup, postProcString = postProcString)[modIndex,colNumb], error = function (e) NA)
-        browser()
+        # browser()
 
         modellOut[i]<- likelihood(measuredData,tmp)
         rmse[i] <- sqrt(mean((measuredData-tmp)^2))
