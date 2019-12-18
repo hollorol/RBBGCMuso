@@ -267,6 +267,7 @@ setupMuso <- function(executable=NULL,
         soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
     }
     epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
+    metInput <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"MET_INPUT"))}),error = function(e){""})
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,
@@ -274,7 +275,7 @@ setupMuso <- function(executable=NULL,
                     outputNames=outputName,
                     inputLoc=inputLoc,
                     iniInput=iniInput,
-                    # metInput=inputs$metInput,
+                    metInput=metInput,
                     epcInput=epcFiles,
                     # thinInput=inputs$thinInput,
                     # CO2Input=inputs$CO2Input,

@@ -2,6 +2,7 @@
 
 export(calibMuso)
 export(changeMusoC)
+export(checkMeteoBGC)
 export(cleanupMuso)
 export(compareMuso)
 export(copyMusoExampleTo)
