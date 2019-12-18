@@ -48,7 +48,7 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
    }
   
   if(is.null(fileDir)){
-     apiFile <- tk_choose.files(caption = "Please choose the fileDir.")
+     apiFile <- tk_choose.dir(caption = "Please choose the fileDir.")
    }
 
   apiCodes <- suppressWarnings(readLines(apiFile)[2])
