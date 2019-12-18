@@ -1,4 +1,4 @@
-#' getMeteoData1
+#' ERA5MTClimCreator
 #'
 #' This function downloads hourly 2m air temperature and total precipitation values in NetCDF file format
 #' at one grid point to create MTClim files which contain daily data.
@@ -22,7 +22,7 @@
 #' @importFrom tcltk tk_choose.dir tk_choose.files
 #' @export
 
-getMeteoData1 <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
+ERA5MTClimCreator <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
                               monthList=sprintf("%02d",1:12),
                               dayList=sprintf("%02d",1:31),
                               hourList=sprintf("%02d:00",0:23),
@@ -43,9 +43,13 @@ getMeteoData1 <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, time
   # print("Please choose the file in the pop-up window which contains the CDS API key.")
 
   # With tk_choose.files, it is not working in R Server.
-  # if(is.null(apiFile)){
-  #    apiFile <- tk_choose.files(caption = "Please choose the file which contains the CDS API key.")
-  #  }
+  if(is.null(apiFile)){
+     apiFile <- tk_choose.files(caption = "Please choose the file which contains the CDS API key.")
+   }
+  
+  if(is.null(fileDir)){
+     apiFile <- tk_choose.files(caption = "Please choose the fileDir.")
+   }
 
   apiCodes <- suppressWarnings(readLines(apiFile)[2])
   apiCodes <- unlist(strsplit(apiCodes,split=":"))
