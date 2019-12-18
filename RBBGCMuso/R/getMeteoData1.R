@@ -22,7 +22,7 @@
 #' @importFrom tcltk tk_choose.dir tk_choose.files
 #' @export
 
-getMeteoData1BG <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
+getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, timeOut=7200,
                               monthList=sprintf("%02d",1:12),
                               dayList=sprintf("%02d",1:31),
                               hourList=sprintf("%02d:00",0:23),
