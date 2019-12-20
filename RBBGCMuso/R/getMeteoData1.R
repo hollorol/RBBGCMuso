@@ -510,7 +510,7 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
 
     file.rename("1.mtc43",
                 paste0(grid,
-                       "_lat", latSub, "_lon", lonSub, ".mtc43")) # ID number (1,2,...) can be added to the title by using object grid befor "_lat"
+                       "_lat", latSub, "_lon", lonSub, ".wth")) # ID number (1,2,...) can be added to the title by using object grid befor "_lat"
 
     # file.rename("1.ini", paste0(sprintf('%0.4d', gridID),".ini"))
     #
