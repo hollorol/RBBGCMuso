@@ -31,6 +31,7 @@ musoMonte <- function(settings=NULL,
                      debugging = FALSE,
                      keepEpc = FALSE,
                      constrains = NULL,
+                     skipZero = TRUE,
                      ...){
 
 
@@ -149,6 +150,11 @@ musoMonte <- function(settings=NULL,
             if(length(dim(tmp))>=1){
                 for(j in 1:numVars){
                     tmp2[j]<-funct[[j]](tmp[,j])
+                }
+                if(skipZero){
+                    if(tmp2[j]==0){
+                        tmp2[j] <- NA
+                    }
                 }
             } else {
                 for(j in 1:numVars){

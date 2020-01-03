@@ -30,6 +30,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      plotName = "sensitivity.png",
                      plotTitle = "Sensitivity",
                      skipSpinup = TRUE,
+                     skipZero = TRUE,
                      dpi=300){
 
     if(is.null(parameters)){
@@ -91,7 +92,8 @@ musoSensi <- function(monteCarloFile = NULL,
                       outVars = outVars,
                       fun = fun,
                       varIndex = varIndex,
-                      skipSpinup = skipSpinup
+                      skipSpinup = skipSpinup,
+                      skipZero=skipZero
                       )
         M <- cbind(seq_along(M[,1]),M)
         yInd <-  grep("mod.", colnames(M))[varIndex]
