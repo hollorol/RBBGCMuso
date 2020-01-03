@@ -9,7 +9,8 @@ musoSensi(monteCarloFile = NULL, parameters = NULL, settings = NULL,
   iterations = 30, preTag = "mont-", outputType = "moreCsv",
   fun = mean, varIndex = 1, outputFile = "sensitivity.csv",
   plotName = "sensitivity.png", plotTitle = "Sensitivity",
-  skipSpinup = TRUE, dpi = 300)
+  skipSpinup = TRUE, skipZero = TRUE, postProcString = NULL,
+  dpi = 300)
 }
 \arguments{
 \item{parameters}{This is a dataframe (heterogen data-matrix), which first column is the name of the parameters, the second is a numeric vector of the rownumbers of the given variable in the epc-fie, the last two column consist the endpont of the parameter-ranges, where the parameters will be randomized.}

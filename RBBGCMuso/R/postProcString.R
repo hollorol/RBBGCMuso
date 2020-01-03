@@ -1,3 +1,7 @@
+#' postProcMuso
+#' 
+#' This is a function wich provides some minimal post processing capabilities
+#' @keywords internal
 postProcMuso  <- function(modelData, procString){
     modelDat <- modelData[,-(1:4)]
     cNames <- colnames(modelData)
