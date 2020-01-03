@@ -123,7 +123,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     for(i in 2:(iterations+1)){
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
-                                  silent= FALSE,
+                                  silent= TRUE,
                                   skipSpinup = skipSpinup, postProcString = postProcString)[modIndex,colNumb], error = function (e) NA)
         # browser()
 
