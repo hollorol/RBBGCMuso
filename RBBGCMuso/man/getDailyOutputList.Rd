@@ -5,14 +5,10 @@
 \title{getDailyOutputList}
 \usage{
 getDailyOutputList(settings = NULL)
-
-getDailyOutputList(settings = NULL)
 }
 \arguments{
 \item{settings}{bla}
 }
 \description{
-bla bla
-
 bla bla
 }

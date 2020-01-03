@@ -4,14 +4,8 @@
 \alias{musoDate}
 \title{musoDate}
 \usage{
-musoDate(
-  startYear,
-  endYears = NULL,
-  numYears,
-  combined = TRUE,
-  leapYearHandling = FALSE,
-  prettyOut = FALSE
-)
+musoDate(startYear, endYears = NULL, numYears, combined = TRUE,
+  leapYearHandling = FALSE, prettyOut = FALSE)
 }
 \description{
 This function generates MuSo compatibla dates for the data

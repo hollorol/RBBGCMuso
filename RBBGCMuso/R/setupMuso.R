@@ -166,6 +166,7 @@ setupMuso <- function(executable=NULL,
         outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
         numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
         annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
+        annualVarCodes<-unlist(lapply(annualVarCodes, function(x) unlist(strsplit(x,"[\ \t]"))[1]))
         annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
         outputVars<-list(dailyVarnames,annualVarnames)
         # browser()
@@ -273,7 +274,7 @@ setupMuso <- function(executable=NULL,
     dailyOutputTable <- cbind.data.frame(seq_along(dailyVarCodes),dailyVarCodes,outputVars[[1]])
     colnames(dailyOutputTable) <- c("index","code","name")
     annualOutputTable <- cbind.data.frame(seq_along(annualVarCodes),annualVarCodes,outputVars[[2]])
-    colnames(dailyOutputTable) <- c("index","code","name")
+    colnames(annualOutputTable) <- c("index","code","name")
     
     settings = list(executable = executable,
                     calibrationPar = calibrationPar,

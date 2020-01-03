@@ -9,7 +9,7 @@ getDailyOutputList <- function(settings=NULL){
     if(is.null(settings)){
         settings<- setupMuso()
     }
-    settings$dailyOutputTable
+    print(settings$dailyOutputTable, row.names=FALSE)
 }
 
 #' getAnnualOutputList
@@ -19,9 +19,9 @@ getDailyOutputList <- function(settings=NULL){
 #' @export
 
 
-getDailyOutputList <- function(settings=NULL){
+getAnnualOutputList <- function(settings=NULL){
     if(is.null(settings)){
         settings<- setupMuso()
     }
-    settings$annualOutputTable
+    print(settings$annualOutputTable, row.names=FALSE)
 }

@@ -4,19 +4,10 @@
 \alias{getMeteoData1BGC}
 \title{getMeteoData1BGC}
 \usage{
-getMeteoData1BGC(
-  startYear = 2017,
-  endYear = 2017,
-  lon = 18.8,
-  lat = 47.3,
-  timeOut = 7200,
-  monthList = sprintf("\%02d", 1:12),
-  dayList = sprintf("\%02d", 1:31),
-  hourList = sprintf("\%02d:00", 0:23),
-  destDir = NULL,
-  apiFile = NULL,
-  fileDir = NULL
-)
+getMeteoData1BGC(startYear = 2017, endYear = 2017, lon = 18.8,
+  lat = 47.3, timeOut = 7200, monthList = sprintf("\%02d", 1:12),
+  dayList = sprintf("\%02d", 1:31), hourList = sprintf("\%02d:00",
+  0:23), destDir = NULL, apiFile = NULL, fileDir = NULL)
 }
 \arguments{
 \item{startYear}{Start year of the downloading data. It shall be greater than 1978.}

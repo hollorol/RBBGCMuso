@@ -4,19 +4,11 @@
 \alias{readObservedData}
 \title{readMeasuredMuso}
 \usage{
-readObservedData(
-  inFile,
-  naString = NULL,
-  sep = ",",
-  leapYearHandling = TRUE,
-  convert.var = NULL,
-  convert.scalar = 1,
+readObservedData(inFile, naString = NULL, sep = ",",
+  leapYearHandling = TRUE, convert.var = NULL, convert.scalar = 1,
   convert.fun = (function(x) {     x * convert.scalar }),
-  convert.file = NULL,
-  filterCol = NULL,
-  filterVal = 1,
-  selVar = NULL
-)
+  convert.file = NULL, filterCol = NULL, filterVal = 1,
+  selVar = NULL)
 }
 \description{
 MuSo data reader
