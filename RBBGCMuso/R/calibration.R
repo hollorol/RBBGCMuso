@@ -156,7 +156,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
             geom_point(shape='.',size=1,alpha=0.8)
     }
 
-    ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 300)
+    ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))),dpi = 10000)
     maxLikelihoodPlace  <- which(preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"],na.rm = TRUE))
     resPlot <- plotMusoWithData(mdata = mdata, startDate = startDate, endDate = endDate,
                                 dataVar = dataVar, modelVar = modelVar, settings = settings, continious = continious) +
