@@ -36,7 +36,9 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
-    cat("Biome-BGC simulation started\n") # ZOLI
+    if(!silent){
+        cat("Biome-BGC simulation started\n") # ZOLI
+    }
     if(is.null(settings)){
         settings <- setupMuso()
     }
