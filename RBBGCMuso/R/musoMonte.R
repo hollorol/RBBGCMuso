@@ -32,6 +32,7 @@ musoMonte <- function(settings=NULL,
                      keepEpc = FALSE,
                      constrains = NULL,
                      skipZero = TRUE,
+                     postProcString=NULL,
                      ...){
 
 
@@ -86,6 +87,9 @@ musoMonte <- function(settings=NULL,
         outVarNames <- sapply(outVars, musoMapping)
     }
     
+    if(!is.null(postProcString)){
+        outVarNames <- c(outVarNames,gsub("\\s","",unlist(strsplit(procString,"<-"))[1]))
+    }
 
     parameterNames <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
     # settings$calibrationPar <- A[,1] #:LATER:
@@ -145,7 +149,7 @@ musoMonte <- function(settings=NULL,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
-                             outVars = outVars), error = function (e) NA)
+                             outVars = outVars,postProcString=postProcString), error = function (e) NA)
             
             if(length(dim(tmp))>=1){
                 for(j in 1:numVars){

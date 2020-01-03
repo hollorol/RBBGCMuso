@@ -31,6 +31,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      plotTitle = "Sensitivity",
                      skipSpinup = TRUE,
                      skipZero = TRUE,
+                     postProcString=NULL,
                      dpi=300){
 
     if(is.null(parameters)){
@@ -48,6 +49,7 @@ musoSensi <- function(monteCarloFile = NULL,
         # browser()
         npar <- ncol(M)-1
         M <- M[which(!is.na(M[,ncol(M)])),]
+        M <- M[-1,]
         y <- M[,(npar+1)]
         colnames(M) <- gsub("\\.epc","-epc",colnames(M))
         M <- M[,colnames(M) %in% parameters[,1]]
@@ -93,7 +95,8 @@ musoSensi <- function(monteCarloFile = NULL,
                       fun = fun,
                       varIndex = varIndex,
                       skipSpinup = skipSpinup,
-                      skipZero=skipZero
+                      skipZero=skipZero,
+                      postProcString=postProcString
                       )
         M <- cbind(seq_along(M[,1]),M)
         yInd <-  grep("mod.", colnames(M))[varIndex]

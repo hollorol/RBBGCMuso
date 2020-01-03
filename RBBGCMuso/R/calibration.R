@@ -109,7 +109,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
     modellOut <- numeric(iterations + 1) # single variable solution
     rmse <- numeric(iterations + 1)
-    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup)
+    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup,postProcString=postProcString)
 
 
     write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
