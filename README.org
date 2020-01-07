@@ -85,7 +85,7 @@ In our example s.ini and n.ini follows this convention, so by default RBBGCMuso 
 
 *** Running the model
 
-Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the Biome-BGCMuSo User's Guide). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
+Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
 
 In order to execute the simulation, first you have to set the working directory in R so that RBBGCMuso will find the model and the input files. In our example this is as follows:
 
