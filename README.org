@@ -107,7 +107,7 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 *** Visualization of the model output
 
-Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the Biome-BGCMuSo User's Guide). 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). 
 
 Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
