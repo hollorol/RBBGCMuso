@@ -144,6 +144,74 @@ plot(gpp4*1000,type="l")
 
 Advanced visualization of the results is possible with plotMuso.
 
+*** Selection of output variables
+
+The visualization example above used the Hegyhatsal sample simulation with the predefined output variables that we included in the initialization file of the normal phase. The available output variables can be checked by the user by opening the n.ini file (normal phase initialization file) with a text editor (e.g. Notepad, or our favourite EditPad Lite). Check the DAILY_OUTPUT block within the n.ini. This should look like this (with more spaces between the numbers and the descriptors):
+
+```
+DAILY_OUTPUT
+12       number of daily output variables
+2520     proj_lai
+3009     daily_GPP
+3014     daily_Reco
+171      evapotransp
+2502     n_actphen
+2603     vwc00-03cm
+2604     vwc03-10cm
+2605     vwc10-30cm
+75       GDD
+2636     rooting_depth
+2716     m_soilstress
+671      m_vegc_to_SNSC
+```
+
+Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. 
+Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6_variables.xlsx
+
+Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
+One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation, Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, root depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
+
+Below we list the most common output variables that can be calculated by the model. 
+
+```
+50	tsoil[0] - soil temperature of the topmost soil layer (0-3 cm) [Celsius]
+171	evapotranspiration [kgH2O m-2 day-1, equivalent with mm day-1]
+518	soil1c_total - total soil organic carbon content in the 1st soil pool [kgC m-2]
+519	soil2c_total - total soil organic carbon content in the 2nd soil pool [kgC m-2]
+520	soil3c_total - total soil organic carbon content in the 3rd soil pool [kgC m-2]
+521	soil4c_total - total carbon content in the recalcitrant SOC pool [kgC m-2]
+3061	total soilc - total SOC pool [kgC m-2]
+313	fruitc - carbon content of the fruit/yield pool [kgC m-2] (this is used for frop yield estimation)
+2527	plant height [m]
+2528    NDVI [dimless]
+2520	proj_lai - this is what we typically refer as Leaf Area Index [LAI] 
+2603	vwc[0] - volumetric soil water content of the 1st layer (0-3 cm) [m3 m-3] 
+2604	vwc[1] - volumetric soil water content of the 2nd layer (3-10 cm) [m3 m-3] 
+2605	vwc[2] - volumetric soil water content of the 3rd layer (10-30 cm) [m3 m-3] 
+2606	vwc[3] - volumetric soil water content of the 4th layer (30-60 cm) [m3 m-3] 
+2607	vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3 m-3] 
+2608	vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3 m-3]
+2609	vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3 m-3] 
+3006	daily_npp - daily Net Primary Production [kgC m-2 day-1]
+3005	daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC m-2 day-1]	
+3009	daily_gpp - daily Gross Primary Production [kgC m-2 day-1]
+3037	cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC m-2]
+75	GDD - growing degree day, used for the phenophase length calculations
+1531    SUM of the soil mineral NH4+ in the total soil column [kgN m-2]
+1532    SUM of the soil mineral NO3- in the total soil column [kgN m-2]
+3013    daily soil respiration [kgC m-2 day]
+307     leafC - total leaf carbon content [kgC m-2]
+310     fine root C - total fine root carbon content [kgC m-2]
+316     soft stem C - total soft stem carbon content [kgC m-2] (only for herbaceous vegetation)
+407     standing dead biomass [kgC m-2] - that is the inactive standing plant pool not yet part of the litter pool
+319     livestemC - aboveground live woody biomass [kgC m-2]
+322     deadstemC - aboveground dead woody biomass [kgC m-2]
+401     CWD - coarse woody debris [kgC m-2] 
+```
+
+A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue.  Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark."
+
+
 *** Perform Quick experiments
 
 Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. Execute the following command in R/RStudio:
