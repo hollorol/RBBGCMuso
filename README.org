@@ -174,39 +174,39 @@ One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gros
 Below we list the most common output variables that can be calculated by the model. 
 
 #+BEGIN_SRC text
-50	tsoil[0] - soil temperature of the topmost soil layer (0-3 cm) [Celsius]
-171	evapotranspiration [kgH2O m-2 day-1, equivalent with mm day-1]
-518	soil1c_total - total soil organic carbon content in the 1st soil pool [kgC m^{-2}]
-519	soil2c_total - total soil organic carbon content in the 2nd soil pool [kgC m^{-2}]
-520	soil3c_total - total soil organic carbon content in the 3rd soil pool [kgC m^{-2}]
-521	soil4c_total - total carbon content in the recalcitrant SOC pool [kgC m^{-2}]
-3061	total soilc - total SOC pool [kgC m^{-2}]
-313	fruitc - carbon content of the fruit/yield pool [kgC m^{-2}] (this is used for frop yield estimation)
+50	   tsoil[0] - soil temperature of the topmost soil layer (0-3 cm) [Celsius]
+171	evapotranspiration [kgH2O/m2/day, equivalent with mm/day]
+518	soil1c_total - total soil organic carbon content in the 1st soil pool [kgC/m2]
+519	soil2c_total - total soil organic carbon content in the 2nd soil pool [kgC/m2]
+520	soil3c_total - total soil organic carbon content in the 3rd soil pool [kgC/m2]
+521	soil4c_total - total carbon content in the recalcitrant SOC pool [kgC/m2]
+3061	total soilc - total SOC pool [kgC/m2]
+313	fruitc - carbon content of the fruit/yield pool [kgC/m2] (this is used for frop yield estimation)
 2527	plant height [m]
-2528    NDVI [dimless]
+2528  NDVI [dimless]
 2520	proj_lai - this is what we typically refer as Leaf Area Index [LAI] 
-2603	vwc[0] - volumetric soil water content of the 1st layer (0-3 cm) [m3 m^{-3}] 
-2604	vwc[1] - volumetric soil water content of the 2nd layer (3-10 cm) [m3 m^{-3}] 
-2605	vwc[2] - volumetric soil water content of the 3rd layer (10-30 cm) [m3 m^{-3}] 
-2606	vwc[3] - volumetric soil water content of the 4th layer (30-60 cm) [m3 m^{-3}] 
-2607	vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3 m^{-3}] 
-2608	vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3 m^{-3}]
-2609	vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3 m^{-3}] 
-3006	daily_npp - daily Net Primary Production [kgC m-2 day-1]
-3005	daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC m-2 day-1]	
-3009	daily_gpp - daily Gross Primary Production [kgC m-2 day-1]
-3037	cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC m-2]
-75	GDD - growing degree day, used for the phenophase length calculations
-1531    SUM of the soil mineral NH4+ in the total soil column [kgN m-2]
-1532    SUM of the soil mineral NO3- in the total soil column [kgN m-2]
-3013    daily soil respiration [kgC m-2 day]
-307     leafC - total leaf carbon content [kgC m-2]
-310     fine root C - total fine root carbon content [kgC m-2]
-316     soft stem C - total soft stem carbon content [kgC m-2] (only for herbaceous vegetation)
-407     standing dead biomass [kgC m-2] - that is the inactive standing plant pool not yet part of the litter pool
-319     livestemC - aboveground live woody biomass [kgC m-2]
-322     deadstemC - aboveground dead woody biomass [kgC m-2]
-401     CWD - coarse woody debris [kgC m-2] 
+2603	vwc[0] - volumetric soil water content of the 1st layer (0-3 cm) [m3/m3] 
+2604	vwc[1] - volumetric soil water content of the 2nd layer (3-10 cm) [m3/m3] 
+2605	vwc[2] - volumetric soil water content of the 3rd layer (10-30 cm) [m3/m3] 
+2606	vwc[3] - volumetric soil water content of the 4th layer (30-60 cm) [m3/m3] 
+2607	vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3/m3] 
+2608	vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3/m3]
+2609	vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3/m3] 
+3006	daily_npp - daily Net Primary Production [kgC/m2/day]
+3005	daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC/m2/day]	
+3009	daily_gpp - daily Gross Primary Production [kgC/m2/day]
+3037	cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC/m2]
+75    GDD - growing degree day, used for the phenophase length calculations
+1531  SUM of the soil mineral NH4+ in the total soil column [kgN/m2]
+1532  SUM of the soil mineral NO3- in the total soil column [kgN/m2]
+3013  daily soil respiration [kgC/m2/day]
+307   leafC - total leaf carbon content [kgC/m2]
+310   fine root C - total fine root carbon content [kgC/m2]
+316   soft stem C - total soft stem carbon content [kgC/m2] (only for herbaceous vegetation)
+407   standing dead biomass [kgC/m2] - that is the inactive standing plant pool not yet part of the litter pool
+319   livestemC - aboveground live woody biomass [kgC/m2]
+322   deadstemC - aboveground dead woody biomass [kg/m2]
+401   CWD - coarse woody debris [kgC/m2] 
 #+END_SRC
 
 A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue.  Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark."
