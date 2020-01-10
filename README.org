@@ -69,6 +69,8 @@ In this example the C:\model directory will contain the following files:
 - hhs.mow - ancillary management file for mowing
 - Ndep.txt - Nitrogen deposition file for the simulation
 - CO2.txt - CO_{2} file for the simulation
+- parameters.csv - parameter interval file for the sensitivity analysis and optimization
+- HU-He2_2012_MEASURED.txt - sample observation file for the Hegyhátsál site (eddy covariance data for 2012)
 
 In the followings we will demonstrate the usability of RBBGCMuso with the hhs example dataset. If you have your own model input data set, you might need to change the commands accordingly. 
 
@@ -146,7 +148,7 @@ Advanced visualization of the results is possible with plotMuso.
 
 *** Selection of output variables
 
-The visualization example above used the Hegyhatsal sample simulation with the predefined output variables that we included in the initialization file of the normal phase. The available output variables can be checked by the user by opening the n.ini file (normal phase initialization file) with a text editor (e.g. Notepad, or our favourite EditPad Lite). Check the DAILY_OUTPUT block within the n.ini. This should look like this (with more spaces between the numbers and the descriptors):
+The visualization example above used the Hegyhátsál sample simulation with the predefined output variables that we included in the initialization file of the normal phase. The available output variables can be checked by the user by opening the n.ini file (normal phase initialization file) with a text editor (e.g. Notepad, or our favourite EditPad Lite). Check the DAILY_OUTPUT block within the n.ini. This should look like this (with more spaces between the numbers and the descriptors):
 
 #+BEGIN_SRC text
 DAILY_OUTPUT
