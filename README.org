@@ -148,7 +148,7 @@ Advanced visualization of the results is possible with plotMuso.
 
 The visualization example above used the Hegyhatsal sample simulation with the predefined output variables that we included in the initialization file of the normal phase. The available output variables can be checked by the user by opening the n.ini file (normal phase initialization file) with a text editor (e.g. Notepad, or our favourite EditPad Lite). Check the DAILY_OUTPUT block within the n.ini. This should look like this (with more spaces between the numbers and the descriptors):
 
-```
+//
 DAILY_OUTPUT
 12       number of daily output variables
 2520     proj_lai
@@ -163,7 +163,7 @@ DAILY_OUTPUT
 2636     rooting_depth
 2716     m_soilstress
 671      m_vegc_to_SNSC
-```
+//
 
 Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. 
 Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6_variables.xlsx
