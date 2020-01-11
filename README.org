@@ -227,7 +227,7 @@ At present musoQuickEffect is not usable for the allocation parameters due to re
 
 *** Study the effect of ecophysiological parameters using paramSweep
 
-The paramSweep function is the extension of the musoQuickEffect. It can test the effect of the multiple selected parameters on the model results in once. The result of the paramSweep function is a single HTML file with embedded images. paramSweep needs a csv file called parameters.csv which defines the parameters of interest and the corresponding parameter intervals. In case of the hhs sample dataset there is an example parameters/csv file (please open it and check). The structure of the parameters.csv file is simple. First, parameter name is needed (it can be anything but should refer to the parameter), then the line number of the EPC file is provided, then the possible minimum and maximum value of the parameter is given. Note that there is a tricky part in the parameters.csv as the parameter selection is not straightforward in case of multiple columns (see the end of the EPC file). The logic is that fractinal part of a number is used to select the appropriate parameter from multiple columns. In the provided example "emergence,127.61,0,1000" means that in the 127th line of the EPC file there are 7 columns (numbering starts from 0, so it is 6), and we would like to adjust the 2nd column (marked by 1), which ends up with 127.61. 0,1000 means that sweep starts at 0 and ends with 1000. Invoke the paramSweep with simply issuing this command:
+The paramSweep function is the extension of the musoQuickEffect. It can test the effect of the multiple selected parameters on the model results in once. The result of the paramSweep function is a single HTML file with embedded images. paramSweep needs a csv file called parameters.csv which defines the parameters of interest and the corresponding parameter intervals. In case of the hhs sample dataset there is an example parameters.csv file (please open it and check). The structure of the parameters.csv file is simple. First, parameter name is needed (it can be anything but should refer to the parameter), then the line number of the EPC file is provided, then the possible minimum and maximum value of the parameter is given. Note that there is a tricky part in the parameters.csv as the parameter selection is not straightforward in case of multiple columns (see the end of the EPC file!). The logic is that fractinal part of a number is used to select the appropriate parameter from multiple columns. For example, "emergence,127.61,0,1000" means that in the 127th line of the EPC file there are 7 columns (numbering starts from 0, so it is 6), and we would like to adjust the 2nd column (marked by 1), which ends up with 127.61. 0,1000 means that sweep starts at 0 and ends with 1000. Invoke the paramSweep with simply issuing this command:
 
 #+BEGIN_SRC R :eval no
 paramSweep()
@@ -238,18 +238,18 @@ In advanced mode there is possibility to select the parameters.csv file using th
 
 *** Sensitivity analysis
 
-Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://agromo.agrar.mta.hu/files/musoSensi_usage.html][See this link to read the manual of the sensitivity analysis.]]
+Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://agromo.agrar.mta.hu/files/musoSensi_usage.html][Visit this link to read the manual of the sensitivity analysis.]]
 Note that parameters.csv is provided in the hhs example dataset, so you don't have to create it manually. 
 
 *IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
 
 *** Parameter estimation (calibration)
 
-RBBGCMuso supports parameter estimation (also called as model optimization) based on the GLUE method. GLUE uses observations and the optimization is driven by the parameter interval file that is described above (parameters.csv). Detailed description of the GLUE method will be published soon. Please contact the authors of the package for sample R scripts that executes the GLUE-based parameter estimation.  
+RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Detailed description of the GLUE based optimization method will be published soon. Please contact the authors of the package for sample R scripts that executes the GLUE-based parameter estimation.  
 
 *** Contact
 
-E-mail: hollorol@gmail.com, zoltan.barcza@ttk.elte.hu
+E-mail: Roland HOLLÓS: hollorol@gmail.com; Zoltán BARCZA: zoltan.barcza@ttk.elte.hu
 
 ** Acknowledgements
 
