@@ -109,9 +109,9 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 *** Visualization of the model output
 
-Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block; see below). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). 
 
-Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
+Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file; see below). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
 #+BEGIN_SRC R :eval no
 results<-runMuso()
@@ -167,38 +167,38 @@ DAILY_OUTPUT
 671      m_vegc_to_SNSC
 #+END_SRC
 
-Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. 
+Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. At present the R package handles only daily output data, but the user should acknowledge the optional annual output set in the ini file as well. 
 Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6_variables.xlsx
 
 Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
-One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation, Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, root depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
+One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation (ET), Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, rooting depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
 
 Below we list the most common output variables that can be calculated by the model. 
 
 #+BEGIN_SRC text
-50 tsoil[0] - soil temperature of the topmost soil layer (0-3 cm) [Celsius]
-171	evapotranspiration [kgH2O/m2/day, equivalent with mm/day]
-518	soil1c_total - total soil organic carbon content in the 1st soil pool [kgC/m2]
-519	soil2c_total - total soil organic carbon content in the 2nd soil pool [kgC/m2]
-520	soil3c_total - total soil organic carbon content in the 3rd soil pool [kgC/m2]
-521	soil4c_total - total carbon content in the recalcitrant SOC pool [kgC/m2]
-3061	total soilc - total SOC pool [kgC/m2]
-313	fruitc - carbon content of the fruit/yield pool [kgC/m2] (this is used for frop yield estimation)
-2527	plant height [m]
+50    tsoil[0] - soil temperature of the topmost soil layer (0-3 cm) [Celsius]
+171   evapotranspiration [kgH2O/m2/day, equivalent with mm/day]
+518   soil1c_total - total soil organic carbon content in the 1st soil pool [kgC/m2]
+519   soil2c_total - total soil organic carbon content in the 2nd soil pool [kgC/m2]
+520   soil3c_total - total soil organic carbon content in the 3rd soil pool [kgC/m2]
+521   soil4c_total - total carbon content in the recalcitrant SOC pool [kgC/m2]
+3061  total soilc - total SOC pool [kgC/m2]
+313   fruitc - carbon content of the fruit/yield pool [kgC/m2] (this is used for frop yield estimation)
+2527  plant height [m]
 2528  NDVI [dimless]
-2520	proj_lai - this is what we typically refer as Leaf Area Index (LAI) [m2/m2] 
-2603	vwc[0] - volumetric soil water content of the 1st layer (0-3 cm) [m3/m3] 
-2604	vwc[1] - volumetric soil water content of the 2nd layer (3-10 cm) [m3/m3] 
-2605	vwc[2] - volumetric soil water content of the 3rd layer (10-30 cm) [m3/m3] 
-2606	vwc[3] - volumetric soil water content of the 4th layer (30-60 cm) [m3/m3] 
-2607	vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3/m3] 
-2608	vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3/m3]
-2609	vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3/m3] 
-3006	daily_npp - daily Net Primary Production [kgC/m2/day]
-3005	daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC/m2/day]	
-3009	daily_gpp - daily Gross Primary Production [kgC/m2/day]
-3037	cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC/m2]
-75 GDD - growing degree day, used for the phenophase length calculations
+2520  proj_lai - this is what we typically refer as Leaf Area Index (LAI) [m2/m2] 
+2603  vwc[0] - volumetric soil water content of the 1st layer (0-3 cm) [m3/m3] 
+2604  vwc[1] - volumetric soil water content of the 2nd layer (3-10 cm) [m3/m3] 
+2605  vwc[2] - volumetric soil water content of the 3rd layer (10-30 cm) [m3/m3] 
+2606  vwc[3] - volumetric soil water content of the 4th layer (30-60 cm) [m3/m3] 
+2607  vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3/m3] 
+2608  vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3/m3]
+2609  vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3/m3] 
+3006  daily_npp - daily Net Primary Production [kgC/m2/day]
+3005  daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC/m2/day]	
+3009  daily_gpp - daily Gross Primary Production [kgC/m2/day]
+3037  cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC/m2]
+75    GDD - growing degree day, used for the phenophase length calculations
 1531  SUM of the soil mineral NH4+ in the total soil column [kgN/m2]
 1532  SUM of the soil mineral NO3- in the total soil column [kgN/m2]
 3013  daily soil respiration [kgC/m2/day]
@@ -243,9 +243,13 @@ Note that parameters.csv is provided in the hhs example dataset, so you don't ha
 
 *IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
 
+*** Parameter estimation (calibration)
+
+RBBGCMuso supports parameter estimation (also called as model optimization) based on the GLUE method. GLUE uses observations and the optimization is driven by the parameter interval file that is described above (parameters.csv). Detailed description of the GLUE method will be published soon. Please contact the authors of the package for sample R scripts that executes the GLUE-based parameter estimation.  
+
 *** Contact
 
-E-mail: hollorol@gmail.com
+E-mail: hollorol@gmail.com, zoltan.barcza@ttk.elte.hu
 
 ** Acknowledgements
 
