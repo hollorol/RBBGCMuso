@@ -9972,6 +9972,10 @@
     "names": "summary_sminNO3_ppm_8"
   },
   {
+    "codes": 3104,
+    "names": "total_abovegound_woody_biomass_C"
+  },
+  {
     "codes": 3098,
     "names": "summary_sminNO3_ppm_9"
   }
