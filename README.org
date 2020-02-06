@@ -168,7 +168,7 @@ DAILY_OUTPUT
 #+END_SRC
 
 Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. At present the R package handles only daily output data, but the user should acknowledge the optional annual output set in the ini file as well. 
-Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6_variables.xlsx
+Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6.1_variables.xlsx
 
 Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
 One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation (ET), Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, rooting depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
