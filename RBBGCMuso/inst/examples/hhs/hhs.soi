@@ -1,0 +1,63 @@
+SOILPROP FILE -    hhs muso6 
+----------------------------------------------------------------------------------------               
+NITROGEN AND DECOMPOSITION PARAMETERS    
+0.1    (prop.) 	denitrification rate per g of CO2 respiration of SOM
+0.2     (prop.) 	nitrification coefficient 1 
+0.07	(prop.) 	nitrification coefficient 2
+0.02    (prop.)		coefficient of N2O emission of nitrification
+0.1     (prop.) 	NH4 mobilen proportion
+1.0     (prop.) 	NO3 mobilen proportion
+10      (m) 		e-folding depth of decomposition rate's depth scalar
+0.002	(prop.) 	fraction of dissolved part of SOIL1 organic matter
+0.002	(prop.) 	fraction of dissolved part of SOIL2 organic matter
+0.002	(prop.) 	fraction of dissolved part of SOIL3 organic matter
+0.002	(prop.) 	fraction of dissolved part of SOIL4 organic matter
+0.1	(prop.)		minimum WFPS for scalar of nitrification calculation
+0.45	(prop.)		lower optimum WFPS for scalar of nitrification calculation
+0.55	(prop.)		higher optimum WFPS for scalar of nitrification calculation
+0.2	(prop.)		minimum value for saturated WFPS scalar of nitrification calculation
+10      (ppm)		critical value of dissolved N and C in bottom (inactive layer)
+----------------------------------------------------------------------------------------               
+RATE SCALARS  
+0.35 	(prop) 		respiration fractions for fluxes between compartments (l1s1)
+0.50 	(prop) 		respiration fractions for fluxes between compartments (l2s2)
+0.26 	(prop) 		respiration fractions for fluxes between compartments (l4s3)
+0.25 	(prop) 		respiration fractions for fluxes between compartments (s1s2)
+0.41 	(prop) 		respiration fractions for fluxes between compartments (s2s3)
+0.50 	(prop) 		respiration fractions for fluxes between compartments (s3s4)
+0.7     (1/day) 	rate constant scalar of  labile litter pool
+0.07    (1/day) 	rate constant scalar of cellulose litter pool
+0.014   (1/day) 	rate constant scalar of lignin litter pool
+0.07    (1/day) 	rate constant scalar of  fast microbial recycling pool
+0.014   (1/day) 	rate constant scalar of  medium microbial recycling pool 
+0.0014  (1/day) 	rate constant scalar of  slow microbial recycling pool
+0.0001  (1/day) 	rate constant scalar of  recalcitrant SOM (humus) pool
+0.001   (1/day) 	rate constant scalar of  physical fragmentation of coarse woody debris
+----------------------------------------------------------------------------------------
+CH4 PARAMETERS
+212.5	(DIM) 		soil CH4 emission bulk density dependence parameter1
+1.81	(DIM) 		soil CH4 emission bulk density dependence parameter2
+-1.353	(DIM) 		soil CH4 emission soil water content dependence parameter1
+0.2	(DIM) 		soil CH4 emission soil water content dependence parameter2
+1.781	(DIM) 		soil CH4 emission soil water content dependence parameter3
+6.786	(DIM) 		soil CH4 emission soil water content dependence parameter4
+0.010	(DIM) 		soil CH4 emission soil temperature dependence parameter1
+----------------------------------------------------------------------------------------
+SOIL PARAMETERS
+2       (m)             depth of soil
+6	(mm)            limit of first stage evaporation
+20.00   (mm) 		maximum height of pond water
+1	(dimless)	curvature of soil stress function
+-9999   (dimless) 	measured runoff curve number (-9999: no measured data, model estimation)  
+----------------------------------------------------------------------------------------
+SOIL COMPOSITION AND CHARACTERISTIC VALUES (-9999: no measured data)
+30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0                  (%) sand percentage by volume in rock-free soil
+50.0 	50.0 	50.0 	50.0 	50.0 	50.0 	50.0 	50.0 	50.0 	50.0                  (%) silt percentage by volume in rock-free soil
+7.0 	7.0 	7.0 	7.0 	7.0 	7.0 	7.0 	7.0 	7.0 	7.0                   (dimless) soil pH                                                                           (dimless) measured runoff curve number
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (g/cm3) bulk density
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (m3/m3) SWC at saturation
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (m3/m3) SWC at field capacity
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (m3/m3) SWC at wilting point
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (m3/m3) SWC at hygroscopic water content
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (dimless) drainage coefficient
+-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999 	-9999                 (cm/day) hydraulic condictivity at saturation
