@@ -58,7 +58,7 @@ Once this command is executed in R, it will invoke a small Graphical User Interf
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
-- muso.exe - this is the Biome-BGCMuSo 6.0 model executable for Windows (version might change in the future)
+- muso.exe - this is the Biome-BGCMuSo 6.1 model executable for Windows (version might change in the future)
 - cygwin1.dll - a so-called DLL file that supports the model execution under Windows
 - c3grass_muso6.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
@@ -208,10 +208,11 @@ Below we list the most common output variables that can be calculated by the mod
 407   standing dead biomass [kgC/m2] - that is the inactive standing plant pool not yet part of the litter pool
 319   livestemC - aboveground live woody biomass [kgC/m2]
 322   deadstemC - aboveground dead woody biomass [kgC/m2]
+3104  total abovegound woody biomass C [kgC/m2] 
 401   CWD - coarse woody debris [kgC/m2] 
 #+END_SRC
 
-A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue.  Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322. 
+A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue. Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322. For convenience, variable 3104 can be used as it represents the sum of 319 and 322.
 
 
 *** Perform Quick experiments
