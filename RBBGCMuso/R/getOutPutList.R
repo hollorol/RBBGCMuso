@@ -7,9 +7,12 @@
 
 getDailyOutputList <- function(settings=NULL){
     if(is.null(settings)){
-        settings<- setupMuso()
+        settings <- setupMuso()
     }
-    print(settings$dailyOutputTable, row.names=FALSE)
+    varTable <- getOption("RMuso_varTable")$'6'
+    toPrint <- varTable[which(varTable$codes %in% as.numeric(settings$dailyVarCodes)),]
+    toPrint <- cbind.data.frame(index=1:nrow(toPrint),toPrint)
+    print(toPrint, row.names=FALSE)
 }
 
 #' getAnnualOutputList
@@ -23,5 +26,8 @@ getAnnualOutputList <- function(settings=NULL){
     if(is.null(settings)){
         settings<- setupMuso()
     }
-    print(settings$annualOutputTable, row.names=FALSE)
+    varTable <- getOption("RMuso_varTable")$'6'
+    toPrint <- varTable[which(varTable$codes %in% as.numeric(settings$annualVarCodes)),]
+    toPrint <- cbind.data.frame(index=1:nrow(toPrint),toPrint)
+    print(toPrint, row.names=FALSE)
 }
