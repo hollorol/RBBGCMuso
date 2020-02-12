@@ -3,12 +3,15 @@
 #' This function updates the Biome-BGCMuSo output code-variable matrix. Within Biome-BGCMuSo the state variables and fluxes are marked by integer numbers. In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production in Biome-BGCMuSo v5) a conversion table is needed which is handled by this function. 
 #' @author Roland HOLLOS
 #' @param excelName Name of the excelfile which contains the parameters 
+#' @importFrom openxlsx read.xlsx
+#' @importFrom jsonlite write_json
 #' @return The output code-variable matrix, and also the function changes the global variable
 #' @export
 
-updateMusoMapping<-function(excelName, dest="./", version=getOption("RMuso_version")){
+updateMusoMapping <- function(excelName, dest="./", version=getOption("RMuso_version")){
 
     expandRangeRows <- function (ind) {
+        toExpand <- excelDF[ind,]
         rangeString <- gsub(".*?(\\d*\\-\\d*).*","\\1",toExpand[2])
         interval <- as.numeric(strsplit(rangeString,split="-")[[1]])
         result <- do.call(rbind,lapply(interval[1]:interval[2],function(x){
@@ -34,12 +37,10 @@ updateMusoMapping<-function(excelName, dest="./", version=getOption("RMuso_versi
     nonRangeMatrix[,1] <- trimws(nonRangeMatrix[,1])
     names(nonRangeMatrix) <- c("names","codes","units","descriptions")
     outMatrix <- rbind.data.frame(do.call(rbind.data.frame,lapply(rangeRows,expandRangeRows)),
-                                  nonRangeMatrix[,c(2,1,3,4)] 
-    )
+                                  nonRangeMatrix[,c(2,1,3,4)])
     outMatrix <- outMatrix[order(outMatrix[,1]),]
     rownames(outMatrix)<- NULL
     write_json(outMatrix, file.path(dest,sprintf("varTable%s.json",version)), pretty=TRUE)
-
 }
 
 #' musoMapping

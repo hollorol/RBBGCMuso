@@ -29,6 +29,7 @@ Imports:
     gridExtra,
     lubridate,
     ecmwfr,
+    openxlsx,
     ncdf4,
     tcltk
 LinkingTo: Rcpp
