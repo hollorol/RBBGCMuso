@@ -2,20 +2,44 @@
 #'
 #' This function updates the Biome-BGCMuSo output code-variable matrix. Within Biome-BGCMuSo the state variables and fluxes are marked by integer numbers. In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production in Biome-BGCMuSo v5) a conversion table is needed which is handled by this function. 
 #' @author Roland HOLLOS
-#' @param output_map_init The output code-variable bindings are described in output_map_init.c file that is part of the Biome-BGCMuSo source code. Using this function the user can read the output_map_init.c file and pass it to RBBGCMuso for further work.
+#' @param excelName Name of the excelfile which contains the parameters 
 #' @return The output code-variable matrix, and also the function changes the global variable
 #' @export
-#' @usage updateMusoMapping(output_map_init="output_map_init.c")
 
-updateMusoMapping<-function(output_map_init="output_map_init.c"){
-    
-    outputRaw<-grep("\\[",readLines(output_map_init,-1),value=TRUE)
+updateMusoMapping<-function(excelName, dest="./", version=getOption("RMuso_version")){
 
-    codes <- as.vector(lapply(outputRaw, function (x)  as.numeric(unlist(strsplit(unlist(strsplit(x,"\\["))[2],"\\]"))[1])))
-    names <- unlist(lapply(outputRaw, function (x) unlist(strsplit(unlist(strsplit(x,"\\&"))[2],";"))[1]))
-    mMapping <-cbind(codes,names)
-    save(mMapping, file="mMap.RData")
-    return(mMapping)
+    expandRangeRows <- function (ind) {
+        rangeString <- gsub(".*?(\\d*\\-\\d*).*","\\1",toExpand[2])
+        interval <- as.numeric(strsplit(rangeString,split="-")[[1]])
+        result <- do.call(rbind,lapply(interval[1]:interval[2],function(x){
+            toExpand[2] <- x
+            toExpand[1] <- gsub("\\[.*?\\]",sprintf("_%s",(x-interval[1])),toExpand[1])
+            toExpand
+        }))
+        result <- as.data.frame(result,stringsAsFactors = FALSE)
+        result[,2] <- as.numeric(result[,2])
+        colnames(result) <- c("names","codes","units","descriptions")
+        result[,c(2,1,3,4)]
+    }
+
+    excelDF <- read.xlsx(excelName)
+    excelDF <- excelDF[!is.na(excelDF[,2]),]
+    excelDF[,1] <- trimws(excelDF[,1])
+    excelDF[,2] <- trimws(excelDF[,2])
+    excelDF[,3] <- trimws(excelDF[,3])
+    excelDF[,4] <- trimws(excelDF[,4])
+    rangeRows <- grep("-",excelDF[,2])
+    nonRangeMatrix <- excelDF[setdiff(1:nrow(excelDF),rangeRows),]
+    nonRangeMatrix[,2] <- as.numeric(nonRangeMatrix[,2])
+    nonRangeMatrix[,1] <- trimws(nonRangeMatrix[,1])
+    names(nonRangeMatrix) <- c("names","codes","units","descriptions")
+    outMatrix <- rbind.data.frame(do.call(rbind.data.frame,lapply(rangeRows,expandRangeRows)),
+                                  nonRangeMatrix[,c(2,1,3,4)] 
+    )
+    outMatrix <- outMatrix[order(outMatrix[,1]),]
+    rownames(outMatrix)<- NULL
+    write_json(outMatrix, file.path(dest,sprintf("varTable%s.json",version)), pretty=TRUE)
+
 }
 
 #' musoMapping
