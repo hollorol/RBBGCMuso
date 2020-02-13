@@ -10,7 +10,7 @@ getDailyOutputList <- function(settings=NULL){
         settings <- setupMuso()
     }
     varTable <- getOption("RMuso_varTable")$'6'
-    toPrint <- varTable[which(varTable$codes %in% as.numeric(settings$dailyVarCodes)),]
+    toPrint <- varTable[match(as.numeric(settings$dailyVarCodes),varTable[,1]),]
     toPrint <- cbind.data.frame(index=1:nrow(toPrint),toPrint)
     print(toPrint, row.names=FALSE)
 }
