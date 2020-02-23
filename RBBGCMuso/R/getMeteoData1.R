@@ -7,7 +7,7 @@
 #'
 #' @author Erzsebet Kristof, Roland Hollos
 #' @param startYear Start year of the downloading data. It shall be greater than 1978.
-#' @param endYear End year of the downloading data. It shall be smaller than 2019.
+#' @param endYear End year of the downloading data. It shall be smaller than 2020.
 #' @param lon Geographical longitude of the selected grid point (negative values: W, positive values: E). It shall be between -180 and 180. The value is rounded to two decimal places.
 #' @param lat Geographical latitude of the selected grid point (negative values: S, positive values: N). It shall be between -90 and 90. The value is rounded to two decimal places.
 #' @param timeOut Time in seconds to wait to download from Copernicus.
@@ -15,7 +15,7 @@
 #' @param dayList Day selector (e.g. to download data for the 1st day of the month(s) then write "01", to download data for the 2nd and 4th day of the month then write c("02","04")
 #' @param hourList Hour selector (e.g. to download data for 00 UTC then write "00:00", to download data for 01 UTC and 15 UTC then write c("01","15")
 #' @param fileDir Directory where the .ini and .mtcin files will be created
-#' @param destDir Directory where the mtc43 file will be created. If it is NULL then destDir is the same as fileDir.
+#' @param destDir Directory where the wth file will be created. If it is NULL then destDir is the same as fileDir.
 #' @param apiFile Directory where the cdsapirc file is located
 #' @importFrom ecmwfr wf_set_key wf_request
 #' @importFrom ncdf4 nc_open ncvar_get nc_close ncvar_put ncdim_def ncvar_def nc_create
@@ -28,8 +28,8 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
                               hourList=sprintf("%02d:00",0:23),
                               destDir=NULL, apiFile=NULL, fileDir=NULL) {
 
-  if ((startYear<1979)|(endYear>2018)) {
-    stop("Error, please choose a year between 1979 and 2018.")
+  if ((startYear<1979)|(endYear>2019)) {
+    stop("Error, please choose a year between 1979 and 2019.")
   }
 
   if (startYear>endYear) {
@@ -474,8 +474,8 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
     setwd(currDir)
 
     print("-----------------------------------------------------------------")
-    # print("6/6. MOVING .mtcin, .ini AND .mtc43 FILES INTO THE CORRECT FOLDER.")
-    print("6/6. RENAMING .mtcin, .ini AND .mtc43 FILES...")
+    # print("6/6. MOVING .mtcin, .ini AND .wth FILES INTO THE CORRECT FOLDER.")
+    print("6/6. RENAMING .mtcin, .ini AND .wth FILES...")
 
 
     ### Move the ini, mtcin, mtc43 files into the correct folder.
@@ -493,9 +493,9 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
     #             paste0("lat", latSub, "_lon", lonSub,  "/", grid,
     #                    "_lat", latSub, "_lon", lonSub, ".mtcin"))
     #
-    # file.rename(paste0("lat", latSub, "_lon", lonSub, "/1.mtc43"),
+    # file.rename(paste0("lat", latSub, "_lon", lonSub, "/1.wth"),
     #             paste0("lat", latSub, "_lon", lonSub, "/", grid,
-    #                    "_lat", latSub, "_lon", lonSub, ".mtc43"))
+    #                    "_lat", latSub, "_lon", lonSub, ".wth"))
     ###
 
     file.copy(paste0(destDir,"/1.mtc43"), fileDir)
@@ -516,7 +516,7 @@ getMeteoData1BGC <- function(startYear=2017, endYear=2017, lon=18.8, lat=47.3, t
     #
     # file.rename("1.mtcin", paste0(sprintf('%0.4d', gridID),".mtcin"))
     #
-    # file.rename("1.mtc43", paste0(sprintf('%0.4d', gridID),".mtc43"))
+    # file.rename("1.wth", paste0(sprintf('%0.4d', gridID),".wth"))
 
     print(paste0("MTCLIM FILES ARE CREATED FOR THE GRID POINT: LAT ",
                  latList[grid], " & LON ", lonList[grid], "."))
