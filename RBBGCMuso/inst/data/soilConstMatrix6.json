@@ -407,7 +407,7 @@
     "X": 41,
     "NAME": "curvature of soil stress functionr",
     "INDEX": 50,
-    "UNIT": "(dimless)",
+    "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
     "GROUP": 0,
