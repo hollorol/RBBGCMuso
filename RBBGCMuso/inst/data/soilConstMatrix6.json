@@ -109,7 +109,7 @@
     "GROUP": 0,
     "TYPE": 0
   },
-{
+  {
     "X": 12,
     "NAME": "minimum WFPS for scalar of nitrification calculation",
     "INDEX": 15,
@@ -117,10 +117,10 @@
     "MIN": 0,
     "MAX": 1,
     "DEPENDENCE": 0,
-    "GROUP": 1,
+    "GROUP": 21,
     "TYPE": 1
   },
-{
+  {
     "X": 13,
     "NAME": "lower optimum WFPS for scalar of nitrification calculation",
     "INDEX": 16,
@@ -128,10 +128,10 @@
     "MIN": 0,
     "MAX": 1,
     "DEPENDENCE": 1,
-    "GROUP": 1,
+    "GROUP": 21,
     "TYPE": 1
   },
-{
+  {
     "X": 14,
     "NAME": "higher optimum WFPS for scalar of nitrification calculation",
     "INDEX": 17,
@@ -139,7 +139,7 @@
     "MIN": 0,
     "MAX": 1,
     "DEPENDENCE": 2,
-    "GROUP": 1,
+    "GROUP": 21,
     "TYPE": 1
   },
   {
@@ -149,8 +149,9 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
-    "GROUP": 0,
-    "TYPE": 0
+    "DEPENDENCE": 3,
+    "GROUP": 21,
+    "TYPE": 1
   },
   {
     "X": 16,
@@ -162,7 +163,7 @@
     "GROUP": 0,
     "TYPE": 0
   },
- {
+  {
     "X": 17,
     "NAME": "respiration fractions for fluxes between compartments (l1s1)",
     "INDEX": 22,
