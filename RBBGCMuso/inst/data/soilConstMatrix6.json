@@ -149,9 +149,8 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
-    "DEPENDENCE": 3,
-    "GROUP": 21,
-    "TYPE": 1
+    "GROUP": 0,
+    "TYPE": 0
   },
   {
     "X": 16,
