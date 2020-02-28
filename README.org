@@ -87,7 +87,7 @@ In our example s.ini and n.ini follows this convention, so by default RBBGCMuso 
 
 *** Running the model
 
-Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
+Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
 
 In order to execute the simulation, first you have to set the working directory in R so that RBBGCMuso will find the model and the input files. In our example this is as follows:
 
@@ -109,7 +109,7 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 *** Visualization of the model output
 
-Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block; see below). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][Biome-BGCMuSo User's Guide]]). 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block; see below). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). 
 
 Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file; see below). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
@@ -212,7 +212,7 @@ Below we list the most common output variables that can be calculated by the mod
 401   CWD - coarse woody debris [kgC/m2] 
 #+END_SRC
 
-A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue. Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322. For convenience, variable 3104 can be used as it represents the sum of 319 and 322.
+A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue. Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322 (plus the corresponding storage/transfer pools). For convenience, variable 3104 can be used as it represents the sum of 319 and 322 plus the related storage/transfer pools.
 
 
 *** Perform Quick experiments
