@@ -46,7 +46,7 @@ To start using RBBGCMuso you have to load the package in R with the following co
 library(RBBGCMuso)
 #+END_SRC
 
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do when you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, the soil input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do when you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, the soil input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][actual Biome-BGCMuSo User's Guide]].
 
 If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation set to your hard drive:
 
