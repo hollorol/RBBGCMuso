@@ -4,7 +4,8 @@
 \alias{updateMusoMapping}
 \title{updateMusoMapping}
 \usage{
-updateMusoMapping(excelName, dest = "./", version = getOption("RMuso_version"))
+updateMusoMapping(excelName, dest = "./",
+  version = getOption("RMuso_version"))
 }
 \arguments{
 \item{excelName}{Name of the excelfile which contains the parameters}

@@ -4,13 +4,8 @@
 \alias{randEpc}
 \title{randEpc}
 \usage{
-randEpc(
-  parameterFile = "parameters.csv",
-  location = "./epcDir",
-  sourceEpc = "maize.epc",
-  iterations = 1000,
-  constrains = NULL
-)
+randEpc(parameterFile = "parameters.csv", location = "./epcDir",
+  sourceEpc = "maize.epc", iterations = 1000, constrains = NULL)
 }
 \arguments{
 \item{parameterFile}{parameters.csv file location}

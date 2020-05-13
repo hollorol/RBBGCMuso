@@ -4,24 +4,15 @@
 \alias{getMeteoData1BGC}
 \title{getMeteoData1BGC}
 \usage{
-getMeteoData1BGC(
-  startYear = 2017,
-  endYear = 2017,
-  lon = 18.8,
-  lat = 47.3,
-  timeOut = 7200,
-  monthList = sprintf("\%02d", 1:12),
-  dayList = sprintf("\%02d", 1:31),
-  hourList = sprintf("\%02d:00", 0:23),
-  destDir = NULL,
-  apiFile = NULL,
-  fileDir = NULL
-)
+getMeteoData1BGC(startYear = 2017, endYear = 2017, lon = 18.8,
+  lat = 47.3, timeOut = 7200, monthList = sprintf("\%02d", 1:12),
+  dayList = sprintf("\%02d", 1:31), hourList = sprintf("\%02d:00",
+  0:23), destDir = NULL, apiFile = NULL, fileDir = NULL)
 }
 \arguments{
 \item{startYear}{Start year of the downloading data. It shall be greater than 1978.}
 
-\item{endYear}{End year of the downloading data. It shall be smaller than 2019.}
+\item{endYear}{End year of the downloading data. It shall be smaller than 2020.}
 
 \item{lon}{Geographical longitude of the selected grid point (negative values: W, positive values: E). It shall be between -180 and 180. The value is rounded to two decimal places.}
 
@@ -35,7 +26,7 @@ getMeteoData1BGC(
 
 \item{hourList}{Hour selector (e.g. to download data for 00 UTC then write "00:00", to download data for 01 UTC and 15 UTC then write c("01","15")}
 
-\item{destDir}{Directory where the mtc43 file will be created. If it is NULL then destDir is the same as fileDir.}
+\item{destDir}{Directory where the wth file will be created. If it is NULL then destDir is the same as fileDir.}
 
 \item{apiFile}{Directory where the cdsapirc file is located}
 

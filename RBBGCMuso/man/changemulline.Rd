@@ -4,14 +4,8 @@
 \alias{changemulline}
 \title{This is the function which is capable to change multiple specific lines to others using their row numbers.}
 \usage{
-changemulline(
-  filePaths,
-  calibrationPar,
-  contents,
-  fileOut,
-  fileToChange,
-  modifyOriginal = FALSE
-)
+changemulline(filePaths, calibrationPar, contents, fileOut, fileToChange,
+  modifyOriginal = FALSE)
 }
 \description{
 The function uses the previous changspecline function to operate.
