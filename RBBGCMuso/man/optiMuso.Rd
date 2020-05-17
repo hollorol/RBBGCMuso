@@ -11,7 +11,7 @@ optiMuso(measuredData, parameters = NULL, startDate = NULL,
   iterations = 30, skipSpinup = TRUE, constrains = NULL,
   plotName = "calib.jpg", likelihood = function(x, y) {    
   exp(-sqrt(mean((x - y)^2))) }, continious, modelVar = 3009,
-  postProcString = NULL)
+  naVal = NULL, postProcString = NULL)
 }
 \arguments{
 \item{parameters}{b}
