@@ -15,7 +15,7 @@
 #' @importFrom tidyr separate
 #' @export
 
-musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc", outVar, parName = "parVal"){
+musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal"){
 
     if(is.character(outVar)){
                       varNames <- as.data.frame(musoMappingFind(outVar))
@@ -43,7 +43,7 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
     parVals <- seq(startVal, endVal, length = (nSteps + 1))
     parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
     a <- do.call(rbind,lapply(parVals, function(parVal){
-        calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
+        calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar,modifyOriginal=modifyOriginal, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
         if(all(is.na(calResult))){
             b <- cbind(rep(NA,365),parVal)
             rownames(b) <- tail(musoDate(startYear = settings$startYear, numYears = settings$numYears),365)
