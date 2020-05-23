@@ -164,7 +164,7 @@ readObservedData <- function(inFile,
             baseData <- as.data.frame(baseData)            
             baseData[baseData[,selVar] == naString,selVar] <- NA        
         } else {
-            baseData <- fread(file = inFile, sep=sep, naString = naString)
+            baseData <- fread(file = inFile, sep=sep, na.strings = naString)
             baseData <- as.data.frame(baseData)                  
         }
         

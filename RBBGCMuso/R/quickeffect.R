@@ -15,7 +15,7 @@
 #' @importFrom tidyr separate
 #' @export
 
-musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal"){
+musoQuickEffect <- function(settings = NULL, calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal"){
 
     if(is.character(outVar)){
                       varNames <- as.data.frame(musoMappingFind(outVar))

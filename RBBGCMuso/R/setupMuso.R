@@ -108,8 +108,11 @@ setupMuso <- function(executable=NULL,
         normals<-grep("n.ini$",list.files(inputLoc),value=TRUE)
 
         if(length(spinups)==1){
-            iniInput[1]<-file.path(inputLoc,spinups)
-        } else {stop("There are multiple or no spinup ini files, please choose")}
+            iniInput[1] <- file.path(inputLoc,spinups)
+        } else {
+            iniInput[1] <- "no spinup" 
+            # stop("There are multiple or no spinup ini files, please choose")
+        }
         
 
         if(length(normals)==1){
