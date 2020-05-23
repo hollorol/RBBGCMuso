@@ -33,6 +33,10 @@ changemulline <- function(filePaths, calibrationPar, contents, fileOut, fileToCh
         changeMusoC(inFile = filePaths[selectFileToWrite(filePaths, fileToChange)],
                     outFile = fileOut[selectFileToWrite(filePaths, fileToChange)],
                     parMat)
+        if(modifyOriginal){
+             # browser()
+            file.copy(fileOut[selectFileToWrite(filePaths, fileToChange)],filePaths[selectFileToWrite(filePaths, fileToChange)],overwrite = TRUE)
+        }
     }
     
     if(fileToChange == "both"){

@@ -105,14 +105,14 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
 
     toModif<-c(epc[2],iniInput[2])
 
-    if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
-    {
+    # if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
+    # {
         
         toModif <- sapply(toModif, function (x){
             paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
         })
         
-    }
+    # }
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
@@ -138,6 +138,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         writeLines(tmp,iniInput[2])
         rm(list=c("tmp","tmpInd"))
     }
+
     if(!is.null(outVars)){
         outputVarChanges <- putOutVars(iniInput[2], outputVars = outVars, modifyOriginal = !modifyOriginal)
         settings$outputVars[[1]]<-outputVarChanges[[1]]

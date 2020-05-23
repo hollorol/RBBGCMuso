@@ -37,6 +37,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      skipSpinup = TRUE,
                      constrains = NULL,
                      plotName = "calib.jpg",
+                     modifyOriginal=TRUE,
 		     likelihood = function(x, y){
 			 exp(-sqrt(mean((x-y)^2)))
 		     },
@@ -115,7 +116,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
     modellOut <- numeric(iterations + 1) # single variable solution
     rmse <- numeric(iterations + 1)
-    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup,postProcString=postProcString)
+    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup,postProcString=postProcString, modifyOriginal=modifyOriginal)
 
 
     write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
@@ -138,7 +139,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
-                                  skipSpinup = skipSpinup, postProcString = postProcString)[modIndex,colNumb], error = function (e) NULL        )
+                                  skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString)[modIndex,colNumb], error = function (e) NULL        )
         if(is.null(tmp)){
            tmp <- rmse[i] <- modellOut[i] <- NA
         } else {
