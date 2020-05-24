@@ -52,7 +52,11 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
             colnames(b)[1] <- varNames
             return(b)
         } else {
-            m <- as.data.frame(calResult[musoDate(startYear = year, numYears = 1),])
+            if(yearNum >=0){
+                m <- as.data.frame(calResult[musoDate(startYear = year, numYears = 1),])
+            } else{
+                m <- as.data.frame(calResult)
+            }
             colnames(m) <- colnames(calResult)
             return(cbind(m, parVal))
         }
