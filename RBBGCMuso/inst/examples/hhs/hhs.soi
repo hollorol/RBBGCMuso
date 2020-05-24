@@ -46,9 +46,10 @@ CH4 PARAMETERS
 SOIL PARAMETERS
 2       (m)             depth of soil
 6	(mm)            limit of first stage evaporation
-20.00   (mm) 		maximum height of pond water
+5.00   (mm) 		maximum height of pond water
 1	(dimless)	curvature of soil stress function
--9999   (dimless) 	measured runoff curve number (-9999: no measured data, model estimation)  
+-9999   (dimless) 	runoff curve number (-9999: no , model estimation) 
+107	(s/m)           aerodynamic resistance (Wallace and Holwill, 1997) 
 ----------------------------------------------------------------------------------------
 SOIL COMPOSITION AND CHARACTERISTIC VALUES (-9999: no measured data)
 30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0 	30.0                  (%) sand percentage by volume in rock-free soil

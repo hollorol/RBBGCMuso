@@ -384,11 +384,11 @@
   },
   {
     "X": 39,
-    "NAME": "ratio of bare soil evaporation and pot.evaporation",
+    "NAME": "limit of first stage evaporation",
     "INDEX": 48,
     "UNIT": "prop",
-    "MIN": 0.3,
-    "MAX": 0.9,
+    "MIN": 1,
+    "MAX": 9,
     "GROUP": 0,
     "TYPE": 0
   },
@@ -407,35 +407,34 @@
     "NAME": "curvature of soil stress functionr",
     "INDEX": 50,
     "UNIT": "dimless",
-    "MIN": 0,
-    "MAX": 10,
+    "MIN": 0.1,
+    "MAX": 5,
     "GROUP": 0,
     "TYPE": 0
   },
   {
     "X": 42,
-    "NAME": "measured runoff curve parameter",
+    "NAME": "runoff curve parameter",
     "INDEX": 51,
     "UNIT": "dimless",
-    "MIN": 40,
-    "MAX": 80,
+    "MIN": 10,
+    "MAX": 90,
     "GROUP": 0,
     "TYPE": 0
   },
   {
     "X": 43,
-    "NAME": "sand percentage-0",
-    "INDEX": 54.9,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 1,
-    "TYPE": 2
+    "NAME": "aerodynamic resistance",
+    "INDEX": 52,
+    "UNIT": "s/m",
+    "MIN": 60,
+    "MAX": 200,
+    "GROUP": 0,
+    "TYPE": 0
   },
   {
     "X": 44,
-    "NAME": "silt percentage-0",
+    "NAME": "sand percentage-0",
     "INDEX": 55.9,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -446,8 +445,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-0",
+    "NAME": "silt percentage-0",
     "INDEX": 56.9,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 1,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-0",
+    "INDEX": 57.9,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -455,9 +465,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-0",
-    "INDEX": 57.9,
+    "INDEX": 58.9,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -465,9 +475,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-0",
-    "INDEX": 58.9,
+    "INDEX": 59.9,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -476,9 +486,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-0",
-    "INDEX": 59.9,
+    "INDEX": 60.9,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -487,9 +497,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-0",
-    "INDEX": 60.9,
+    "INDEX": 61.9,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -498,9 +508,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-0",
-    "INDEX": 61.9,
+    "INDEX": 62.9,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -509,9 +519,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-0",
-    "INDEX": 62.9,
+    "INDEX": 63.9,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -519,9 +529,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-0",
-    "INDEX": 63.9,
+    "INDEX": 64.9,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -529,19 +539,8 @@
     "TYPE": 0
   },
  {
-    "X": 43,
-    "NAME": "sand percentage-1",
-    "INDEX": 54.91,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 3,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-1",
+    "NAME": "sand percentage-1",
     "INDEX": 55.91,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -552,8 +551,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-1",
+    "NAME": "silt percentage-1",
     "INDEX": 56.91,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 3,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-1",
+    "INDEX": 57.91,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -561,9 +571,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-1",
-    "INDEX": 57.91,
+    "INDEX": 58.91,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -571,9 +581,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-1",
-    "INDEX": 58.91,
+    "INDEX": 59.91,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -582,9 +592,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 59.91,
+    "INDEX": 60.91,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -593,9 +603,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 60.91,
+    "INDEX": 61.91,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -604,9 +614,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 61.91,
+    "INDEX": 62.91,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -615,9 +625,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-1",
-    "INDEX": 62.91,
+    "INDEX": 63.91,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -625,9 +635,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 63.91,
+    "INDEX": 64.91,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -635,19 +645,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-2",
-    "INDEX": 54.92,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 5,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-2",
+    "NAME": "sand percentage-2",
     "INDEX": 55.92,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -658,8 +657,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-2",
+    "NAME": "silt percentage-2",
     "INDEX": 56.92,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 5,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-2",
+    "INDEX": 57.92,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -667,9 +677,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-2",
-    "INDEX": 57.92,
+    "INDEX": 58.92,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -677,9 +687,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-2",
-    "INDEX": 58.92,
+    "INDEX": 59.92,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -688,9 +698,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-2",
-    "INDEX": 59.92,
+    "INDEX": 60.92,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -699,9 +709,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-2",
-    "INDEX": 60.92,
+    "INDEX": 61.92,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -710,9 +720,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-2",
-    "INDEX": 61.92,
+    "INDEX": 62.92,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -721,9 +731,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-2",
-    "INDEX": 62.92,
+    "INDEX": 63.92,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -731,9 +741,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-2",
-    "INDEX": 63.92,
+    "INDEX": 64.92,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -741,19 +751,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-3",
-    "INDEX": 54.93,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 7,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-3",
+    "NAME": "sand percentage-3",
     "INDEX": 55.93,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -764,8 +763,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-3",
+    "NAME": "silt percentage-3",
     "INDEX": 56.93,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 7,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-3",
+    "INDEX": 57.93,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -773,9 +783,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-3",
-    "INDEX": 57.93,
+    "INDEX": 58.93,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -783,9 +793,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-3",
-    "INDEX": 58.93,
+    "INDEX": 59.93,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -794,9 +804,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-3",
-    "INDEX": 59.93,
+    "INDEX": 60.93,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -805,9 +815,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-3",
-    "INDEX": 60.93,
+    "INDEX": 61.93,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -816,9 +826,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-3",
-    "INDEX": 61.93,
+    "INDEX": 62.93,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -827,9 +837,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-3",
-    "INDEX": 62.93,
+    "INDEX": 63.93,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -837,9 +847,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-3",
-    "INDEX": 63.93,
+    "INDEX": 64.93,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -847,19 +857,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-4",
-    "INDEX": 54.94,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 9,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-4",
+    "NAME": "sand percentage-4",
     "INDEX": 55.94,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -870,8 +869,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-4",
+    "NAME": "silt percentage-4",
     "INDEX": 56.94,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 9,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-4",
+    "INDEX": 57.94,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -879,9 +889,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-4",
-    "INDEX": 57.94,
+    "INDEX": 58.94,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -889,9 +899,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-4",
-    "INDEX": 58.94,
+    "INDEX": 59.94,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -900,9 +910,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-4",
-    "INDEX": 59.94,
+    "INDEX": 60.94,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -911,9 +921,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-4",
-    "INDEX": 60.94,
+    "INDEX": 61.94,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -922,9 +932,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-4",
-    "INDEX": 61.94,
+    "INDEX": 62.94,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -933,9 +943,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-4",
-    "INDEX": 62.94,
+    "INDEX": 63.94,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -943,9 +953,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-4",
-    "INDEX": 63.94,
+    "INDEX": 64.94,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -953,19 +963,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-5",
-    "INDEX": 54.95,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 11,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-5",
+    "NAME": "sand percentage-5",
     "INDEX": 55.95,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -976,8 +975,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-5",
+    "NAME": "silt percentage-5",
     "INDEX": 56.95,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 11,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-5",
+    "INDEX": 57.95,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -985,9 +995,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-5",
-    "INDEX": 57.95,
+    "INDEX": 58.95,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -995,9 +1005,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-5",
-    "INDEX": 58.95,
+    "INDEX": 59.95,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -1006,9 +1016,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-5",
-    "INDEX": 59.95,
+    "INDEX": 60.95,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -1017,9 +1027,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-5",
-    "INDEX": 60.95,
+    "INDEX": 61.95,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -1028,9 +1038,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-5",
-    "INDEX": 61.95,
+    "INDEX": 62.95,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -1039,9 +1049,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-5",
-    "INDEX": 62.95,
+    "INDEX": 63.95,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1049,9 +1059,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-5",
-    "INDEX": 63.95,
+    "INDEX": 64.95,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1059,19 +1069,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-6",
-    "INDEX": 54.96,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 13,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-6",
+    "NAME": "sand percentage-6",
     "INDEX": 55.96,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -1082,8 +1081,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-6",
+    "NAME": "silt percentage-6",
     "INDEX": 56.96,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 13,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-6",
+    "INDEX": 57.96,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1091,9 +1101,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-6",
-    "INDEX": 57.96,
+    "INDEX": 58.96,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1101,9 +1111,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-6",
-    "INDEX": 58.96,
+    "INDEX": 59.96,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -1112,9 +1122,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-6",
-    "INDEX": 59.96,
+    "INDEX": 60.96,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -1123,9 +1133,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-6",
-    "INDEX": 60.96,
+    "INDEX": 61.96,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -1134,9 +1144,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-6",
-    "INDEX": 61.96,
+    "INDEX": 62.96,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -1145,9 +1155,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-6",
-    "INDEX": 62.96,
+    "INDEX": 63.96,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1155,9 +1165,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-6",
-    "INDEX": 63.96,
+    "INDEX": 64.96,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1165,19 +1175,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-7",
-    "INDEX": 54.97,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 15,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-7",
+    "NAME": "sand percentage-7",
     "INDEX": 55.97,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -1188,8 +1187,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-7",
+    "NAME": "silt percentage-7",
     "INDEX": 56.97,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 15,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-7",
+    "INDEX": 57.97,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1197,9 +1207,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-7",
-    "INDEX": 57.97,
+    "INDEX": 58.97,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1207,9 +1217,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-7",
-    "INDEX": 58.97,
+    "INDEX": 59.97,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -1218,9 +1228,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-7",
-    "INDEX": 59.97,
+    "INDEX": 60.97,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -1229,9 +1239,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-7",
-    "INDEX": 60.97,
+    "INDEX": 61.97,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -1240,9 +1250,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-7",
-    "INDEX": 61.97,
+    "INDEX": 62.97,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -1251,9 +1261,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-7",
-    "INDEX": 62.97,
+    "INDEX": 63.97,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1261,9 +1271,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-7",
-    "INDEX": 63.97,
+    "INDEX": 64.97,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1271,19 +1281,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-8",
-    "INDEX": 54.98,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 17,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-8",
+    "NAME": "sand percentage-8",
     "INDEX": 55.98,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -1294,8 +1293,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-8",
+    "NAME": "silt percentage-8",
     "INDEX": 56.98,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 17,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-8",
+    "INDEX": 57.98,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1303,9 +1313,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-8",
-    "INDEX": 57.98,
+    "INDEX": 58.98,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1313,9 +1323,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-8",
-    "INDEX": 58.98,
+    "INDEX": 59.98,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -1324,9 +1334,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-8",
-    "INDEX": 59.98,
+    "INDEX": 60.98,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -1335,9 +1345,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-8",
-    "INDEX": 60.98,
+    "INDEX": 61.98,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -1346,9 +1356,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-8",
-    "INDEX": 61.98,
+    "INDEX": 62.98,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -1357,9 +1367,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-8",
-    "INDEX": 62.98,
+    "INDEX": 63.98,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1367,9 +1377,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-8",
-    "INDEX": 63.98,
+    "INDEX": 64.98,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1377,19 +1387,8 @@
     "TYPE": 0
   },
   {
-    "X": 43,
-    "NAME": "sand percentage-9",
-    "INDEX": 54.99,
-    "UNIT": "%",
-    "DEPENDENCE": 100,
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 19,
-    "TYPE": 2
-  },
-  {
     "X": 44,
-    "NAME": "silt percentage-9",
+    "NAME": "sand percentage-9",
     "INDEX": 55.99,
     "UNIT": "%",
     "DEPENDENCE": 100,
@@ -1400,8 +1399,19 @@
   },
   {
     "X": 45,
-    "NAME": "ph-9",
+    "NAME": "silt percentage-9",
     "INDEX": 56.99,
+    "UNIT": "%",
+    "DEPENDENCE": 100,
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 19,
+    "TYPE": 2
+  },
+  {
+    "X": 46,
+    "NAME": "ph-9",
+    "INDEX": 57.99,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1409,9 +1419,9 @@
     "TYPE": 0
   },
   {
-    "X": 46,
+    "X": 47,
     "NAME": "bulk density-9",
-    "INDEX": 57.99,
+    "INDEX": 58.99,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1419,9 +1429,9 @@
     "TYPE": 0
   },
   {
-    "X": 47,
+    "X": 48,
     "NAME": "SWC at saturation-9",
-    "INDEX": 58.99,
+    "INDEX": 59.99,
     "UNIT": "m3/m3",
     "DEPENDENCE": 2,
     "MIN": 0.4,
@@ -1430,9 +1440,9 @@
     "TYPE": 1
   },
   {
-    "X": 48,
+    "X": 49,
     "NAME": "SWC at field capacity-9",
-    "INDEX": 58.99,
+    "INDEX": 60.99,
     "UNIT": "m3/m3",
     "DEPENDENCE": 3,
     "MIN": 0.1,
@@ -1441,9 +1451,9 @@
     "TYPE": 1
   },
   {
-    "X": 49,
+    "X": 50,
     "NAME": "SWC at wilting point-9",
-    "INDEX": 60.99,
+    "INDEX": 61.99,
     "UNIT": "m3/m3",
     "DEPENDENCE": 4,
     "MIN": 0.02,
@@ -1452,9 +1462,9 @@
     "TYPE": 1
   },
   {
-    "X": 50,
+    "X": 51,
     "NAME": "SWC at hygroscopic water content-9",
-    "INDEX": 61.99,
+    "INDEX": 62.99,
     "UNIT": "m3/m3",
     "DEPENDENCE": 0,
     "MIN": 0.01,
@@ -1463,9 +1473,9 @@
     "TYPE": 1
   },
   {
-    "X": 51,
+    "X": 52,
     "NAME": "drainage coefficient-9",
-    "INDEX": 62.99,
+    "INDEX": 63.99,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1473,9 +1483,9 @@
     "TYPE": 0
   },
   {
-    "X": 52,
+    "X": 53,
     "NAME": "hydraulic condictivity at saturation-9",
-    "INDEX": 63.99,
+    "INDEX": 64.99,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
