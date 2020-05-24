@@ -173,13 +173,13 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     preservedCalib<- read.csv("preservedCalib.csv")
     p<-list()
     preservedCalib <- preservedCalib[-1,]
+    preservedCalib <- preservedCalib[!is.na(preservedCalib$likelihood),]
     dontInclude <-c((ncol(preservedCalib)-1),ncol(preservedCalib))
 
     # for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
     #     p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood")) +
     #         geom_point(shape='.',size=1,alpha=0.8)
     # }
-
     unfilteredLikelihood <-  preservedCalib$likelihood
     preservedCalib <- preservedCalib[preservedCalib$likelihood>quantile(preservedCalib$likelihood,0.95),]
     optRanges <-t(apply(preservedCalib,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
@@ -208,6 +208,8 @@ dev.off()
     # file.rename(tempEpc, "optimizedEpc.epc")
     # return(preservedCalib[maxLikelihoodPlace,])
     write.csv(optRanges,"optRanges.csv")
+    # is.num <- sapply(head(optRanges,-2), is.numeric)
+    # optRanges[is.num] <- lapply(optRanges[is.num], round, 4)
     return(head(optRanges,n=-2))
 }
 

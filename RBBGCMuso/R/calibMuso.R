@@ -99,25 +99,31 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     
     
 
-     if(aggressive==TRUE){
-         cleanupMuso(location=outputLoc,deep = TRUE)
+     if(aggressive == TRUE){
+         cleanupMuso(location = outputLoc,deep = TRUE)
      }
 
-    toModif<-c(epc[2],iniInput[2])
+    toModif <- c(epc[2],iniInput[2])
 
     # if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
     # {
         
         toModif <- sapply(toModif, function (x){
-            paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
+            paste0(tools::file_path_sans_ext(basename(x)),
+                   "-tmp.",
+                   tools::file_ext(x))
         })
         
     # }
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
-        changemulline(filePaths=c(epc[2],iniInput[2]), calibrationPar = calibrationPar,
-                                 contents = parameters, fileOut=toModif, fileToChange=fileToChange, modifyOriginal=modifyOriginal)
+        changemulline(filePaths = c(epc[2], iniInput[2]),
+                      calibrationPar = calibrationPar,
+                      contents = parameters,
+                      fileOut = toModif,
+                      fileToChange = fileToChange,
+                      modifyOriginal = modifyOriginal)
     }
     
 
@@ -150,7 +156,9 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     #     sapply(c(iniInput,epc),)
     #
     # }
-
+    if(modifyOriginal){
+        iniInput[2] <- toModif[2]
+    }
     
    if(!skipSpinup) {
 
@@ -250,7 +258,6 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
                )
-        
         if(keepBinary){
             possibleNames <- tryCatch(getOutFiles(outputLoc = outputLoc,outputNames = outputNames),
                                      error=function (e){
