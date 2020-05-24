@@ -24,23 +24,29 @@
 #' @import utils
 #' @export
 
-calibMuso <- function(settings=NULL, calibrationPar=NULL,
+calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       parameters=NULL, outVars = NULL, timee="d",
                       debugging=FALSE, logfilename=NULL,
                       keepEpc=FALSE, export=FALSE,
                       silent=FALSE, aggressive=FALSE,
                       keepBinary=FALSE,
-                      binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE,
-                      postProcString = NULL){ #
+                      binaryPlace = "./", fileToChange = "epc",
+                      skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE,
+                      postProcString = NULL,
+                      doBackup=TRUE
+                      ){ #
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
+    if(doBackup){
+        file.copy(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))),file.path(settings$inputLoc),overwrite=FALSE)
+    }
+
+    bck  <- file.path(settings$inputLoc, "bck",
+                      basename(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))))) 
+
     if(!silent){
         cat("Biome-BGC simulation started\n") # ZOLI
-    }
-    if(is.null(settings)){
-        settings <- setupMuso()
     }
     
     Linuxp <-(Sys.info()[1]=="Linux")
@@ -104,7 +110,7 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
      }
 
     toModif <- c(epc[2],iniInput[2])
-
+    names(toModif) <- c("epc","ini")
     # if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
     # {
         
@@ -115,10 +121,15 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         })
         
     # }
+     origsourceFiles <- sourceFiles <- c(epc=epc[2], ini=iniInput[2])
+     names(origsourceFiles) <- names(sourceFiles) <- c("epc","ini")
+    if(file.exists(bck)){
+        sourceFiles[fileToChange] <- bck 
+    } 
     
     ##change the epc file if and only if there are given parameters
     if(!is.null(parameters)){
-        changemulline(filePaths = c(epc[2], iniInput[2]),
+        changemulline(filePaths = sourceFiles,
                       calibrationPar = calibrationPar,
                       contents = parameters,
                       fileOut = toModif,
@@ -149,16 +160,14 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
         outputVarChanges <- putOutVars(iniInput[2], outputVars = outVars, modifyOriginal = !modifyOriginal)
         settings$outputVars[[1]]<-outputVarChanges[[1]]
         settings$numData <- round(settings$numData*outputVarChanges[[2]])
+        if(modifyOriginal){
+            iniInput[2] <- toModif[2]
+        }
     }
 
-    # if(modifyOriginal){
-    #     suppressWarnings(dir.create())
-    #     sapply(c(iniInput,epc),)
-    #
-    # }
-    if(modifyOriginal){
-        iniInput[2] <- toModif[2]
-    }
+        if(modifyOriginal){
+            file.copy(toModif[fileToChange], origsourceFiles[fileToChange], overwrite = TRUE)
+        }
     
    if(!skipSpinup) {
 
