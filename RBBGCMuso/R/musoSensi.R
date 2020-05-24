@@ -32,6 +32,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      skipSpinup = TRUE,
                      skipZero = TRUE,
                      postProcString=NULL,
+                     modifyOut=TRUE,
                      dpi=300){
 
     if(is.null(parameters)){
@@ -96,7 +97,8 @@ musoSensi <- function(monteCarloFile = NULL,
                       varIndex = varIndex,
                       skipSpinup = skipSpinup,
                       skipZero=skipZero,
-                      postProcString=postProcString
+                      postProcString=postProcString,
+                      modifyOut=modifyOut
                       )
         M <- cbind(seq_along(M[,1]),M)
         yInd <-  grep("mod.", colnames(M))[varIndex]

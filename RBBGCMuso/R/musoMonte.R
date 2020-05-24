@@ -33,6 +33,7 @@ musoMonte <- function(settings=NULL,
                      constrains = NULL,
                      skipZero = TRUE,
                      postProcString=NULL,
+                     modifyOut=TRUE,
                      ...){
 
 
@@ -149,6 +150,7 @@ musoMonte <- function(settings=NULL,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
+                             modifyOriginal = modifyOut,
                              outVars = outVars,postProcString=postProcString), error = function (e) NA)
             
             if(length(dim(tmp))>=1){
