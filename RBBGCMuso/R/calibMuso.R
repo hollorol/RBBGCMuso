@@ -165,7 +165,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
 
-        if(modifyOriginal){
+        if(modifyOriginal && (!is.null(parameters) || !is.null(outVars))){
             file.copy(toModif[fileToChange], origsourceFiles[fileToChange], overwrite = TRUE)
         }
     

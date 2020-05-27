@@ -28,27 +28,28 @@
 #' @export
 optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      endDate = NULL, formatString = "%Y-%m-%d",
-                     leapYearHandling = TRUE,
                      dataVar, outLoc = "./calib",
-                     preTag = "cal-",
-                     settings =  NULL,
-                     outVars = NULL,
-                     iterations = 30,
-                     skipSpinup = TRUE,
-                     constrains = NULL,
-                     plotName = "calib.jpg",
-                     modifyOriginal=TRUE,
-		     likelihood = function(x, y){
-			 exp(-sqrt(mean((x-y)^2)))
-		     },
-                     continious,
-		     modelVar = 3009,
-             naVal = NULL,
-                     postProcString = NULL)
-{
-    mdata <- measuredData
-    dataCol <- grep(dataVar, colnames(measuredData))
+                     preTag = "cal-", settings =  setupMuso(),
+                     outVars = NULL, iterations = 30,
+                     skipSpinup = TRUE, plotName = "calib.jpg",
+                     modifyOriginal=TRUE, likelihood,
+                     naVal = NULL, postProcString = NULL, w=NULL) {
+    # Exanding likelihood
+    likelihoodFull <- as.list(rep(NA,length(dataVar)))
+    names(likelihoodFull) <- names(dataVar)
+    if(!missing(likelihood)) {
+        lapply(names(likelihood),function(x){
+                   likelihoodFull[[x]] <<- likelihood[[x]]
+                     })
+    }
+   defaultLikelihood <- which(is.na(likelihood))
+   if(length(defaultLikelihood)>0){
+        likelihoodFull[[defaultLikelihood]] <- (function(x, y){
+                                                       exp(-sqrt(mean((x-y)^2)))
+                                                })
+   }
 
+    mdata <- measuredData
     if(is.null(parameters)){
         parameters <- tryCatch(read.csv("parameters.csv", stringsAsFactor=FALSE), error = function (e) {
             stop("You need to specify a path for the parameters.csv, or a matrix.")
@@ -70,149 +71,181 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     }
 
     outLoc <- normalizePath(outLoc)
-
-    if(is.null(settings)){
-        settings <- setupMuso()
-    }
-
     parameterNames <- parameters[,1]
     pretag <- file.path(outLoc,preTag)
-    npar <- length(settings$calibrationPar)
-
     ##reading the original epc file at the specified
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
     }
 
-    origEpc <- readValuesFromFile(settings$epc[2],parameters[,2])
-
+    origEpc <- readValuesFromFile(settings$epc[2],randVals[[1]])
+    partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar))
+    colN <- randVals[[1]]
+    colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
+    colnames(partialResult) <- c(colN,sprintf("%s_likelihood",names(dataVar)),
+                                      sprintf("%s_rmse",names(dataVar)))
+    numParameters <- length(colN)
+    partialResult[1:numParameters] <- origEpc
     ## Prepare the preservedCalib matrix for the faster
     ##  run.
 
     pretag <- file.path(outLoc,preTag)
 
+     musoCodeToIndex  <- sapply(dataVar,function(musoCode){
+           settings$dailyOutputTable[settings$dailyOutputTable$code == musoCode,"index"]
+        })
+    resultRange <- (numParameters + 1):(ncol(partialResult))
     ## Creating function for generating separate
     ## csv files for each run
 
     progBar <- txtProgressBar(1,iterations,style=3)
-    colNumb <- which(settings$dailyVarCodes == modelVar)
     settings$iniInput[2] %>%
         (function(x) paste0(dirname(x),"/",tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))) %>%
         unlink
     randValues <- randVals[[2]]
+
     settings$calibrationPar <- randVals[[1]]
+
     if(!is.null(naVal)){
         measuredData <- as.data.frame(measuredData)
         measuredData[measuredData == naVal] <- NA
     }
-    list2env(alignData(measuredData,dataCol = dataCol,modellSettings = settings,startDate = startDate,endDate = endDate,leapYear = leapYearHandling, continious = continious),envir=environment())
-    ## modIndex and measuredData are created.  
 
+    alignIndexes <- alignMuso(settings,measuredData)
 
-    modellOut <- numeric(iterations + 1) # single variable solution
-    rmse <- numeric(iterations + 1)
-    origModellOut <- calibMuso(settings=settings,silent=TRUE, skipSpinup = skipSpinup,postProcString=postProcString, modifyOriginal=modifyOriginal)
-
-
-    write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
-    modellOut[1] <- likelihood(measuredData,origModellOut[modIndex,colNumb])
-    rmse[1] <- sqrt(mean((measuredData-origModellOut[modIndex,colNumb])^2))
+    origModellOut <- calibMuso(settings=settings, silent=TRUE, skipSpinup = skipSpinup, postProcString=postProcString, modifyOriginal=modifyOriginal)
+    partialResult[,resultRange] <- calcLikelihoodsAndRMSE(dataVar=dataVar, 
+                                                          mod=origModellOut,
+                                                          mes=measuredData,
+                                                          likelihoods=likelihood,
+                                                           alignIndexes=alignIndexes,
+                                                           musoCodeToIndex = musoCodeToIndex)
+    write.csv(x=origModellOut, file=paste0(pretag, 1, ".csv"))
     print("Running the model with the random epc values...", quote = FALSE)
 
-    if(!is.null(postProcString)){
-        colNumb <- length(settings$dailyVarCodes) + 1
-    }
+    # if(!is.null(postProcString)){
+    #     colNumb <- length(settings$dailyVarCodes) + 1
+    # }
     
-    partialTemplate <- matrix(ncol=length(randVals[[1]])+2)
-    colN <- randVals[[1]]
-    colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
-
-    colnames(partialTemplate) <- c(colN, "rmse","likelihood")
-    partialTemplate[1:((length(randVals[[1]]))+2)] <- c(readValuesFromFile(settings$epc[2],randVals[[1]]),modellOut[1], rmse[1])
-    write.csv(x=partialTemplate, file="preservedCalib.csv",row.names=FALSE)
+    write.csv(x=partialResult, file="preservedCalib.csv",row.names=FALSE)
     for(i in 2:(iterations+1)){
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
-                                  skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString)[modIndex,colNumb], error = function (e) NULL        )
+                                  skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString), error = function (e) NULL)
         if(is.null(tmp)){
-           tmp <- rmse[i] <- modellOut[i] <- NA
+           partialResult[,resultRange] <- NA
         } else {
-            modellOut[i]<- likelihood(measuredData,tmp)
-            rmse[i] <- sqrt(mean((measuredData-tmp)^2))
+            partialResult[,resultRange] <- calcLikelihoodsAndRMSE(dataVar=dataVar, 
+                                                          mod=tmp,
+                                                          mes=measuredData,
+                                                          likelihoods=likelihood,
+                                                           alignIndexes=alignIndexes,
+                                                           musoCodeToIndex = musoCodeToIndex)
         }
 
-        partialTemplate[1:(length(randVals[[1]])+2)] <- c(randValues[(i-1),], rmse[i], modellOut[i])
-        write.table(x=partialTemplate, file="preservedCalib.csv",append=TRUE,row.names=FALSE,sep=",",col.names=FALSE)
+
+        partialResult[1:numParameters] <- randValues[(i-1),]
+        write.table(x=partialResult, file="preservedCalib.csv", append=TRUE, row.names=FALSE,
+                    sep=",", col.names=FALSE)
         write.csv(x=tmp, file=paste0(pretag, (i+1),".csv"))
         setTxtProgressBar(progBar,i)
     }
+    
+    musoGlue("preservedCalib.csv",w=w)
 
-    # paramLines <- parameters[,2]
-    # paramLines <- order(paramLines)
-    # randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
-    # randInd <- order(randInd)
-    #
-    #
-    #
-    # epcStrip <- rbind(origEpc[order(parameters[,2])],
-    #                   randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
-    #
-    #
-    # preservedCalib <- cbind(epcStrip,rmse,
-    #                         modellOut)
-    # columNames <-  c(parameterNames[paramLines],"rmse", "likelihood")
-    # colnames(preservedCalib) <- columNames
-    # write.csv(preservedCalib,"preservedCalib.csv")
+}
 
-    preservedCalib<- read.csv("preservedCalib.csv")
-    p<-list()
-    preservedCalib <- preservedCalib[-1,]
-    preservedCalib <- preservedCalib[!is.na(preservedCalib$likelihood),]
-    dontInclude <-c((ncol(preservedCalib)-1),ncol(preservedCalib))
 
-    # for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
-    #     p[[i]] <- ggplot(as.data.frame(preservedCalib),aes_string(colnames(preservedCalib)[i],"likelihood")) +
-    #         geom_point(shape='.',size=1,alpha=0.8)
-    # }
-    unfilteredLikelihood <-  preservedCalib$likelihood
-    preservedCalib <- preservedCalib[preservedCalib$likelihood>quantile(preservedCalib$likelihood,0.95),]
-    optRanges <-t(apply(preservedCalib,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
 
-pdf("dotplot.pdf")
+
+alignMuso <- function (settings,measuredData) {
+        # Have to fix for other starting points also
+         modelDates <- seq(from= as.Date(sprintf("%s-01-01",settings$startYear)), 
+             by="days",
+             to=as.Date(sprintf("%s-12-31",settings$startYear+settings$numYears-1)))
+         modelDates <- grep("-02-29",modelDates,invert=TRUE, value=TRUE)
+
+        measuredDates <- apply(measuredData,1,function(xrow){
+                                   sprintf("%s-%s-%s",xrow[1],xrow[2],xrow[3])
+        })
+
+        modIndex <- match(as.Date(measuredDates), as.Date(modelDates))
+        measIndex <- which(!is.na(modIndex))
+        modIndex <- modIndex[!is.na(modIndex)]
+        cbind.data.frame(model=modIndex,meas=measIndex)
+} 
+
+calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex){
+
+    likelihoodRMSE <- sapply(names(dataVar),function(key){
+               modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
+               measured <- mes[alignIndexes$meas,key]
+               modelled <- modelled[!is.na(measured)] 
+               measured <- measured[!is.na(measured)] 
+               res <- c(likelihoods[[key]](modelled,measured),
+                        sqrt(mean((modelled-measured)^2))
+               )
+               res
+        })
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
+
+    return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+}
+
+musoGlue <- function(preservedCalib, w){
+    preservedCalib<- read.csv(preservedCalib)
+    preservedCalib <- preservedCalib[-1,] #original
+
+    likeIndexes <- grep("likelihood",colnames(preservedCalib))
+    if(!is.null(w)){
+        forCombine<- sapply(names(w),function(n){
+                                grep(sprintf("%s_likelihood",n),colnames(preservedCalib))
+        })
+        preservedCalib[["combined"]] <- apply(as.data.frame(Map(function(x,y){
+                                                           toNormalize  <- preservedCalib[,y]
+                                                           toNormalize <- toNormalize / sqrt(sum(x^2))
+                                                           toNormalize * x
+
+                                            },w,forCombine)), 1, sum)
+    } else {
+        preservedCalib[["combined"]] <- grep("likelihood",colnames(preservedCalib),value=TRUE)
+    }
+
+    parameterIndexes <- 1:(min(likeIndexes))
+    preservedCalib <- preservedCalib[!is.na(preservedCalib$combined),]
+    unfilteredLikelihood <-  preservedCalib$combined
+    preservedCalibtop5 <- preservedCalib[preservedCalib$combined>quantile(preservedCalib$combined,0.95),]
+    optRanges <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
+    pdf("dotplot.pdf")
     plot(Reduce(min, -log(unfilteredLikelihood), accumulate=TRUE),type="l", ylab="-log(likelihood)",xlab="iterations")
-    for(i in seq_along(colnames(preservedCalib)[-dontInclude])){
-        plot(preservedCalib[,i],preservedCalib[,"likelihood"],pch=19,cex=.1, ylab="likelihood",
+    pari <- par(mfrow=c(1,2)) 
+    for(i in seq_along(colnames(preservedCalib)[parameterIndexes])){
+        plot(preservedCalib[,i],preservedCalib[,"combined"],pch=19,cex=.1, ylab="likelihood",
              main = colnames(preservedCalib)[i], xlab="")
+        plot(preservedCalibtop5[,i],preservedCalibtop5[,"combined"],pch=19,cex=.1, ylab="likelihood",
+             main = paste0(colnames(preservedCalibtop5)[i]," (behav.)"), xlab="")
         abline(v=optRanges[i,1],col="blue")
         abline(v=optRanges[i,2],col="green")
         abline(v=optRanges[i,3],col="red")
         
     }
-dev.off()
-
-    # ggsave(plotName,grid.arrange(grobs = p, ncol = floor(sqrt(ncol(preservedCalib)-1))), dpi = 1000)
-    # maxLikelihoodPlace  <- which(preservedCalib[,"likelihood"]==max(preservedCalib[,"likelihood"],na.rm = TRUE))
-    # resPlot <- plotMusoWithData(mdata = measuredData, startDate = startDate, endDate = endDate,
-    #                             dataVar = dataVar, modelVar = modelVar, settings = settings, continious = continious) +
-    #     plotMuso(settings = settings, parameters = randValues[maxLikelihoodPlace,],
-    #              postProcString = postProcString, skipSpinup = FALSE, variable = colNumb, layerPlot = TRUE, colour = "green")
-    #
-    # print(resPlot)
-    # tempEpc <- paste0(tools::file_path_sans_ext(basename(settings$epcInput[2])),"-tmp.",tools::file_ext(settings$epcInput[2]))
-    # file.rename(tempEpc, "optimizedEpc.epc")
-    # return(preservedCalib[maxLikelihoodPlace,])
+    par(pari)
+    dev.off()
     write.csv(optRanges,"optRanges.csv")
-    # is.num <- sapply(head(optRanges,-2), is.numeric)
-    # optRanges[is.num] <- lapply(optRanges[is.num], round, 4)
+    print(head(optRanges))
     return(head(optRanges,n=-2))
 }
 
+generateOptEpc <- function(optRanges,delta, maxLikelihood=FALSE){
+    if(missing(delta)){
 
-
+    }
+    
+}
 
