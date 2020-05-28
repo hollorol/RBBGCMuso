@@ -259,6 +259,7 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     write.csv(as.data.frame(optimalEpc),"epcOptim.csv")
     print(head(optRanges,n=-2))
     calibMuso(calibrationPar=optimalEpc[[1]],parameters=optimalEpc[[2]])
+    file.copy(settings$epcInput[2],"epcOptim.epc")
 }
 
 generateOptEpc <- function(optRanges,delta, maxLikelihood=FALSE){
