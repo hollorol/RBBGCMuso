@@ -221,7 +221,7 @@ musoGlue <- function(preservedCalib, w){
 
                                             },w,forCombine)), 1, sum)
     } else {
-        preservedCalib[["combined"]] <- grep("likelihood",colnames(preservedCalib),value=TRUE)
+        preservedCalib[["combined"]] <- preservedCalib[,grep("likelihood",colnames(preservedCalib),value=TRUE)]
     }
 
     parameterIndexes <- 1:(min(likeIndexes))
