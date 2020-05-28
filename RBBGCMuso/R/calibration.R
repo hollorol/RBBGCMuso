@@ -205,8 +205,15 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
 #' @author Roland HOLLOS
 #' @param plotName u
 #' @export
-musoGlue <- function(preservedCalib, w){
-    preservedCalib<- read.csv(preservedCalib)
+musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), parameters=read.csv("parameters.csv",
+                                                                        stringsAsFactors=FALSE)){
+    preservedCalib<- read.csv(presCalFile)
+    paramIndex <- parameters[(match(colnames(preservedCalib),parameters[,1])),2]
+    paramIndex <- paramIndex[!is.na(paramIndex)]
+    paramIndex <- c(paramIndex,
+                        as.numeric(gsub("X","",
+                                          grep("X[0-9]{1,}",
+                                               colnames(preservedCalib),value=TRUE))))
     preservedCalib <- preservedCalib[-1,] #original
 
     likeIndexes <- grep("likelihood",colnames(preservedCalib))
@@ -224,7 +231,7 @@ musoGlue <- function(preservedCalib, w){
         preservedCalib[["combined"]] <- preservedCalib[,grep("likelihood",colnames(preservedCalib),value=TRUE)]
     }
 
-    parameterIndexes <- 1:(min(likeIndexes))
+    parameterIndexes <- 1:(min(likeIndexes)-1)
     preservedCalib <- preservedCalib[!is.na(preservedCalib$combined),]
     unfilteredLikelihood <-  preservedCalib$combined
     preservedCalibtop5 <- preservedCalib[preservedCalib$combined>quantile(preservedCalib$combined,0.95),]
@@ -245,8 +252,13 @@ musoGlue <- function(preservedCalib, w){
     par(pari)
     dev.off()
     write.csv(optRanges,"optRanges.csv")
-    print(head(optRanges))
-    return(head(optRanges,n=-2))
+    optInterval <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.5-delta,0.5+delta))))  
+    optParamRange <- cbind.data.frame(rownames(optInterval)[parameterIndexes],as.numeric(paramIndex),optInterval[parameterIndexes,])
+    optimalEpc <- musoRand(optParamRange,iterations = 2)
+    optimalEpc[[2]] <- optimalEpc[[2]][1,]
+    write.csv(as.data.frame(optimalEpc),"epcOptim.csv")
+    print(head(optRanges,n=-2))
+    calibMuso(calibrationPar=optimalEpc[[1]],parameters=optimalEpc[[2]])
 }
 
 generateOptEpc <- function(optRanges,delta, maxLikelihood=FALSE){
