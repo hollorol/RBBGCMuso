@@ -4,14 +4,26 @@
 \alias{optiMuso}
 \title{optiMuso}
 \usage{
-optiMuso(measuredData, parameters = NULL, startDate = NULL,
-  endDate = NULL, formatString = "\%Y-\%m-\%d",
-  leapYearHandling = TRUE, dataVar, outLoc = "./calib",
-  preTag = "cal-", settings = NULL, outVars = NULL,
-  iterations = 30, skipSpinup = TRUE, constrains = NULL,
-  plotName = "calib.jpg", likelihood = function(x, y) {    
-  exp(-sqrt(mean((x - y)^2))) }, continious, modelVar = 3009,
-  naVal = NULL, postProcString = NULL)
+optiMuso(
+  measuredData,
+  parameters = NULL,
+  startDate = NULL,
+  endDate = NULL,
+  formatString = "\%Y-\%m-\%d",
+  dataVar,
+  outLoc = "./calib",
+  preTag = "cal-",
+  settings = setupMuso(),
+  outVars = NULL,
+  iterations = 30,
+  skipSpinup = TRUE,
+  plotName = "calib.jpg",
+  modifyOriginal = TRUE,
+  likelihood,
+  naVal = NULL,
+  postProcString = NULL,
+  w = NULL
+)
 }
 \arguments{
 \item{parameters}{b}
@@ -30,8 +42,6 @@ optiMuso(measuredData, parameters = NULL, startDate = NULL,
 
 \item{skipSpinup}{a}
 
-\item{constrains}{d}
-
 \item{plotName}{u}
 
 \item{likelihood}{d}
@@ -49,6 +59,8 @@ optiMuso(measuredData, parameters = NULL, startDate = NULL,
 \item{pretag}{a}
 
 \item{calPar}{a}
+
+\item{constrains}{d}
 
 \item{leapYear}{b}
 }

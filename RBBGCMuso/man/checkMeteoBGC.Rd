@@ -4,8 +4,12 @@
 \alias{checkMeteoBGC}
 \title{checkMeteoBGC}
 \usage{
-checkMeteoBGC(settings = NULL, skip = 4, numericReport = FALSE,
-  type = "normal")
+checkMeteoBGC(
+  settings = NULL,
+  skip = 4,
+  numericReport = FALSE,
+  type = "normal"
+)
 }
 \arguments{
 \item{settings}{The output of setupMuso}

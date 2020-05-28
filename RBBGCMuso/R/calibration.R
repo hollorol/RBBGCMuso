@@ -198,6 +198,13 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
     return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
 }
 
+#' musoGlue
+#'
+#' This function calculates the -users specified- likelihood for random model input.
+#'
+#' @author Roland HOLLOS
+#' @param plotName u
+#' @export
 musoGlue <- function(preservedCalib, w){
     preservedCalib<- read.csv(preservedCalib)
     preservedCalib <- preservedCalib[-1,] #original

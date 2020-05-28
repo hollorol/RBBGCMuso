@@ -4,8 +4,10 @@
 \alias{getConstMatrix}
 \title{getConstMatrix}
 \usage{
-getConstMatrix(filetype = "epc",
-  version = as.character(getOption("RMuso_version")))
+getConstMatrix(
+  filetype = "epc",
+  version = as.character(getOption("RMuso_version"))
+)
 }
 \arguments{
 \item{filetype}{It can be "epc" or "soil".}

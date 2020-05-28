@@ -4,9 +4,7 @@
 \alias{musoRand}
 \title{musoRand}
 \usage{
-musoRand(parameters, iterations = 3000, fileType = "epc",
-  version = as.character(getOption("RMuso_version")),
-  constrains = getConstMatrix(fileType = fileType, version = version))
+musoRand(parameters, iterations = 3000, fileType = "epc", constrains = NULL)
 }
 \arguments{
 \item{parameters}{This is a dataframe (heterogeneous data-matrix), where the first column is the name of the parameter, the second is a numeric vector of the rownumbers of the given variable in the input EPC file, and the last two columns describe the minimum and the maximum of the parameter (i.e. the parameter ranges), defining the interval for the randomization.}
