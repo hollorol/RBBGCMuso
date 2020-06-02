@@ -32,7 +32,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      preTag = "cal-", settings =  setupMuso(),
                      outVars = NULL, iterations = 30,
                      skipSpinup = TRUE, plotName = "calib.jpg",
-                     modifyOriginal=TRUE, likelihood,
+                     modifyOriginal=TRUE, likelihood, uncertainity,
                      naVal = NULL, postProcString = NULL, w=NULL) {
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
@@ -117,14 +117,16 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     }
 
     alignIndexes <- alignMuso(settings,measuredData)
-
+    if(!is.null(uncertainity)){
+        uncert <- measuredData[alignIndexes$measIndex,uncertainity]
+    }
     origModellOut <- calibMuso(settings=settings, silent=TRUE, skipSpinup = skipSpinup, postProcString=postProcString, modifyOriginal=modifyOriginal)
     partialResult[,resultRange] <- calcLikelihoodsAndRMSE(dataVar=dataVar, 
                                                           mod=origModellOut,
                                                           mes=measuredData,
                                                           likelihoods=likelihood,
                                                            alignIndexes=alignIndexes,
-                                                           musoCodeToIndex = musoCodeToIndex)
+                                                           musoCodeToIndex = musoCodeToIndex,uncert=uncert)
     write.csv(x=origModellOut, file=paste0(pretag, 1, ".csv"))
     print("Running the model with the random epc values...", quote = FALSE)
 
@@ -134,6 +136,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     
     write.csv(x=partialResult, file="preservedCalib.csv",row.names=FALSE)
     for(i in 2:(iterations+1)){
+        browser()
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
@@ -146,7 +149,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                                                           mes=measuredData,
                                                           likelihoods=likelihood,
                                                            alignIndexes=alignIndexes,
-                                                           musoCodeToIndex = musoCodeToIndex)
+                                                           musoCodeToIndex = musoCodeToIndex, uncert = uncert)
         }
 
 
@@ -166,10 +169,10 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
 alignMuso <- function (settings,measuredData) {
         # Have to fix for other starting points also
-         modelDates <- seq(from= as.Date(sprintf("%s-01-01",settings$startYear)), 
-             by="days",
-             to=as.Date(sprintf("%s-12-31",settings$startYear+settings$numYears-1)))
-         modelDates <- grep("-02-29",modelDates,invert=TRUE, value=TRUE)
+        modelDates <- seq(from= as.Date(sprintf("%s-01-01",settings$startYear)), 
+            by="days",
+            to=as.Date(sprintf("%s-12-31",settings$startYear+settings$numYears-1)))
+        modelDates <- grep("-02-29",modelDates,invert=TRUE, value=TRUE)
 
         measuredDates <- apply(measuredData,1,function(xrow){
                                    sprintf("%s-%s-%s",xrow[1],xrow[2],xrow[3])
@@ -181,14 +184,14 @@ alignMuso <- function (settings,measuredData) {
         cbind.data.frame(model=modIndex,meas=measIndex)
 } 
 
-calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex){
+calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
                measured <- mes[alignIndexes$meas,key]
                modelled <- modelled[!is.na(measured)] 
                measured <- measured[!is.na(measured)] 
-               res <- c(likelihoods[[key]](modelled,measured),
+               res <- c(likelihoods[[key]](modelled, measured, uncert),
                         sqrt(mean((modelled-measured)^2))
                )
                res
@@ -268,4 +271,3 @@ generateOptEpc <- function(optRanges,delta, maxLikelihood=FALSE){
     }
     
 }
-
