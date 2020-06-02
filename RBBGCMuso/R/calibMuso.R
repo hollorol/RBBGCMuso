@@ -113,10 +113,14 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     ##change the epc file if and only if there are given parameters
        
     if(!is.null(parameters)){
-        changemulline(filePaths = epcInput,
+        changemulline(filePaths = epc[2],
                       calibrationPar = calibrationPar,
                       contents = parameters,
-                      fileOut = toModif,
+                      src = if(file.exists(bck)){
+                          bck
+                      } else {
+                          NULL
+                      })
                        # fileToChange = fileToChange,)
     }
     
