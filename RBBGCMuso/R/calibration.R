@@ -33,7 +33,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      outVars = NULL, iterations = 30,
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity,
-                     naVal = NULL, postProcString = NULL, w=NULL) {
+                     naVal = NULL, postProcString = NULL, w=NULL, lg=FALSE) {
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
     names(likelihoodFull) <- names(dataVar)
@@ -118,8 +118,9 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
     alignIndexes <- alignMuso(settings,measuredData)
     if(!is.null(uncertainity)){
-        uncert <- measuredData[alignIndexes$measIndex,uncertainity]
+        uncert <- measuredData[alignIndexes$meas,uncertainity]
     }
+    # browser()
     origModellOut <- calibMuso(settings=settings, silent=TRUE, skipSpinup = skipSpinup, postProcString=postProcString, modifyOriginal=modifyOriginal)
     partialResult[,resultRange] <- calcLikelihoodsAndRMSE(dataVar=dataVar, 
                                                           mod=origModellOut,
@@ -136,7 +137,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     
     write.csv(x=partialResult, file="preservedCalib.csv",row.names=FALSE)
     for(i in 2:(iterations+1)){
-        browser()
+        # browser()
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
@@ -160,7 +161,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
         setTxtProgressBar(progBar,i)
     }
     
-    musoGlue("preservedCalib.csv",w=w)
+    musoGlue("preservedCalib.csv",w=w, lg = lg)
 
 }
 
@@ -187,9 +188,11 @@ alignMuso <- function (settings,measuredData) {
 calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
+                                 # browser()
                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
                measured <- mes[alignIndexes$meas,key]
                modelled <- modelled[!is.na(measured)] 
+               # uncert   <-   uncert[!is.na(measured)]
                measured <- measured[!is.na(measured)] 
                res <- c(likelihoods[[key]](modelled, measured, uncert),
                         sqrt(mean((modelled-measured)^2))
@@ -209,7 +212,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
 #' @param plotName u
 #' @export
 musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), parameters=read.csv("parameters.csv",
-                                                                        stringsAsFactors=FALSE)){
+                                                                        stringsAsFactors=FALSE), lg=FALSE){
     preservedCalib<- read.csv(presCalFile)
     paramIndex <- parameters[(match(colnames(preservedCalib),parameters[,1])),2]
     paramIndex <- paramIndex[!is.na(paramIndex)]
@@ -240,7 +243,11 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     preservedCalibtop5 <- preservedCalib[preservedCalib$combined>quantile(preservedCalib$combined,0.95),]
     optRanges <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
     pdf("dotplot.pdf")
-    plot(Reduce(min, -log(unfilteredLikelihood), accumulate=TRUE),type="l", ylab="-log(likelihood)",xlab="iterations")
+    if(lg){
+        plot(Reduce(min, -(unfilteredLikelihood), accumulate=TRUE),type="l", ylab="-log(likelihood)",xlab="iterations")
+    } else {
+        plot(Reduce(min, -log(unfilteredLikelihood), accumulate=TRUE),type="l", ylab="-log(likelihood)",xlab="iterations")
+    }
     pari <- par(mfrow=c(1,2)) 
     for(i in seq_along(colnames(preservedCalib)[parameterIndexes])){
         plot(preservedCalib[,i],preservedCalib[,"combined"],pch=19,cex=.1, ylab="likelihood",
@@ -254,6 +261,9 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     }
     par(pari)
     dev.off()
+    maxParValues <- preservedCalibtop5[which.max(preservedCalibtop5$combined),]
+    maxParIndexes <- paramIndex
+    write.csv(cbind.data.frame(calibrationPar=maxParValues,parameters=maxParIndexes),"maxLikelihood.csv")
     write.csv(optRanges,"optRanges.csv")
     optInterval <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.5-delta,0.5+delta))))  
     optParamRange <- cbind.data.frame(rownames(optInterval)[parameterIndexes],as.numeric(paramIndex),optInterval[parameterIndexes,])
