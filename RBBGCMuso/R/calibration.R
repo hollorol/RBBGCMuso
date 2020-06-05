@@ -32,7 +32,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      preTag = "cal-", settings =  setupMuso(),
                      outVars = NULL, iterations = 30,
                      skipSpinup = TRUE, plotName = "calib.jpg",
-                     modifyOriginal=TRUE, likelihood, uncertainity,
+                     modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL, w=NULL, lg=FALSE) {
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
@@ -119,6 +119,8 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     alignIndexes <- alignMuso(settings,measuredData)
     if(!is.null(uncertainity)){
         uncert <- measuredData[alignIndexes$meas,uncertainity]
+    } else {
+        uncert <- NULL
     }
     # browser()
     origModellOut <- calibMuso(settings=settings, silent=TRUE, skipSpinup = skipSpinup, postProcString=postProcString, modifyOriginal=modifyOriginal)
