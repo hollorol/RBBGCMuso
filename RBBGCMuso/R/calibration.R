@@ -33,7 +33,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      outVars = NULL, iterations = 30,
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
-                     naVal = NULL, postProcString = NULL, w=NULL, lg=FALSE) {
+                     naVal = NULL, postProcString = NULL, w=NULL, lg=FALSE, parallel = TRUE) {
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
     names(likelihoodFull) <- names(dataVar)
@@ -187,24 +187,24 @@ alignMuso <- function (settings,measuredData) {
         cbind.data.frame(model=modIndex,meas=measIndex)
 } 
 
-calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
-
-    likelihoodRMSE <- sapply(names(dataVar),function(key){
-                                 # browser()
-               modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
-               measured <- mes[alignIndexes$meas,key]
-               modelled <- modelled[!is.na(measured)] 
-               # uncert   <-   uncert[!is.na(measured)]
-               measured <- measured[!is.na(measured)] 
-               res <- c(likelihoods[[key]](modelled, measured, uncert),
-                        sqrt(mean((modelled-measured)^2))
-               )
-               res
-        })
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
-
-    return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
-}
+# calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
+#
+#     likelihoodRMSE <- sapply(names(dataVar),function(key){
+#                # browser()
+#                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
+#                measured <- mes[alignIndexes$meas,key]
+#                modelled <- modelled[!is.na(measured)] 
+#                # uncert   <-   uncert[!is.na(measured)]
+#                measured <- measured[!is.na(measured)] 
+#                res <- c(likelihoods[[key]](modelled, measured, uncert),
+#                         sqrt(mean((modelled-measured)^2))
+#                )
+#                res
+#         })
+#     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
+#
+#     return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+# }
 
 #' musoGlue
 #'
@@ -215,7 +215,12 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
 #' @export
 musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), parameters=read.csv("parameters.csv",
                                                                         stringsAsFactors=FALSE), lg=FALSE){
-    preservedCalib<- read.csv(presCalFile)
+    if(is.data.frame(presCalFile)){
+        preservedCalib <- presCalFile
+    } else {
+        preservedCalib <- read.csv(presCalFile)
+    }
+
     paramIndex <- parameters[(match(colnames(preservedCalib),parameters[,1])),2]
     paramIndex <- paramIndex[!is.na(paramIndex)]
     paramIndex <- c(paramIndex,
@@ -242,7 +247,8 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     parameterIndexes <- 1:(min(likeIndexes)-1)
     preservedCalib <- preservedCalib[!is.na(preservedCalib$combined),]
     unfilteredLikelihood <-  preservedCalib$combined
-    preservedCalibtop5 <- preservedCalib[preservedCalib$combined>quantile(preservedCalib$combined,0.95),]
+    top5points <- preservedCalib$combined>quantile(preservedCalib$combined,0.95)
+    preservedCalibtop5 <- preservedCalib[,]
     optRanges <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
     pdf("dotplot.pdf")
     if(lg){
@@ -261,20 +267,40 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
         abline(v=optRanges[i,3],col="red")
         
     }
+
     par(pari)
     dev.off()
     maxParValues <- preservedCalibtop5[which.max(preservedCalibtop5$combined),]
     maxParIndexes <- paramIndex
     write.csv(cbind.data.frame(calibrationPar=maxParValues,parameters=maxParIndexes),"maxLikelihood.csv")
     write.csv(optRanges,"optRanges.csv")
-    optInterval <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.5-delta,0.5+delta))))  
-    optParamRange <- cbind.data.frame(rownames(optInterval)[parameterIndexes],as.numeric(paramIndex),optInterval[parameterIndexes,])
-    optimalEpc <- musoRand(optParamRange,iterations = 2)
-    optimalEpc[[2]] <- optimalEpc[[2]][1,]
-    write.csv(as.data.frame(optimalEpc),"epcOptim.csv")
-    print(head(optRanges,n=-2))
-    calibMuso(calibrationPar=optimalEpc[[1]],parameters=optimalEpc[[2]])
-    file.copy(settings$epcInput[2],"epcOptim.epc")
+    # browser()
+    # There are some serious problems with this implementation. The uncertainity bouns are not for the parameters, but for the output values. The median is pointwise median for all simulation.
+    # And the 95 and 5 percentile also.
+    # dataVec <- preservedCalibtop5$combined
+    # closestToMedian <- function (dataVec) {
+    #     match(sort(dataVec)[min(which(sort(dataVec)>=median(dataVec)))], dataVec)
+    # }
+    #
+    # while(is.null(optimalEpc)){
+    #     match(quantile(preservedCalibtop5$combined,0.5), preservedCalibtop5$combined)
+    #     optInterval <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.5-delta,0.5+delta))))  
+    #     optParamRange <- cbind.data.frame(rownames(optInterval)[parameterIndexes],as.numeric(paramIndex),optInterval[parameterIndexes,])
+    #     optimalEpc <- tryCatch(musoRand(optParamRange,iterations = 2), error=function(e){NULL})
+    #     delta <- delta*1.05
+    #     if(delta > 0.5){
+    #         delta <- 0.5
+    #     }
+    #     if((delta == 0.5) && is.null(optimalEpc)){
+    #         stop("cannot find optimal value in the given range")
+    #     }
+    # }
+    # print("getOptim")
+    # optimalEpc[[2]] <- optimalEpc[[2]][1,]
+    # write.csv(as.data.frame(optimalEpc),"epcOptim.csv")
+    # print(head(optRanges,n=-2))
+    # calibMuso(calibrationPar=optimalEpc[[1]],parameters=optimalEpc[[2]])
+    # file.copy(settings$epcInput[2],"epcOptim.epc")
 }
 
 generateOptEpc <- function(optRanges,delta, maxLikelihood=FALSE){

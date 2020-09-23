@@ -1,14 +1,11 @@
-#' This is the function which is capable to change multiple specific lines to others using their row numbers.
+#' changemulline 
 #'
 #' The function uses the previous changspecline function to operate.
-         ##From now changespecline is in the forarcheologist file, because itis  no longer needed
 #' 
 #' @author Roland Hollos
-#' @keywords internal
-#' 
+#' @export
 
-
-changemulline <- function(filePaths, calibrationPar, contents, src){
+changemulline <- function(filePaths, calibrationPar, contents, src, outFiles=filePaths){
     # browser()
     if(is.null(src)){
         src <- filePaths
@@ -19,7 +16,7 @@ changemulline <- function(filePaths, calibrationPar, contents, src){
            fileStringVector <<- changeByIndex(index, content, fileStringVector)
 
     }, calibrationPar, contents)
-    writeLines(fileStringVector, filePaths)
+    writeLines(fileStringVector, outFiles)
     
 }
 
