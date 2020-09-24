@@ -27,7 +27,11 @@ calibrateMuso(
   numCores = (parallel::detectCores() - 1),
   pb = txtProgressBar(min = 0, max = iterations, style = 3),
   maxLikelihoodEpc = TRUE,
-  pbUpdate = setTxtProgressBar
+  pbUpdate = setTxtProgressBar,
+  method = "GLUE",
+  lg = FALSE,
+  w = NULL,
+  ...
 )
 }
 \description{
