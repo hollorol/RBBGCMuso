@@ -21,7 +21,6 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
                                                                        
     
-
     copyToThreadDirs(thread_prefix, numcores = numcores, runDir = settings$inputLoc)
 
     #  ____                _   _                        _     
@@ -33,7 +32,7 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     threadCount <- distributeCores(iterations, numCores) 
 
     fut <- lapply(1:numCores, function(i) {
-         # future({
+         future({
              musoSingleThread(measuredData, parameters, startDate,
                               endDate, formatString,
                               dataVar, outLoc,
@@ -42,7 +41,7 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                               skipSpinup, plotName,
                               modifyOriginal, likelihood, uncertainity,
                               naVal, postProcString, i)
-         # })
+         })
     })
 
     # __        ___           _       _                                         
@@ -96,6 +95,7 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 }
 
 copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1, runDir="."){
+    browser()
     dir.create(file.path(runDir,prefix), showWarnings=TRUE)
     fileNames <- grep("^thread.*", list.files(runDir), value=TRUE, invert=TRUE)
     invisible(sapply(1:numcores,function(corenum){

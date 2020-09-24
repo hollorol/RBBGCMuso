@@ -16,10 +16,10 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, method="GLUE",lg = FALSE, w=NULL, ...){
 
-
-    file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE))
-    file.remove(list.files(path = settings$inputLoc, pattern="preservedCalib.csv", recursive = TRUE))
-    unlink("thread",recursive=TRUE)
+    future::plan(future::multisession)
+    file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE, full.names=TRUE))
+    file.remove(list.files(path = settings$inputLoc, pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
+    unlink(file.path(settings$inputLoc,"thread"),recursive=TRUE)
 
     #   ____                _         _   _                        _     
     #  / ___|_ __ ___  __ _| |_ ___  | |_| |__  _ __ ___  __ _  __| |___ 
@@ -94,9 +94,15 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     while(progress < iterations){
         Sys.sleep(1)
         progress <- tryCatch(getProgress(), error=function(e){progress})
-        pbUpdate(pb,as.numeric(progress))
+        if(is.null(pb)){
+            pbUpdate(as.numeric(progress))
+        } else {
+            pbUpdate(pb,as.numeric(progress))
+        }
     }
-    close(pb)
+    if(!is.null(pb)){
+        close(pb)
+    }
 
     #   ____                _     _            
     #  / ___|___  _ __ ___ | |__ (_)_ __   ___ 
@@ -164,7 +170,7 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
 copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1, runDir="."){
     dir.create(file.path(runDir,prefix), showWarnings=TRUE)
-    fileNames <- grep("^thread.*", list.files(runDir), value=TRUE, invert=TRUE)
+    fileNames <- grep("^thread.*", list.files(runDir,full.names=TRUE), value=TRUE, invert=TRUE)
     invisible(sapply(1:numcores,function(corenum){
                 threadDir <- file.path(runDir,prefix,paste0(prefix,"_",corenum))
                 dir.create(threadDir, showWarnings=FALSE)
