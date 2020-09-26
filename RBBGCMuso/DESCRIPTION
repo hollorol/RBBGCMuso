@@ -31,8 +31,6 @@ Imports:
     openxlsx,
     ncdf4,
     tcltk
-LinkingTo: Rcpp
-SystemRequirements: C++11
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 7.1.0
 Suggests: knitr,

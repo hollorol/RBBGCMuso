@@ -125,9 +125,12 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
            },
            "agromo"={
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
-                epcIndexes <- value(fut[[1]], stdout = FALSE, signal=FALSE)
+                epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
                 epcVals <- results[which.max(liks),1:length(epcIndexes)]
-                changemulline(filePaths= settings$epcInput[2], epcIndexes, epcVals, src = settings$epcInput[2], outFiles = "maxLikelihood_epc.epc")
+                epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
+                changemulline(filePaths= epcPlace, epcIndexes,
+                              epcVals, src = settings$epcInput[2],
+                              outFiles = "maxLikelihood_epc.epc")
                 names(epcVals) <- epcIndexes
                 xdate <- as.Date(measuredData$date) 
                 meanM <- measuredData[,sprintf("mean.%s", names(likelihood))]
