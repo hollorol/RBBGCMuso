@@ -1,0 +1,42 @@
+Package: RBBGCMuso
+Title: An R package for BiomeBGC-MuSo ecosystem modelling
+Version: 0.7.1
+Authors@R: person("Roland", "Hollo's", , "hollorol@gmail.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+Depends: R (>= 3.3.2)
+License: GPL-2
+LazyData: true
+NeedsCompilation: no
+Packaged: Wed 13 Nov 2019 02:41:52 PM CET hollorol
+Author: Roland Hollo's [aut, cre]
+Imports:
+	grDevices,
+        limSolve,
+	stats,
+	utils,
+	graphics,
+	Rcpp,
+	magrittr,
+	dplyr,
+	ggplot2,
+	rmarkdown,
+	tibble,
+	tidyr,
+	tcltk,
+	digest,
+    jsonlite,
+    data.table,
+    gridExtra,
+    lubridate,
+    ecmwfr,
+    openxlsx,
+    ncdf4,
+    tcltk
+LinkingTo: Rcpp
+SystemRequirements: C++11
+Maintainer: Roland Hollo's <hollorol@gmail.com>
+RoxygenNote: 7.1.0
+Suggests: knitr,
+    rmarkdown,
+VignetteBuilder: knitr
+ByteCompile: true
