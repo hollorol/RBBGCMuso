@@ -208,11 +208,11 @@ Below we list the most common output variables that can be calculated by the mod
 407   standing dead biomass [kgC/m2] - that is the inactive standing plant pool not yet part of the litter pool
 319   livestemC - aboveground live woody biomass [kgC/m2]
 322   deadstemC - aboveground dead woody biomass [kgC/m2]
-3104  total abovegound woody biomass C [kgC/m2] 
+3162  total abovegound woody biomass C [kgC/m2] 
 401   CWD - coarse woody debris [kgC/m2] 
 #+END_SRC
 
-A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue. Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322 (plus the corresponding storage/transfer pools). For convenience, variable 3104 can be used as it represents the sum of 319 and 322 plus the related storage/transfer pools.
+A note from the Biome-BGC User's Guide: "Livewood is defined as the actively respiring woody tissue, that is, the lateral sheathing meristem of phloem tissue, plus any ray parenchyma extending radially into thexylem tissue. Deadwood consists of all the other woody material, including the heartwood, the xylem, and the bark." In this sense aboveground woody biomass can be calculated as the sum of output variables 319 and 322 (plus the corresponding storage/transfer pools). For convenience, variable 3162 can be used as it represents the sum of 319 and 322 plus the related storage/transfer pools.
 
 
 *** Perform Quick experiments
