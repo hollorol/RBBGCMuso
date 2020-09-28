@@ -14,7 +14,7 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      naVal = NULL, postProcString = NULL,
                      thread_prefix="thread", numCores = (parallel::detectCores()-1), pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
-                     pbUpdate = setTxtProgressBar, method="GLUE",lg = FALSE, w=NULL, ...){
+                     pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
 
     future::plan(future::multisession)
     file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE, full.names=TRUE))
@@ -42,14 +42,16 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     fut <- lapply(1:numCores, function(i) {
                       # browser()
          future({
-                      tryCatch(musoSingleThread(measuredData, parameters, startDate,
+                      tryCatch(
+                               musoSingleThread(measuredData, parameters, startDate,
                                         endDate, formatString,
                                         dataVar, outLoc,
                                         preTag, settings,
                                         outVars, iterations = threadCount[i],
                                         skipSpinup, plotName,
                                         modifyOriginal, likelihood, uncertainity,
-                                        naVal, postProcString, i), error = function(e){
+                                        naVal, postProcString, i)
+                      , error = function(e){
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
 
@@ -109,7 +111,6 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
     # | |__| (_) | | | | | | |_) | | | | |  __/
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
-
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
@@ -129,8 +130,8 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                 epcVals <- results[which.max(liks),1:length(epcIndexes)]
                 epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
                 changemulline(filePaths= epcPlace, epcIndexes,
-                              epcVals, src = settings$epcInput[2],
-                              outFiles = "maxLikelihood_epc.epc")
+                              epcVals, src =epcPlace,# settings$epcInput[2],
+                              outFiles = file.path(outputLoc, "maxLikelihood_epc.epc"))
                 names(epcVals) <- epcIndexes
                 xdate <- as.Date(measuredData$date) 
                 meanM <- measuredData[,sprintf("mean.%s", names(likelihood))]
@@ -156,19 +157,6 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
            },
            stop(sprintf("method: %s not found, please choose from {GLUE, agromo}. See more about this in the documentation of the function!", method))
     )
-    # Here starts maxLikelihoodAgroMo: parameters
-
-    
-    # Here ends maxLikelihoodAgromo
-
-    # return(epcVals)
-    #   ____ _    _   _ _____ 
-    #  / ___| |  | | | | ____|
-    # | |  _| |  | | | |  _|  
-    # | |_| | |__| |_| | |___ 
-    #  \____|_____\___/|_____|
-
-    # musoGlue("preservedCalib.csv",w=w, lg = lg)
 }
 
 copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1, runDir="."){
@@ -195,6 +183,7 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     if(length(iniFiles)==1){
         iniFiles <- rep(iniFiles, 2)
     }
+    iniFiles <- iniFiles[1:2]
     settings <- setupMuso(iniInput = iniFiles)
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
@@ -305,7 +294,6 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     for(i in 2:(iterations+1)){
 
-
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = randValues[(i-1),],
                                   silent= TRUE,
@@ -320,7 +308,6 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
                                                            alignIndexes=alignIndexes,
                                                            musoCodeToIndex = musoCodeToIndex, uncert = uncert)
         }
-
 
         partialResult[1:numParameters] <- randValues[(i-1),]
         write.table(x=partialResult, file="preservedCalib.csv", append=TRUE, row.names=FALSE,
@@ -356,7 +343,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
 
     # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
     likelihoodRMSE <- sapply(names(dataVar),function(key){
-               # browser()
+                                 # browser()
                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
                selected <- grep(sprintf("%s$", key), colnames(mes))
                # browser()
