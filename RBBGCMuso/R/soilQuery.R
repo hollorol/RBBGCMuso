@@ -50,13 +50,13 @@ createSoilFile <- function(lat,lon,
     }
 
     soilDepth <- tryCatch(getMeanSoil(rest,"bdod")/100,error=function(e){stop("There is no data for the given coordinates")})
-    outFile[47] <- sprintf("%s (m) soil depth",paste(soilDepth,collapse="\t"))
     outFile[55] <- sprintf("%s (%%) percentage of sand by volume in rock free soil",
                            paste(createMusoLayers(getMeanSoil(rest,"sand")/10), collapse="\t"))
     outFile[56] <- sprintf("%s (%%) percentage of silt by volume in rock free soil",
                            paste(createMusoLayers(getMeanSoil(rest,"silt")/10), collapse="\t"))
     outFile[57] <- sprintf("%s (dimless) soil PH",
                            paste(createMusoLayers(getMeanSoil(rest,"phh2o")/10), collapse="\t"))
+    outFile[58] <- sprintf("%s (%%) bulk density",paste(createMusoLayers(soilDepth),collapse="\t"))
     writeLines(outFile,outputFile)
 }
 # createSoilFile(60,50)
