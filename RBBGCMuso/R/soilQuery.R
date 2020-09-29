@@ -56,7 +56,7 @@ createSoilFile <- function(lat,lon,
                            paste(createMusoLayers(getMeanSoil(rest,"silt")/10), collapse="\t"))
     outFile[57] <- sprintf("%s (dimless) soil PH",
                            paste(createMusoLayers(getMeanSoil(rest,"phh2o")/10), collapse="\t"))
-    outFile[58] <- sprintf("%s (%%) bulk density",paste(createMusoLayers(soilDepth),collapse="\t"))
+    # outFile[58] <- sprintf("%s (%%) bulk density",paste(createMusoLayers(soilDepth),collapse="\t"))
     writeLines(outFile,outputFile)
 }
 # createSoilFile(60,50)
