@@ -12,9 +12,11 @@ getSoilDataFull <- function(lat, lon, apiURL, port) {
         apiURL <- "https://81.169.232.36"
     }
     if(missing(port)){
-        port <- 4445
+        port <- ""
+    } else{
+        port = glue(":{port}")
     }
-    apiString <- glue("{apiURL}:{port}/query?lon={lon}&lat={lat}")
+    apiString <- glue("{apiURL}{port}/query?lon={lon}&lat={lat}")
     soilREST <- with_config(config(ssl_verifypeer=0L, ssl_verifyhost=0L),
                             GET(apiString)) # This is temporary solution ssl_verification wont bypass
    content(soilREST) 
@@ -36,10 +38,10 @@ createSoilFile <- function(lat,lon,
                             method="constant",apiURL,
                             apiPort,template=system.file("examples/hhs/hhs.soi",package="RBBGCMuso")) {
     if(missing(apiURL)){
-        apiURL <- "https://81.169.232.36"
+        apiURL <- "https://rest.soilgrids.org/soilgrids/v2.0/properties"
     }
     if(missing(apiPort)){
-        apiPort <- 4445
+        apiPort <- ""
     }
     outFile <- suppressWarnings(readLines(template))
     outFile[1] <- sprintf("SOILPROP FILE - lat: %s, lon: %s, created in: %s",lat,lon,date())
