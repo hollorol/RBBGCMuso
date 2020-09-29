@@ -20,9 +20,12 @@ optiMuso(
   plotName = "calib.jpg",
   modifyOriginal = TRUE,
   likelihood,
+  uncertainity = NULL,
   naVal = NULL,
   postProcString = NULL,
-  w = NULL
+  w = NULL,
+  lg = FALSE,
+  parallel = TRUE
 )
 }
 \arguments{

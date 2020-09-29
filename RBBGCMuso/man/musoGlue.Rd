@@ -4,7 +4,14 @@
 \alias{musoGlue}
 \title{musoGlue}
 \usage{
-musoGlue(preservedCalib, w)
+musoGlue(
+  presCalFile,
+  w,
+  delta = 0.17,
+  settings = setupMuso(),
+  parameters = read.csv("parameters.csv", stringsAsFactors = FALSE),
+  lg = FALSE
+)
 }
 \arguments{
 \item{plotName}{u}

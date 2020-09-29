@@ -68,7 +68,7 @@ setupMuso <- function(executable=NULL,
     #
 
     inputParser <- function(string,fileName,counter,value=TRUE){
-        unlist(strsplit(grep(string,fileName,value=TRUE),"[\ \t]"))[counter]
+        unlist(strsplit(grep(string,fileName,value=TRUE, perl = TRUE),"[\ \t]", useBytes = TRUE))[counter]
     }
 
     # outMaker <- function(inputVar,grepString,filep){
@@ -104,8 +104,8 @@ setupMuso <- function(executable=NULL,
     #iniChangedp <- FALSE
 
     if(is.null(iniInput)){
-        spinups<-grep("s.ini$",list.files(inputLoc),value=TRUE)
-        normals<-grep("n.ini$",list.files(inputLoc),value=TRUE)
+        spinups<-grep("s.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
+        normals<-grep("n.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
 
         if(length(spinups)==1){
             iniInput[1] <- file.path(inputLoc,spinups)
@@ -124,8 +124,8 @@ setupMuso <- function(executable=NULL,
     ##read the ini files for the further changes
 
     iniFiles<-lapply(iniInput, function (x) readLines(x,-1))
-    iniFiles[[1]] <- gsub("\\","/", iniFiles[[1]],fixed=TRUE) #replacing \ to /
-    iniFiles[[2]] <- gsub("\\","/", iniFiles[[2]],fixed=TRUE) #replacing \ to /
+    iniFiles[[1]] <- gsub("\\\\","/", iniFiles[[1]], perl = TRUE) #replacing \ to /
+    iniFiles[[2]] <- gsub("\\\\","/", iniFiles[[2]], perl = TRUE) #replacing \ to /
     names(iniFiles) <- c("spinup","normal")
 
 
@@ -156,21 +156,21 @@ setupMuso <- function(executable=NULL,
     
     # if(is.null(mapData)){
     #     
-        outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]])+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
+        outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1
+        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
         dailyVarCodes<-tryCatch(iniFiles[[2]][(outIndex+1):(outIndex+numVar)],
                                 error = function(e){
         stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
         })
 
-        dailyVarCodes<-unlist(lapply(dailyVarCodes, function(x) unlist(strsplit(x,"[\ \t]"))[1]))
-        dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
+        dailyVarCodes<-unlist(lapply(dailyVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
+        dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
 
-        outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]])+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]"))[1])
+        outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]], perl = TRUE)+1
+        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
         annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
-        annualVarCodes<-unlist(lapply(annualVarCodes, function(x) unlist(strsplit(x,"[\ \t]"))[1]))
-        annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]"))[1])))
+        annualVarCodes<-unlist(lapply(annualVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
+        annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
         outputVars<-list(dailyVarnames,annualVarnames)
         # browser()
 # } else {
@@ -206,8 +206,8 @@ setupMuso <- function(executable=NULL,
     }
 
     outputName <- character(2)
-    outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]])+1],"[\ \t]"))[1])
-    outputName[2] <- basename(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]])+1],"[\ \t]"))[1])
+    outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+    outputName[2] <- basename(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
     ##  outputName <- unlist(strsplit(grep("output",grep("prefix",iniFiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
     ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
     ## outputName <- unlist(strsplit(grep("prefix for output files",iniFiles[[2]],value=TRUE),"[\ \t]"))[1]
@@ -220,7 +220,7 @@ setupMuso <- function(executable=NULL,
 
     if(is.null(outputLoc)){
         ##  outputLoc<-paste((rev(rev(unlist(strsplit(outputName,"/")))[-1])),collapse="/")
-        outputLoc <- dirname(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]])+1],"[\ \t]"))[1])
+        outputLoc <- dirname(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
         if(substr(outputLoc,start = 1,stop = 1)!="/"){
             ##if the outputName is not absolute path make it absolute
             outputLoc <- file.path(inputLoc,outputLoc)
@@ -233,12 +233,12 @@ setupMuso <- function(executable=NULL,
     
     inputFiles<-c(iniInput,epcInput,metInput)
     numData<-rep(NA,3)
-    numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+1],"[\ \t]"))[1])
+    numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
-    numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]])+1],"[\ \t]"))[1])
+    numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
     ## numValues will be replaced to numVar
     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
-    startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]])+2],"[\ \t]"))[1])
+    startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+2],"[\ \t]", useBytes = TRUE))[1])
     numData[1] <- numValues * numYears * 365 # Have to corrigate leapyears 
 
     numData[2] <- numYears * numValues*12
@@ -263,9 +263,9 @@ setupMuso <- function(executable=NULL,
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
         
             if(stringP){
-                unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+"))[1]
+                unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
             } else {
-                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+"))[1])
+                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
             }
     }
     soilFile <- NULL
