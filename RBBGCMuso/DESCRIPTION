@@ -30,6 +30,7 @@ Imports:
     lubridate,
     openxlsx,
     ncdf4,
+    future,
     tcltk
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 7.1.0
