@@ -340,7 +340,7 @@ prepareFromAgroMo <- function(fName){
 
 
 calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
-
+    # browser()
     # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
     likelihoodRMSE <- sapply(names(dataVar),function(key){
                                  # browser()
@@ -348,20 +348,28 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
                selected <- grep(sprintf("%s$", key), colnames(mes))
                # browser()
                measured <- mes[alignIndexes$meas,selected]
-               notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
-               modelled <- modelled[notNA] 
-               measured <- measured[notNA,]
+               if(is.data.frame(measured)){
+                   notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
+                   modelled <- modelled[notNA] 
+                   measured <- measured[notNA,]
+               } else {
+                   notNA <- !(is.na(measured))
+                   modelled <- modelled[notNA] 
+                   measured <- measured[notNA]
+               }
                # uncert   <-   uncert[!is.na(measured)]
 
                # measured <- measured[!is.na(measured)] 
-               apply(measured, 1, function(x){!any(is.na(x))})
-               measured <- t(apply(measured, 1, function(x){if(!any(is.na(x))){x}} )) 
-               if(ncol(measured)!=1){
+               # measured <- t(apply(measured, 1, function(x){if(!any(is.na(x))){x}} )) 
+               if(!is.null(ncol(measured))){
                    m <- measured[,grep("^mean", colnames(measured))]
+                   res <- c(likelihoods[[key]](modelled, measured),
+                            sqrt(mean((modelled-m)^2)))
+               } else {
+                   res <- c(likelihoods[[key]](modelled, measured),
+                            sqrt(mean((modelled-measured)^2)))
+
                }
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-m)^2))
-               )
                # browser()
                res
         })

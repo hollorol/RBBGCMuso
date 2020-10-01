@@ -123,6 +123,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
         uncert <- NULL
     }
     # browser()
+    browser()
     origModellOut <- calibMuso(settings=settings, silent=TRUE, skipSpinup = skipSpinup, postProcString=postProcString, modifyOriginal=modifyOriginal)
     partialResult[,resultRange] <- calcLikelihoodsAndRMSE(dataVar=dataVar, 
                                                           mod=origModellOut,
