@@ -53,14 +53,6 @@ plotMuso <- function(settings = NULL, variable = 1,
     numberOfYears <- settings$numYears
     startYear <- settings$startYear
     dailyVarCodes <- settings$dailyVarCodes
-    ## musoData <- rungetMuso(settings=settings,
-    ##                        silent=silent,
-    ##                        timee=timee,
-    ##                        debugging=debugging,
-    ##                        keepEpc=keepEpc,
-    ##                        logfilename=logfilename,
-    ##                        export=export)
-    
     groupByTimeFrame <- function(Data, timeFrame, groupFun){
         Data <- data.table(Data)
         Data[,c(variable):=groupFun(get(variable)),get(timeFrame)]
