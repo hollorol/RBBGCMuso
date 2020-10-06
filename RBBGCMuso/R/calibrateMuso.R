@@ -4,7 +4,7 @@
 #' @author Roland HOLLOS
 #' @importFrom future future
 #' @export
-calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
+calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", stringsAsFactor=FALSE), startDate = NULL,
                      endDate = NULL, formatString = "%Y-%m-%d",
                      dataVar, outLoc = "./calib",
                      preTag = "cal-", settings =  setupMuso(),
@@ -161,11 +161,11 @@ calibrateMuso <- function(measuredData, parameters = NULL, startDate = NULL,
 
 copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1, runDir="."){
     dir.create(file.path(runDir,prefix), showWarnings=TRUE)
-    fileNames <- grep("^thread.*", list.files(runDir,full.names=TRUE), value=TRUE, invert=TRUE)
+    fileNames <- grep(".*thread$", list.files(runDir,full.names=TRUE), value=TRUE, invert=TRUE)
     invisible(sapply(1:numcores,function(corenum){
-                threadDir <- file.path(runDir,prefix,paste0(prefix,"_",corenum))
+                threadDir <- file.path(runDir,prefix,paste0(prefix,"_",corenum),"")
                 dir.create(threadDir, showWarnings=FALSE)
-                file.copy(from=fileNames,to=threadDir, overwrite=FALSE)
+                file.copy(from=fileNames,to=threadDir, overwrite=FALSE, recursive=TRUE)
     }))
 }
 
@@ -179,13 +179,15 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      naVal = NULL, postProcString = NULL, threadNumber) {
 
     setwd(paste0(settings$inputLoc, "/thread/thread_", threadNumber))
-    iniFiles <- list.files(pattern=".*ini")
-    if(length(iniFiles)==1){
-        iniFiles <- rep(iniFiles, 2)
-    }
-    iniFiles <- iniFiles[1:2]
+
+    iniFiles <- file.path(settings$iniInput) 
+    # iniFiles <- list.files(pattern=".*ini")
+    # if(length(iniFiles)==1){
+    #     iniFiles <- rep(iniFiles, 2)
+    # }
     settings <- setupMuso(iniInput = iniFiles)
     # Exanding likelihood
+
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
     names(likelihoodFull) <- names(dataVar)
     if(!missing(likelihood)) {
@@ -341,24 +343,29 @@ prepareFromAgroMo <- function(fName){
 
 calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
 
+     mes <- as.data.frame(mes)
     # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
     likelihoodRMSE <- sapply(names(dataVar),function(key){
-                                 # browser()
                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
                selected <- grep(sprintf("%s$", key), colnames(mes))
                # browser()
+
                measured <- mes[alignIndexes$meas,selected]
-               notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
-               modelled <- modelled[notNA] 
-               measured <- measured[notNA,]
+
+               if(is.null(dim(measured))){
+                   notNA <- !is.na(measured)             
+                   m <- measured <- measured[notNA]
+                    
+               } else {
+                   notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
+                   measured <- measured[notNA,]
+                   m <- measured[,grep("^mean", colnames(measured))]
+               }
+                   modelled <- modelled[notNA] 
+
                # uncert   <-   uncert[!is.na(measured)]
 
                # measured <- measured[!is.na(measured)] 
-               apply(measured, 1, function(x){!any(is.na(x))})
-               measured <- t(apply(measured, 1, function(x){if(!any(is.na(x))){x}} )) 
-               if(ncol(measured)!=1){
-                   m <- measured[,grep("^mean", colnames(measured))]
-               }
                res <- c(likelihoods[[key]](modelled, measured),
                         sqrt(mean((modelled-m)^2))
                )
@@ -366,7 +373,6 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
                res
         })
     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
-
     return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
 }
 
