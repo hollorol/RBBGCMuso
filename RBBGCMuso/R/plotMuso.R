@@ -76,7 +76,10 @@ plotMuso <- function(settings = NULL, variable = "all",
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
-            musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
+            musoData <- calibMuso(postProcString = postProcString,settings,
+                                  calibrationPar=calibrationPar,
+                                  parameters = parameters,
+                                  silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
             if(!is.null(selectYear)){
             musoData <- musoData %>% filter(year == get("selectYear"))    
             }
@@ -105,10 +108,14 @@ plotMuso <- function(settings = NULL, variable = "all",
     }
 
     ## numVari <- ncol(musoData)
-     numVari <- ncol(musoData)-5
+     # numVari <- ncol(musoData)-5
+     numVari <- length(settings$dailyVarCodes)
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
-        musoData$date<- as.Date(as.character(musoData$date),"%d.%m.%Y")
+        if(!inherits(musoData$date[1], "Date")){
+            musoData$date<- as.Date(as.character(musoData$date),"%d.%m.%Y")
+        }
+
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
@@ -187,9 +194,16 @@ plotMuso <- function(settings = NULL, variable = "all",
 
     variableName <-  as.character(settings$outputVars[[1]])[variable]
     if(is.character(variable)){
+
+
         if(identical(variable,"all")){
-            variableName <- as.character(settings$outputVars[[1]])
+            variable <- as.character(settings$outputVars[[1]])
         } else {
+
+            if(is.element(variable, settings$dailyVarCodes)){
+                variable <- settings$outputVars[[1]][match(variable,settings$dailyVarCodes)]
+            }
+
             if(identical(character(0),setdiff(variable,as.character(settings$outputVars[[1]])))){
                 variableName <- variable
             } else {
@@ -213,6 +227,7 @@ plotMuso <- function(settings = NULL, variable = "all",
          }))){
              variableName <-  as.character(settings$outputVars[[1]])[variable]
          } else {
+             print(numVari)
              stop("Not all members of the variable parameter are among the output variables")
          }}
     
