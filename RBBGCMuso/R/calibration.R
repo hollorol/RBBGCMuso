@@ -221,7 +221,6 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     } else {
         preservedCalib <- read.csv(presCalFile)
     }
-
     paramIndex <- parameters[(match(colnames(preservedCalib),parameters[,1])),2]
     paramIndex <- paramIndex[!is.na(paramIndex)]
     paramIndex <- c(paramIndex,

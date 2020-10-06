@@ -28,7 +28,7 @@
 #' @importFrom data.table ':=' data.table
 #' @export
 
-plotMuso <- function(settings = NULL, variable = 1,
+plotMuso <- function(settings = NULL, variable = "all",
                      ##compare, ##plotname,
                      timee = "d", silent = TRUE,
                      calibrationPar = NULL, parameters = NULL,
