@@ -268,6 +268,14 @@ setupMuso <- function(executable=NULL,
                 as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
             }
     }
+    
+    normOutputFlags <- c(
+        daily=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=2),
+        annual=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5))
+    if(normOutputFlags[1]!=1){
+        warning("You should set your daily output flag to 1 (binary) RBBRMuso work only with binary output...")
+    }
+    searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5)
     soilFile <- NULL
     if(version >=6){
         soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
@@ -305,7 +313,8 @@ setupMuso <- function(executable=NULL,
                     dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
                     annualVarCodes = gsub("\\s.*","",annualVarCodes),
                     dailyOutputTable=dailyOutputTable,
-                    annualOutputTable=annualOutputTable
+                    annualOutputTable=annualOutputTable,
+                    normOutputFlags=normOutputFlags 
                     )
 
     # if(getOption("RMuso_version")==6){

@@ -353,25 +353,30 @@ compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NUL
 
 saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
                              silent = TRUE, type = "line", outFile = "annual.csv",
-                             colour = NULL, skipSpinup = FALSE){
+                             colour = "blue", skipSpinup = FALSE){
 
     if(is.null(settings)){
         settings <- setupMuso()
     }
-    
+
     dailyVarCodes <- settings$dailyVarCodes
     annualVarCodes <-settings$annualVarCodes
     outputVars <- unlist(settings$outputVars[[1]])
     musoData <- calibMuso(settings = settings, prettyOut = TRUE, silent = silent, skipSpinup = skipSpinup)
+    musoData$date<- as.Date(musoData$date,"%d.%m.%Y")
     for(i in seq_along(dailyVarCodes)){
         bases <- ggplot(data = musoData, mapping = aes_string(x = "date", y = outputVars[i]))
         object <-ifelse(type == "line",paste0("geom_line(colour = '",colour,"')"),
                                   ifelse(type == "point",paste0("geom_line(colour = ",colour,")"),
                                          stop("The")))
         outPlot <- bases + eval(parse(text = object)) + theme_classic() + theme(axis.title.x=element_blank())
-        ggsave(paste0("daily-",dailyVarCodes[i],plotName),outPlot)
+        imName <- paste0("daily-",dailyVarCodes[i],plotName)
+        cat(sprintf("Saving daily output image of %s as %s\n",outputVars[i],imName))
+        suppressMessages(ggsave(imName, outPlot))
     }
-    
+    if(settings$normOutputFlags["annual"]!=2){
+        return("Annual output graphs was not saved (no annual output from the model)")
+    }
     musoYData <- getyearlyout(settings)
     write.csv(musoYData,paste0(settings$outputNames[[2]],outFile))
      for(i in seq_along(annualVarCodes)){
