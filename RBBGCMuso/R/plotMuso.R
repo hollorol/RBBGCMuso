@@ -115,7 +115,6 @@ plotMuso <- function(settings = NULL, variable = "all",
         if(!inherits(musoData$date[1], "Date")){
             musoData$date<- as.Date(as.character(musoData$date),"%d.%m.%Y")
         }
-
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
@@ -191,13 +190,16 @@ plotMuso <- function(settings = NULL, variable = "all",
     }
     
 
-
     variableName <-  as.character(settings$outputVars[[1]])[variable]
+    if(variable == "all"){
+        variableName <-  as.character(settings$outputVars[[1]])
+    }
     if(is.character(variable)){
 
 
         if(identical(variable,"all")){
             variable <- as.character(settings$outputVars[[1]])
+            
         } else {
 
             if(is.element(variable, settings$dailyVarCodes)){
@@ -230,7 +232,7 @@ plotMuso <- function(settings = NULL, variable = "all",
              print(numVari)
              stop("Not all members of the variable parameter are among the output variables")
          }}
-    
+     
     pointOrLineOrPlot(musoData = musoData,
                       variableName = variableName,
                       plotType = plotType,
