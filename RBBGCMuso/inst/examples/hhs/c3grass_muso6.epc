@@ -8,20 +8,20 @@ FLAGS
 PLANT FUNCTIONING PARAMETERS
 0	(yday)		yearday to start new growth (when phenology flag = 0)
 364	(yday)		yearday to end litterfall (when phenology flag = 0)
-1.0	(prop.)		transfer growth period as fraction of growing season (when transferGDD_flag = 0)
-1.0	(prop.)		litterfall as fraction of growing season (when transferGDD_flag = 0)
+0.5	(prop.)		transfer growth period as fraction of growing season (when transferGDD_flag = 0)
+0.5	(prop.)		litterfall as fraction of growing season (when transferGDD_flag = 0)
 0	(Celsius) 	base temperature
--9999	(Celsius) 	minimum  temperature for growth displayed on current day (-9999: no T-dependence)
--9999	(Celsius) 	optimal1 temperature for growth displayed on current day (-9999: no T-dependence) 
--9999	(Celsius) 	optimal2 temperature for growth displayed on current day (-9999: no T-dependence) 
--9999	(Celsius) 	maxmimum temperature for growth displayed on current day (-9999: no T-dependence)
--9999	(Celsius) 	minimum  temperature for carbon assimilation on current day (-9999: no T-dependence)
--9999	(Celsius) 	optimal1 temperature for carbon assimilation on current day (-9999: no T-dependence) 
--9999	(Celsius) 	optimal2 temperature for carbon assimilation on current day (-9999: no T-dependence) 
--9999	(Celsius) 	maxmimum temperature for carbon assimilation on current day (-9999: no T-dependence)
+-9999	(Celsius) 	minimum  temperature for growth displayed on current day (-9999: no T-dependence of allocation)
+-9999	(Celsius) 	optimal1 temperature for growth displayed on current day (-9999: no T-dependence of allocation) 
+-9999	(Celsius) 	optimal2 temperature for growth displayed on current day (-9999: no T-dependence of allocation) 
+-9999	(Celsius) 	maxmimum temperature for growth displayed on current day (-9999: no T-dependence of allocation)
+-9999	(Celsius) 	minimum  temperature for carbon assimilation displayed on current day (-9999: no limitation)
+-9999	(Celsius) 	optimal1 temperature for carbon assimilation displayed on current day (-9999: no limitation) 
+-9999	(Celsius) 	optimal2 temperature for carbon assimilation displayed on current day (-9999: no limitation) 
+-9999	(Celsius) 	maxmimum temperature for carbon assimilation displayed on current day (-9999: no limitation)
 1.0	(1/yr)		annual leaf and fine root turnover fraction
 0.00	(1/yr)		annual live wood turnover fraction
-0.0	(1/yr)		annual fire mortality fraction
+0.03	(1/yr)		annual fire mortality fraction
 0.01	(1/vegper)	whole-plant mortality fraction in vegetation period
 36.6	(kgC/kgN)	C:N of leaves
 45.0	(kgC/kgN)	C:N of leaf litter, after retranslocation
@@ -47,27 +47,27 @@ PLANT FUNCTIONING PARAMETERS
 0.23    (DIM)		soft stem litter cellulose proportion
 0.00   *(DIM)		dead wood cellulose proportion
 0.01	(1/LAI/d)	canopy water interception coefficient
-0.7	(DIM)		canopy light extinction coefficient
-0.6     (g/MJ)          potential radiation use efficiency
+0.63	(DIM)		canopy light extinction coefficient
+2.0     (g/MJ)          potential radiation use efficiency
 0.781   (DIM)           radiation parameter1 (Jiang et al.2015)
 -13.596 (DIM)           radiation parameter2 (Jiang et al.2015)
 2.0	(DIM)		all-sided to projected leaf area ratio
 2.0	(DIM)		ratio of shaded SLA:sunlit SLA
-0.3	(DIM)		fraction of leaf N in Rubisco
+0.14	(DIM)		fraction of leaf N in Rubisco
 0.03	(DIM)		fraction of leaf N in PEP Carboxylase 
-0.002	(m/s)		maximum stomatal conductance (projected area basis)
+0.004	(m/s)		maximum stomatal conductance (projected area basis)
 0.00006	(m/s)		cuticular conductance (projected area basis)
-0.039	(m/s)		boundary layer conductance (projected area basis)
-1.0     (m) 		maximum height of plant
+0.04	(m/s)		boundary layer conductance (projected area basis)
+1.5     (m) 		maximum height of plant
 0.8     (kgC) 	        stem weight corresponding to maximum height
 0.5     (dimless) 	plant height function shape parameter (slope)
-1.0     (m) 		maximum depth of rooting zone
-2.67	(DIM) 		root distribution parameter
+4.0     (m) 		maximum depth of rooting zone
+3.67	(DIM) 		root distribution parameter
 0.4	(kgC)	        root weight corresponding to max root depth
 0.5	(dimless)	root depth function shape parameter (slope)
-1000	(m/kg)		root weight to rooth length conversion factor
+1000	(m/kg)		root weight to root length conversion factor
 0.3     (prop.) 	growth resp per unit of C grown
-0.195   (kgC/kgN/d) 	maintenance respiration in kgC/day per kg of tissue N 
+0.218   (kgC/kgN/d) 	maintenance respiration in kgC/day per kg of tissue N 
 0.1     (DIM)           theoretical maximum prop. of non-structural and structural carbohydrates
 0.24	(DIM)		prop. of non-structural carbohydrates available for maintanance respiration
 0.0048  (kgN/m2/yr) 	symbiotic+asymbiotic fixation of N
@@ -93,21 +93,21 @@ CROP SPECIFIC PARAMETERS
 0.2	(prop.)         theoretical maximum of flowering thermal stress mortality parameter 
 ----------------------------------------------------------------------------------------
 STRESS AND SENESCENCE PARAMETERS
-1.0	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
-0.95	(prop)		VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)
+0.98	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
+0.7	(prop)		VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)
 0.4     (prop)		minimum of soil moisture limit2 multiplicator (full anoxic stress value)
 1000	(Pa)		vapor pressure deficit: start of conductance reduction
-2800	(Pa)		vapor pressure deficit: complete conductance reduction
-0.03    (prop.) 	maximum senescence mortality coefficient of aboveground plant material
-0.02    (prop.) 	maximum senescence mortality coefficient of belowground plant material
-0.01     (prop.) 	maximum senescence mortality coefficient of non-structured plant material
+4000	(Pa)		vapor pressure deficit: complete conductance reduction
+0.003     (prop.) 	maximum senescence mortality coefficient of aboveground plant material
+0.001    (prop.) 	maximum senescence mortality coefficient of belowground plant material
+0.0     (prop.) 	maximum senescence mortality coefficient of non-structured plant material
 35	(Celsius) 	lower limit extreme high temperature effect on senescence mortality
 40	(Celsius) 	upper limit extreme high temperature effect on senescence mortality
 0.01    (prop.) 	turnover rate of wilted standing biomass to litter
 0.047   (prop.) 	turnover rate of non-woody cut-down biomass to litter
 0.01    (prop.) 	turnover rate of woody cut-down biomass to litter
-30	(nday)		drought tolerance parameter (critical value of DSWS)
-0.2	(dimless)	effect of soilstress factor on photosynthesis (1: full effect, 0: no effect)
+17	(nday)		drought tolerance parameter (critical value of DSWS)
+0.3    swcph
 ----------------------------------------------------------------------------------------
 GROWING SEASON PARAMETERS
 5       (kg/m2) 	crit. amount of snow limiting photosyn.
@@ -125,9 +125,9 @@ GROWING SEASON PARAMETERS
 ----------------------------------------------------------------------------------------
 PHENOLOGICAL (ALLOCATION) PARAMETERS (7 phenological phases)
 phase1  phase2  phase3  phase4 	phase5 	phase6 	phase7  (text) name of the phenophase
-10000	200	500	200	400	200	100	(Celsius) length of phenophase (GDD)
-0.3	0.3	0.3	0.3	0.3	0.3  	0.3	(ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
-0.5	0.5	0.5	0.5	0.5	0.5  	0.5	(ratio) fine root ALLOCATION
+5000	200	500	200	400	200	100	(Celsius) length of phenophase (GDD)
+0.3	0.4	0.4	0.4	0.4	0.4  	0.4	(ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
+0.5	0.4	0.4	0.4	0.4	0.4  	0.4	(ratio) fine root ALLOCATION
 0.0	0.0	0.0	0.0	0.0	0.0  	0.0	(ratio) fruit ALLOCATION 	                                                                                                                                                                                                                                             
 0.2	0.2	0.2	0.2	0.2	0.2  	0.2	(ratio) soft stem ALLOCATION
 0	0	0	0	0	0	0	(ratio) live woody stem ALLOCATION 
