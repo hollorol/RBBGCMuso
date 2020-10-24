@@ -220,10 +220,11 @@ A note from the Biome-BGC User's Guide: "Livewood is defined as the actively res
 Assume that we would like to dig a bit deeper with the model and understand the effect of changing ecophysiological variables on the model results. This can easily be performed with RBBGCMuso. Execute the following command in R/RStudio:
 
 #+BEGIN_SRC R :eval no
-musoQuickEffect(calibrationPar = 13, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009)
+musoQuickEffect(calibrationPar = 13, startVal = 0, endVal = 9, nSteps = 5, outVar = 3009, yearNum=-1)
 #+END_SRC
 
-This command selects the 13th line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 2nd variable), so the effect of varying base temperature on GPP is calculated using 5 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. 
+This command selects the 13th line in the ecophysiological constants (EPC) file (this is base temperature), then it starts to replace the original value from 0 to 9 in 5 consecutive steps. In this example GPP is selected (variable number 3009, which is the 2nd variable), so the effect of varying base temperature on GPP is calculated using 5 simulations. The result is a spectacular plot where color coding is used distinguish the parameter values. , yearNum=-1 means that the experiment is done for the last year of the simulation. Remember that in crop rotation simulations the effect might be invisible if there is a conflict between year number and crop type. 
+
 At present musoQuickEffect is not usable for the allocation parameters due to restrictions of the allocation fractions.  
 
 *** Study the effect of ecophysiological parameters using paramSweep
