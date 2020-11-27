@@ -16,7 +16,7 @@ NITROGEN AND DECOMPOSITION PARAMETERS
 0.45	(prop.)		lower optimum WFPS for scalar of nitrification calculation
 0.55	(prop.)		higher optimum WFPS for scalar of nitrification calculation
 0.2	(prop.)		minimum value for saturated WFPS scalar of nitrification calculation
-10      (ppm)		critical value of dissolved N and C in bottom (inactive layer)
+10      (ppm)		C:N ratio of recaltirant SOM (slowest)
 ----------------------------------------------------------------------------------------               
 RATE SCALARS  
 0.39 	(DIM) 		respiration fractions for fluxes between compartments (l1s1)
