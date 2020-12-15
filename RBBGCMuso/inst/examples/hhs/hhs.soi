@@ -6,7 +6,7 @@ NITROGEN AND DECOMPOSITION PARAMETERS
 0.1	(prop.) 	nitrification coefficient 2
 0.02    (prop.)		coefficient of N2O emission of nitrification
 0.1     (prop.) 	NH4 mobilen proportion
-1.0     (prop.) 	NO3 mobilen proportion
+1.0     denitrification related N2/N2O ratio multiplier (soil texture effect) 
 10      (m) 		e-folding depth of decomposition rate's depth scalar
 0.002	(prop.) 	fraction of dissolved part of SOIL1 organic matter
 0.002	(prop.) 	fraction of dissolved part of SOIL2 organic matter
