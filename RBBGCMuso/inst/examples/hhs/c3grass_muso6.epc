@@ -70,7 +70,7 @@ PLANT FUNCTIONING PARAMETERS
 0.218   (kgC/kgN/d) 	maintenance respiration in kgC/day per kg of tissue N 
 0.1     (DIM)           theoretical maximum prop. of non-structural and structural carbohydrates
 0.24	(DIM)		prop. of non-structural carbohydrates available for maintanance respiration
-0.0048  (kgN/m2/yr) 	symbiotic+asymbiotic fixation of N
+0.015  (kgN/m2/yr) 	symbiotic+asymbiotic fixation of N
 0	(day)		time delay for temperature in photosynthesis acclimation
 ----------------------------------------------------------------------------------------
 CROP SPECIFIC PARAMETERS
@@ -107,7 +107,7 @@ STRESS AND SENESCENCE PARAMETERS
 0.047   (prop.) 	turnover rate of non-woody cut-down biomass to litter
 0.01    (prop.) 	turnover rate of woody cut-down biomass to litter
 17	(nday)		drought tolerance parameter (critical value of DSWS)
-0.3    swcph
+0.3    (prop) soil water deficit effect on photosynthesis downregulation
 ----------------------------------------------------------------------------------------
 GROWING SEASON PARAMETERS
 5       (kg/m2) 	crit. amount of snow limiting photosyn.
