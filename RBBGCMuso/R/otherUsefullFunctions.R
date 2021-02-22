@@ -172,3 +172,14 @@ while(n<=N){
 }
 return(randomNorm)
 }
+
+#' getConstMatrix
+#'
+#' getConstMatrix is a function whith wich you can get the default constrain matrix for your choosen type and version. 
+#' @param filetype It can be "epc" or "soil".
+#' @param version The version of the MuSo environment
+#' @export 
+
+getConstMatrix <- function (filetype="epc", version = as.character(getOption("RMuso_version"))) {
+    getOption("RMuso_constMatrix")[[filetype]][[version]]
+}

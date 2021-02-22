@@ -31,6 +31,9 @@ musoMonte <- function(settings=NULL,
                      debugging = FALSE,
                      keepEpc = FALSE,
                      constrains = NULL,
+                     skipZero = TRUE,
+                     postProcString=NULL,
+                     modifyOut=TRUE,
                      ...){
 
 
@@ -85,7 +88,11 @@ musoMonte <- function(settings=NULL,
         outVarNames <- sapply(outVars, musoMapping)
     }
     
-    parameterNames <- parameters[,1]
+    if(!is.null(postProcString)){
+        outVarNames <- c(outVarNames,gsub("\\s","",unlist(strsplit(procString,"<-"))[1]))
+    }
+
+    parameterNames <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
     # settings$calibrationPar <- A[,1] #:LATER:
     pretag <- file.path(outLoc,preTag)
     npar <- length(settings$calibrationPar)
@@ -93,10 +100,10 @@ musoMonte <- function(settings=NULL,
     ##reading the original epc file at the specified
     ## row numbers
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = 3000)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = iterations)
     }
     
     origEpc <- readValuesFromEpc(settings$epc[2],parameters[,2])
@@ -121,6 +128,7 @@ musoMonte <- function(settings=NULL,
         ## randValues <- randValues[,randVals[[1]] %in% parameters[,2]][,rank(parameters[,2])]
         modellOut <- matrix(ncol = numVars, nrow = iterations + 1)
 
+
         origModellOut <- calibMuso(settings=settings,silent=TRUE)
         write.csv(x=origModellOut, file=paste0(pretag,1,".csv"))
 
@@ -129,7 +137,7 @@ musoMonte <- function(settings=NULL,
         }
             
         tmp2 <- numeric(numVars)
-
+# browser()
         for(j in 1:numVars){
             tmp2[j]<-funct[[j]](origModellOut[,j])
         }
@@ -142,15 +150,21 @@ musoMonte <- function(settings=NULL,
                              skipSpinup = skipSpinup,
                              keepEpc = keepEpc,
                              debugging = debugging,
-                             outVars = outVars), error = function (e) NA)
+                             modifyOriginal = modifyOut,
+                             outVars = outVars,postProcString=postProcString), error = function (e) NA)
             
-            if(!is.na(tmp)){
+            if(length(dim(tmp))>=1){
                 for(j in 1:numVars){
                     tmp2[j]<-funct[[j]](tmp[,j])
                 }
+                if(skipZero){
+                    if(tmp2[j]==0){
+                        tmp2[j] <- NA
+                    }
+                }
             } else {
                 for(j in 1:numVars){
-                    tmp2[j]<-rep(NA,length(settings$outputVars[[1]]))
+                    tmp2[j]<-NA
                 }
             }
 
@@ -165,8 +179,10 @@ musoMonte <- function(settings=NULL,
         paramLines <- order(paramLines)
         randInd <- randVals[[1]][(randVals[[1]] %in% parameters[,2])]
         randInd <- order(randInd)
-        
+    
+
        
+        # browser()
         epcStrip <- rbind(origEpc[order(parameters[,2])],
                           randValues[,randVals[[1]] %in% parameters[,2]][,randInd])
         

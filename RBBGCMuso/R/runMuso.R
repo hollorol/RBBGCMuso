@@ -23,16 +23,6 @@
 #' keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 #' @import utils
 #' @export
-runMuso <- function(settings=NULL, calibrationPar=NULL,
-                      parameters=NULL, outVars = NULL, timee="d",
-                      debugging=FALSE, logfilename=NULL,
-                      keepEpc=FALSE, export=FALSE,
-                      silent=FALSE, aggressive=FALSE,
-                      leapYear=FALSE,keepBinary=FALSE,
-                      binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE){
-    calibMuso(settings, calibrationPar, parameters, outVars, timee,
-                      debugging, logfilename, keepEpc, export, silent, aggressive,
-                      leapYear,keepBinary, binaryPlace, fileToChange,
-                      skipSpinup, modifyOriginal, prettyOut)
+runMuso <- function(...){
+    calibMuso(...)
 }

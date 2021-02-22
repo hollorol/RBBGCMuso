@@ -30,6 +30,9 @@ musoSensi <- function(monteCarloFile = NULL,
                      plotName = "sensitivity.png",
                      plotTitle = "Sensitivity",
                      skipSpinup = TRUE,
+                     skipZero = TRUE,
+                     postProcString=NULL,
+                     modifyOut=TRUE,
                      dpi=300){
 
     if(is.null(parameters)){
@@ -42,11 +45,14 @@ musoSensi <- function(monteCarloFile = NULL,
                                          stop("Cannot find neither parameters file neither the parameters matrix")
                                      })
         }}
-
+    parameters[,1] <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
     doSensi <- function(M){
+        # browser()
         npar <- ncol(M)-1
         M <- M[which(!is.na(M[,ncol(M)])),]
+        M <- M[-1,]
         y <- M[,(npar+1)]
+        colnames(M) <- gsub("\\.epc","-epc",colnames(M))
         M <- M[,colnames(M) %in% parameters[,1]]
         npar <- ncol(M)
         M <- apply(M[,1:npar],2,function(x){x-mean(x)})
@@ -89,7 +95,10 @@ musoSensi <- function(monteCarloFile = NULL,
                       outVars = outVars,
                       fun = fun,
                       varIndex = varIndex,
-                      skipSpinup = skipSpinup
+                      skipSpinup = skipSpinup,
+                      skipZero=skipZero,
+                      postProcString=postProcString,
+                      modifyOut=modifyOut
                       )
         M <- cbind(seq_along(M[,1]),M)
         yInd <-  grep("mod.", colnames(M))[varIndex]
@@ -103,6 +112,7 @@ musoSensi <- function(monteCarloFile = NULL,
         yInd <-  grep("mod.", colnames(M))[varIndex]
         parNames <- grep("mod.",colnames(M), invert=TRUE, value = TRUE)
         M <- M[,c(grep("mod.", colnames(M),invert=TRUE),yInd)]
+        # browser()
         return(doSensi(M))        
     }
 }

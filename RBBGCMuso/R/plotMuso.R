@@ -28,7 +28,7 @@
 #' @importFrom data.table ':=' data.table
 #' @export
 
-plotMuso <- function(settings = NULL, variable = 1,
+plotMuso <- function(settings = NULL, variable = "all",
                      ##compare, ##plotname,
                      timee = "d", silent = TRUE,
                      calibrationPar = NULL, parameters = NULL,
@@ -53,14 +53,6 @@ plotMuso <- function(settings = NULL, variable = 1,
     numberOfYears <- settings$numYears
     startYear <- settings$startYear
     dailyVarCodes <- settings$dailyVarCodes
-    ## musoData <- rungetMuso(settings=settings,
-    ##                        silent=silent,
-    ##                        timee=timee,
-    ##                        debugging=debugging,
-    ##                        keepEpc=keepEpc,
-    ##                        logfilename=logfilename,
-    ##                        export=export)
-    
     groupByTimeFrame <- function(Data, timeFrame, groupFun){
         Data <- data.table(Data)
         Data[,c(variable):=groupFun(get(variable)),get(timeFrame)]
@@ -84,7 +76,10 @@ plotMuso <- function(settings = NULL, variable = 1,
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))
     } else {
         if(!is.element("cum_yieldC_HRV",unlist(settings$outputVars[[1]]))){
-            musoData <- calibMuso(postProcString = postProcString,settings,silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
+            musoData <- calibMuso(postProcString = postProcString,settings,
+                                  calibrationPar=calibrationPar,
+                                  parameters = parameters,
+                                  silent = TRUE,skipSpinup=skipSpinup,prettyOut = TRUE)
             if(!is.null(selectYear)){
             musoData <- musoData %>% filter(year == get("selectYear"))    
             }
@@ -113,13 +108,17 @@ plotMuso <- function(settings = NULL, variable = 1,
     }
 
     ## numVari <- ncol(musoData)
-     numVari <- ncol(musoData)-5
+     # numVari <- ncol(musoData)-5
+     numVari <- length(settings$dailyVarCodes)
 
     pointOrLineOrPlot <- function(musoData, variableName, plotType="cts", expandPlot=FALSE, plotName=NULL){
+        if(!inherits(musoData$date[1], "Date")){
+            musoData$date<- as.Date(as.character(musoData$date),"%d.%m.%Y")
+        }
         if(!expandPlot){
             if(plotType=="cts"){
                 if(length(variableName)==1){
-                   p <- ggplot(musoData,aes_string("date",variableName))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
+                   p <- ggplot(musoData,aes_string("date",variableName,group=1))+geom_line(colour=colour)+theme(axis.title.x=element_blank())
                    if(!is.null(plotName)){
                        ggsave(as.character(plotName), plot = p)
                     p
@@ -191,12 +190,22 @@ plotMuso <- function(settings = NULL, variable = 1,
     }
     
 
-
     variableName <-  as.character(settings$outputVars[[1]])[variable]
+    if(variable == "all"){
+        variableName <-  as.character(settings$outputVars[[1]])
+    }
     if(is.character(variable)){
+
+
         if(identical(variable,"all")){
-            variableName <- as.character(settings$outputVars[[1]])
+            variable <- as.character(settings$outputVars[[1]])
+            
         } else {
+
+            if(is.element(variable, settings$dailyVarCodes)){
+                variable <- settings$outputVars[[1]][match(variable,settings$dailyVarCodes)]
+            }
+
             if(identical(character(0),setdiff(variable,as.character(settings$outputVars[[1]])))){
                 variableName <- variable
             } else {
@@ -220,9 +229,10 @@ plotMuso <- function(settings = NULL, variable = 1,
          }))){
              variableName <-  as.character(settings$outputVars[[1]])[variable]
          } else {
+             print(numVari)
              stop("Not all members of the variable parameter are among the output variables")
          }}
-    
+     
     pointOrLineOrPlot(musoData = musoData,
                       variableName = variableName,
                       plotType = plotType,
@@ -343,25 +353,30 @@ compareMuso <- function(settings=NULL,parameters, variable=1, calibrationPar=NUL
 
 saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
                              silent = TRUE, type = "line", outFile = "annual.csv",
-                             colour = NULL, skipSpinup = FALSE){
+                             colour = "blue", skipSpinup = FALSE){
 
     if(is.null(settings)){
         settings <- setupMuso()
     }
-    
+
     dailyVarCodes <- settings$dailyVarCodes
     annualVarCodes <-settings$annualVarCodes
     outputVars <- unlist(settings$outputVars[[1]])
     musoData <- calibMuso(settings = settings, prettyOut = TRUE, silent = silent, skipSpinup = skipSpinup)
+    musoData$date<- as.Date(musoData$date,"%d.%m.%Y")
     for(i in seq_along(dailyVarCodes)){
         bases <- ggplot(data = musoData, mapping = aes_string(x = "date", y = outputVars[i]))
         object <-ifelse(type == "line",paste0("geom_line(colour = '",colour,"')"),
                                   ifelse(type == "point",paste0("geom_line(colour = ",colour,")"),
                                          stop("The")))
         outPlot <- bases + eval(parse(text = object)) + theme_classic() + theme(axis.title.x=element_blank())
-        ggsave(paste0("daily-",dailyVarCodes[i],plotName),outPlot)
+        imName <- paste0("daily-",dailyVarCodes[i],plotName)
+        cat(sprintf("Saving daily output image of %s as %s\n",outputVars[i],imName))
+        suppressMessages(ggsave(imName, outPlot))
     }
-    
+    if(settings$normOutputFlags["annual"]!=2){
+        return("Annual output graphs was not saved (no annual output from the model)")
+    }
     musoYData <- getyearlyout(settings)
     write.csv(musoYData,paste0(settings$outputNames[[2]],outFile))
      for(i in seq_along(annualVarCodes)){

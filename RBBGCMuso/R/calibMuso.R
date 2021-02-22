@@ -24,20 +24,29 @@
 #' @import utils
 #' @export
 
-calibMuso <- function(settings=NULL, calibrationPar=NULL,
+calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       parameters=NULL, outVars = NULL, timee="d",
                       debugging=FALSE, logfilename=NULL,
                       keepEpc=FALSE, export=FALSE,
                       silent=FALSE, aggressive=FALSE,
                       keepBinary=FALSE,
-                      binaryPlace="./", fileToChange="epc",
-                      skipSpinup = TRUE, modifyOriginal =FALSE, prettyOut = FALSE,
-                      postProcString = NULL){ #
+                      binaryPlace = "./", fileToChange = "epc",
+                      skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE,
+                      postProcString = NULL,
+                      doBackup=TRUE
+                      ){ #
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
-    if(is.null(settings)){
-        settings <- setupMuso()
+    if(doBackup){
+        file.copy(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))),file.path(settings$inputLoc),overwrite=FALSE)
+    }
+
+    bck  <- file.path(settings$inputLoc, "bck",
+                      basename(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))))) 
+
+    if(!silent){
+        cat("Biome-BGC simulation started\n") # ZOLI
     }
     
     Linuxp <-(Sys.info()[1]=="Linux")
@@ -96,50 +105,27 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
     
     
 
-     if(aggressive==TRUE){
-         cleanupMuso(location=outputLoc,deep = TRUE)
+     if(aggressive == TRUE){
+         cleanupMuso(location = outputLoc,deep = TRUE)
      }
 
-    toModif<-c(epc[2],iniInput[2])
-
-    if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars)))
-    {
-        
-        toModif <- sapply(toModif, function (x){
-            paste0(tools::file_path_sans_ext(basename(x)),"-tmp.",tools::file_ext(x))
-        })
-        
-    }
     
     ##change the epc file if and only if there are given parameters
+       
     if(!is.null(parameters)){
-        changemulline(filePaths=c(epc[2],iniInput[2]), calibrationPar = calibrationPar,
-                                 contents = parameters, fileOut=toModif, fileToChange=fileToChange, modifyOriginal=modifyOriginal)
+        changemulline(filePaths = epc[2],
+                      calibrationPar = calibrationPar,
+                      contents = parameters,
+                      src = if(file.exists(bck)){
+                          bck
+                      } else {
+                          NULL
+                      })
+                       # fileToChange = fileToChange,)
     }
     
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
-    if(!modifyOriginal & (!is.null(parameters) | !is.null(outVars))){
-    epc[2]<-file.path(dirname(epc[2]),toModif[1]) # Writing back the lost path
-    toModif[2]<-file.path(dirname(iniInput[2]),toModif[2]) #for the Initmp, also
-    if((!is.null(outVars) | !file.exists(toModif[2])) & !modifyOriginal){
-        file.copy(iniInput[2],toModif[2],overwrite = TRUE)
-    }
-
-    iniInput[2] <- toModif[2]}
-
-    if(!is.null(parameters) & ((fileToChange == "epc") | (fileToChange == "both")) & !modifyOriginal){
-        tmp<-readLines(iniInput[2])
-        tmpInd<-grep("EPC_FILE",tmp)+1
-        tmp[tmpInd]<-file.path(dirname(tmp[tmpInd]),basename(epc[2]))
-        writeLines(tmp,iniInput[2])
-        rm(list=c("tmp","tmpInd"))
-    }
-    if(!is.null(outVars)){
-        outputVarChanges <- putOutVars(iniInput[2], outputVars = outVars, modifyOriginal = !modifyOriginal)
-        settings$outputVars[[1]]<-outputVarChanges[[1]]
-        settings$numData <- round(settings$numData*outputVarChanges[[2]])
-    }
     
    if(!skipSpinup) {
 
@@ -239,7 +225,6 @@ calibMuso <- function(settings=NULL, calibrationPar=NULL,
                                         setwd((whereAmI))
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")}))
                )
-        
         if(keepBinary){
             possibleNames <- tryCatch(getOutFiles(outputLoc = outputLoc,outputNames = outputNames),
                                      error=function (e){

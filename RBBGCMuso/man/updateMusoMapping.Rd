@@ -4,10 +4,10 @@
 \alias{updateMusoMapping}
 \title{updateMusoMapping}
 \usage{
-updateMusoMapping(output_map_init="output_map_init.c")
+updateMusoMapping(excelName, dest = "./", version = getOption("RMuso_version"))
 }
 \arguments{
-\item{output_map_init}{The output code-variable bindings are described in output_map_init.c file that is part of the Biome-BGCMuSo source code. Using this function the user can read the output_map_init.c file and pass it to RBBGCMuso for further work.}
+\item{excelName}{Name of the excelfile which contains the parameters}
 }
 \value{
 The output code-variable matrix, and also the function changes the global variable

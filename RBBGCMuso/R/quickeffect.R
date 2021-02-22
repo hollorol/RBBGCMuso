@@ -15,7 +15,7 @@
 #' @importFrom tidyr separate
 #' @export
 
-musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc", outVar, parName = "parVal"){
+musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal", yearNum=1, year=(settings$startYear + yearNum -1)){
 
     if(is.character(outVar)){
                       varNames <- as.data.frame(musoMappingFind(outVar))
@@ -33,9 +33,6 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
                       outVarIndex<-outVar
                   }
     
-    if(is.null(settings)){
-        settings <- setupMuso()
-    }
      if(is.null(calibrationPar)){
          calibrationPar <- settings$calibrationPar
      }
@@ -43,21 +40,47 @@ musoQuickEffect <- function(settings = NULL,calibrationPar = NULL,  startVal, en
     parVals <- seq(startVal, endVal, length = (nSteps + 1))
     parVals <- dynRound(startVal, endVal, seqLen = (nSteps + 1))
     a <- do.call(rbind,lapply(parVals, function(parVal){
-        calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar, parameters = parVal, outVars = outVarIndex, silent = TRUE,fileToChange = fileToChange), error = function(e){NA})
-        if(all(is.na(calResult))){
+        calResult <- tryCatch(calibMuso(settings = settings,calibrationPar = calibrationPar,
+                                        modifyOriginal = modifyOriginal,
+                                        parameters = parVal,
+                                        outVars = outVarIndex,
+                                        silent = TRUE,
+                                        fileToChange = fileToChange), error = function(e){NULL})
+        if(is.null(calResult)){
             b <- cbind(rep(NA,365),parVal)
-            rownames(b) <- tail(musoDate(startYear = settings$startYear, numYears = settings$numYears),365)
+            rownames(b) <- musoDate(startYear = year, numYears = 1)
             colnames(b)[1] <- varNames
             return(b)
         } else {
-            return(cbind(tail(calResult,365), parVal))
+            if(yearNum >=0){
+                m <- as.data.frame(calResult[musoDate(startYear = year, numYears = 1),])
+            } else{
+                m <- as.data.frame(calResult)
+            }
+            colnames(m) <- colnames(calResult)
+            return(cbind(m, parVal))
         }
         
     }))
-    
     a %<>%
         tbl_df %>%
         mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
         select(date,as.character(varNames),parVal)
     print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(parVal))) + labs(y=varNames, alpha = parName) + scale_alpha_discrete(range=c(0.25,1))))
 }
+# calma <- calibMuso(settings = settings,calibrationPar = calibrationPar,
+#                                          modifyOriginal = modifyOriginal,
+#                                          parameters = parVal,
+#                                          outVars = outVarIndex,
+#                                          silent = TRUE,
+#                                          fileToChange = fileToChange)
+#  plot(calma[,1])
+# calma <- calibMuso(settings = settings,calibrationPar = calibrationPar,
+#                                          modifyOriginal = modifyOriginal,
+#                                          parameters = parVal,
+#                                          silent = TRUE,
+#                                          fileToChange = fileToChange)
+# calm <- calibMuso(calibrationPar=calibrationPar,parameters=parVal,modifyOriginal=TRUE)
+# plot(x=as.Date(musoDate(2015,numYears=1),"%d.%m.%Y"),y=calm[musoDate(2015,numYears=1),"daily_gpp"],type="l")
+# calibrationPar
+# parVal
