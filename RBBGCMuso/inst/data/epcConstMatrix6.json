@@ -865,8 +865,9 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 0.1,
-    "GROUP": 0,
-    "TYPE": 0
+    "DEPENDENCE": 0,
+    "GROUP": 22,
+    "TYPE": 1
   },
   {
     "X": 85,
@@ -875,8 +876,9 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 0.1,
-    "GROUP": 0,
-    "TYPE": 0
+    "DEPENDENCE": 0,
+    "GROUP": 22,
+    "TYPE": 1
   },
   {
     "X": 86,
