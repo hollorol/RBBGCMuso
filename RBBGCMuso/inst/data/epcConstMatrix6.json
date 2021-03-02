@@ -876,7 +876,7 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 0.1,
-    "DEPENDENCE": 0,
+    "DEPENDENCE": 1,
     "GROUP": 22,
     "TYPE": 1
   },
