@@ -1,0 +1,55 @@
+{
+    "startYear"  : {
+            "source" : "iniFile",
+            "block"  : "TIME_DEFINE",
+            "index"  : 2,
+            "length" : 1,
+            "type"   : "integer"
+    },
+
+    "numYears"   : {
+            "source" : "iniFile",
+            "block"  : "TIME_DEFINE",
+            "index"  : 1 ,
+            "length" : 1 ,
+            "type"   : "integer"
+    },
+
+    "outputTypeDaily" : {
+            "source"  : "iniFile",
+            "block"   : "OUTPUT_CONTROL" ,
+            "index"   : 2,
+            "length"  : 1,
+            "type"    : "integer" 
+    },
+    "numDailyVars" : {
+            "source"  : "iniFile",
+            "block"   : "DAILY_OUTPUT" ,
+            "index"   : 1,
+            "length"  : 1,
+            "type"    : "integer" 
+    },
+    "numAnnualVars"   : {
+            "source"  : "iniFile",
+            "block"   : "ANNUAL_OUTPUT" ,
+            "index"   : 1,
+            "length"  : 1,
+            "type"    :  "integer" 
+    },
+    "outputTypeAnnual" : {
+            "source" : "iniFile",
+            "block"  : "OUTPUT_CONTROL" ,
+            "index"  : 5,
+            "length"  : 5,
+            "type"  : "integer" 
+    },
+    "coarsWoodyDerbisCarbon" : {
+            "source" : "iniFile",
+            "block"  : "CN_STATE" ,
+            "index"  : 7,
+            "length"  : 10,
+            "type"  : "numeric"
+    }
+
+
+}

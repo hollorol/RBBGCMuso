@@ -1,31 +1,37 @@
-.onLoad <- function(libname,pkgname){
-    print("This is RBBGCMuso version 0.7")
-    RMuso_version <- 6 
-    RMuso_constMatrix <- list(epc=NULL,soil=NULL) 
-    RMuso_varTable <- list()
-    #___________________________
-    sapply(names(RMuso_constMatrix),function(fType){
-        sapply(list.files(path=system.file("data",package="RBBGCMuso"),
-                          pattern=sprintf("^%sConstMatrix\\d\\.json$",fType), full.names=TRUE),function(fName){
-            constMatrix <- jsonlite::read_json(fName,simplifyVector = TRUE)[,c(1,2,3,4,9,5,6,7,8)]
-            version <- gsub(".*(\\d)\\.json","\\1",fName)
-            RMuso_constMatrix[[fType]][[version]] <<- constMatrix
+.onLoad <- function(libname, pkgname){
+    print(paste0("This is RBBGCMuso version ", packageVersion("RBBGCMuso")))
+    RMuso_version <- "latest" 
+
+    versionDir <- system.file("versionSpecifiers", package = "RBBGCMuso")
+    versions <- list.dirs(versionDir, full.names = FALSE, recursive = FALSE) 
+    res <- lapply(versions, function(version){
+    
+        constFiles <- list.files(file.path(versionDir,version,"constraints"), full.names=TRUE)
+
+        if(length(constFiles) == 0){
+            return(NULL)
+        }
+
+        atomFile <-  file.path(versionDir, version, "atoms.json")
+        varTableFile <-  file.path(versionDir, version, "varTable.json")
+        fileDepFile <- file.path(versionDir, version, "fileDeps.csv")
+
+        if(!all(file.exists(c(atomFile,varTableFile, fileDepFile)))){
+            return(NULL)
+        }
+
+        
+        constraints <- lapply(constFiles, function(constraint){
+            jsonlite::read_json(constraint,simplifyVector = TRUE)[,c(1,2,3,4,9,5,6,7,8)]
         })
-        RMuso_constMatrix
-        # RMuso_constMatrix <<- RMuso_constMatrix 
+
+        names(constraints) <- tools::file_path_sans_ext(basename(constFiles))
+        varTable <- jsonlite::read_json(varTableFile, simplifyVector = TRUE)
+        atoms <-  jsonlite::read_json(atomFile)
+        fileDeps <- read.csv(fileDepFile, stringsAsFactor=FALSE) 
+        list(varTable = varTable, constraints = constraints, atomList = atoms, fileDeps = fileDeps)
     })
 
-
-        sapply(list.files(path=system.file("data",package="RBBGCMuso"),
-                          pattern="^varTable\\d\\.json$", full.names=TRUE),function(fName){
-            varTable <- jsonlite::read_json(fName,simplifyVector = TRUE)
-            version <- gsub(".*(\\d)\\.json","\\1",fName)
-            RMuso_varTable[[version]] <<- varTable
-        })
-
-
-    options(RMuso_version=RMuso_version,
-            RMuso_constMatrix=RMuso_constMatrix,
-            RMuso_varTable=RMuso_varTable)
-    # getOption("RMuso_constMatrix")$soil[[as.character(getOption("RMuso_version"))]]
+    names(res) <- versions
+    options(RMuso_versionVars=res)
 }
