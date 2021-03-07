@@ -1,5 +1,3 @@
-atomList <- jsonlite::read_json("../inst/data/modelSpec.json")
-
 getMusoAtom <- function(atomName,
                         iniName,
                         execPath,
@@ -21,9 +19,6 @@ musoAtomList <- function(atomList=jsonlite::read_json(system.file("RBBGCMuso", "
     names(atomList)
 }
 
-getMusoAtom("outputTypeAnnual", "~/agromo/calibdir/566.ini","~/agromo", atomList)
-getMusoAtom("startYear","~/agromo/calibdir/566.ini", "~/agromo",atomList)
-musoAtomList(atomList)
 
 getVars <- function(iniFile, annual=FALSE, atomList){
     iniLines <- readLines(iniFile)
@@ -32,5 +27,3 @@ getVars <- function(iniFile, annual=FALSE, atomList){
     numVars <- as.integer(gsub("(.*?)\\s+.*","\\1",iniLines[startLine + 1],perl = TRUE))
     as.integer(gsub("(.*?)\\s+.*","\\1",iniLines[(startLine + 2):(startLine + 1+numVars)])) 
 }
-
-getVars("~/agromo/calibdir/566.ini", atomList=atomList)

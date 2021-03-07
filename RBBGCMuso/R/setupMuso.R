@@ -33,7 +33,7 @@
 #' @return The output is a the model settings list wich contains the following elements:
 #' executable, calibrationPar, outputLoc, outputName, inputLoc, iniInput, metInput, epcInput,thinInput,CO2Input, mowInput, grazInput, harvInput, plougInput, fertInput,rrInput, nitInput, inputFiles, numData, startyear, numYears, outputVars
 #' @export
-setUP <- function(execPath = "./",
+setupMuso <- function(execPath = "./",
                       executable=file.path(execPath,ifelse(Sys.info()[1] == "Linux", "muso", "muso.exe")),
                       parallel = F,
                       calibrationPar =c(1),
@@ -42,8 +42,11 @@ setUP <- function(execPath = "./",
                       inputLoc="./",
                       spinupIni=grep("s.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
                       normalIni=grep("n.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
-                      depTree=options("AgroMo_depTree")[[1]],
-                      atomList = atomList){
+                      version="latest",
+                      depTree = options("RMuso_versionVars")[[1]][[version]]$fileDeps,
+                      atomList = options("RMuso_versionVars")[[1]][[version]]$atomList,
+                      varTable = options("RMuso_versionVars")[[1]][[version]]$varTable
+                      ){
 
     doSpinupP <- !identical(spinupIni,character(0))
     doNormalP <- !identical(normalIni,character(0))
@@ -58,6 +61,7 @@ setUP <- function(execPath = "./",
                             }
         getFilesFromIni(iniName, execPath = execPath, depTree = depTree)
     })
+
     variables <- lapply(list(spinup = spinupIni, normal = normalIni), function(iniName){
                             if(identical(iniName, character(0))){
                                 return(NULL)
@@ -66,7 +70,8 @@ setUP <- function(execPath = "./",
                                 getVars(iniName, annual=type, atomList)
                             })
     })
-    settings <- list() #new.env()
+
+    settings <- list()
     settings[["filePaths"]] <- filePaths
     settings[["variables"]] <- variables
     settings[["doSpinup"]] <- doSpinupP
@@ -74,216 +79,216 @@ setUP <- function(execPath = "./",
     # settings[["dates"]] <- mDates(startYear, numYears)
     return(settings)
 }
-
-setupMuso <- function(execPath = "./",
-                      executable=file.path(execPath,ifelse(Sys.info()[1] == "Linux", "muso", "muso.exe")),
-                      parallel = F,
-                      calibrationPar =c(1),
-                      outputLoc="./",
-                      modelOutputs=NULL,
-                      inputLoc="./",
-                      spinupIni=grep("s.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
-                      normalIni=grep("n.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
-                      metInput=NULL,
-                      CO2Input=NULL,
-                      plantInput=NULL,
-                      thinInput=NULL,
-                      mowInput=NULL,
-                      grazInput=NULL,
-                      harvInput=NULL,
-                      plougInput=NULL,
-                      fertInput=NULL,
-                      irrInput=NULL,
-                      nitInput=NULL,
-                      iniInput=NULL,
-                      epcInput=NULL,
-                      mapData=NULL,
-                      leapYear=FALSE,
-                      version=6,
-                      doCopy=TRUE
-                      ){
-
-    Linuxp <- (Sys.info()[1]=="Linux")
-    writep <- 0
-
-    inputParser <- function(string,fileName,counter,value=TRUE){
-        unlist(strsplit(grep(string,fileName,value=TRUE, perl = TRUE),"[\ \t]", useBytes = TRUE))[counter]
-    }
-
-    
-    if(is.null(inputLoc)){
-        inputLoc<- normalizePath("./")
-    } else{
-        inputLoc <- normalizePath(inputLoc)
-    }
-    if(is.null(iniInput)){
-        spinups<-grep("s.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
-        normals<-grep("n.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
-
-        if(length(spinups)==1){
-            iniInput[1] <- file.path(inputLoc,spinups)
-        } else {
-            iniInput[1] <- "no spinup" 
-        }
-        
-
-        if(length(normals)==1){
-            iniInput[2]<-file.path(inputLoc,normals)
-        } else {stop("There are multiple or no normal ini files, please choose")}
-
-    }
-
-    iniFiles<-lapply(iniInput, function (x) readLines(x,-1))
-    iniFiles[[1]] <- gsub("\\\\","/", iniFiles[[1]], perl = TRUE) #replacing \ to /
-    iniFiles[[2]] <- gsub("\\\\","/", iniFiles[[2]], perl = TRUE) #replacing \ to /
-    names(iniFiles) <- c("spinup","normal")
-
-
-    
-        outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
-        dailyVarCodes<-tryCatch(iniFiles[[2]][(outIndex+1):(outIndex+numVar)],
-                                error = function(e){
-        stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
-        })
-
-        dailyVarCodes<-unlist(lapply(dailyVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
-        dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
-
-        outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]], perl = TRUE)+1
-        numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
-        annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
-        annualVarCodes<-unlist(lapply(annualVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
-        annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
-        outputVars<-list(dailyVarnames,annualVarnames)
-    
-    if(is.null(executable)){
-        if(Linuxp){
-            executable<-file.path(inputLoc,"muso")
-        } else {
-            executable<-file.path(inputLoc,"muso.exe")
-        }
-    } else {
-        if(doCopy){
-            file.copy(executable,inputLoc)            
-        }
-
-    }
-
-    outputName <- character(2)
-    outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
-    outputName[2] <- basename(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
-    ##  outputName <- unlist(strsplit(grep("output",grep("prefix",iniFiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
-    ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
-    ## outputName <- unlist(strsplit(grep("prefix for output files",iniFiles[[2]],value=TRUE),"[\ \t]"))[1]
-    if(is.null(outputName)){
-        stop("I cannot find outputName in your default ini file \n Please make sure that the line wich contains the name also contains the prefix and the output keywords!")
-        
-    }
-    ##    outputName<-unlist(read.table(iniInput[2],skip=93,nrows = 1))[1]
-
-
-    if(is.null(outputLoc)){
-        ##  outputLoc<-paste((rev(rev(unlist(strsplit(outputName,"/")))[-1])),collapse="/")
-        outputLoc <- dirname(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
-        if(substr(outputLoc,start = 1,stop = 1)!="/"){
-            ##if the outputName is not absolute path make it absolute
-            outputLoc <- file.path(inputLoc,outputLoc)
-        } 
-    } else {
-        outputLoc <- normalizePath(outputLoc)
-    }
-
-    
-    
-    inputFiles<-c(iniInput,epcInput,metInput)
-    numData<-rep(NA,3)
-    numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
-    ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
-    numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
-    ## numValues will be replaced to numVar
-    ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
-    startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+2],"[\ \t]", useBytes = TRUE))[1])
-    numData[1] <- numValues * numYears * 365 # Have to corrigate leapyears 
-
-    numData[2] <- numYears * numValues*12
-    numData[3] <- numYears * numValues
-
-    ##Writing out changed ini-file
-
-    writeLines(iniFiles[[1]],iniInput[1])
-    writeLines(iniFiles[[2]],iniInput[2])
-
-    if(!is.null(modelOutputs)){
-        outVarChanges <- putOutVars(iniFile = iniInput[2],outputVars = modelOutputs, modifyOriginal = TRUE)
-        numData <- round(numDate*outVarChanges[[2]])
-        outputVars[[1]] <-outVarChanges[[1]] 
-    }
-    
-
-    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[1]),".log")))
-    ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
-    suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))
- 
-    searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
-        
-            if(stringP){
-                unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
-            } else {
-                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
-            }
-    }
-    
-    normOutputFlags <- c(
-        daily=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=2),
-        annual=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5))
-    if(normOutputFlags[1]!=1){
-        warning("You should set your daily output flag to 1 (binary) RBBRMuso work only with binary output...")
-    }
-    searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5)
-    soilFile <- NULL
-    if(version >=6){
-        soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
-    }
-    epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
-    metInput <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"MET_INPUT"))}),error = function(e){""})
-    dailyOutputTable <- cbind.data.frame(seq_along(dailyVarCodes),dailyVarCodes,outputVars[[1]])
-    colnames(dailyOutputTable) <- c("index","code","name")
-    annualOutputTable <- cbind.data.frame(seq_along(annualVarCodes),annualVarCodes,outputVars[[2]])
-    colnames(annualOutputTable) <- c("index","code","name")
-    
-    settings = list(executable = executable,
-                    calibrationPar = calibrationPar,
-                    outputLoc=outputLoc,
-                    outputNames=outputName,
-                    inputLoc=inputLoc,
-                    iniInput=iniInput,
-                    metInput=metInput,
-                    epcInput=epcFiles,
-                    # thinInput=inputs$thinInput,
-                    # CO2Input=inputs$CO2Input,
-                    # mowInput=inputs$mowInput,
-                    # grazInput=inputs$grazInput,
-                    # harvInput=inputs$harvInput,
-                    # plougInput=inputs$plougInput,
-                    # fertInput=inputs$fertInput,
-                    # irrInput=inputs$irrInput,
-                    # nitInput=inputs$nitInput,
-                    inputFiles=inputFiles,
-                    numData=numData,
-                    startYear=startYear,
-                    numYears=numYears,
-                    outputVars=outputVars,
-                    soilFile=soilFiles,
-                    dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
-                    annualVarCodes = gsub("\\s.*","",annualVarCodes),
-                    dailyOutputTable=dailyOutputTable,
-                    annualOutputTable=annualOutputTable,
-                    normOutputFlags=normOutputFlags 
-                    )
-
-
-    suppressWarnings(dir.create(file.path(inputLoc,"bck")))
-    return(settings)
-
-}
+#
+# setupMuso <- function(execPath = "./",
+#                       executable=file.path(execPath,ifelse(Sys.info()[1] == "Linux", "muso", "muso.exe")),
+#                       parallel = F,
+#                       calibrationPar =c(1),
+#                       outputLoc="./",
+#                       modelOutputs=NULL,
+#                       inputLoc="./",
+#                       spinupIni=grep("s.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
+#                       normalIni=grep("n.ini$", list.files(inputLoc), value=TRUE, perl=TRUE),
+#                       metInput=NULL,
+#                       CO2Input=NULL,
+#                       plantInput=NULL,
+#                       thinInput=NULL,
+#                       mowInput=NULL,
+#                       grazInput=NULL,
+#                       harvInput=NULL,
+#                       plougInput=NULL,
+#                       fertInput=NULL,
+#                       irrInput=NULL,
+#                       nitInput=NULL,
+#                       iniInput=NULL,
+#                       epcInput=NULL,
+#                       mapData=NULL,
+#                       leapYear=FALSE,
+#                       version=6,
+#                       doCopy=TRUE
+#                       ){
+#
+#     Linuxp <- (Sys.info()[1]=="Linux")
+#     writep <- 0
+#
+#     inputParser <- function(string,fileName,counter,value=TRUE){
+#         unlist(strsplit(grep(string,fileName,value=TRUE, perl = TRUE),"[\ \t]", useBytes = TRUE))[counter]
+#     }
+#
+#     
+#     if(is.null(inputLoc)){
+#         inputLoc<- normalizePath("./")
+#     } else{
+#         inputLoc <- normalizePath(inputLoc)
+#     }
+#     if(is.null(iniInput)){
+#         spinups<-grep("s.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
+#         normals<-grep("n.ini$",list.files(inputLoc),value=TRUE, perl = TRUE)
+#
+#         if(length(spinups)==1){
+#             iniInput[1] <- file.path(inputLoc,spinups)
+#         } else {
+#             iniInput[1] <- "no spinup" 
+#         }
+#         
+#
+#         if(length(normals)==1){
+#             iniInput[2]<-file.path(inputLoc,normals)
+#         } else {stop("There are multiple or no normal ini files, please choose")}
+#
+#     }
+#
+#     iniFiles<-lapply(iniInput, function (x) readLines(x,-1))
+#     iniFiles[[1]] <- gsub("\\\\","/", iniFiles[[1]], perl = TRUE) #replacing \ to /
+#     iniFiles[[2]] <- gsub("\\\\","/", iniFiles[[2]], perl = TRUE) #replacing \ to /
+#     names(iniFiles) <- c("spinup","normal")
+#
+#
+#     
+#         outIndex<-grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1
+#         numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
+#         dailyVarCodes<-tryCatch(iniFiles[[2]][(outIndex+1):(outIndex+numVar)],
+#                                 error = function(e){
+#         stop("Cannot read indexes of output variables from the normal ini file, please make sure you have not skiped a line after the flag: \"DAILY_OUTPUT\"")    
+#         })
+#
+#         dailyVarCodes<-unlist(lapply(dailyVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
+#         dailyVarnames<-unlist(lapply(dailyVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
+#
+#         outIndex<-grep("ANNUAL_OUTPUT",iniFiles[[2]], perl = TRUE)+1
+#         numVar<-as.numeric(unlist(strsplit(iniFiles[[2]][outIndex],"[\ \t]", useBytes = TRUE))[1])
+#         annualVarCodes<-iniFiles[[2]][(outIndex+1):(outIndex+numVar)]
+#         annualVarCodes<-unlist(lapply(annualVarCodes, function(x) unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1]))
+#         annualVarnames<-unlist(lapply(annualVarCodes, function(x) musoMapping(unlist(strsplit(x,"[\ \t]", useBytes = TRUE))[1])))
+#         outputVars<-list(dailyVarnames,annualVarnames)
+#     
+#     if(is.null(executable)){
+#         if(Linuxp){
+#             executable<-file.path(inputLoc,"muso")
+#         } else {
+#             executable<-file.path(inputLoc,"muso.exe")
+#         }
+#     } else {
+#         if(doCopy){
+#             file.copy(executable,inputLoc)            
+#         }
+#
+#     }
+#
+#     outputName <- character(2)
+#     outputName[1] <- basename(unlist(strsplit(iniFiles[[1]][grep("OUTPUT_CONTROL",iniFiles[[1]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+#     outputName[2] <- basename(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+#     ##  outputName <- unlist(strsplit(grep("output",grep("prefix",iniFiles[[2]],value=TRUE),value=TRUE),"[\ \t]"))[1]
+#     ##THIS IS AN UGLY SOLUTION, WHICH NEEDS AN UPGRADE!!! FiXED (2017.09.11)
+#     ## outputName <- unlist(strsplit(grep("prefix for output files",iniFiles[[2]],value=TRUE),"[\ \t]"))[1]
+#     if(is.null(outputName)){
+#         stop("I cannot find outputName in your default ini file \n Please make sure that the line wich contains the name also contains the prefix and the output keywords!")
+#         
+#     }
+#     ##    outputName<-unlist(read.table(iniInput[2],skip=93,nrows = 1))[1]
+#
+#
+#     if(is.null(outputLoc)){
+#         ##  outputLoc<-paste((rev(rev(unlist(strsplit(outputName,"/")))[-1])),collapse="/")
+#         outputLoc <- dirname(unlist(strsplit(iniFiles[[2]][grep("OUTPUT_CONTROL",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+#         if(substr(outputLoc,start = 1,stop = 1)!="/"){
+#             ##if the outputName is not absolute path make it absolute
+#             outputLoc <- file.path(inputLoc,outputLoc)
+#         } 
+#     } else {
+#         outputLoc <- normalizePath(outputLoc)
+#     }
+#
+#     
+#     
+#     inputFiles<-c(iniInput,epcInput,metInput)
+#     numData<-rep(NA,3)
+#     numYears <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+#     ##    numYears<-unlist(read.table(iniInput[2],skip = 14,nrows = 1)[1])
+#     numValues <-  as.numeric(unlist(strsplit(iniFiles[[2]][grep("DAILY_OUTPUT",iniFiles[[2]], perl = TRUE)+1],"[\ \t]", useBytes = TRUE))[1])
+#     ## numValues will be replaced to numVar
+#     ## numValues<-unlist(read.table(iniInput[2],skip=102,nrows = 1)[1])
+#     startYear <- as.numeric(unlist(strsplit(iniFiles[[2]][grep("TIME_DEFINE",iniFiles[[2]], perl = TRUE)+2],"[\ \t]", useBytes = TRUE))[1])
+#     numData[1] <- numValues * numYears * 365 # Have to corrigate leapyears 
+#
+#     numData[2] <- numYears * numValues*12
+#     numData[3] <- numYears * numValues
+#
+#     ##Writing out changed ini-file
+#
+#     writeLines(iniFiles[[1]],iniInput[1])
+#     writeLines(iniFiles[[2]],iniInput[2])
+#
+#     if(!is.null(modelOutputs)){
+#         outVarChanges <- putOutVars(iniFile = iniInput[2],outputVars = modelOutputs, modifyOriginal = TRUE)
+#         numData <- round(numDate*outVarChanges[[2]])
+#         outputVars[[1]] <-outVarChanges[[1]] 
+#     }
+#     
+#
+#     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[1]),".log")))
+#     ## I use file.path additionally because We do not know if outputLoc ends or not to "/"
+#     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))
+#  
+#     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
+#         
+#             if(stringP){
+#                 unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
+#             } else {
+#                 as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
+#             }
+#     }
+#     
+#     normOutputFlags <- c(
+#         daily=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=2),
+#         annual=searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5))
+#     if(normOutputFlags[1]!=1){
+#         warning("You should set your daily output flag to 1 (binary) RBBRMuso work only with binary output...")
+#     }
+#     searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5)
+#     soilFile <- NULL
+#     if(version >=6){
+#         soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
+#     }
+#     epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
+#     metInput <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"MET_INPUT"))}),error = function(e){""})
+#     dailyOutputTable <- cbind.data.frame(seq_along(dailyVarCodes),dailyVarCodes,outputVars[[1]])
+#     colnames(dailyOutputTable) <- c("index","code","name")
+#     annualOutputTable <- cbind.data.frame(seq_along(annualVarCodes),annualVarCodes,outputVars[[2]])
+#     colnames(annualOutputTable) <- c("index","code","name")
+#     
+#     settings = list(executable = executable,
+#                     calibrationPar = calibrationPar,
+#                     outputLoc=outputLoc,
+#                     outputNames=outputName,
+#                     inputLoc=inputLoc,
+#                     iniInput=iniInput,
+#                     metInput=metInput,
+#                     epcInput=epcFiles,
+#                     # thinInput=inputs$thinInput,
+#                     # CO2Input=inputs$CO2Input,
+#                     # mowInput=inputs$mowInput,
+#                     # grazInput=inputs$grazInput,
+#                     # harvInput=inputs$harvInput,
+#                     # plougInput=inputs$plougInput,
+#                     # fertInput=inputs$fertInput,
+#                     # irrInput=inputs$irrInput,
+#                     # nitInput=inputs$nitInput,
+#                     inputFiles=inputFiles,
+#                     numData=numData,
+#                     startYear=startYear,
+#                     numYears=numYears,
+#                     outputVars=outputVars,
+#                     soilFile=soilFiles,
+#                     dailyVarCodes= gsub("\\s.*","",dailyVarCodes),
+#                     annualVarCodes = gsub("\\s.*","",annualVarCodes),
+#                     dailyOutputTable=dailyOutputTable,
+#                     annualOutputTable=annualOutputTable,
+#                     normOutputFlags=normOutputFlags 
+#                     )
+#
+#
+#     suppressWarnings(dir.create(file.path(inputLoc,"bck")))
+#     return(settings)
+#
+# }
