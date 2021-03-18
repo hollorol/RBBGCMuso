@@ -866,8 +866,8 @@
     "MIN": 0,
     "MAX": 0.1,
     "DEPENDENCE": 0,
-    "GROUP": 22,
-    "TYPE": 1
+    "GROUP": 0,
+    "TYPE": 0
   },
   {
     "X": 85,
@@ -877,8 +877,8 @@
     "MIN": 0,
     "MAX": 0.1,
     "DEPENDENCE": 1,
-    "GROUP": 22,
-    "TYPE": 1
+    "GROUP": 0,
+    "TYPE": 0
   },
   {
     "X": 86,

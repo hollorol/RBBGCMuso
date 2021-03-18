@@ -23,9 +23,13 @@
             RMuso_varTable[[version]] <<- varTable
         })
 
+    RMuso_depTree<- read.csv(file.path(system.file("data",package="RBBGCMuso"),"depTree.csv"), stringsAsFactors=FALSE)
+
 
     options(RMuso_version=RMuso_version,
             RMuso_constMatrix=RMuso_constMatrix,
-            RMuso_varTable=RMuso_varTable)
+            RMuso_varTable=RMuso_varTable,
+            RMuso_depTree=RMuso_depTree
+    )
     # getOption("RMuso_constMatrix")$soil[[as.character(getOption("RMuso_version"))]]
 }
