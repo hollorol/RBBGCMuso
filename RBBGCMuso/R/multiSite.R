@@ -10,9 +10,9 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
         file.copy(executable,
                   file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x))))
         tryCatch(file.copy(file.path(execPath,"cygwin1.dll"),
-                   file.path("tmp", paste0(thread_prefix,"_1"))), error = function(e){"If you are in Windows..."})
+                   file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)))),
+                 error = function(e){"If you are in Windows..."})
     })
-
     sapply(2:numCores,function(thread){
                dir.create(sprintf("tmp/%s_%s",thread_prefix,thread), showWarnings=FALSE)
                file.copy(list.files(sprintf("tmp/%s_1",thread_prefix),full.names = TRUE),sprintf("tmp/%s_%s/",thread_prefix,thread),
