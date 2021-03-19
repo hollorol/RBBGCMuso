@@ -185,7 +185,8 @@ multiSiteCalib <- function(measurements,
              points(measured,calibrated, pch=19, col="blue")
              abline(0,1)
              legend(x="top",
-                    pch=c(1,19),
+                    pch=c(19,19),
+                    col=c("red","blue")
                     inset=c(0,-0.1),
                     legend=c("original","calibrated"),
                     ncol=2,
