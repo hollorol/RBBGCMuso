@@ -1,4 +1,3 @@
-options(RMuso_depTree = read.csv("~/projects/RBBGCMuso/RBBGCMuso/inst/data/depTree.csv", stringsAsFactors = FALSE))
 getQueue <- function(depTree=options("RMuso_depTree")[[1]], startPoint){
     
     if(length(startPoint) == 0){
