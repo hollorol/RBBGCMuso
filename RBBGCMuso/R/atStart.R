@@ -23,7 +23,7 @@
             RMuso_varTable[[version]] <<- varTable
         })
 
-    RMuso_depTree<- try(read.csv(file.path(system.file("data",package="RBBGCMuso"),"depTree.csv"), stringsAsFactors=FALSE))
+    RMuso_depTree<- read.csv(file.path(system.file("data",package="RBBGCMuso"),"depTree.csv"), stringsAsFactors=FALSE)
 
 
     options(RMuso_version=RMuso_version,
