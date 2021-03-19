@@ -178,9 +178,11 @@ multiSiteCalib <- function(measurements,
                   xlab=expression("measured "~(kg[C]~m^-2)),
                   ylab=expression("simulated "~(kg[C]~m^-2)),
                   cex.lab=1.3,
+                  col="red",
+                  pch=19,
                   pty="s"
              )
-             points(measured,calibrated,pch=20)
+             points(measured,calibrated, pch=19, col="blue")
              abline(0,1)
              legend(x="top",
                     pch=c(1,19),
