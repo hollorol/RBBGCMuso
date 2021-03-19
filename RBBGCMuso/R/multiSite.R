@@ -9,7 +9,7 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
                  directory=file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)),""), d =TRUE)
         file.copy(executable,
                   file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x))))
-        tryCatch(file.copy(file.path(execPath,"cygwin.dll"),
+        tryCatch(file.copy(file.path(execPath,"cygwin1.dll"),
                    file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)))),function(e){"If you are in Windows..."})
     })
 
