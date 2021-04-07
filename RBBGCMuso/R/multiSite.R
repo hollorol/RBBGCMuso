@@ -167,6 +167,9 @@ multiSiteCalib <- function(measurements,
     res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])))
     res[["RMSE"]] <- results[bestCase,ncol(results)]
     res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2))
+    res[["originalR2"]] <- summary(lm(measured ~ original,data=res$comparison))$r.squared
+    res[["R2"]] <- summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
+    saveRDS(res,"results.RDS")
     png("calibRes.png")
     opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
         with(data=res$comparison, {
