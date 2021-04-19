@@ -33,6 +33,7 @@ multiSiteCalib <- function(measurements,
                            parameters,
                            dataVar, 
                            iterations = 100,
+                           burnin =ifelse(iterations < 3000, 3000, NULL),
                            likelihood,
                            execPath,
                            thread_prefix="thread",
@@ -247,12 +248,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         }}
 
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
-    if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000)
-        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
-    } else {
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
-    }
+    randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations, burnin = burnin)
 
     origEpc <- readValuesFromFile(epcFile, randVals[[1]])
     partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar))
