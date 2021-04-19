@@ -176,7 +176,7 @@ musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = N
         E <- do.call(rbind,lapply(Ef,function(x){x$E}))
         f <- do.call(c,lapply(Ef,function(x){x$f}))
          # browser()
-        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,burninlength=burnin, jiter = iterations))$X
+        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,burninlength=burnin, iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)
         randVal <- suppressWarnings(xsample(G=Gh0$G,H=Gh0$h, iter = iterations))$X

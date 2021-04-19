@@ -52,7 +52,6 @@ multiSiteCalib <- function(measurements,
     # | |___| | |  __/ (_| | ||  __/ | |_| | | | | |  __/ (_| | (_| \__ \
     #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
                                                                        
-    
     copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
 
     #  ____                _   _                        _     
@@ -69,7 +68,7 @@ multiSiteCalib <- function(measurements,
 
                         multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable,
                                          dataVar = dataVar, iterations = threadCount[i],
-                                         likelihood = likelihood, threadNumber= i)
+                                         likelihood = likelihood, threadNumber= i, burnin=burnin)
                       , error = function(e){
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
@@ -207,7 +206,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      dataVar, outLoc = "./calib",
                      outVars = NULL, iterations = 300,
                      skipSpinup = TRUE, plotName = "calib.jpg",
-                     modifyOriginal=TRUE, likelihood, uncertainity = NULL,
+                     modifyOriginal=TRUE, likelihood, uncertainity = NULL, burnin=NULL,
                      naVal = NULL, postProcString = NULL, threadNumber) {
 
     originalRun <- list()
