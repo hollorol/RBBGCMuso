@@ -39,7 +39,9 @@ multiSiteCalib <- function(measurements,
                            thread_prefix="thread",
                            numCores = (parallel::detectCores()-1),
                            pb = txtProgressBar(min=0, max=iterations, style=3),
-                           pbUpdate = setTxtProgressBar){
+                           pbUpdate = setTxtProgressBar,
+                           copyThread = TRUE
+                           ){
 
     future::plan(future::multisession)
     # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
@@ -51,8 +53,9 @@ multiSiteCalib <- function(measurements,
     # | |   | '__/ _ \/ _` | __/ _ \ | __| '_ \| '__/ _ \/ _` |/ _` / __|
     # | |___| | |  __/ (_| | ||  __/ | |_| | | | | |  __/ (_| | (_| \__ \
     #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
-                                                                       
-    copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
+    if(copyThread){
+        copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
+    }
 
     #  ____                _   _                        _     
     # |  _ \ _   _ _ __   | |_| |__  _ __ ___  __ _  __| |___ 
