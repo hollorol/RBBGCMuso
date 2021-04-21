@@ -46,7 +46,6 @@ multiSiteCalib <- function(measurements,
     future::plan(future::multisession)
     # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
-    unlink("tmp",recursive=TRUE)
 
     #   ____                _         _   _                        _     
     #  / ___|_ __ ___  __ _| |_ ___  | |_| |__  _ __ ___  __ _  __| |___ 
@@ -54,7 +53,11 @@ multiSiteCalib <- function(measurements,
     # | |___| | |  __/ (_| | ||  __/ | |_| | | | | |  __/ (_| | (_| \__ \
     #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
     if(copyThread){
+        unlink("tmp",recursive=TRUE)
         copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
+    } else {
+        print("copy skipped")
+        file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
     }
 
     #  ____                _   _                        _     
