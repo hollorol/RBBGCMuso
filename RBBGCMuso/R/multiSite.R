@@ -1,4 +1,36 @@
+`%between%` <- function(x, y){
+    (x <= y[2]) & (x >= y[1])
+}
 
+annualAggregate <- function(x, aggFun){
+    tapply(x, rep(1:(length(x)/365), each=365), aggFun)
+}
+
+SELECT <- function(x,selectPart){
+    index <- as.numeric(selectPart)
+    if(!is.na(index)){
+        tapply(x,rep(1:(length(x)/365),each=365), function(y){
+            y[index]
+        })
+    } else {
+        tapply(x,rep(1:(length(x)/365),each=365), match.fun(selectPart))
+    }
+}
+    
+
+modCont <- function(expr, datf, interval, dumping_factor){
+    tryCatch({
+        if((with(datf,eval(parse(text=expr))) %between% interval)){
+            return(NA)
+        } else{
+            return(dumping_factor)
+        }
+    },
+        error = function(e){
+            stop(sprintf("Cannot find the variable names in the dataframe, detail:\n%s",
+                         e))
+        })
+}
 
 copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, execPath="./",
 
@@ -30,6 +62,7 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
 #' @export
 multiSiteCalib <- function(measurements,
                            calTable,
+                           constTable,
                            parameters,
                            dataVar, 
                            iterations = 100,
@@ -69,16 +102,17 @@ multiSiteCalib <- function(measurements,
     threadCount <- distributeCores(iterations, numCores) 
     fut <- lapply(1:numCores, function(i) {
                       # browser()
-         future({
-                      tryCatch(
+         # future({
+         #              tryCatch(
 
                         multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable,
                                          dataVar = dataVar, iterations = threadCount[i],
                                          likelihood = likelihood, threadNumber= i, burnin=burnin)
-                      , error = function(e){
-                                            writeLines(as.character(iterations),"progress.txt")
-                                        })
-         })
+                        browser()
+         #              , error = function(e){
+         #                                    writeLines(as.character(iterations),"progress.txt")
+         #                                })
+         # })
     })
 
     #                _       _                                               
@@ -369,7 +403,9 @@ prepareFromAgroMo <- function(fName){
     cbind.data.frame(dateCols, obs)
 }
 
-calcLikelihoodsForGroups <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable, groupFun){
+calcLikelihoodsForGroups <- function(dataVar, mod, mes,
+                                     likelihoods, alignIndexes, musoCodeToIndex,
+                                     nameGroupTable, groupFun){
     likelihoodRMSE <- sapply(names(dataVar),function(key){
               modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                                            function(domain_id){
@@ -398,6 +434,7 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes, likelihoods, alignIndexe
                # browser()
                res
         })
+    browser()
     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
     return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
 }
