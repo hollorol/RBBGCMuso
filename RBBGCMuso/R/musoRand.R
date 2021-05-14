@@ -8,7 +8,7 @@
 #' @importFrom limSolve xsample
 #' @export
 
-musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL, burnin = ifelse(iterations < 3000, 3000, NULL)){
+musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL, burnin = NULL){
     if(is.null(constrains)){
         constMatrix <- constrains
         constMatrix <- getOption("RMuso_constMatrix")[[fileType]][[as.character(getOption("RMuso_version"))]]
