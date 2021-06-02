@@ -6,17 +6,47 @@ annualAggregate <- function(x, aggFun){
     tapply(x, rep(1:(length(x)/365), each=365), aggFun)
 }
 
-SELECT <- function(x,selectPart){
-    index <- as.numeric(selectPart)
-    if(!is.na(index)){
+SELECT <- function(x, selectPart){
+    if(!is.function(selectPart)){
+        index <- as.numeric(selectPart)
         tapply(x,rep(1:(length(x)/365),each=365), function(y){
             y[index]
         })
     } else {
-        tapply(x,rep(1:(length(x)/365),each=365), match.fun(selectPart))
+        tapply(x,rep(1:(length(x)/365),each=365), selectPart)
     }
 }
     
+compose <- function(expr){
+   splt <- strsplit(expr,split="\\|")[[1]]
+   lhs <- splt[1]
+   rhs <- splt[2]
+   penv <- parent.frame()
+   lhsv <- eval(parse(text=lhs),envir=penv)
+   penv[["lhsv"]] <- lhsv
+   place <- regexpr("\\.[^0-9a-zA-Z]",rhs)
+
+   if(place != -1){
+       finalExpression <- paste0(substr(rhs, 1, place -1),"lhsv",
+                                 substr(rhs, place + 1, nchar(rhs)))
+   } else {
+        finalExpression <- paste0(rhs,"(lhsv)")
+   }
+   eval(parse(text=finalExpression),envir=penv)
+}
+
+compoVect <- function(mod, constrTable){
+    with(as.data.frame(mod), {
+             nexpr  <- nrow(constrTable)
+             filtered  <- numeric(nexpr)
+             for(i in 1:nexpr){
+                 val <- compose(constrTable[i,1])
+                 filtered[i] <- (val <= constrTable[i,3]) &&
+                             (val >= constrTable[i,2])
+             }
+             filtered
+    })
+}
 
 modCont <- function(expr, datf, interval, dumping_factor){
     tryCatch({
@@ -62,7 +92,6 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
 #' @export
 multiSiteCalib <- function(measurements,
                            calTable,
-                           constTable,
                            parameters,
                            dataVar, 
                            iterations = 100,
@@ -73,7 +102,8 @@ multiSiteCalib <- function(measurements,
                            numCores = (parallel::detectCores()-1),
                            pb = txtProgressBar(min=0, max=iterations, style=3),
                            pbUpdate = setTxtProgressBar,
-                           copyThread = TRUE
+                           copyThread = TRUE,
+                           constraints=NULL, th = 10
                            ){
 
     future::plan(future::multisession)
@@ -102,17 +132,18 @@ multiSiteCalib <- function(measurements,
     threadCount <- distributeCores(iterations, numCores) 
     fut <- lapply(1:numCores, function(i) {
                       # browser()
-         # future({
-         #              tryCatch(
+         future({
+                      tryCatch(
 
-                        multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable,
+                        multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                          dataVar = dataVar, iterations = threadCount[i],
-                                         likelihood = likelihood, threadNumber= i, burnin=burnin)
-                        browser()
-         #              , error = function(e){
-         #                                    writeLines(as.character(iterations),"progress.txt")
-         #                                })
-         # })
+                                         likelihood = likelihood, threadNumber= i, burnin=burnin,constraints=constraints, th=th)
+                        # setwd("../")
+                      , error = function(e){
+                                            saveRDS(e,"error.RDS")
+                                            writeLines(as.character(iterations),"progress.txt")
+                                        })
+         })
     })
 
     #                _       _                                               
@@ -160,7 +191,6 @@ multiSiteCalib <- function(measurements,
     # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
     # | |__| (_) | | | | | | |_) | | | | |  __/
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
-
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
@@ -173,8 +203,12 @@ multiSiteCalib <- function(measurements,
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
-    bestCase <- which.max(results[,ncol(results)-1])
-    parameters <- results[bestCase,1:(ncol(results)-2)] # the last two column is the (log) likelihood and the rmse
+    results <- results[results[,"Const"] == 1,]
+    if(nrow(results)==0){
+        stop("No simulation suitable for constraints")
+    }
+    bestCase <- which.max(results[,ncol(results)-2])
+    parameters <- results[bestCase,1:(ncol(results)-3)] # the last two column is the (log) likelihood and the rmse
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
 
     firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
@@ -187,7 +221,7 @@ multiSiteCalib <- function(measurements,
     })
     setwd("tmp/thread_1")
     aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
-    file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1],pattern=".*\\.epc", full.names=TRUE),
+    file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
               "../../multiSiteOptim.epc", overwrite=TRUE)
     setwd("../../")
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
@@ -196,12 +230,12 @@ multiSiteCalib <- function(measurements,
     res <- list()
     res[["calibrationPar"]] <- calibrationPar
     res[["parameters"]] <- parameters
-    res[["comparison"]] <- compareCalibratedWithOriginal(key="grainDM", modOld=origModOut, modNew=aposteriori, mes=measurements,
-                                                                 likelihoods=likelihood,
-                                                                 alignIndexes=alignIndexes,
+    res[["comparison"]] <- compareCalibratedWithOriginal(key = "grainDM", modOld=origModOut, modNew=aposteriori, mes=measurements,
+                                                                 likelihoods = likelihood,
+                                                                 alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
                                                                  nameGroupTable = nameGroupTable, mean)
-    res[["likelihood"]] <- results[bestCase,ncol(results)-1]
+    res[["likelihood"]] <- results[bestCase,ncol(results)-2]
     comp <- res$comparison
     res[["originalMAE"]] <-mean(abs((comp[,1]-comp[,3])))
     res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])))
@@ -247,7 +281,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      outVars = NULL, iterations = 300,
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL, burnin=NULL,
-                     naVal = NULL, postProcString = NULL, threadNumber) {
+                     naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10) {
 
     originalRun <- list()
     nameGroupTable <- calTable 
@@ -290,12 +324,12 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
     randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations, burnin = burnin)
 
     origEpc <- readValuesFromFile(epcFile, randVals[[1]])
-    partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar))
+    partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 1)
     colN <- randVals[[1]]
     colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
     colN[match(parameters[,2], randVals[[1]])[!is.na(match(parameters[,2],randVals[[1]]))]] <- parameters[,1]
     colnames(partialResult) <- c(colN,sprintf("%s_likelihood",names(dataVar)),
-                                      sprintf("%s_rmse",names(dataVar)))
+                                      sprintf("%s_rmse",names(dataVar)),"Const")
     numParameters <- length(colN)
     partialResult[1:numParameters] <- origEpc
     ## Prepare the preservedCalib matrix for the faster
@@ -338,7 +372,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                                                                 mes=measuredData,
                                                                 likelihoods=likelihood,
                                                                 alignIndexes=alignIndexes,
-                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, mean)
+                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints=constraints,th=th)
 
         write.csv(x=randVals[[1]],"../randIndexes.csv")
         write.csv(x=partialResult, file="preservedCalib.csv",row.names=FALSE)
@@ -369,7 +403,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                                                                 mes=measuredData,
                                                                 likelihoods=likelihood,
                                                                 alignIndexes=alignIndexes,
-                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, mean)
+                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
 
                 
                 
@@ -405,7 +439,15 @@ prepareFromAgroMo <- function(fName){
 
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
-                                     nameGroupTable, groupFun){
+                                     nameGroupTable, groupFun, constraints,
+                                     th = 10){
+
+    if(!is.null(constraints)){
+                         constRes<- sapply(mod,function(m){
+                            compoVect(m,constraints)
+                         })
+    }
+
     likelihoodRMSE <- sapply(names(dataVar),function(key){
               modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                                            function(domain_id){
@@ -426,17 +468,18 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                         }))
                measured <- measured[measured$var_id == key,]
 
-               # measured <- measured[!is.na(measured)] 
                res <- c(likelihoods[[key]](modelled, measured),
                         sqrt(mean((modelled-measured$mean)^2))
                )
                print(abs(mean(modelled)-mean(measured$mean)))
-               # browser()
                res
         })
-    browser()
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
-    return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+
+    likelihoodRMSE <- c(likelihoodRMSE[1,],likelihoodRMSE[2,],
+             ifelse((100 * sum(apply(constRes,2,prod)) / ncol(constRes)) >= th,
+                    1,0))
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const")
+    return(likelihoodRMSE)
 }
 
 commonIndexes <- function (settings,measuredData) {
