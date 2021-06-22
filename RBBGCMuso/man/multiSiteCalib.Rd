@@ -10,12 +10,17 @@ multiSiteCalib(
   parameters,
   dataVar,
   iterations = 100,
+  burnin = ifelse(iterations < 3000, 3000, NULL),
   likelihood,
   execPath,
   thread_prefix = "thread",
   numCores = (parallel::detectCores() - 1),
   pb = txtProgressBar(min = 0, max = iterations, style = 3),
-  pbUpdate = setTxtProgressBar
+  pbUpdate = setTxtProgressBar,
+  copyThread = TRUE,
+  constraints = NULL,
+  th = 10,
+  treeControl = rpart.control()
 )
 }
 \description{

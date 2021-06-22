@@ -100,6 +100,8 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
 #' This funtion uses the Monte Carlo technique to uniformly sample the parameter space from user defined parameters of the Biome-BGCMuSo model. The sampling algorithm ensures that the parameters are constrained by the model logic which means that parameter dependencies are fully taken into account (parameter dependency means that e.g leaf C:N ratio must be smaller than C:N ratio of litter; more complicated rules apply to the allocation parameters where the allocation fractions to different plant compartments must sum up 1). This function implements a mathematically correct solution to provide uniform distriution for all selected parameters. 
 #' @author Roland HOLLOS
 #' @importFrom future future
+#' @importFrom rpart rpart rpart.control
+#' @importFrom rpart.plot rpart.plot
 #' @export
 multiSiteCalib <- function(measurements,
                            calTable,
@@ -114,7 +116,7 @@ multiSiteCalib <- function(measurements,
                            pb = txtProgressBar(min=0, max=iterations, style=3),
                            pbUpdate = setTxtProgressBar,
                            copyThread = TRUE,
-                           constraints=NULL, th = 10
+                           constraints=NULL, th = 10, treeControl=rpart.control()
                            ){
 
     future::plan(future::multisession)
@@ -214,11 +216,19 @@ multiSiteCalib <- function(measurements,
     results <- (rbind(res0,resultsSans0))
     write.csv(results,"result.csv")
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
+    notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
+    notForTree <- c(notForTree,which(sapply(seq_along(results),function(i){sd(results[,i])==0})))
+    treeData <- results[,-notForTree]
+    treeData$failType <- as.factor(treeData$failType)
+    rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+    png("treeplot.png")
+    rpart.plot(rp)
+    dev.off()
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
     results <- results[results[,"Const"] == 1,]
     if(nrow(results)==0){
-        stop("No simulation suitable for constraints")
+        stop("No simulation suitable for constraints\n Please see treeplot.png for explanation")
     }
     bestCase <- which.max(results[,ncol(results)-2])
     parameters <- results[bestCase,1:(ncol(results)-3)] # the last two column is the (log) likelihood and the rmse
@@ -232,6 +242,8 @@ multiSiteCalib <- function(measurements,
     musoCodeToIndex  <- sapply(dataVar,function(musoCode){
       settingsProto$dailyOutputTable[settingsProto$dailyOutputTable$code == musoCode,"index"]
     })
+
+
     setwd("tmp/thread_1")
     aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
     file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
@@ -252,7 +264,7 @@ multiSiteCalib <- function(measurements,
     comp <- res$comparison
     res[["originalMAE"]] <-mean(abs((comp[,1]-comp[,3])))
     res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])))
-    res[["RMSE"]] <- results[bestCase,ncol(results)]
+    res[["RMSE"]] <- results[bestCase,ncol(results)-1]
     res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2))
     res[["originalR2"]] <- summary(lm(measured ~ original,data=res$comparison))$r.squared
     res[["R2"]] <- summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
@@ -287,6 +299,12 @@ multiSiteCalib <- function(measurements,
     dev.off()
     return(res)
 }
+
+#' multiSiteThread
+#'
+#' This is an 
+#' @author Roland HOLLOS
+
 
 multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      endDate = NULL, formatString = "%Y-%m-%d", calTable,
