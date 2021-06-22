@@ -554,43 +554,6 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
     return(data.frame(original = original, calibrated = calibrated,measured=measured$mean))
 }
 
-# plotDiff(key="grainDM", 
-#                                                                 modOld=origModOut,
-#                                                                 modNew=tmp,
-#                                                                 # mes=measuredData,
-#                                                                 mes=mes,
-#                                                                 likelihoods=likelihood,
-#                                                                 alignIndexes=alignIndexes,
-#                                                                 musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, mean)
-#
-#
-#  comp <- compareCalibratedWithOriginal(key="grainDM", 
-#                                                                 modOld=origModOut,
-#                                                                 modNew=tmp,
-#                                                                 # mes=measuredData,
-#                                                                 mes=mes,
-#                                                                 likelihoods=likelihood,
-#                                                                 alignIndexes=alignIndexes,
-#                                                                 musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, mean)
-#
-#
-#
-#
-#
-# plotDiff <-  function(key, modOld, modNew, mes,
-#                              likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable,
-#                              groupFun){
-#     compme <- compareCalibratedWithOriginal(key,modOld,modNew,mes,
-#                                             likelihoods,alignIndexes,musoCodeToIndex,nameGroupTable,groupFun)
-#
-#     with(data=compme, {
-#          plot(measured,original,ylim=c(min(measured),max(measured)))
-#          points(measured,calibrated,pch=20)
-#          abline(0,1)
-# })}
-#
-# likelihood <- list(grainDM=function(x,y){exp(-1./2.*sqrt(mean((x-y$mean)^2.)))})
-# likelihood <- list(grainDM=agroLikelihood)
 
 spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
     resIterate <- 1:nrow(calTable)
