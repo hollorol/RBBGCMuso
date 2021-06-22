@@ -17,6 +17,17 @@ SELECT <- function(x, selectPart){
     }
 }
     
+bVectToInt<- function(bin_vector){
+    bin_vector <- rev(as.integer(bin_vector))
+    packBits(as.raw(c(bin_vector,numeric(32-length(bin_vector)))),"integer")
+}
+
+constMatToDec <- function(constRes){
+    tab <- table(apply(constRes,2,function(x){paste(x,collapse=" ")}))
+    bitvect <- strsplit(names(tab[which.max(tab)]),split=" ")[[1]]
+    bVectToInt(bitvect)
+}
+
 compose <- function(expr){
    splt <- strsplit(expr,split="\\|")[[1]]
    lhs <- splt[1]
@@ -131,14 +142,16 @@ multiSiteCalib <- function(measurements,
                                                             
     threadCount <- distributeCores(iterations, numCores) 
     fut <- lapply(1:numCores, function(i) {
-                      # browser()
          future({
                       tryCatch(
 
-                        multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
-                                         dataVar = dataVar, iterations = threadCount[i],
-                                         likelihood = likelihood, threadNumber= i, burnin=burnin,constraints=constraints, th=th)
-                        # setwd("../")
+                               {
+                                   multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
+                                                   dataVar = dataVar, iterations = threadCount[i],
+                                                   likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
+                                    # setwd("../")
+                               }
+
                       , error = function(e){
                                             saveRDS(e,"error.RDS")
                                             writeLines(as.character(iterations),"progress.txt")
@@ -321,15 +334,15 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         }}
 
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
-    randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations, burnin = burnin)
+    randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
 
     origEpc <- readValuesFromFile(epcFile, randVals[[1]])
-    partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 1)
+    partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 2)
     colN <- randVals[[1]]
     colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
     colN[match(parameters[,2], randVals[[1]])[!is.na(match(parameters[,2],randVals[[1]]))]] <- parameters[,1]
     colnames(partialResult) <- c(colN,sprintf("%s_likelihood",names(dataVar)),
-                                      sprintf("%s_rmse",names(dataVar)),"Const")
+                                      sprintf("%s_rmse",names(dataVar)),"Const", "failType")
     numParameters <- length(colN)
     partialResult[1:numParameters] <- origEpc
     ## Prepare the preservedCalib matrix for the faster
@@ -380,7 +393,6 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     print("Running the model with the random epc values...", quote = FALSE)
     for(i in 2:(iterations+1)){
-        # browser()
         tmp <- lapply(resIterate, function(siteI){
             dirName <- tools::file_path_sans_ext(basename(calTable[siteI,1]))
             setwd(dirName)
@@ -446,6 +458,8 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                          constRes<- sapply(mod,function(m){
                             compoVect(m,constraints)
                          })
+
+                        failType <- constMatToDec(constRes)
     }
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
@@ -475,10 +489,10 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                res
         })
 
-    likelihoodRMSE <- c(likelihoodRMSE[1,],likelihoodRMSE[2,],
-             ifelse((100 * sum(apply(constRes,2,prod)) / ncol(constRes)) >= th,
-                    1,0))
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const")
+    likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
+             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
+                    1,0), failType)
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
 

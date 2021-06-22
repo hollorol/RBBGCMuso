@@ -56,13 +56,13 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                                         })
 
                       # musoSingleThread(measuredData, parameters, startDate,
-                      #                   endDate, formatString,
-                      #                   dataVar, outLoc,
-                      #                   preTag, settings,
-                      #                   outVars, iterations = threadCount[i],
-                      #                   skipSpinup, plotName,
-                      #                   modifyOriginal, likelihood, uncertainity,
-                      #                   naVal, postProcString, i)
+                      #                  endDate, formatString,
+                      #                  dataVar, outLoc,
+                      #                  preTag, settings,
+                      #                  outVars, iterations = threadCount[i],
+                      #                  skipSpinup, plotName,
+                      #                  modifyOriginal, likelihood, uncertainity,
+                      #                  naVal, postProcString, i)
          })
     })
 
