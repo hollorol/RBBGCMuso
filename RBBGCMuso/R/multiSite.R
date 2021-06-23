@@ -231,7 +231,7 @@ multiSiteCalib <- function(measurements,
         stop("No simulation suitable for constraints\n Please see treeplot.png for explanation")
     }
     bestCase <- which.max(results[,ncol(results)-2])
-    parameters <- results[bestCase,1:(ncol(results)-3)] # the last two column is the (log) likelihood and the rmse
+    parameters <- results[bestCase,1:(ncol(results)-4)] # the last two column is the (log) likelihood and the rmse
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
 
     firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
