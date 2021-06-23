@@ -221,7 +221,7 @@ multiSiteCalib <- function(measurements,
     treeData <- results[,-notForTree]
     treeData$failType <- as.factor(treeData$failType)
     rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-    png("treeplot.png")
+    svg("treeplot.svg")
     rpart.plot(rp)
     dev.off()
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
