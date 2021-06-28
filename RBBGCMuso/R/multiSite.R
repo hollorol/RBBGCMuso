@@ -217,20 +217,23 @@ multiSiteCalib <- function(measurements,
     write.csv(results,"result.csv")
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
     notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
-    notForTree <- c(notForTree,which(sapply(seq_along(results),function(i){sd(results[,i])==0})))
+    # notForTree <- numeric(0)
+    notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
     treeData <- results[,-notForTree]
-    treeData$failType <- as.factor(treeData$failType)
-    rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-    svg("treeplot.svg")
-    rpart.plot(rp)
-    dev.off()
+    treeData["failType"] <- as.factor(results$failType)
+    if(ncol(treeData) > 4){
+        rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+        svg("treeplot.svg")
+        rpart.plot(rp)
+        dev.off()
+    }
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
     results <- results[results[,"Const"] == 1,]
     if(nrow(results)==0){
-        stop("No simulation suitable for constraints\n Please see treeplot.png for explanation")
+        stop("No simulation suitable for constraints\n Please see treeplot.png for explanation, if you have more than four parameters.")
     }
-    bestCase <- which.max(results[,ncol(results)-2])
+    bestCase <- which.max(results[,ncol(results)-3])
     parameters <- results[bestCase,1:(ncol(results)-4)] # the last two column is the (log) likelihood and the rmse
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
 
