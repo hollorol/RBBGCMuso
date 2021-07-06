@@ -46,15 +46,19 @@ compose <- function(expr){
    eval(parse(text=finalExpression),envir=penv)
 }
 
-compoVect <- function(mod, constrTable){
+compoVect <- function(mod, constrTable, fileToWrite = "const_results.data"){
     with(as.data.frame(mod), {
              nexpr  <- nrow(constrTable)
              filtered  <- numeric(nexpr)
+             vali <- numeric(nexpr) 
              for(i in 1:nexpr){
                  val <- compose(constrTable[i,1])
                  filtered[i] <- (val <= constrTable[i,3]) &&
                              (val >= constrTable[i,2])
+                 vali[i] <- val
              }
+
+             write(paste(vali,collapse=","), fileToWrite, append=TRUE)
              filtered
     })
 }
@@ -134,6 +138,7 @@ multiSiteCalib <- function(measurements,
     } else {
         print("copy skipped")
         file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
+        file.remove(file.path(list.dirs("tmp", recursive=FALSE), "const_results.data"))
     }
 
     #  ____                _   _                        _     
@@ -207,6 +212,9 @@ multiSiteCalib <- function(measurements,
     # | |__| (_) | | | | | | |_) | | | | |  __/
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
+    constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
+    constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+    write.csv(constRes, "constRes.csv")
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
     # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
@@ -223,7 +231,10 @@ multiSiteCalib <- function(measurements,
     if(ncol(treeData) > 4){
         rp <- rpart(failType ~ .,data=treeData,control=treeControl)
         svg("treeplot.svg")
-        rpart.plot(rp)
+        tryCatch(rpart.plot(rp), error = function(e){
+            print(e)
+        })
+        
         dev.off()
     }
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
