@@ -122,7 +122,6 @@ multiSiteCalib <- function(measurements,
                            copyThread = TRUE,
                            constraints=NULL, th = 10, treeControl=rpart.control()
                            ){
-
     future::plan(future::multisession)
     # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
@@ -214,6 +213,7 @@ multiSiteCalib <- function(measurements,
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
     constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
     constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+    constRes <- do.call(rbind,constRes)
     write.csv(constRes, "constRes.csv")
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
