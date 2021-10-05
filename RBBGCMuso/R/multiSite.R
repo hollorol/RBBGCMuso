@@ -226,11 +226,13 @@ multiSiteCalib <- function(measurements,
     # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
     # | |__| (_) | | | | | | |_) | | | | |  __/
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
+    if(!is.null(constraints)){
+        constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
+        constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+        constRes <- do.call(rbind,constRes)
+        write.csv(constRes, "constRes.csv")
+    }
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
-    constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
-    constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
-    constRes <- do.call(rbind,constRes)
-    write.csv(constRes, "constRes.csv")
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
     # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
@@ -240,18 +242,19 @@ multiSiteCalib <- function(measurements,
     results <- (rbind(res0,resultsSans0))
     write.csv(results,"result.csv")
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
-    notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
-    notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
-    treeData <- results[,-notForTree]
-    treeData["failType"] <- as.factor(results$failType)
-    if(ncol(treeData) > 4){
-        rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-        svg("treeplot.svg")
-        tryCatch(rpart.plot(rp), error = function(e){
-            print(e)
-        })
-        
-        dev.off()
+    if(!is.null(constraints)){
+        notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
+        notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
+        treeData <- results[,-notForTree]
+        treeData["failType"] <- as.factor(results$failType)
+        if(ncol(treeData) > 4){
+            rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+            svg("treeplot.svg")
+            tryCatch(rpart.plot(rp), error = function(e){
+                print(e)
+            })
+            dev.off()
+        }
     }
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
@@ -259,8 +262,8 @@ multiSiteCalib <- function(measurements,
     if(nrow(results)==0){
         stop("No simulation suitable for constraints\n Please see treeplot.png for explanation, if you have more than four parameters.")
     }
-    bestCase <- which.max(results[,ncol(results)-3])
-    parameters <- results[bestCase,1:(ncol(results)-4)] # the last two column is the (log) likelihood and the rmse
+    bestCase <- which.max(results[,length(calibrationPar) + 1])
+    parameters <- results[bestCase,1:length(calibrationPar)] # the last two column is the (log) likelihood and the rmse
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
 
     firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
