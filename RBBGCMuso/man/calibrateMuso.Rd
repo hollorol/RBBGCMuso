@@ -6,7 +6,7 @@
 \usage{
 calibrateMuso(
   measuredData,
-  parameters = NULL,
+  parameters = read.csv("parameters.csv", stringsAsFactor = FALSE),
   startDate = NULL,
   endDate = NULL,
   formatString = "\%Y-\%m-\%d",
@@ -28,6 +28,7 @@ calibrateMuso(
   pb = txtProgressBar(min = 0, max = iterations, style = 3),
   maxLikelihoodEpc = TRUE,
   pbUpdate = setTxtProgressBar,
+  outputLoc = "./",
   method = "GLUE",
   lg = FALSE,
   w = NULL,

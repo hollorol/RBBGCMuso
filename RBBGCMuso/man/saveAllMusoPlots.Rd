@@ -10,7 +10,7 @@ saveAllMusoPlots(
   silent = TRUE,
   type = "line",
   outFile = "annual.csv",
-  colour = NULL,
+  colour = "blue",
   skipSpinup = FALSE
 )
 }
