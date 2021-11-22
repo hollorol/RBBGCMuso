@@ -390,3 +390,17 @@ agroLikelihood <- function(modVector,measured){
 maxLikelihoodAgromo <- function (results, imgPath, varName, ...) {
     
 }
+
+
+
+parse_epc <- function (indices, epc) {
+    values <-numeric(length(indices)) 
+    for(i in seq_along(indices)){
+        index <- indices[i]
+        num <- as.numeric(index)
+        rnum <- as.integer(num)
+        pos <- (round((num-rnum)*100) %% 10) + 1
+        values[i] <- as.numeric(strsplit(epc[rnum],"\\s+")[[1]][pos])
+    }
+    values
+}

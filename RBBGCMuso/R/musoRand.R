@@ -8,7 +8,7 @@
 #' @importFrom limSolve xsample
 #' @export
 
-musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL, burnin = NULL){
+musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL, burnin = NULL, startVals = NULL){
     if(is.null(constrains)){
         constMatrix <- constrains
         constMatrix <- getOption("RMuso_constMatrix")[[fileType]][[as.character(getOption("RMuso_version"))]]
@@ -31,6 +31,7 @@ musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = N
 	constMatrix <- constMatrix[order(apply(constMatrix[,7:8],1,function(x){x[1]/10+abs(x[2])})),]
 	constMatrix
     }
+
     # browser()
     genMat0 <- function(dep){
 	numberOfVariable <- nrow(dep)
