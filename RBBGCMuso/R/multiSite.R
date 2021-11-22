@@ -168,10 +168,11 @@ multiSiteCalib <- function(measurements,
                       tryCatch(
 
                                {
-                                   multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
+                                  result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
                                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
                                    setwd("../../")
+                                   return(result)
                                }
 
                       , error = function(e){
@@ -256,7 +257,7 @@ multiSiteCalib <- function(measurements,
             dev.off()
         }
     }
-    origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
+   origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
     results <- results[results[,"Const"] == 1,]
     if(nrow(results)==0){
@@ -479,9 +480,12 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         writeLines(as.character(i-1),"progress.txt") #UNCOMMENT IMPORTANT
     }
     }
+
     if(threadNumber == 1){
         return(originalRun)
     }
+
+    return(0)
 }
 distributeCores <- function(iterations, numCores){
     perProcess<- iterations %/% numCores
