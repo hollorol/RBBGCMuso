@@ -171,7 +171,7 @@ multiSiteCalib <- function(measurements,
                                    multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
                                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
-                                    # setwd("../")
+                                   setwd("../../")
                                }
 
                       , error = function(e){
