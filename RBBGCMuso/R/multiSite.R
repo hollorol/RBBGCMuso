@@ -176,6 +176,10 @@ multiSiteCalib <- function(measurements,
                                }
 
                       , error = function(e){
+                                            # browser()
+                                            sink("error.txt")
+                                            print(e)
+                                            sink()
                                             saveRDS(e,"error.RDS")
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
