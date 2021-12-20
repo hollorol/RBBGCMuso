@@ -83,11 +83,11 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
                                                                             file.path(execPath,"muso.exe"))){
     sapply(iniSource, function(x){
         flatMuso(x, execPath,
-                 directory=file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)),""), d =TRUE)
+                 directory=file.path("tmp", (thread_prefix),tools::file_path_sans_ext(basename(x)),""), d =TRUE)
         file.copy(executable,
-                  file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x))))
+                  file.path("tmp", (thread_prefix),tools::file_path_sans_ext(basename(x))))
         tryCatch(file.copy(file.path(execPath,"cygwin1.dll"),
-                   file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)))),
+                   file.path("tmp", (thread_prefix),tools::file_path_sans_ext(basename(x)))),
                  error = function(e){"If you are in Windows..."})
     })
     sapply(2:numCores,function(thread){
@@ -176,7 +176,6 @@ multiSiteCalib <- function(measurements,
                                }
 
                       , error = function(e){
-                                            # browser()
                                             sink("error.txt")
                                             print(e)
                                             sink()
