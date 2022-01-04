@@ -247,20 +247,21 @@ multiSiteCalib <- function(measurements,
     results <- (rbind(res0,resultsSans0))
     write.csv(results,"result.csv")
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
-    browser()
     if(!is.null(constraints)){
-        notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
-        notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
-        treeData <- results[,-notForTree]
-        treeData["failType"] <- as.factor(results$failType)
-        if(ncol(treeData) > 4){
-            rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-            svg("treeplot.svg")
-            tryCatch(rpart.plot(rp), error = function(e){
-                print(e)
-            })
-            dev.off()
-        }
+        tryCatch({
+            notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
+            notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
+            treeData <- results[,-notForTree]
+            treeData["failType"] <- as.factor(results$failType)
+            if(ncol(treeData) > 4){
+                rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+                svg("treeplot.svg")
+                rpart.plot(rp)
+                dev.off()
+            }
+        }, error = function(e){
+            print(e)
+        })
     }
    origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
