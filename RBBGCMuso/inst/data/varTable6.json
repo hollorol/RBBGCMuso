@@ -12595,7 +12595,7 @@
   },
   {
     "codes": 2585,
-    "names": "hydr_conductEND[6]",
+    "names": "rootdepth5",
     "units": "ms-1",
     "descriptions": "Hydraulic conductivity at the end of the day of soil layer 7 (120-150 cm)"
   },

@@ -176,7 +176,7 @@ multiSiteCalib <- function(measurements,
                                }
 
                       , error = function(e){
-                                            # browser()
+                          # browser()
                                             sink("error.txt")
                                             print(e)
                                             sink()
@@ -294,7 +294,7 @@ multiSiteCalib <- function(measurements,
     res <- list()
     res[["calibrationPar"]] <- calibrationPar
     res[["parameters"]] <- parameters
-    res[["comparison"]] <- compareCalibratedWithOriginal(key = "grainDM", modOld=origModOut, modNew=aposteriori, mes=measurements,
+    res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar), modOld=origModOut, modNew=aposteriori, mes=measurements,
                                                                  likelihoods = likelihood,
                                                                  alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
@@ -541,10 +541,11 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
                measured <- measured[measured$var_id == key,]
-
                res <- c(likelihoods[[key]](modelled, measured),
                         sqrt(mean((modelled-measured$mean)^2))
                )
+
+
                print(abs(mean(modelled)-mean(measured$mean)))
                res
         })
