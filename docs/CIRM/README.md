@@ -2,6 +2,20 @@ This is a si
 
 ## Preparations
 
+Before using this script, make sure, your current working directory looks like 
+
+```{verbatim}
+.
+├── glue.R
+├── kichen_sink.R
+├── make_individual_trees.R
+├── Martonvasar_maize_KSH_Fejer.obs
+├── Martonvasar_maize.obs
+├── README.md
+├── statistics.R
+└── tree_accuracy.R
+```
+
 ### Loading the RBBGCMuso package and the necessary functions
 
 ```{r}
