@@ -8,7 +8,7 @@ This is a si
 library(RBBGCMuso)
 source("make_individual_trees.R") # The DT creation and update algorithms
 source("glue.R") # GLUE optimizer algorithms
-```
+```
 
 The file containing the path to the observation files (Martonvasar_maize.obs), and the parameter intervals (Martonj) 
 
