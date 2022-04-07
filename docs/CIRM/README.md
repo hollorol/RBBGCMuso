@@ -33,8 +33,8 @@ The mean yield had to be adjust. see in art.
 ```{r}
 measureFile <- "Martonvasar_maize.obs"
 measurements <- read.csv2(measureFile, stringsAsFactors=FALSE)
-measurements$mean <- measurements$mean / 10000 * 0.85
-measurements$sd <- measurements$sd / 10000 * 0.85
+measurements$mean <- measurements$mean / 10000
+measurements$sd <- measurements$sd / 10000
 ```
 
 ### Define conditioning functions
