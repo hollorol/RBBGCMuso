@@ -304,12 +304,9 @@ multiSiteCalib <- function(measurements,
     
     res[["calibrationPar"]] <- calibrationPar
     res[["parameters"]] <- parameters
-<<<<<<< HEAD
     # browser()
     res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar)[1], modOld=origModOut, modNew=aposteriori, mes=measurements,
-=======
-    res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar), modOld=origModOut, modNew=aposteriori, mes=measurements,
->>>>>>> origin/CIRM
+
                                                                  likelihoods = likelihood,
                                                                  alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
