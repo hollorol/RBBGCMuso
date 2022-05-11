@@ -168,14 +168,26 @@ multiSiteCalib <- function(measurements,
                       tryCatch(
 
                                {
-                                   multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
+                                  result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
                                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
+<<<<<<< HEAD
                                    ##setwd("../")
                                }
 
                       , error = function(e){
                                   
+=======
+                                   setwd("../../")
+                                   return(result)
+                               }
+
+                      , error = function(e){
+                          # browser()
+                                            sink("error.txt")
+                                            print(e)
+                                            sink()
+>>>>>>> origin/CIRM
                                             saveRDS(e,"error.RDS")
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
@@ -245,25 +257,22 @@ multiSiteCalib <- function(measurements,
     write.csv(results,"result.csv")
     calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
     if(!is.null(constraints)){
-        notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
-        notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
-        treeData <- results[,-notForTree]
-        treeData["failType"] <- as.factor(results$failType)
-        if(ncol(treeData) > 4){
-            
-            tryCatch({
-              rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-              svg("treeplot.svg")
-              rpart.plot(rp)
-              dev.off()
+        tryCatch({
+            notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
+            notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
+            treeData <- results[,-notForTree]
+            treeData["failType"] <- as.factor(results$failType)
+            if(ncol(treeData) > 4){
+                rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+                svg("treeplot.svg")
+                rpart.plot(rp)
+                dev.off()
             }
-                     , error = function(e){
-                print(e)
-            })
-            
-        }
+        }, error = function(e){
+            print(e)
+        })
     }
-    origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
+   origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
     # Just single objective version TODO:Multiobjective
     results <- results[results[,"Const"] == 1,]
     if(nrow(results)==0){
@@ -295,8 +304,12 @@ multiSiteCalib <- function(measurements,
     
     res[["calibrationPar"]] <- calibrationPar
     res[["parameters"]] <- parameters
+<<<<<<< HEAD
     # browser()
     res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar)[1], modOld=origModOut, modNew=aposteriori, mes=measurements,
+=======
+    res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar), modOld=origModOut, modNew=aposteriori, mes=measurements,
+>>>>>>> origin/CIRM
                                                                  likelihoods = likelihood,
                                                                  alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
@@ -318,8 +331,8 @@ multiSiteCalib <- function(measurements,
                          max(c(measured,original,calibrated))),
                   xlim=c(min(c(measured,original,calibrated)),
                          max(c(measured,original,calibrated))),
-                  xlab=expression("measured "~(kg[C]~m^-2)),
-                  ylab=expression("simulated "~(kg[C]~m^-2)),
+                  xlab=expression("measured "~(kg[DM]~m^-2)),
+                  ylab=expression("simulated "~(kg[DM]~m^-2)),
                   cex.lab=1.3,
                   col="red",
                   pch=19,
@@ -488,9 +501,12 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         writeLines(as.character(i-1),"progress.txt") #UNCOMMENT IMPORTANT
     }
     }
+
     if(threadNumber == 1){
         return(originalRun)
     }
+
+    return(0)
 }
 distributeCores <- function(iterations, numCores){
     perProcess<- iterations %/% numCores
@@ -540,10 +556,11 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
                measured <- measured[measured$var_id == key,]
-
                res <- c(likelihoods[[key]](modelled, measured),
                         sqrt(mean((modelled-measured$mean)^2))
                )
+
+
                print(abs(mean(modelled)-mean(measured$mean)))
                res
         })
