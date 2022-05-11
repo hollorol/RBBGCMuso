@@ -171,14 +171,15 @@ multiSiteCalib <- function(measurements,
                                    multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
                                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
-                                    # setwd("../")
+                                   ##setwd("../")
                                }
 
                       , error = function(e){
+                                  
                                             saveRDS(e,"error.RDS")
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
-         })
+        })
     })
 
     #                _       _                                               
@@ -226,6 +227,7 @@ multiSiteCalib <- function(measurements,
     # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
     # | |__| (_) | | | | | | |_) | | | | |  __/
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
+    
     if(!is.null(constraints)){
         constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
         constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
@@ -248,12 +250,17 @@ multiSiteCalib <- function(measurements,
         treeData <- results[,-notForTree]
         treeData["failType"] <- as.factor(results$failType)
         if(ncol(treeData) > 4){
-            rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-            svg("treeplot.svg")
-            tryCatch(rpart.plot(rp), error = function(e){
+            
+            tryCatch({
+              rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+              svg("treeplot.svg")
+              rpart.plot(rp)
+              dev.off()
+            }
+                     , error = function(e){
                 print(e)
             })
-            dev.off()
+            
         }
     }
     origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
@@ -285,9 +292,11 @@ multiSiteCalib <- function(measurements,
     nameGroupTable <- calTable 
     nameGroupTable[,1] <- tools::file_path_sans_ext(basename(nameGroupTable[,1]))
     res <- list()
+    
     res[["calibrationPar"]] <- calibrationPar
     res[["parameters"]] <- parameters
-    res[["comparison"]] <- compareCalibratedWithOriginal(key = "grainDM", modOld=origModOut, modNew=aposteriori, mes=measurements,
+    # browser()
+    res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar)[1], modOld=origModOut, modNew=aposteriori, mes=measurements,
                                                                  likelihoods = likelihood,
                                                                  alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
