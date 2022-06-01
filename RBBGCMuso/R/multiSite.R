@@ -171,15 +171,8 @@ multiSiteCalib <- function(measurements,
                                   result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
                                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
-<<<<<<< HEAD
-                                   ##setwd("../")
-                               }
-
-                      , error = function(e){
-                                  
-=======
-                                   setwd("../../")
-                                   return(result)
+                                   # setwd("../../")
+                                   # return(result)
                                }
 
                       , error = function(e){
@@ -187,7 +180,6 @@ multiSiteCalib <- function(measurements,
                                             sink("error.txt")
                                             print(e)
                                             sink()
->>>>>>> origin/CIRM
                                             saveRDS(e,"error.RDS")
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
