@@ -7,7 +7,7 @@
 
 *Current version: 0.7.0*
 
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://agromo.agrar.mta.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://agromo.agrar.mta.hu/bbgc/download.html][Biome-BGCMuSo v6.1]] with RBBGCMuSo. 
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://nimbus.elte.hu/bbgc/download.html][Biome-BGCMuSo v6.1]] with RBBGCMuSo. 
 
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
@@ -46,7 +46,7 @@ To start using RBBGCMuso you have to load the package in R with the following co
 library(RBBGCMuso)
 #+END_SRC
 
-In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do when you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, the soil input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][actual Biome-BGCMuSo User's Guide]].
+In order to use the RBBGCMuso framework, you have to set up the environment, as you would normally do when you use the model without the RBBGCMuso framework. It means that according to the Biome-BGCMuSo terminology you have to have the proper INI file set, the meteorology input file, the soil input file, and the ecophysiological constants file (EPC) as minimum input. Additional files might be included by the user including nitrogen deposition, management handlers, etc. Please read the corresponding documentation in the [[http://nimbus.elte.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][actual Biome-BGCMuSo User's Guide]].
 
 If you do not yet have a complete, operational model input dataset, you may want to use the so-called copyMusoExampleTo function (part of RBBGCMuso) which downloads a complete sample simulation set to your hard drive:
 
@@ -87,7 +87,7 @@ In our example s.ini and n.ini follows this convention, so by default RBBGCMuso 
 
 *** Running the model
 
-Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
+Now as we have a complete set of input data, we are ready to run the model. You can run the model in spinup mode, in normal mode, or in both phases (including the so-called transient run; see the [[http://nimbus.elte.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). Using the runMuso function (that is part of RBBGCMuso) you will be able to execute the the model in both spinup or normal phase, and you can also simplify the execution of both phases consecutively. (Note that runMuso is the same as the obsolete calibMuso function.) 
 
 In order to execute the simulation, first you have to set the working directory in R so that RBBGCMuso will find the model and the input files. In our example this is as follows:
 
@@ -109,7 +109,7 @@ If the simulation is successful, the results can be found in the C:\model direct
 
 *** Visualization of the model output
 
-Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block; see below). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://agromo.agrar.mta.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). 
+Once the simulation is completed (hopefully without errors), we can visualize the results. Biome-BGCMuSo provides large flexibility on model output selection, which means that the results will depend on the settings of the user in the normal INI file (DAILY_OUTPUT block; see below). In our hhs example 12 variables are calculated in daily resolution. As the model is run for 9 years by the normal INI file, each output variable will be available for 9x365 days (note the handling of leap years in the [[http://nimbus.elte.hu/bbgc/files/Manual_BBGC_MuSo_v6.1.pdf][Biome-BGCMuSo User's Guide]]). 
 
 Assume that we would like to visualize Gross Primary Production (GPP) for one simulation year (this is the 2nd variable in the n.ini file; see below). This can be achieved by the following commands. First we re-run the normal phase and redirect the output to the R variable called 'results':
 
@@ -168,7 +168,7 @@ DAILY_OUTPUT
 #+END_SRC
 
 Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. At present the R package handles only daily output data, but the user should acknowledge the optional annual output set in the ini file as well. 
-Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://agromo.agrar.mta.hu/bbgc/files/MUSO6.1_variables.xlsx
+Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://nimbus.elte.hu/bbgc/files/MUSO6.1_variables.xlsx
 
 Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
 One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation (ET), Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, rooting depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
@@ -240,7 +240,7 @@ In advanced mode there is possibility to select the parameters.csv file using th
 
 *** Sensitivity analysis
 
-Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://agromo.agrar.mta.hu/files/musoSensi_usage.html][Visit this link to read the manual of the sensitivity analysis.]]
+Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://nimbus.elte.hu/agromo/files/musoSensi_usage.html][Visit this link to read the manual of the sensitivity analysis.]]
 Note that parameters.csv is provided in the hhs example dataset, so you don't have to create it manually. 
 
 *IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]

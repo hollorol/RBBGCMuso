@@ -865,6 +865,7 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 0.1,
+    "DEPENDENCE": 0,
     "GROUP": 0,
     "TYPE": 0
   },
@@ -875,6 +876,7 @@
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 0.1,
+    "DEPENDENCE": 1,
     "GROUP": 0,
     "TYPE": 0
   },

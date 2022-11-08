@@ -2724,6 +2724,30 @@
     "descriptions": "SUM of C deep leaching"
   },
   {
+    "codes": 564,
+    "names": "cwdc_above",
+    "units": "kgC m-2",
+    "descriptions": "Aboveground cwdc"
+  },
+  {
+    "codes": 565,
+    "names": "litrc_above",
+    "units": "kgC m-2",
+    "descriptions": "Aboveground litrc"
+  },
+  {
+    "codes": 566,
+    "names": "CNratioERR",
+    "units": "kgC m-2",
+    "descriptions": "CN ratio error"
+  },
+  {
+    "codes": 567,
+    "names": "flowHSsnk_C",
+    "units": "kgC m-2",
+    "descriptions": "C loss due to flower heat stress"
+  },
+  {
     "codes": 600,
     "names": "m_leafc_to_litr1c",
     "units": "kgC m-2 day-1",
@@ -12595,7 +12619,7 @@
   },
   {
     "codes": 2585,
-    "names": "hydr_conductEND[6]",
+    "names": "rootdepth5",
     "units": "ms-1",
     "descriptions": "Hydraulic conductivity at the end of the day of soil layer 7 (120-150 cm)"
   },

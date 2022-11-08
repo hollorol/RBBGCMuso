@@ -8,7 +8,7 @@
 #' @importFrom limSolve xsample
 #' @export
 
-musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL){
+musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = NULL, burnin = NULL){
     if(is.null(constrains)){
         constMatrix <- constrains
         constMatrix <- getOption("RMuso_constMatrix")[[fileType]][[as.character(getOption("RMuso_version"))]]
@@ -176,7 +176,7 @@ musoRand <- function(parameters, iterations=3000, fileType="epc", constrains = N
         E <- do.call(rbind,lapply(Ef,function(x){x$E}))
         f <- do.call(c,lapply(Ef,function(x){x$f}))
          # browser()
-        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,iter = iterations))$X
+        randVal <- suppressWarnings(limSolve::xsample(G=G,H=h,E=E,F=f,burninlength=burnin, iter = iterations))$X
     } else{
         Gh0<-genMat0(dependences)
         randVal <- suppressWarnings(xsample(G=Gh0$G,H=Gh0$h, iter = iterations))$X

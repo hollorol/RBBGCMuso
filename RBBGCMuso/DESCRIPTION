@@ -32,7 +32,10 @@ Imports:
     ncdf4,
     future,
     httr,
-    tcltk
+    tcltk,
+    Boruta,
+    rpart,
+    rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 RoxygenNote: 7.1.0
 Suggests: knitr,
