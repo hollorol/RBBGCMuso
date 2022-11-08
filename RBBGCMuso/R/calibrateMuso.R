@@ -114,7 +114,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
     if(numCores==1){
-        result <- res0
+        results <- res0
     } else {
         resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
         # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
