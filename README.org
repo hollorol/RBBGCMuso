@@ -7,7 +7,7 @@
 
 Please cite this work as follows:
 Hollós, R., Kristóf, E., Fodor, N., Hidy, D., Barcza, Z. (2022).
-RBBGCMuso: an R package to support the application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model. URL https://github.com/hollorol/AgroMo.
+RBBGCMuso: an R package to support the application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model. URL https://github.com/hollorol/RBBGCMuso.
 
 *Current version: 0.7.0*
 
