@@ -5,7 +5,7 @@
 #' @author Roland Hollos
 #' @export
 
-changemulline <- function(filePaths, calibrationPar, contents, src, outFiles=filePaths){
+changemulline <- function(filePaths, calibrationPar, contents, src=NULL, outFiles=filePaths){
     # browser()
     if(is.null(src)){
         src <- filePaths

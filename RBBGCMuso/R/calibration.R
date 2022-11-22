@@ -273,7 +273,8 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     maxParValues <- unlist(preservedCalibtop5[which.max(preservedCalibtop5$combined),])[1:length(paramIndex)]
     maxParIndexes <- paramIndex
     maxLikelihoodParameters <- data.frame(parameter_index=maxParIndexes,parameter_value=maxParValues)
-    write.csv(cbind.data.frame(calibrationPar=maxParValues,parameters=maxParIndexes),"maxLikelihood.csv")
+    write.csv(cbind.data.frame(parameters=maxParIndexes, calibrationPar=maxParValues),
+              "maxlikelihood_parameters.csv")
     cat("\n\n- A file containing the parameters with the maximum likelihood (maxlikelihood_parameters.csv) has been created.\n")
     write.csv(optRanges,"optRanges.csv")
     cat("- GLUE interval values have been written into optRanges.csv\n")
