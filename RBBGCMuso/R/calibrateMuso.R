@@ -12,7 +12,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL,
-                     thread_prefix="thread", numCores = (parallel::detectCores()-1), pb = txtProgressBar(min=0, max=iterations, style=3),
+                     thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
 
