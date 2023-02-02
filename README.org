@@ -259,4 +259,4 @@ E-mail: Roland HOLLÓS: hollorol@gmail.com; Zoltán BARCZA: zoltan.barcza@ttk.el
 
 ** Acknowledgements
 
-   The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028). 
+   The research was funded by the Széchenyi 2020 programme, the European Regional Development Fund and the Hungarian Government (GINOP-2.3.2-15-2016-00028), and by the National Multidisciplinary Laboratory for Climate Change (RRF-2.3.1-21-2022-00014) project.
