@@ -10,36 +10,10 @@
 
 updateMusoMapping <- function(excelName, dest="./", version=getOption("RMuso_version")){
 
-    expandRangeRows <- function (ind) {
-        toExpand <- excelDF[ind,]
-        rangeString <- gsub(".*?(\\d*\\-\\d*).*","\\1",toExpand[2])
-        interval <- as.numeric(strsplit(rangeString,split="-")[[1]])
-        result <- do.call(rbind,lapply(interval[1]:interval[2],function(x){
-            toExpand[2] <- x
-            toExpand[1] <- gsub("\\[.*?\\]",sprintf("_%s",(x-interval[1])),toExpand[1])
-            toExpand
-        }))
-        result <- as.data.frame(result,stringsAsFactors = FALSE)
-        result[,2] <- as.numeric(result[,2])
-        colnames(result) <- c("names","codes","units","descriptions")
-        result[,c(2,1,3,4)]
-    }
-
     excelDF <- read.xlsx(excelName)
     excelDF <- excelDF[!is.na(excelDF[,2]),]
-    excelDF[,1] <- trimws(excelDF[,1])
-    excelDF[,2] <- trimws(excelDF[,2])
-    excelDF[,3] <- trimws(excelDF[,3])
-    excelDF[,4] <- trimws(excelDF[,4])
-    rangeRows <- grep("-",excelDF[,2])
-    nonRangeMatrix <- excelDF[setdiff(1:nrow(excelDF),rangeRows),]
-    nonRangeMatrix[,2] <- as.numeric(nonRangeMatrix[,2])
-    nonRangeMatrix[,1] <- trimws(nonRangeMatrix[,1])
-    names(nonRangeMatrix) <- c("names","codes","units","descriptions")
-    outMatrix <- rbind.data.frame(do.call(rbind.data.frame,lapply(rangeRows,expandRangeRows)),
-                                  nonRangeMatrix[,c(2,1,3,4)])
-    outMatrix <- outMatrix[order(outMatrix[,1]),]
-    rownames(outMatrix)<- NULL
+    outMatrix <- excelDF[,c(1,2,5,4)]
+    names(outMatrix) <- c("codes","names","units","descriptions")
     write_json(outMatrix, file.path(dest,sprintf("varTable%s.json",version)), pretty=TRUE)
 }
 
