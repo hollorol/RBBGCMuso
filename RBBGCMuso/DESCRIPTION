@@ -22,6 +22,10 @@ Imports:
 	rmarkdown,
 	tibble,
 	tidyr,
+	glue,
+	openxlsx,
+	jsonlite,
+	scales,
 	tcltk,
 	digest,
     jsonlite,
@@ -37,7 +41,6 @@ Imports:
     rpart,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
-RoxygenNote: 7.1.0
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr

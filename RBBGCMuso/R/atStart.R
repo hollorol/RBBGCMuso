@@ -1,6 +1,7 @@
 .onLoad <- function(libname,pkgname){
-    print("This is RBBGCMuso version 0.7")
-    RMuso_version <- 6 
+    RMuso_version <- 7
+    cat(sprintf("This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d",
+                RMuso_version))
     RMuso_constMatrix <- list(epc=NULL,soil=NULL) 
     RMuso_varTable <- list()
     #___________________________

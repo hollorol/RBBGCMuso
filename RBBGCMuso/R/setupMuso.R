@@ -16,7 +16,7 @@
 #' @param grazInput Via the grazInput parameter, the user can specify the location of the file that contains the grazing information. By default the package reads this information from the INI files.
 #' @param harvInput Via the harvInput parameter, the user can specify the location of the file that contains the harvesting information. By default the package reads this information from the INI files.
 #' @param plougInput Via the plougInput parameter, the user can specify the location of the file that contains the ploughing information. By default the package reads this information from the INI files.
-#' @param fertInput Via the fertInput parameter, ythe user can specify the location of the file that contains the fertilizing information. By default the package reads this information from the INI files.
+#' @param fertInput Via the fertInput parameter, the user can specify the location of the file that contains the fertilizing information. By default the package reads this information from the INI files.
 #' @param irrInput Via the irrInput parameter, the user can specify the location of the file that contains the irrigation information. By default the package reads this information from the INI files.
 #' @param nitInput Via the nitInput parameter, the user can specify the location of the file that contains the nitrogen deposition data. By default the package reads this information from the INI files.
 #' @param iniInput Via the iniInput parameter, the user can specify the location of the INI files. By default the package reads the INI files from the working directory. 
