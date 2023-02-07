@@ -15,4 +15,6 @@
 "cul","mgm",1,"cultivation"
 "frz","mgm",1,"fertilization"
 "irr","mgm",1,"irrigation"
+"mul","mgm",1,"mulching"
+"cwe","mgm",1,"cwdextract"
 "epc","plt",0,"plantEpc"
