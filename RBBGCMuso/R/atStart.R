@@ -1,7 +1,20 @@
+
+printback <- function(text,color){
+  cat(sprintf("\033[%dm%s\033[0m\n",color,text))
+}
+colorText <- function(text,color){
+  sprintf("\033[%dm%s\033[0m",color,text)
+}
+
 .onLoad <- function(libname,pkgname){
     RMuso_version <- 7
-    cat(sprintf("This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d",
+    cat(sprintf('This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d\n',
                 RMuso_version))
+    
+    cat('Thanks for using RBBGCMuso!\n')
+    cat('For quick tutorial visit https://github.com/hollorol/RBBGCMuso\n')
+    cat(sprintf('For help, issue the command: %s\n',colorText('help(package="RBBGCMuso")',104)))
+    cat('In order to get a sample simulation package use the copyMusoExample() command\n')
     RMuso_constMatrix <- list(epc=NULL,soil=NULL) 
     RMuso_varTable <- list()
     #___________________________
@@ -34,3 +47,4 @@
     )
     # getOption("RMuso_constMatrix")$soil[[as.character(getOption("RMuso_version"))]]
 }
+cat("\033[41mdfa\033[m")
