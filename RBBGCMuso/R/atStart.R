@@ -10,11 +10,9 @@ colorText <- function(text,color){
     RMuso_version <- 7
     cat(sprintf('This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d\n',
                 RMuso_version))
-    
-    cat('Thanks for using RBBGCMuso!\n')
-    cat('For quick tutorial visit https://github.com/hollorol/RBBGCMuso\n')
+    cat(sprintf('For quick tutorial visit %s\n', colorText('https://github.com/hollorol/RBBGCMuso',104)))
     cat(sprintf('For help, issue the command: %s\n',colorText('help(package="RBBGCMuso")',104)))
-    cat('In order to get a sample simulation package use the copyMusoExample() command\n')
+    cat(sprintf('In order to get a sample simulation package use the %s command\n',colorText('copyMusoExample()',104)))
     RMuso_constMatrix <- list(epc=NULL,soil=NULL) 
     RMuso_varTable <- list()
     #___________________________
