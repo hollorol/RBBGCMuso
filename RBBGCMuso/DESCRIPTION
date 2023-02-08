@@ -40,6 +40,7 @@ Imports:
     Boruta,
     rpart,
     plotly,
+    shiny,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,
