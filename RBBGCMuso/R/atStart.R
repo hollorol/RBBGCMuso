@@ -47,4 +47,3 @@ colorText <- function(text,color){
     )
     # getOption("RMuso_constMatrix")$soil[[as.character(getOption("RMuso_version"))]]
 }
-cat("\033[41mdfa\033[m")
