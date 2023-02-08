@@ -12,7 +12,7 @@ colorText <- function(text,color){
                 RMuso_version))
     cat(sprintf('For quick tutorial visit %s\n', colorText('https://github.com/hollorol/RBBGCMuso',104)))
     cat(sprintf('For help, issue the command: %s\n',colorText('help(package="RBBGCMuso")',104)))
-    cat(sprintf('In order to get a sample simulation package use the %s command\n',colorText('copyMusoExample()',104)))
+    cat(sprintf('In order to get a sample simulation package use the %s command\n',colorText('copyMusoExampleTo()',104)))
     RMuso_constMatrix <- list(epc=NULL,soil=NULL) 
     RMuso_varTable <- list()
     #___________________________
