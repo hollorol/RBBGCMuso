@@ -13,6 +13,19 @@ musoDate(
   prettyOut = FALSE
 )
 }
+\arguments{
+\item{startYear}{Start year of the simulations}
+
+\item{numYears}{Number of the years of the simulation}
+
+\item{combined}{using separate y m d columns or not?}
+
+\item{timestep}{timestep of date creation}
+
+\item{corrigated}{If leapyear ...}
+
+\item{format}{"the date format"}
+}
 \description{
 This function generates MuSo compatibla dates for the data
 }

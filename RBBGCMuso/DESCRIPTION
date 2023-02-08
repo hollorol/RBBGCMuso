@@ -39,9 +39,12 @@ Imports:
     tcltk,
     Boruta,
     rpart,
+    plotly,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr
 ByteCompile: true
+RoxygenNote: 7.2.3
+Encoding: UTF-8

@@ -42,7 +42,7 @@ nitInput=NULL, iniInput=NULL, epcInput=NULL)
 
 \item{plougInput}{Via the plougInput parameter, the user can specify the location of the file that contains the ploughing information. By default the package reads this information from the INI files.}
 
-\item{fertInput}{Via the fertInput parameter, ythe user can specify the location of the file that contains the fertilizing information. By default the package reads this information from the INI files.}
+\item{fertInput}{Via the fertInput parameter, the user can specify the location of the file that contains the fertilizing information. By default the package reads this information from the INI files.}
 
 \item{irrInput}{Via the irrInput parameter, the user can specify the location of the file that contains the irrigation information. By default the package reads this information from the INI files.}
 
