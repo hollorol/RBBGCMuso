@@ -17,7 +17,7 @@ paramSweep <- function(inputDir="./",
                        parameters=NULL,
                        outputDir=NULL,
                        iterations=10,
-                       outVar="daily_gpp",
+                       outVar="GPP",
                        htmlOutName = "paramsweep.html",
                        fixAlloc=FALSE){
     
