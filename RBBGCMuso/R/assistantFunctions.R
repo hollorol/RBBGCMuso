@@ -125,17 +125,27 @@ dynRound <- function(x,y,seqLen){
 }
 
 
-readValuesFromFile  <- function(epc, linums){
-	epcFile <- readLines(epc)
+#' readValuesFromFile  
+#' 
+#' read Muso values from file 
+#'
+#' @param  filename The name of the 
+#' @usage readValuesFromFile(filename, linums)
+#' @export 
+
+readValuesFromFile  <- function(filename, linums){
 	rows <- numeric(2)
 	values <- sapply(linums, function(x){
 	    rows[1] <- as.integer(x)
 	    rows[2] <- as.integer(round(100*x)) %% 10 + 1 
-	    epcFile <- readLines(epc)
-	    selRow <- unlist(strsplit(epcFile[rows[1]], split= "[\t ]"))
+	    fromFile <- readLines(filename)
+	    selRow <- unlist(strsplit(fromFile[rows[1]], split= "[\t ]"))
 	    selRow <- selRow[selRow!=""]
-	    return(as.numeric(selRow[rows[2]]))
-
+        ret <- suppressWarnings(as.numeric(selRow[rows[2]]))
+        if( is.na(ret) ){
+            return(selRow[rows[2]])
+        }
+	    return(ret)
 	})
 
 	return(values)

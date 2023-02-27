@@ -33,7 +33,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       binaryPlace = "./", fileToChange = "epc",
                       skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE,
                       postProcString = NULL,
-                      doBackup=TRUE
+                      doBackup=TRUE,
+                      fixAlloc=FALSE
                       ){ #
 ########################################################################
 ###########################Set local variables and places###############
@@ -121,6 +122,9 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       } else {
                           NULL
                       })
+        if(fixAlloc){
+            fixAlloc(settings)
+        }
                        # fileToChange = fileToChange,)
     }
     

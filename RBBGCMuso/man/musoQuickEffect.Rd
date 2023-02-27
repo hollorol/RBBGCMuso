@@ -15,7 +15,8 @@ musoQuickEffect(
   outVar,
   parName = "parVal",
   yearNum = 1,
-  year = (settings$startYear + yearNum - 1)
+  year = (settings$startYear + yearNum - 1),
+  fixAlloc = FALSE
 )
 }
 \arguments{

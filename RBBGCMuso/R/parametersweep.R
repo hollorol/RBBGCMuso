@@ -18,7 +18,8 @@ paramSweep <- function(inputDir="./",
                        outputDir=NULL,
                        iterations=10,
                        outVar="daily_gpp",
-                       htmlOutName = "paramsweep.html"){
+                       htmlOutName = "paramsweep.html",
+                       fixAlloc=FALSE){
     
     if(is.null(pandoc_version())){
         stop("In order to use parameterSweep you have to have\n pandoc (1.12.3+) installed or run this function from Rstudio\n
@@ -41,13 +42,16 @@ You can download pandoc from here: 'https://pandoc.org/',\n or Rstudio from here
         varNames <- musoMapping(outVar)
         outVarIndex<-outVar
     }
+   
+    if(file.exists("parameters.csv")){
+        parameters <- read.csv("parameters.csv")
+    }
     
-    
-    if(is.null(parameters)){
+    if(is.null(parameters) ){
         parameters <- tcltk::tk_choose.files(caption = "Please select a file with the parameters and the ranges")
     }
     
-    rmdFile <- "---\ntitle: \"ParameterSweep basic\"\n---\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\n```\n```{r, echo=FALSE}\nsuppressWarnings(library(RBBGCMuso))\n```\n```{r, echo=FALSE}\nparameters <- read.csv(\"parameters.csv\")\n```\n```{r,fig.width=10, fig.height=3, echo=FALSE}\nnumPar\nfor(i in 1:numPar){\n  suppressWarnings(musoQuickEffect(calibrationPar=parameters[i,2],startVal = parameters[i,3], endVal = parameters[i,4],\nnSteps = 9,\noutVar = \"daily_gpp\",\nparName = parameters[i,1]))\n}\n```"
+    rmdFile <- sprintf("---\ntitle: \"ParameterSweep basic\"\n---\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\n```\n```{r, echo=FALSE}\nsuppressWarnings(library(RBBGCMuso))\n```\n```{r, echo=FALSE}\nparameters <- read.csv(\"parameters.csv\")\n```\n```{r,fig.width=10, fig.height=3, echo=FALSE}\nnumPar\nfor(i in 1:numPar){\n  suppressWarnings(musoQuickEffect(calibrationPar=parameters[i,2],startVal = parameters[i,3], endVal = parameters[i,4],\nnSteps = 9,\noutVar = \"daily_gpp\",\nparName = parameters[i,1],fixAlloc=%s))\n}\n```",fixAlloc)
     rmdVec <- unlist(strsplit(rmdFile,"\n"))
     rmdVec[11] <- paste0("parameters <- read.csv(\"",parameters,"\", stringsAsFactor = FALSE)")
     rmdVec[14] <- "numPar <- nrow(parameters)"
