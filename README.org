@@ -17,19 +17,24 @@ RBBGCMuso is an R package which supports the easy but powerful application of th
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
 *** Installation in Linux and MS Windows from Source (proposed method)
-*Note that in MS Windows first you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
 or
-b) Install the devtools package first (recommended):
+b) Install the remotes package first (recommended):
 #+BEGIN_SRC R :eval no
-install.packages("devtools")
+install.packages("remotes")
 #+END_SRC
 
 Then copy the following line into the R session and execute it:
 #+BEGIN_SRC R :eval no
-devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
+remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
 #+END_SRC
+
+We provide support to Biome-BGCMuSo v7 via a separate branch (temporary solution that will eventually be merged into the master branch in the future):
+#+BEGIN_SRC R :eval no
+remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",ref="version7",upgrade="never")
+#+END_SRC
+
 
 If you use Linux, with Debian (version 8+) you can automate the whole installation process with curl via copying the following line into the Linux terminal:
 #+BEGIN_SRC bash :eval no
