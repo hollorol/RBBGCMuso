@@ -252,6 +252,14 @@ In advanced mode there is possibility to select the parameters.csv file using th
 Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://nimbus.elte.hu/agromo/files/musoSensi_usage.html][Visit this link to read the manual of the sensitivity analysis.]]
 Note that parameters.csv is provided in the hhs example dataset, so you don't have to create it manually. 
 
+In the simplest case the user might issue the following command that can be immediately tested with the provided example:
+
+#+BEGIN_SRC R :eval no
+musoSensi(iterations = 1000, varIndex = 2)
+#+END_SRC
+
+This example runs the analsis with 1000 iterations using the second output variable (that is daily GPP). 
+
 *IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
 
 *** Parameter estimation (calibration)
