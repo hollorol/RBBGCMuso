@@ -69,16 +69,17 @@ Once the copyMusoExampleTo command is finished, the model input dataset and the 
 In this example the C:\model directory will contain the following files:
 - muso.exe - this is the Biome-BGCMuSo 6.1 model executable for Windows (version might change in the future)
 - cygwin1.dll - a so-called DLL file that supports the model execution under Windows
-- c3grass_muso6.epc - ecophysiological constants input file for the model (C3 grass in this case)
+- c3grass_muso7.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
 - s.ini - initialization file for the model spinup (also known as self-initialization or equilibrium run)
-- hhs.soi - soil file for the Hegyhátsál simulation
+- hhs_muso7.soi - soil file for the Hegyhátsál simulation
 - hhs.mtc43 - meteorology input file
-- hhs.mgm - management definition file for the simulation
+- hhs_muso7.mgm - management definition file for the simulation
 - hhs.mow - ancillary management file for mowing
 - Ndep.txt - Nitrogen deposition file for the simulation
 - CO2.txt - CO_{2} file for the simulation
 - parameters.csv - parameter interval file for the sensitivity analysis and optimization
+- parameters2.csv - alternative parameter interval file for the optimization that contains allocation parameter intervals
 - HU-He2_2012_MEASURED.txt - sample observation file for the Hegyhátsál site (eddy covariance data for 2012)
 
 In the followings we will demonstrate the usability of RBBGCMuso with the hhs example dataset. If you have your own model input data set, you might need to change the commands accordingly. 
