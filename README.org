@@ -11,7 +11,7 @@ RBBGCMuso: an R package to support the application of the [[http://nimbus.elte.h
 
 *Current version: 0.7.0*
 
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://nimbus.elte.hu/bbgc/download.html][Biome-BGCMuSo v6.1]] with RBBGCMuSo. 
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. 
 
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
@@ -67,7 +67,7 @@ Once this command is executed in R, it will invoke a small Graphical User Interf
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
-- muso.exe - this is the Biome-BGCMuSo 6.1 model executable for Windows (version might change in the future)
+- muso.exe - this is the Biome-BGCMuSo model executable for Windows (version might change in the future)
 - cygwin1.dll - a so-called DLL file that supports the model execution under Windows
 - c3grass_muso7.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
@@ -178,7 +178,7 @@ DAILY_OUTPUT
 #+END_SRC
 
 Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. At present the R package handles only daily output data, but the user should acknowledge the optional annual output set in the ini file as well. 
-Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://nimbus.elte.hu/bbgc/files/MUSO6.1_variables.xlsx
+Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: https://nimbus.elte.hu/~bzoli/public/OUTGOING/muso70beta07/Biome-BGCMuSo7.0-b7_outputs.xlsx
 
 Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
 One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation (ET), Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, rooting depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
