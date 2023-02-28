@@ -278,7 +278,6 @@ plotMuso()
 
 likelihoodGPP = list(
     GPP = (function(x, y){exp(-sqrt(mean((x-y)^2)))  }))
-dataVar <- c(GPP=3009)
 calibrateMuso(measuredData = md,
               dataVar = c(GPP=3009), iterations = 100, 
               likelihood = likelihoodGPP, method="GLUE")
