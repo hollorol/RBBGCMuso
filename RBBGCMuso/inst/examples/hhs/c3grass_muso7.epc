@@ -96,8 +96,8 @@ CROP SPECIFIC PARAMETERS
 0.2	(prop.)         theoretical maximum of flowering thermal stress mortality parameter 
 ----------------------------------------------------------------------------------------
 STRESS AND SENESCENCE PARAMETERS
-0.98	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
-0.7	(prop)		VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)
+0.5	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
+0.99	(prop)		VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)
 0.4     (prop)		minimum of soil moisture limit2 multiplicator (full anoxic stress value)
 1000	(Pa)		vapor pressure deficit: start of conductance reduction
 4000	(Pa)		vapor pressure deficit: complete conductance reduction
