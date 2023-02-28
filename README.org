@@ -264,7 +264,28 @@ This example runs the analsis with 1000 iterations using the second output varia
 
 *** Parameter estimation (calibration)
 
-RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Detailed description of the GLUE based optimization method will be published soon. Please contact the authors of the package for sample R scripts that executes the GLUE-based parameter estimation.  
+RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Detailed description of the GLUE based optimization method will be published soon. Below we provide a sample R script that executes the GLUE-based parameter estimation using the sample dataset that is provided by using the copyMusoExampleTo() command (see above). Note that the content of the EPC file might have been changed as the result of the above-described procedures, which means that the user might want to remove the test folder and recreate it using the copyMusoExampleTo() command. 
+
+
+#+BEGIN_SRC R :eval no
+md <- data.table::fread("HU-He2_2012_MEASURED.txt")
+md[md ==-9999] <- NA
+md[,GPP:=GPP/1000]
+plotMusoWithData(md, modelVar = 3009, dataVar = "GPP")
+plotMuso()
+
+
+likelihoodGPP = list(
+    GPP = (function(x, y){exp(-sqrt(mean((x-y)^2)))  }))
+dataVar <- c(GPP=3009)
+calibrateMuso(measuredData = md,
+              dataVar = c(GPP=3009), iterations = 100, 
+              likelihood = likelihoodGPP, method="GLUE")
+#+END_SRC
+
+In the script the observed daily GPP is used to construct the likelihood function. The result of the calibration is provided by a PDF file that is created in the model folder. Note the plotMusoWithData command that is useful to compate visually the observation and the simulation. 
+
+
 
 *** Contact
 
