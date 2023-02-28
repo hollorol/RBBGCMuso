@@ -259,13 +259,13 @@ In the simplest case the user might issue the following command that can be imme
 musoSensi(iterations = 1000, varIndex = 2)
 #+END_SRC
 
-This example runs the analsis with 1000 iterations using the second output variable (that is daily GPP). 
+This example runs the analysis with 1000 iterations using the second output variable (that is daily GPP). The results will be provided in a graphical form and also by numeric values. 
 
-*IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
+IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
 
 *** Parameter estimation (calibration)
 
-RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Detailed description of the GLUE based optimization method will be published soon. Below we provide a sample R script that executes the GLUE-based parameter estimation using the sample dataset that is provided by using the copyMusoExampleTo() command (see above). Note that the content of the EPC file might have been changed as the result of the above-described procedures, which means that the user might want to remove the test folder and recreate it using the copyMusoExampleTo() command. 
+RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Below we provide a sample R script that executes the GLUE-based parameter estimation using the sample dataset that is provided by the copyMusoExampleTo() command (see above). Note that the content of the EPC file might have been changed as the result of the above-described procedures, which means that the user might want to remove the test folder and recreate it using the copyMusoExampleTo() command. The runMuso(skipSpinup = FALSE) command must be executed prior to testing the provided code if the model folder is newly created:
 
 
 #+BEGIN_SRC R :eval no
@@ -283,7 +283,9 @@ calibrateMuso(measuredData = md,
               likelihood = likelihoodGPP, method="GLUE")
 #+END_SRC
 
-In the script the observed daily GPP is used to construct the likelihood function. The result of the calibration is provided by a PDF file that is created in the model folder. Note the plotMusoWithData command that is useful to compate visually the observation and the simulation. 
+In the script the observed daily GPP is used to construct the likelihood function. Unit conversion takes place since the model provides GPP in kgC/m2/day units while the observations are provided in  gC/m2/day units. The result of the calibration is provided by a PDF file that is created in the model folder. The plotMusoWithData command is useful to compare visually the observation and the simulation. 
+
+NOTE: we plan to disseminate a sample script in the future to demonstrate the applicability of the CIRM method in the GLUE context.
 
 
 
