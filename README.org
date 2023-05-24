@@ -11,25 +11,30 @@ RBBGCMuso: an R package to support the application of the [[http://nimbus.elte.h
 
 *Current version: 0.7.0*
 
-RBBGCMuso is an R package which supports the easy but powerful application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. Note that we recommend to use [[http://nimbus.elte.hu/bbgc/download.html][Biome-BGCMuSo v6.1]] with RBBGCMuSo. 
+RBBGCMuso is an R package which supports the easy but powerful application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model in R environment. It also provides some additional tools for the model such as Biome-BGCMuSo optimized Monte-Carlo simulation and global sensitivity analysis. If you would like to use the framework, please read the following description. 
 
 ** Installation
 You can install the RBBGCMuso package in several ways depending on the operating system you use. Up to now RBBGCMuso was tested only in Linux and MS Windows environment, so Mac OS X compatibility cannot be guaranteed yet. In MS Windows you can install the package from binary or from source installer. In Linux you can only install the software from source.  
 
 *** Installation in Linux and MS Windows from Source (proposed method)
-*Note that in MS Windows first you have to install the [[https://cran.r-project.org/bin/windows/Rtools/][Rtools]] Windows software.* 
 If you would like to install the RBBGCMuso package from Source, you have two options. 
 a) Clone this repository, then build and run the package (further information is available here: [[http://kbroman.org/pkg_primer/pages/build.html][package build and install]])
 or
-b) Install the devtools package first (recommended):
+b) Install the remotes package first (recommended):
 #+BEGIN_SRC R :eval no
-install.packages("devtools")
+install.packages("remotes")
 #+END_SRC
 
 Then copy the following line into the R session and execute it:
 #+BEGIN_SRC R :eval no
-devtools::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
+remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
 #+END_SRC
+
+We provide support to Biome-BGCMuSo v7 via a separate branch (temporary solution that will eventually be merged into the master branch in the future):
+#+BEGIN_SRC R :eval no
+remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",ref="version7",upgrade="never")
+#+END_SRC
+
 
 If you use Linux, with Debian (version 8+) you can automate the whole installation process with curl via copying the following line into the Linux terminal:
 #+BEGIN_SRC bash :eval no
@@ -62,18 +67,19 @@ Once this command is executed in R, it will invoke a small Graphical User Interf
 Once the copyMusoExampleTo command is finished, the model input dataset and the model executable (called muso.exe and cygwin1.dll) are available in the C:\model folder. The user might check the content of the files using his/her favourite text editor (we propose Editpad Lite as it can handle both Windows and Linux text files). Note that file extension might be hidden by Windows which could cause problems, so we propose to adjust Windows so that file extensions are visible. Visit [[https://www.thewindowsclub.com/show-file-extensions-in-windows][this website]] to learn how to show file extensions in Windows. 
 
 In this example the C:\model directory will contain the following files:
-- muso.exe - this is the Biome-BGCMuSo 6.1 model executable for Windows (version might change in the future)
+- muso.exe - this is the Biome-BGCMuSo model executable for Windows (version might change in the future)
 - cygwin1.dll - a so-called DLL file that supports the model execution under Windows
-- c3grass_muso6.epc - ecophysiological constants input file for the model (C3 grass in this case)
+- c3grass_muso7.epc - ecophysiological constants input file for the model (C3 grass in this case)
 - n.ini - initialization file for the model, normal mode (INI file controls the entire simulation)
 - s.ini - initialization file for the model spinup (also known as self-initialization or equilibrium run)
-- hhs.soi - soil file for the Hegyhátsál simulation
+- hhs_muso7.soi - soil file for the Hegyhátsál simulation
 - hhs.mtc43 - meteorology input file
-- hhs.mgm - management definition file for the simulation
+- hhs_muso7.mgm - management definition file for the simulation
 - hhs.mow - ancillary management file for mowing
 - Ndep.txt - Nitrogen deposition file for the simulation
 - CO2.txt - CO_{2} file for the simulation
 - parameters.csv - parameter interval file for the sensitivity analysis and optimization
+- parameters2.csv - alternative parameter interval file for the optimization that contains allocation parameter intervals
 - HU-He2_2012_MEASURED.txt - sample observation file for the Hegyhátsál site (eddy covariance data for 2012)
 
 In the followings we will demonstrate the usability of RBBGCMuso with the hhs example dataset. If you have your own model input data set, you might need to change the commands accordingly. 
@@ -172,7 +178,7 @@ DAILY_OUTPUT
 #+END_SRC
 
 Note the number right below the DAILY_OUTPUT line that indicates the number of selected output variables. If you decide to change the number of output variables, the number (currently 12) should be adjusted accordingly. At present the R package handles only daily output data, but the user should acknowledge the optional annual output set in the ini file as well. 
-Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: http://nimbus.elte.hu/bbgc/files/MUSO6.1_variables.xlsx
+Biome-BGCMuSo offers a large number of posible output variables. The full list of variables are available at the website of the model as an Excel file: https://nimbus.elte.hu/~bzoli/public/OUTGOING/muso70beta07/Biome-BGCMuSo7.0-b7_outputs.xlsx
 
 Selection of output variables is primarily driven by the need of the user: it depends on the process that the user would like to study. We made an effort to provide all possible variables that are comparable with the observations. 
 One might be interested in carbon fluxes like Net Ecosystem Exchange (NEE), Gross Primary Production (GPP), total ecosystem respiation (Reco, all comparable with eddy covariance measurements), evapotransporation (ET), Net Primary Production (NPP), soil organic carbon (SOC) content, leaf area index (LAI), aboveground woody biomass and coarse woody debris in forests, crop yield, rooting depth, aoveground or total biomass for herbaceous vegetation, litter, soil respiration, soil water content for 10 soil layers, soil N2O efflux, etc. 
@@ -233,25 +239,54 @@ At present musoQuickEffect is not usable for the allocation parameters due to re
 
 *** Study the effect of ecophysiological parameters using paramSweep
 
-The paramSweep function is the extension of the musoQuickEffect. It can test the effect of the multiple selected parameters on the model results in once. The result of the paramSweep function is a single HTML file with embedded images. paramSweep needs a csv file called parameters.csv which defines the parameters of interest and the corresponding parameter intervals. In case of the hhs sample dataset there is an example parameters.csv file (please open it and check). The structure of the parameters.csv file is simple. First, parameter name is needed (it can be anything but should refer to the parameter), then the line number of the EPC file is provided, then the possible minimum and maximum value of the parameter is given. Note that there is a tricky part in the parameters.csv as the parameter selection is not straightforward in case of multiple columns (see the end of the EPC file!). The logic is that fractional part of a number is used to select the appropriate parameter from multiple columns. For example, "emergence,127.61,0,1000" means that in the 127th line of the EPC file there are 7 columns (numbering starts from 0, so it is 6), and we would like to adjust the 2nd column (marked by 1), which ends up with 127.61. 0,1000 means that sweep starts at 0 and ends with 1000. Invoke the paramSweep with simply issuing this command:
+The paramSweep function is the extension of the musoQuickEffect. It can test the effect of the multiple selected parameters on the model results in once. The result of the paramSweep function is a single HTML file with embedded images. paramSweep needs a csv file called parameters.csv which defines the parameters of interest and the corresponding parameter intervals. In case of the hhs sample dataset there is an example parameters.csv file (please open it and check). The structure of the parameters.csv file is simple. First, parameter name is needed (it can be anything but should refer to the parameter), then the line number of the EPC file is provided, then the possible minimum and maximum value of the parameter is given. Note that there is a tricky part in the parameters.csv as the parameter selection is not straightforward in case of multiple columns (see the end of the EPC file!). The logic is that fractional part of a number is used to select the appropriate parameter from multiple columns. For example, "emergence,132.61,0,1000" means that in the 132nd line of the EPC file there are 7 columns (numbering starts from 0, so it is 6), and we would like to adjust the 2nd column (marked by 1), which ends up with 132.61. 0,1000 means that sweep starts at 0 and ends with 1000. Invoke the paramSweep with simply issuing this command:
 
 #+BEGIN_SRC R :eval no
 paramSweep()
 #+END_SRC
 
-*IMPORTANT NOTE: After the execution of this command a pop-up window will be opened to select the appropriate parameters.csv file. Due to some R related issues at present the dialog window might appear BEHIND THE MAIN R/Rstudio WINDOW, so it might be hidden from the user. Please check the Windows taskbar and find the dialog window, then select the parameters.csv.*
-In advanced mode there is possibility to select the parameters.csv file using the parameters of paramSweep. 
+The routine uses the provided parameters.csv by default. This can be changed of course and the user can provide an alternative csv file. 
 
 *** Sensitivity analysis
 
 Advanced sensitivity analysis is possible with the musoSensi function of RBBGCMuso. [[http://nimbus.elte.hu/agromo/files/musoSensi_usage.html][Visit this link to read the manual of the sensitivity analysis.]]
 Note that parameters.csv is provided in the hhs example dataset, so you don't have to create it manually. 
 
-*IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
+In the simplest case the user might issue the following command that can be immediately tested with the provided example:
+
+#+BEGIN_SRC R :eval no
+musoSensi(iterations = 1000, varIndex = 2)
+#+END_SRC
+
+This example runs the analysis with 1000 iterations using the second output variable (that is daily GPP). The results will be provided in a graphical form and also by numeric values. 
+
+IMPORTANT NOTE: If the result file contains only NAs it means that none of the parameters affected the output variable of interest. In this case you need to adjust the output parameter selection or the EPC parameter list. A simple example for this is soil temperature which is not affected by some of the plant parameters. [[https://github.com/hollorol/RBBGCMuso/issues/3][See this link for further details.]]
 
 *** Parameter estimation (calibration)
 
-RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Detailed description of the GLUE based optimization method will be published soon. Please contact the authors of the package for sample R scripts that executes the GLUE-based parameter estimation.  
+RBBGCMuso supports parameter estimation (also called as model optimization or calibration) based on the so-called GLUE method. GLUE uses observations and the optimization is driven by the parameter intervals file that is described above (parameters.csv). Below we provide a sample R script that executes the GLUE-based parameter estimation using the sample dataset that is provided by the copyMusoExampleTo() command (see above). Note that the content of the EPC file might have been changed as the result of the above-described procedures, which means that the user might want to remove the test folder and recreate it using the copyMusoExampleTo() command. The runMuso(skipSpinup = FALSE) command must be executed prior to testing the provided code if the model folder is newly created:
+
+
+#+BEGIN_SRC R :eval no
+md <- data.table::fread("HU-He2_2012_MEASURED.txt")
+md[md ==-9999] <- NA
+md[,GPP:=GPP/1000]
+plotMusoWithData(md, modelVar = 3009, dataVar = "GPP")
+plotMuso()
+
+
+likelihoodGPP = list(
+    GPP = (function(x, y){exp(-sqrt(mean((x-y)^2)))  }))
+calibrateMuso(measuredData = md,
+              dataVar = c(GPP=3009), iterations = 100, 
+              likelihood = likelihoodGPP, method="GLUE")
+#+END_SRC
+
+In the script the observed daily GPP is used to construct the likelihood function. Unit conversion takes place since the model provides GPP in kgC/m2/day units while the observations are provided in  gC/m2/day units. The result of the calibration is provided by a PDF file that is created in the model folder. The plotMusoWithData command is useful to compare visually the observation and the simulation. 
+
+NOTE: we plan to disseminate a sample script in the future to demonstrate the applicability of the CIRM method in the GLUE context.
+
+
 
 *** Contact
 

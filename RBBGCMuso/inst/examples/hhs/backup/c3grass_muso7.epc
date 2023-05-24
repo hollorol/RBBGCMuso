@@ -22,11 +22,11 @@ PLANT FUNCTIONING PARAMETERS
 30      (Celsius)       threshold temperature for ET-calculation (line 57 in INI file) using PT-method (-9999: no data - only PM-method)
 1.0	(1/yr)		annual leaf and fine root turnover fraction
 0.00	(1/yr)		annual live wood turnover fraction
-0.00	(1/yr)		annual fire mortality fraction
+0.03	(1/yr)		annual fire mortality fraction
 0.01	(1/vegper)	whole-plant mortality fraction in vegetation period
 0.2	(prop)	        dead stem biomass combustion proportion
 0.3	(prop)	        coarse woody biomass combustion proportion
-12.	(kgC/kgN)	C:N of leaves
+36.6	(kgC/kgN)	C:N of leaves
 45.0	(kgC/kgN)	C:N of leaf litter, after retranslocation
 50.0	(kgC/kgN)	C:N of fine roots
 36.6   *(kgC/kgN)       C:N of fruit  
@@ -50,22 +50,22 @@ PLANT FUNCTIONING PARAMETERS
 0.23    (DIM)		soft stem litter cellulose proportion
 0.00   *(DIM)		dead wood cellulose proportion
 0.01	(1/LAI/d)	canopy water interception coefficient
-0.7	(DIM)		canopy light extinction coefficient
+0.63	(DIM)		canopy light extinction coefficient
 2.0     (g/MJ)          potential radiation use efficiency
 0.781   (DIM)           radiation parameter1 (Jiang et al.2015)
 -13.596 (DIM)           radiation parameter2 (Jiang et al.2015)
 2.0	(DIM)		all-sided to projected leaf area ratio
 2.0	(DIM)		ratio of shaded SLA:sunlit SLA
-0.3	(DIM)		fraction of leaf N in Rubisco
+0.14	(DIM)		fraction of leaf N in Rubisco
 0.03	(DIM)		fraction of leaf N in PEP Carboxylase 
-0.002	(m/s)		maximum stomatal conductance (projected area basis)
+0.004	(m/s)		maximum stomatal conductance (projected area basis)
 0.00006	(m/s)		cuticular conductance (projected area basis)
 0.04	(m/s)		boundary layer conductance (projected area basis)
 1.5     (m) 		maximum height of plant
 0.8     (kgC) 	        stem weight corresponding to maximum height
 0.5     (dimless) 	plant height function shape parameter (slope)
-2.5     (m) 		maximum depth of rooting zone
-1	(DIM) 		root distribution parameter
+4.0     (m) 		maximum depth of rooting zone
+3.67	(DIM) 		root distribution parameter
 0.4	(kgC)	        root weight corresponding to max root depth
 0.5	(dimless)	root depth function shape parameter (slope)
 1000	(m/kg)		root weight to root length conversion factor
@@ -96,7 +96,7 @@ CROP SPECIFIC PARAMETERS
 0.2	(prop.)         theoretical maximum of flowering thermal stress mortality parameter 
 ----------------------------------------------------------------------------------------
 STRESS AND SENESCENCE PARAMETERS
-0.4	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
+0.5	(prop)		VWC ratio to calc. soil moisture limit 1 (prop. to FC-WP)
 0.99	(prop)		VWC ratio to calc. soil moisture limit 2 (prop. to SAT-FC)
 0.4     (prop)		minimum of soil moisture limit2 multiplicator (full anoxic stress value)
 1000	(Pa)		vapor pressure deficit: start of conductance reduction
@@ -110,7 +110,7 @@ STRESS AND SENESCENCE PARAMETERS
 0.047   (prop.) 	turnover rate of non-woody cut-down biomass to litter
 0.01    (prop.) 	turnover rate of woody cut-down biomass to litter
 17	(nday)		drought tolerance parameter (critical value of DSWS)
-0.    (prop) soil water deficit effect on photosynthesis downregulation
+0.3    (prop) soil water deficit effect on photosynthesis downregulation
 ----------------------------------------------------------------------------------------
 GROWING SEASON PARAMETERS
 5       (kg/m2) 	crit. amount of snow limiting photosyn.
@@ -137,6 +137,6 @@ phase1  phase2  phase3  phase4 	phase5 	phase6 	phase7  (text) name of the pheno
 0	0	0	0	0	0	0	(ratio) dead woody stem ALLOCATION 
 0	0	0	0	0	0	0	(ratio) live coarse root ALLOCATION 
 0	0	0	0	0	0	0	(ratio) dead coarse root ALLOCATION 
-30	49	49	49	49	49	49	(m2/kgC) canopy average specific leaf area (projected area basis)
-0.5	0.37	0.37	0.37	0.37	0.37    0.37	(prop.)	current growth proportion
+49	49	49	49	49	49	49	(m2/kgC) canopy average specific leaf area (projected area basis)
+0.37	0.37	0.37	0.37	0.37	0.37    0.37	(prop.)	current growth proportion
 10000	10000	10000	10000	10000	10000	10000    (Celsius) maximal lifetime of plant tissue
