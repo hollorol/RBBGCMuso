@@ -244,9 +244,9 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
         randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000,sourceFile=sourceFile)
-        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
+        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),] # TODO: last not random
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations,sourceFile=sourceFile)
     }
 
     origEpc <- readValuesFromFile(settings$epc[2],randVals[[1]])
