@@ -12,6 +12,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL,
+                     sourceFile=NULL, # bases for musoRand if dependecy group is not fully defined by parameters.csv 
                      thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
@@ -127,6 +128,14 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
     switch(method,
            "GLUE"={  
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
+                liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
+                epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
+                epcVals <- results[which.max(liks),1:length(epcIndexes)]
+                epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
+                changemulline(filePaths= epcPlace, epcIndexes,
+                              epcVals, src =epcPlace,# settings$epcInput[2],
+                              outFiles = file.path(outputLoc, "maxLikelihood_epc.epc"))
+                names(epcVals) <- epcIndexes
            },
            "agromo"={
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
@@ -234,7 +243,7 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000,sourceFile=sourceFile)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
         randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
