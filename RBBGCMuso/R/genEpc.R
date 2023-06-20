@@ -29,7 +29,7 @@ randEpc <- function(parameterFile = "parameters.csv", location = "./epcDir",
     for(i in seq(iterations)){
         epcOut <- gsub("\\.",paste0("-",i,"."),basename(sourceEpc))
         changemulline(filePaths = basename(sourceEpc), calibrationPar = randVals[[1]],
-                      contents = randVals[[2]][i,],fileOut = epcOut, fileToChange = "epc")        
+                      contents = randVals[[2]][i,],outFiles = epcOut)        
     }
    setwd(currDir)
 }

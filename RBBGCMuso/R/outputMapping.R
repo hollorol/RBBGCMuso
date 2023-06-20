@@ -1,8 +1,8 @@
 #' updateMusoMapping
 #'
-#' This function updates the Biome-BGCMuSo output code-variable matrix (creates a json file that is used internally by RBBGCMuso). Within Biome-BGCMuSo the output state variablesare marked by integer numbers (see the User's Guide). In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production) a conversion table is needed which is handled by this function. The input Excel file must have the following column order: name, index, units, description (plus other optional columns line group). name refers to the abbreviation of the variable; index is the integer number of the output variable; unit is the unit of the variable; description is a meaningful text to explain the variable. The script will NOT work with other column order!
+#' This function updates the Biome-BGCMuSo output code-variable matrix (creates a json file that is used internally by RBBGCMuso). Within Biome-BGCMuSo the output state variables are marked by integer numbers (see the User's Guide). In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production) a conversion table is needed which is handled by this function. The input Excel file must have the following column order: name, index, units, description (plus other optional columns line group). name refers to the abbreviation of the variable; index is the integer number of the output variable; unit is the unit of the variable; description is a meaningful text to explain the variable. The script will NOT work with other column order!
 #' @author Roland HOLLOS
-#' @param excelName Name of the excelfile which contains the parameters 
+#' @param excelName Name of the Excel file which contains the parameters 
 #' @importFrom openxlsx read.xlsx
 #' @importFrom jsonlite write_json
 #' @return The output code-variable matrix, and also the function changes the global variable
@@ -10,36 +10,10 @@
 
 updateMusoMapping <- function(excelName, dest="./", version=getOption("RMuso_version")){
 
-    expandRangeRows <- function (ind) {
-        toExpand <- excelDF[ind,]
-        rangeString <- gsub(".*?(\\d*\\-\\d*).*","\\1",toExpand[2])
-        interval <- as.numeric(strsplit(rangeString,split="-")[[1]])
-        result <- do.call(rbind,lapply(interval[1]:interval[2],function(x){
-            toExpand[2] <- x
-            toExpand[1] <- gsub("\\[.*?\\]",sprintf("_%s",(x-interval[1])),toExpand[1])
-            toExpand
-        }))
-        result <- as.data.frame(result,stringsAsFactors = FALSE)
-        result[,2] <- as.numeric(result[,2])
-        colnames(result) <- c("names","codes","units","descriptions")
-        result[,c(2,1,3,4)]
-    }
-
     excelDF <- read.xlsx(excelName)
     excelDF <- excelDF[!is.na(excelDF[,2]),]
-    excelDF[,1] <- trimws(excelDF[,1])
-    excelDF[,2] <- trimws(excelDF[,2])
-    excelDF[,3] <- trimws(excelDF[,3])
-    excelDF[,4] <- trimws(excelDF[,4])
-    rangeRows <- grep("-",excelDF[,2])
-    nonRangeMatrix <- excelDF[setdiff(1:nrow(excelDF),rangeRows),]
-    nonRangeMatrix[,2] <- as.numeric(nonRangeMatrix[,2])
-    nonRangeMatrix[,1] <- trimws(nonRangeMatrix[,1])
-    names(nonRangeMatrix) <- c("names","codes","units","descriptions")
-    outMatrix <- rbind.data.frame(do.call(rbind.data.frame,lapply(rangeRows,expandRangeRows)),
-                                  nonRangeMatrix[,c(2,1,3,4)])
-    outMatrix <- outMatrix[order(outMatrix[,1]),]
-    rownames(outMatrix)<- NULL
+    outMatrix <- excelDF[,c(1,2,5,4)]
+    names(outMatrix) <- c("codes","names","units","descriptions")
     write_json(outMatrix, file.path(dest,sprintf("varTable%s.json",version)), pretty=TRUE)
 }
 

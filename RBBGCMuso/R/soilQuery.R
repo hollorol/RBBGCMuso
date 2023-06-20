@@ -9,7 +9,7 @@
 
 getSoilDataFull <- function(lat, lon, apiURL) {
     if(missing(apiURL)){
-        apiURL <- "https://81.169.232.36"
+        apiURL <- "https://rest.isric.org/soilgrids/v2.0/properties"
     }
     apiString <- glue("{apiURL}/query?lon={lon}&lat={lat}")
     soilREST <- #with_config(config(ssl_verifypeer=0L, ssl_verifyhost=0L),
@@ -31,9 +31,9 @@ getSoilDataFull <- function(lat, lon, apiURL) {
 createSoilFile <- function(lat,lon,
                             outputFile="recent.soi",
                             method="constant",apiURL,
-                            template=system.file("examples/hhs/hhs.soi",package="RBBGCMuso")) {
+                            template=system.file("examples/hhs/hhs_MuSo7.soi",package="RBBGCMuso")) {
     if(missing(apiURL)){
-        apiURL <- "https://rest.soilgrids.org/soilgrids/v2.0/properties"
+        apiURL <- "https://rest.isric.org/soilgrids/v2.0/properties"
     }
     outFile <- suppressWarnings(readLines(template))
     outFile[1] <- sprintf("SOILPROP FILE - lat: %s, lon: %s, created in: %s",lat,lon,date())
@@ -50,11 +50,11 @@ createSoilFile <- function(lat,lon,
     }
 
     soilDepth <- tryCatch(getMeanSoil(rest,"bdod")/100,error=function(e){stop("There is no data for the given coordinates")})
-    outFile[55] <- sprintf("%s (%%) percentage of sand by volume in rock free soil",
+    outFile[90] <- sprintf("%s (%%) percentage of sand by volume in rock free soil",
                            paste(createMusoLayers(getMeanSoil(rest,"sand")/10), collapse="\t"))
-    outFile[56] <- sprintf("%s (%%) percentage of silt by volume in rock free soil",
+    outFile[91] <- sprintf("%s (%%) percentage of silt by volume in rock free soil",
                            paste(createMusoLayers(getMeanSoil(rest,"silt")/10), collapse="\t"))
-    outFile[57] <- sprintf("%s (dimless) soil PH",
+    outFile[92] <- sprintf("%s (dimless) soil PH",
                            paste(createMusoLayers(getMeanSoil(rest,"phh2o")/10), collapse="\t"))
     # outFile[58] <- sprintf("%s (%%) bulk density",paste(createMusoLayers(soilDepth),collapse="\t"))
     writeLines(outFile,outputFile)

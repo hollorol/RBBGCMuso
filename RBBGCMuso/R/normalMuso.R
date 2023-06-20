@@ -90,9 +90,9 @@ normalMuso<- function(settings=NULL,parameters=NULL,timee="d",debugging=FALSE,lo
     
     if(!is.null(parameters)){
         switch(fileToChange,
-               "epc" = tryCatch(changemulline(filename = epc[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
+               "epc" = tryCatch(changemulline(epc[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
                                 error = function (e) {stop("Cannot change the epc file")}),
-               "ini" = tryCatch(changemulline(filename = iniInput[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
+               "ini" = tryCatch(changemulline(iniInput[1],calibrationPar,parameters), #(:DONE: trycatch :INSIDE: changeMuso.R)
                                 error = function (e) {stop("Cannot change the ini file")}),
                "both" = (stop("This option is not implemented yet, please choose epc or ini"))
                )

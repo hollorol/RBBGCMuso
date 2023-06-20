@@ -10,7 +10,8 @@ paramSweep(
   outputDir = NULL,
   iterations = 10,
   outVar = "daily_gpp",
-  htmlOutName = "paramsweep.html"
+  htmlOutName = "paramsweep.html",
+  fixAlloc = FALSE
 )
 }
 \arguments{

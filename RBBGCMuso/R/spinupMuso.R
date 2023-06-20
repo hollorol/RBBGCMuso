@@ -52,9 +52,9 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     
      if(!is.null(parameters)){
         switch(fileToChange,
-               "epc" = tryCatch(changemulline(filename = epc[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
+               "epc" = tryCatch(changemulline(filePaths = epc[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
                               error = function (e) {stop("Cannot change the epc file")}),
-               "ini" = tryCatch(changemulline(filename = iniInput[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
+               "ini" = tryCatch(changemulline(filePaths = iniInput[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
                               error = function (e) {stop("Cannot change the ini file")}),
                "both" = (stop("This option is not implemented yet, please choose epc or ini"))
                )

@@ -12,6 +12,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL,
+                     sourceFile=NULL, # bases for musoRand if dependecy group is not fully defined by parameters.csv 
                      thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
@@ -44,6 +45,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
          future({
                       tryCatch(
                                musoSingleThread(measuredData, parameters, startDate,
+                                        sourceFile=settings$epc[2], # EPC SPECIFIC
                                         endDate, formatString,
                                         dataVar, outLoc,
                                         preTag, settings,
@@ -52,6 +54,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                                         modifyOriginal, likelihood, uncertainity,
                                         naVal, postProcString, i)
                       , error = function(e){
+                          # browser()
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
 
@@ -127,6 +130,19 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
     switch(method,
            "GLUE"={  
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
+                liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
+                epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
+                if(ncol(liks) == 1){
+                    ml_place <- which.max(liks)
+                } else {
+                    ml_place <- which.max(as.matrix(liks) %*% as.matrix(w))
+                }
+                epcVals <- results[ml_place,1:length(epcIndexes)]
+                epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
+                changemulline(filePaths= epcPlace, epcIndexes,
+                              epcVals, src =epcPlace,# settings$epcInput[2],
+                              outFiles = file.path(outputLoc, "maxLikelihood_epc.epc"))
+                names(epcVals) <- epcIndexes
            },
            "agromo"={
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
@@ -174,6 +190,7 @@ copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1
 }
 
 musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
+                     sourceFile=NULL,
                      endDate = NULL, formatString = "%Y-%m-%d",
                      dataVar, outLoc = "./calib",
                      preTag = "cal-", settings =  setupMuso(),
@@ -234,10 +251,10 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000)
-        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000,sourceFile=sourceFile)
+        randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),] # TODO: last not random
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations,sourceFile=sourceFile)
     }
 
     origEpc <- readValuesFromFile(settings$epc[2],randVals[[1]])

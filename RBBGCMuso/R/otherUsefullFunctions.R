@@ -183,3 +183,36 @@ return(randomNorm)
 getConstMatrix <- function (filetype="epc", version = as.character(getOption("RMuso_version"))) {
     getOption("RMuso_constMatrix")[[filetype]][[version]]
 }
+
+
+#' fixAlloc 
+#' 
+#' Fix allocation parameter in the epc file
+#'
+#' @param settings the base RMuso settings variable
+#' @param type normal or spinup depending what you want to modify
+#' @usage ...
+#' @export 
+
+fixAlloc <- function(settings=NULL,type="normal"){
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
+    print("Need fix?")
+    epc_file <- settings$epcInput[type]
+    depTable <- options()$RMuso_constMatrix$epc[[as.character(options()$RMuso_version)]]
+    alloc_params<- depTable$INDEX[grep("ALLOCATION",depTable$NAME)]
+    alloc_groups <- round(100*(alloc_params - floor(alloc_params)))
+    tapply(alloc_params, alloc_groups, function(x){
+        currentValues <- readValuesFromFile(epc_file,x)
+        difference <- 1 - sum(currentValues)
+        if(difference == 0){
+            return(FALSE)
+        }
+        tomodiff <- currentValues[currentValues != 0]
+        changemulline(filePaths="c3grass_muso7.epc",
+                      contents=(tomodiff + difference/length(tomodiff)),
+                      calibrationPar=x[currentValues != 0])
+        return(TRUE)
+    })
+}

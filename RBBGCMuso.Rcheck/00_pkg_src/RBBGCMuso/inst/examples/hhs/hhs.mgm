@@ -1,0 +1,33 @@
+MANAGEMENT_INFORMATION MuSo6
+-------------------------------------------------------------------------------------------------------------------
+PLANTING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+THINNING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+MOWING
+1                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+hhs.mow
+-------------------------------------------------------------------------------------------------------------------
+GRAZING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+HARVESTING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+PLOUGHING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+FERTILIZING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+IRRIGATING
+0                                  (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none

@@ -3,6 +3,16 @@
 \name{createSoilFile}
 \alias{createSoilFile}
 \title{createSoilFile}
+\usage{
+createSoilFile(
+  lat,
+  lon,
+  outputFile = "recent.soi",
+  method = "constant",
+  apiURL,
+  template = system.file("examples/hhs/hhs_MuSo7.soi", package = "RBBGCMuso")
+)
+}
 \description{
 This function collects soil data from a given restapi, de default is soilGrid
 }
