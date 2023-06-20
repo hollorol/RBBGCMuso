@@ -33,3 +33,18 @@ randEpc <- function(parameterFile = "parameters.csv", location = "./epcDir",
     }
    setwd(currDir)
 }
+
+#' genEpc
+#'
+#' randEpc is a random epc creator based on musoMonte
+#' @author Roland HOLLOS
+#' @param sourceEpc the original epc file-the template
+#' @param parameters dataframe where in the first column there are the indices and the second column the values
+#' @param location output location directory
+#' @export
+
+genEpc <- function (sourceEpc, targetEpc, parameters) {
+   changemulline(filePaths=sourceEpc,outFiles=targetEpc,
+                 calibrationPar=parameters[,1],contents=parameters[,2]) 
+}
+

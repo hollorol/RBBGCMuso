@@ -275,28 +275,29 @@ plotMusoWithData <- function(mdata, plotName=NULL,
                        modellSettings = settings,
                        startDate = startDate,
                        endDate = endDate, leapYear = leapYearHandling, continious = continious),envir=environment())
-    mesData <- numeric(settings$numYears*365)
-    k <- 1
-    for(i in seq(mesData)){
-        if(i %in% modIndex){
-            mesData[i] <- measuredData[k]
-            k <- k + 1
-        } else {
-            mesData[i] <- NA
-        }
-    }
-    rm(k)
+    # mesData <- numeric(settings$numYears*365)
+    # k <- 1
+    # for(i in seq(mesData)){
+    #     if(i %in% modIndex){
+    #         mesData[i] <- measuredData[k]
+    #         k <- k + 1
+    #     } else {
+    #         mesData[i] <- NA
+    #     }
+    # }
+    # rm(k)
     # modIndex and measuredData are created.
     ## measuredData is created
     ## baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
-    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)
+    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
     baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
     selVarName <- colnames(baseData)[selVar]
     if(!all.equal(colnames(baseData),unique(colnames(baseData)))){
         notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
         stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
     }
-    mesData<-cbind.data.frame(baseData[,1],mesData)
+    # mesData<-cbind.data.frame(baseData[,1],mesData)
+    mesData<-cbind.data.frame(baseData[,1],measuredData)
     colnames(mesData) <- c("date", "measured")
     p <- baseData  %>%
         ggplot(aes_string("date",selVarName)) +

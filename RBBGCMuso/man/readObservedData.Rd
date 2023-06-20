@@ -11,7 +11,9 @@ readObservedData(
   leapYearHandling = TRUE,
   convert.var = NULL,
   convert.scalar = 1,
-  convert.fun = (function(x) {     x * convert.scalar }),
+  convert.fun = (function(x) {
+     x * convert.scalar
+ }),
   convert.file = NULL,
   filterCol = NULL,
   filterVal = 1,

@@ -12,7 +12,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL,
-                     thread_prefix="thread", numCores = (parallel::detectCores()-1), pb = txtProgressBar(min=0, max=iterations, style=3),
+                     thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
 
@@ -113,12 +113,16 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
     #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
     resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
     res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
-    resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
-    # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
-    resultsSans0 <- lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
-    resultsSans0 <- do.call(rbind,resultsSans0)
-    colnames(resultsSans0) <- colnames(res0)
-    results <- (rbind(res0,resultsSans0))
+    if(numCores==1){
+        results <- res0
+    } else {
+        resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
+        # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
+        resultsSans0 <- lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+        resultsSans0 <- do.call(rbind,resultsSans0)
+        colnames(resultsSans0) <- colnames(res0)
+        results <- (rbind(res0,resultsSans0))
+    }
 
     switch(method,
            "GLUE"={  

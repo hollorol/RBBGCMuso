@@ -4,7 +4,13 @@
 \alias{changemulline}
 \title{changemulline}
 \usage{
-changemulline(filePaths, calibrationPar, contents, src, outFiles = filePaths)
+changemulline(
+  filePaths,
+  calibrationPar,
+  contents,
+  src = NULL,
+  outFiles = filePaths
+)
 }
 \description{
 The function uses the previous changspecline function to operate.

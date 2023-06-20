@@ -270,10 +270,14 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
 
     par(pari)
     dev.off()
-    maxParValues <- preservedCalibtop5[which.max(preservedCalibtop5$combined),]
+    maxParValues <- unlist(preservedCalibtop5[which.max(preservedCalibtop5$combined),])[1:length(paramIndex)]
     maxParIndexes <- paramIndex
-    write.csv(cbind.data.frame(calibrationPar=maxParValues,parameters=maxParIndexes),"maxLikelihood.csv")
+    maxLikelihoodParameters <- data.frame(parameter_index=maxParIndexes,parameter_value=maxParValues)
+    write.csv(cbind.data.frame(parameters=maxParIndexes, calibrationPar=maxParValues),
+              "maxlikelihood_parameters.csv")
+    cat("\n\n- A file containing the parameters with the maximum likelihood (maxlikelihood_parameters.csv) has been created.\n")
     write.csv(optRanges,"optRanges.csv")
+    cat("- GLUE interval values have been written into optRanges.csv\n")
     # browser()
     # There are some serious problems with this implementation. The uncertainity bouns are not for the parameters, but for the output values. The median is pointwise median for all simulation.
     # And the 95 and 5 percentile also.
