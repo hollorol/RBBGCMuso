@@ -30,9 +30,9 @@ Then copy the following line into the R session and execute it:
 remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",upgrade="never")
 #+END_SRC
 
-We provide support to Biome-BGCMuSo v7 via a separate branch (temporary solution that will eventually be merged into the master branch in the future):
+We provide support to Biome-BGCMuSo v6 via a separate branch:
 #+BEGIN_SRC R :eval no
-remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",ref="version7",upgrade="never")
+remotes::install_github("hollorol/RBBGCMuso/RBBGCMuso",ref="version6",upgrade="never")
 #+END_SRC
 
 
