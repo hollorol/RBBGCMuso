@@ -150,6 +150,7 @@ readValuesFromFile  <- function(filename, linums){
 
 	return(values)
 }
+
 #' readMeasuredMuso
 #'
 #' MuSo data reader

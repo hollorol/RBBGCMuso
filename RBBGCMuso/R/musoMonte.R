@@ -18,6 +18,7 @@
 
 musoMonte <- function(settings=NULL,
                      parameters=NULL,
+                     sourceFile=NULL,
                      inputDir = "./",
                      outLoc = "./calib",
                      iterations = 10,
@@ -100,7 +101,7 @@ musoMonte <- function(settings=NULL,
     ##reading the original epc file at the specified
     ## row numbers
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = 3000)
+        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = 3000,sourceFile=sourceFile)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
         randVals <- musoRand(parameters = parameters,fileType="epc", iterations = iterations)
