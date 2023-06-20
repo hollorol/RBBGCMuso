@@ -10,5 +10,5 @@
 \item{parameterFile}{optional, the parameter csv file}
 }
 \description{
-This is a simple parameter tuner function which works great in a flat directory systemj
+This is a simple parameter tuner function which works great in a flat directory system
 }

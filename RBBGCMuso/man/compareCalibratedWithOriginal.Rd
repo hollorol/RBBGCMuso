@@ -16,6 +16,9 @@ compareCalibratedWithOriginal(
   groupFun
 )
 }
+\arguments{
+\item{key}{keyword}
+}
 \description{
 This functions compareses the likelihood and the RMSE values of the simulations and the measurements
 }

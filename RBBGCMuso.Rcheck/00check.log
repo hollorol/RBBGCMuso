@@ -1,0 +1,548 @@
+* using log directory 'E:/GIT/RBBGCMuso/RBBGCMuso.Rcheck'
+* using R version 4.2.2 (2022-10-31 ucrt)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'RBBGCMuso/DESCRIPTION' ... OK
+* this is package 'RBBGCMuso' version '0.7.1'
+* checking package namespace information ... OK
+* checking package dependencies ... NOTE
+Imports includes 22 non-default packages.
+Importing from so many packages makes the package vulnerable to any of
+them becoming unavailable.  Move as many as possible to Suggests and
+use conditionally.
+* checking if this is a source package ... NOTE
+Found the following apparent object files/libraries:
+  inst/examples/hhs/cygwin1.dll
+Object files/libraries should not be included in a source package.
+* checking if there is a namespace ... OK
+* checking for executable files ... WARNING
+Found the following executable files:
+  inst/examples/hhs/cygwin1.dll
+  inst/examples/hhs/muso
+  inst/examples/hhs/muso.exe
+  inst/examples/hhs/muso7.0b7.exe
+  inst/mtclim43
+  inst/mtclim43.exe
+Source packages should not contain undeclared executable files.
+See section 'Package structure' in the 'Writing R Extensions' manual.
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking serialization versions ... OK
+* checking whether package 'RBBGCMuso' can be installed ... WARNING
+Found the following significant warnings:
+  Note: possible error in 'changemulline(filename = epc[1], ': unused argument (filename = epc[1]) 
+  Note: possible error in 'changemulline(filename = iniInput[1], ': unused argument (filename = iniInput[1]) 
+  Note: possible error in 'musoDate(startYear = startYear, ': unused argument (corrigated = FALSE) 
+  Note: possible error in 'changemulline(filePaths = basename(sourceEpc), ': unused arguments (fileOut = epcOut, fileToChange = "epc") 
+  Note: possible error in 'musoDate(settings$startYear, ': unused argument (corrigated = FALSE) 
+See 'E:/GIT/RBBGCMuso/RBBGCMuso.Rcheck/00install.out' for details.
+Information on the location(s) of code generating the 'Note's can be
+obtained by re-running with environment variable R_KEEP_PKG_SOURCE set
+to 'yes'.
+* checking installed package size ... NOTE
+  installed size is 13.4Mb
+  sub-directories of 1Mb or more:
+    examples  12.2Mb
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking 'build' directory ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Packages listed in more than one of Depends, Imports, Suggests, Enhances:
+  'tcltk' 'rmarkdown'
+A package should be listed in only one of these fields.
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following non-empty subdirectories of 'inst' also used by R:
+  inst/data
+It is recommended not to interfere with package subdirectories used by
+R.
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... NOTE
+Namespaces in Imports field not imported from:
+  'Boruta' 'Rcpp' 'grDevices' 'graphics' 'ncdf4'
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [14s] NOTE
+File 'RBBGCMuso/R/atStart.R':
+  .onLoad calls:
+    cat(sprintf("This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d",     RMuso_version))
+
+Package startup functions should use 'packageStartupMessage' to
+  generate messages.
+See section 'Good practice' in '?.onAttach'.
+
+This is RBBGCMuso version 1.0
+Default Biome-BGCMuSo version: 7agroLikelihood : <anonymous>: no visible global function definition for
+  'dnorm'
+calibrateMuso: no visible global function definition for 'lines'
+calibrateMuso: no visible global function definition for 'polygon'
+calibrateMuso: no visible global function definition for 'points'
+checkMeteoBGC : sradAvgShortestDay: no visible global function
+  definition for 'na.omit'
+checkMeteoBGC : sradAvgLongestDay: no visible global function
+  definition for 'na.omit'
+corrigMuso: no visible global function definition for 'musoLeapYears'
+createSoilFile : createMusoLayers: no visible binding for global
+  variable '.'
+multiSiteCalib : <anonymous>: no visible global function definition for
+  'sd'
+multiSiteCalib: no visible global function definition for 'svg'
+multiSiteCalib: no visible global function definition for 'dev.off'
+multiSiteCalib: no visible global function definition for 'lm'
+multiSiteCalib: no visible global function definition for 'png'
+multiSiteCalib: no visible global function definition for 'par'
+musoGlue: no visible global function definition for 'quantile'
+musoGlue : <anonymous>: no visible global function definition for
+  'quantile'
+musoGlue: no visible global function definition for 'pdf'
+musoGlue: no visible global function definition for 'par'
+musoGlue: no visible global function definition for 'abline'
+musoGlue: no visible global function definition for 'dev.off'
+musoMapping: no visible binding for global variable 'mMapping'
+musoMonte: no visible binding for global variable 'procString'
+musoQuickEffect: no visible binding for global variable 'parVal'
+musoSensi : doSensi: no visible global function definition for 'lm'
+musoSensi : doSensi: no visible binding for global variable 'var'
+musoSensi : doSensi: no visible binding for global variable 'name'
+normalMuso: possible error in changemulline(filename = epc[1],
+  calibrationPar, parameters): unused argument (filename = epc[1])
+normalMuso: possible error in changemulline(filename = iniInput[1],
+  calibrationPar, parameters): unused argument (filename = iniInput[1])
+plotMuso : <anonymous>: no visible binding for global variable
+  'whereAmI'
+plotMuso: possible error in musoDate(startYear = startYear, numYears =
+  numberOfYears, combined = TRUE, corrigated = FALSE): unused argument
+  (corrigated = FALSE)
+plotMuso: possible error in musoDate(startYear = startYear, numYears =
+  numberOfYears, combined = FALSE, corrigated = FALSE): unused argument
+  (corrigated = FALSE)
+plotMuso: no visible binding for global variable 'year'
+plotMuso: no visible binding for global variable 'cum_yieldC_HRV'
+plotMuso: no visible binding for global variable 'date2'
+plotMuso : pointOrLineOrPlot: no visible binding for global variable
+  '.'
+plotMuso : pointOrLineOrPlot: no visible binding for global variable
+  'outputs'
+plotMuso : pointOrLineOrPlot: no visible binding for global variable
+  'bla'
+plotMusoWithData: no visible binding for global variable 'modIndex'
+plotMusoWithData: no visible binding for global variable 'measuredData'
+plotMusoWithData: no visible binding for global variable 'measured'
+prepareFromAgroMo: no visible global function definition for 'reshape'
+randEpc: possible error in changemulline(filePaths =
+  basename(sourceEpc), calibrationPar = randVals[[1]], contents =
+  randVals[[2]][i, ], fileOut = epcOut, fileToChange = "epc"): unused
+  arguments (fileOut = epcOut, fileToChange = "epc")
+rungetMuso: possible error in musoDate(settings$startYear,
+  settings$numYears, corrigated = FALSE): unused argument (corrigated =
+  FALSE)
+setupMuso: no visible binding for global variable 'numDate'
+spinupMuso: possible error in changemulline(filename = epc[1],
+  calibrationPar, parameters): unused argument (filename = epc[1])
+spinupMuso: possible error in changemulline(filename = iniInput[1],
+  calibrationPar, parameters): unused argument (filename = iniInput[1])
+spinupMuso: no visible binding for global variable 'EPCS'
+spinupMuso : <anonymous>: no visible binding for global variable 'EPCS'
+spinupMuso : <anonymous>: no visible binding for global variable
+  'WRONGEPC'
+truncNorm: no visible global function definition for 'rnorm'
+Undefined global functions or variables:
+  . EPCS WRONGEPC abline bla cum_yieldC_HRV date2 dev.off dnorm lines
+  lm mMapping measured measuredData modIndex musoLeapYears na.omit name
+  numDate outputs par parVal pdf png points polygon procString quantile
+  reshape rnorm sd svg var whereAmI year
+Consider adding
+  importFrom("grDevices", "dev.off", "pdf", "png", "svg")
+  importFrom("graphics", "abline", "lines", "par", "points", "polygon")
+  importFrom("stats", "dnorm", "lm", "na.omit", "quantile", "reshape",
+             "rnorm", "sd", "var")
+to your NAMESPACE file.
+* checking Rd files ... WARNING
+./man/getSoilDataFull.Rd: non-ASCII input and no declared encoding
+problem found in 'getSoilDataFull.Rd'
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented data sets:
+  'depTree'
+All user-level objects in a package should have documentation entries.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking for code/documentation mismatches ... WARNING
+Codoc mismatches from documentation object 'calibMuso':
+calibMuso
+  Code: function(settings = setupMuso(), calibrationPar = NULL,
+                 parameters = NULL, outVars = NULL, timee = "d",
+                 debugging = FALSE, logfilename = NULL, keepEpc =
+                 FALSE, export = FALSE, silent = FALSE, aggressive =
+                 FALSE, keepBinary = FALSE, binaryPlace = "./",
+                 fileToChange = "epc", skipSpinup = TRUE,
+                 modifyOriginal = FALSE, prettyOut = FALSE,
+                 postProcString = NULL, doBackup = TRUE)
+  Docs: function(settings, parameters = NULL, timee = "d", debugging =
+                 FALSE, logfilename = NULL, keepEpc = FALSE, export =
+                 FALSE, silent = FALSE, aggressive = FALSE, leapYear =
+                 FALSE)
+  Argument names in code not in docs:
+    calibrationPar outVars keepBinary binaryPlace fileToChange
+    skipSpinup modifyOriginal prettyOut postProcString doBackup
+  Argument names in docs not in code:
+    leapYear
+  Mismatches in argument names (first 3):
+    Position: 2 Code: calibrationPar Docs: parameters
+    Position: 3 Code: parameters Docs: timee
+    Position: 4 Code: outVars Docs: debugging
+  Mismatches in argument default values:
+    Name: 'settings' Code: setupMuso() Docs: 
+
+Codoc mismatches from documentation object 'calibrateMuso':
+calibrateMuso
+  Code: function(measuredData, parameters = read.csv("parameters.csv",
+                 stringsAsFactor = FALSE), startDate = NULL, endDate =
+                 NULL, formatString = "%Y-%m-%d", dataVar, outLoc =
+                 "./calib", preTag = "cal-", settings = setupMuso(),
+                 outVars = NULL, iterations = 100, skipSpinup = TRUE,
+                 plotName = "calib.jpg", modifyOriginal = TRUE,
+                 likelihood, uncertainity = NULL, naVal = NULL,
+                 postProcString = NULL, thread_prefix = "thread",
+                 numCores = max(c(parallel::detectCores() - 1, 1)), pb
+                 = txtProgressBar(min = 0, max = iterations, style =
+                 3), maxLikelihoodEpc = TRUE, pbUpdate =
+                 setTxtProgressBar, outputLoc = "./", method = "GLUE",
+                 lg = FALSE, w = NULL, ...)
+  Docs: function(measuredData, parameters = read.csv("parameters.csv",
+                 stringsAsFactor = FALSE), startDate = NULL, endDate =
+                 NULL, formatString = "%Y-%m-%d", dataVar, outLoc =
+                 "./calib", preTag = "cal-", settings = setupMuso(),
+                 outVars = NULL, iterations = 100, skipSpinup = TRUE,
+                 plotName = "calib.jpg", modifyOriginal = TRUE,
+                 likelihood, uncertainity = NULL, naVal = NULL,
+                 postProcString = NULL, thread_prefix = "thread",
+                 numCores = (parallel::detectCores() - 1), pb =
+                 txtProgressBar(min = 0, max = iterations, style = 3),
+                 maxLikelihoodEpc = TRUE, pbUpdate = setTxtProgressBar,
+                 outputLoc = "./", method = "GLUE", lg = FALSE, w =
+                 NULL, ...)
+  Mismatches in argument default values:
+    Name: 'numCores' Code: max(c(parallel::detectCores() - 1, 1)) Docs: (parallel::detectCores() - 1)
+
+Codoc mismatches from documentation object 'musoMapping':
+musoMapping
+  Code: function(code, mapData =
+                 getOption("RMuso_varTable")[[as.character(getOption("RMuso_version"))]])
+  Docs: function(code, mapData = NULL)
+  Mismatches in argument default values:
+    Name: 'mapData' Code: getOption("RMuso_varTable")[[as.character(getOption("RMuso_version"))]] Docs: NULL
+
+Codoc mismatches from documentation object 'musoMappingFind':
+musoMapping
+  Code: function(code, mapData =
+                 getOption("RMuso_varTable")[[as.character(getOption("RMuso_version"))]])
+  Docs: function(code, mapData = NULL)
+  Mismatches in argument default values:
+    Name: 'mapData' Code: getOption("RMuso_varTable")[[as.character(getOption("RMuso_version"))]] Docs: NULL
+
+Codoc mismatches from documentation object 'normalMuso':
+normalMuso
+  Code: function(settings = NULL, parameters = NULL, timee = "d",
+                 debugging = FALSE, logfilename = NULL, keepEpc =
+                 FALSE, export = FALSE, silent = FALSE, aggressive =
+                 FALSE, leapYear = FALSE, binaryPlace = NULL,
+                 fileToChange = "epc", keepBinary = FALSE)
+  Docs: function(settings, parameters = NULL, timee = "d", debugging =
+                 FALSE, logfilename = NULL, keepEpc = FALSE, export =
+                 FALSE, silent = FALSE, aggressive = FALSE, leapYear =
+                 FALSE)
+  Argument names in code not in docs:
+    binaryPlace fileToChange keepBinary
+  Mismatches in argument default values:
+    Name: 'settings' Code: NULL Docs: 
+
+Codoc mismatches from documentation object 'plotMuso':
+plotMuso
+  Code: function(settings = NULL, variable = "all", timee = "d", silent
+                 = TRUE, calibrationPar = NULL, parameters = NULL,
+                 debugging = FALSE, keepEpc = FALSE, fileToChange =
+                 "epc", logfilename = NULL, aggressive = FALSE,
+                 leapYear = FALSE, plotName = NULL, plotType = "cts",
+                 layerPlot = FALSE, colour = "blue", skipSpinup = TRUE,
+                 fromData = FALSE, timeFrame = "day", selectYear =
+                 NULL, groupFun = mean, separateFile = FALSE, dpi =
+                 300, postProcString = NULL)
+  Docs: function(settings, variable, timee = "d", silent = TRUE,
+                 debugging = FALSE, keepEpc = FALSE, logfilename =
+                 NULL, aggressive = FALSE, leapYear = FALSE, export =
+                 FALSE)
+  Argument names in code not in docs:
+    calibrationPar parameters fileToChange plotName plotType layerPlot
+    colour skipSpinup fromData timeFrame selectYear groupFun
+    separateFile dpi postProcString
+  Argument names in docs not in code:
+    export
+  Mismatches in argument names (first 3):
+    Position: 5 Code: calibrationPar Docs: debugging
+    Position: 6 Code: parameters Docs: keepEpc
+    Position: 7 Code: debugging Docs: logfilename
+  Mismatches in argument default values:
+    Name: 'settings' Code: NULL Docs: 
+    Name: 'variable' Code: "all" Docs: 
+
+Codoc mismatches from documentation object 'plotMusoWithData':
+plotMuso
+  Code: function(settings = NULL, variable = "all", timee = "d", silent
+                 = TRUE, calibrationPar = NULL, parameters = NULL,
+                 debugging = FALSE, keepEpc = FALSE, fileToChange =
+                 "epc", logfilename = NULL, aggressive = FALSE,
+                 leapYear = FALSE, plotName = NULL, plotType = "cts",
+                 layerPlot = FALSE, colour = "blue", skipSpinup = TRUE,
+                 fromData = FALSE, timeFrame = "day", selectYear =
+                 NULL, groupFun = mean, separateFile = FALSE, dpi =
+                 300, postProcString = NULL)
+  Docs: function(settings, variable, timee = "d", silent = TRUE,
+                 debugging = FALSE, keepEpc = FALSE, logfilename =
+                 NULL, aggressive = FALSE, leapYear = FALSE, export =
+                 FALSE)
+  Argument names in code not in docs:
+    calibrationPar parameters fileToChange plotName plotType layerPlot
+    colour skipSpinup fromData timeFrame selectYear groupFun
+    separateFile dpi postProcString
+  Argument names in docs not in code:
+    export
+  Mismatches in argument names (first 3):
+    Position: 5 Code: calibrationPar Docs: debugging
+    Position: 6 Code: parameters Docs: keepEpc
+    Position: 7 Code: debugging Docs: logfilename
+  Mismatches in argument default values:
+    Name: 'settings' Code: NULL Docs: 
+    Name: 'variable' Code: "all" Docs: 
+
+Codoc mismatches from documentation object 'runMuso':
+calibMuso
+  Code: function(settings = setupMuso(), calibrationPar = NULL,
+                 parameters = NULL, outVars = NULL, timee = "d",
+                 debugging = FALSE, logfilename = NULL, keepEpc =
+                 FALSE, export = FALSE, silent = FALSE, aggressive =
+                 FALSE, keepBinary = FALSE, binaryPlace = "./",
+                 fileToChange = "epc", skipSpinup = TRUE,
+                 modifyOriginal = FALSE, prettyOut = FALSE,
+                 postProcString = NULL, doBackup = TRUE)
+  Docs: function(settings, parameters = NULL, timee = "d", debugging =
+                 FALSE, logfilename = NULL, keepEpc = FALSE, export =
+                 FALSE, silent = FALSE, aggressive = FALSE, leapYear =
+                 FALSE)
+  Argument names in code not in docs:
+    calibrationPar outVars keepBinary binaryPlace fileToChange
+    skipSpinup modifyOriginal prettyOut postProcString doBackup
+  Argument names in docs not in code:
+    leapYear
+  Mismatches in argument names (first 3):
+    Position: 2 Code: calibrationPar Docs: parameters
+    Position: 3 Code: parameters Docs: timee
+    Position: 4 Code: outVars Docs: debugging
+  Mismatches in argument default values:
+    Name: 'settings' Code: setupMuso() Docs: 
+
+Codoc mismatches from documentation object 'setupMuso':
+setupMuso
+  Code: function(executable = NULL, parallel = F, calibrationPar =
+                 c(1), outputLoc = NULL, modelOutputs = NULL, inputLoc
+                 = NULL, metInput = NULL, CO2Input = NULL, plantInput =
+                 NULL, thinInput = NULL, mowInput = NULL, grazInput =
+                 NULL, harvInput = NULL, plougInput = NULL, fertInput =
+                 NULL, irrInput = NULL, nitInput = NULL, iniInput =
+                 NULL, epcInput = NULL, mapData = NULL, leapYear =
+                 FALSE, version = 6, doCopy = TRUE)
+  Docs: function(executable = NULL, parallel = F, calibrationPar =
+                 c(1), outputLoc = NULL, inputLoc = NULL, metInput =
+                 NULL, CO2Input = NULL, plantInput = NULL, thinInput =
+                 NULL, mowInput = NULL, grazInput = NULL, harvInput =
+                 NULL, plougInput = NULL, fertInput = NULL, irrInput =
+                 NULL, nitInput = NULL, iniInput = NULL, epcInput =
+                 NULL)
+  Argument names in code not in docs:
+    modelOutputs mapData leapYear version doCopy
+  Mismatches in argument names (first 3):
+    Position: 5 Code: modelOutputs Docs: inputLoc
+    Position: 6 Code: inputLoc Docs: metInput
+    Position: 7 Code: metInput Docs: CO2Input
+
+Codoc mismatches from documentation object 'spinupMuso':
+spinupMuso
+  Code: function(settings = NULL, parameters = NULL, debugging = FALSE,
+                 logfilename = NULL, keepEpc = FALSE, silent = FALSE,
+                 aggressive = FALSE, fileToChange = "epc")
+  Docs: function(settings, parameters = NULL, debugging = FALSE,
+                 logfilename = NULL, keepEpc = FALSE, silent = FALSE,
+                 aggressive = FALSE)
+  Argument names in code not in docs:
+    fileToChange
+  Mismatches in argument default values:
+    Name: 'settings' Code: NULL Docs: 
+
+* checking Rd \usage sections ... WARNING
+Documented arguments not in \usage in documentation object 'calibMuso':
+  'keepBinary' 'binaryPlace' 'fileToChange' 'skipSpinup' 'prettyOut'
+
+Undocumented arguments in documentation object 'calibrateMuso'
+  'measuredData' 'parameters' 'startDate' 'endDate' 'formatString'
+  'dataVar' 'outLoc' 'preTag' 'settings' 'outVars' 'iterations'
+  'skipSpinup' 'plotName' 'modifyOriginal' 'likelihood' 'uncertainity'
+  'naVal' 'postProcString' 'thread_prefix' 'numCores' 'pb'
+  'maxLikelihoodEpc' 'pbUpdate' 'outputLoc' 'method' 'lg' 'w' '...'
+
+Undocumented arguments in documentation object 'changemulline'
+  'filePaths' 'calibrationPar' 'contents' 'src' 'outFiles'
+
+Undocumented arguments in documentation object 'checkFileSystem'
+  'root'
+
+Documented arguments not in \usage in documentation object 'checkMeteoBGC':
+  'metFileName'
+
+Undocumented arguments in documentation object 'compareCalibratedWithOriginal'
+  'key' 'modOld' 'modNew' 'mes' 'likelihoods' 'alignIndexes'
+  'musoCodeToIndex' 'nameGroupTable' 'groupFun'
+
+Undocumented arguments in documentation object 'compareMuso'
+  'skipSpinup' 'timeFrame'
+
+Undocumented arguments in documentation object 'flatMuso'
+  'execPath' 'd' 'outE'
+
+Undocumented arguments in documentation object 'getFilePath'
+  'fileType' 'execPath'
+Documented arguments not in \usage in documentation object 'getFilePath':
+  'filetype'
+
+Undocumented arguments in documentation object 'getFilesFromIni'
+  'execPath'
+
+Undocumented arguments in documentation object 'multiSiteCalib'
+  'measurements' 'constraints'
+Documented arguments not in \usage in documentation object 'multiSiteCalib':
+  'measuremets' 'contsraints'
+
+Undocumented arguments in documentation object 'multiSiteThread'
+  'measuredData' 'parameters' 'startDate' 'endDate' 'formatString'
+  'calTable' 'dataVar' 'outLoc' 'outVars' 'iterations' 'skipSpinup'
+  'plotName' 'modifyOriginal' 'likelihood' 'uncertainity' 'burnin'
+  'naVal' 'postProcString' 'threadNumber' 'constraints' 'th'
+
+Undocumented arguments in documentation object 'musoDate'
+  'startYear' 'endYears' 'numYears' 'combined' 'leapYearHandling'
+  'prettyOut'
+
+Undocumented arguments in documentation object 'musoGlue'
+  'presCalFile' 'w' 'delta' 'settings' 'parameters' 'lg'
+Documented arguments not in \usage in documentation object 'musoGlue':
+  'plotName'
+
+Undocumented arguments in documentation object 'musoMappingFind'
+  'code' 'mapData'
+Documented arguments not in \usage in documentation object 'musoMappingFind':
+  'variable'
+Objects in \usage without \alias in documentation object 'musoMappingFind':
+  'musoMapping'
+
+Undocumented arguments in documentation object 'musoMonte'
+  'outLoc' 'outVars' 'silent' 'skipSpinup' 'constrains' 'skipZero'
+  'postProcString' 'modifyOut' '...'
+Documented arguments not in \usage in documentation object 'musoMonte':
+  'calibrationPar'
+
+Undocumented arguments in documentation object 'musoQuickEffect'
+  'calibrationPar' 'fileToChange' 'modifyOriginal' 'outVar' 'parName'
+  'yearNum' 'year'
+Documented arguments not in \usage in documentation object 'musoQuickEffect':
+  'fileTochange'
+
+Undocumented arguments in documentation object 'musoRand'
+  'iterations' 'fileType' 'burnin'
+Documented arguments not in \usage in documentation object 'musoRand':
+  'iteration'
+
+Undocumented arguments in documentation object 'musoSensi'
+  'monteCarloFile' 'outLoc' 'outVars' 'outputFile' 'plotName'
+  'plotTitle' 'skipZero' 'postProcString' 'modifyOut' 'dpi'
+Documented arguments not in \usage in documentation object 'musoSensi':
+  'calibrationPar'
+
+Documented arguments not in \usage in documentation object 'normalMuso':
+  'binaryPlace' 'fileToChange' 'keepBinary'
+
+Undocumented arguments in documentation object 'optiMuso'
+  'measuredData' 'dataVar' 'preTag' 'outVars' 'modifyOriginal'
+  'uncertainity' 'naVal' 'postProcString' 'w' 'lg' 'parallel'
+Documented arguments not in \usage in documentation object 'optiMuso':
+  'measuredDataFile' 'sep' 'filterCol' 'filterVal' 'selVar' 'pretag'
+  'calPar' 'constrains' 'leapYear'
+
+Documented arguments not in \usage in documentation object 'plotMuso':
+  'plotType' 'skipSpinup'
+
+Undocumented arguments in documentation object 'plotMusoWithData'
+  'timee' 'silent' 'debugging' 'keepEpc' 'logfilename' 'aggressive'
+  'leapYear' 'export'
+Documented arguments not in \usage in documentation object 'plotMusoWithData':
+  'sep' 'savePlot' 'NACHAR' 'csvFile' 'calibrationPar' 'parameters'
+Objects in \usage without \alias in documentation object 'plotMusoWithData':
+  'plotMuso'
+
+Undocumented arguments in documentation object 'randEpc'
+  'iterations' 'constrains'
+Documented arguments not in \usage in documentation object 'randEpc':
+  'iteration'
+
+Undocumented arguments in documentation object 'readObservedData'
+  'inFile' 'naString' 'sep' 'leapYearHandling' 'convert.var'
+  'convert.scalar' 'convert.fun' 'convert.file' 'filterCol' 'filterVal'
+  'selVar'
+
+Documented arguments not in \usage in documentation object 'runMuso':
+  'keepBinary' 'binaryPlace' 'fileToChange' 'skipSpinup' 'prettyOut'
+Objects in \usage without \alias in documentation object 'runMuso':
+  'calibMuso'
+
+Undocumented arguments in documentation object 'saveAllMusoPlots'
+  'type' 'outFile' 'colour' 'skipSpinup'
+Documented arguments not in \usage in documentation object 'saveAllMusoPlots':
+  'destination'
+
+Documented arguments not in \usage in documentation object 'setupMuso':
+  'modelOutputs'
+
+Undocumented arguments in documentation object 'updateMusoMapping'
+  'dest' 'version'
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking installed files from 'inst/doc' ... OK
+* checking files in 'vignettes' ... OK
+* checking examples ... NONE
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes in 'inst/doc' ... NOTE
+Package vignette with placeholder title 'Vignette Title':
+  'my-vignette.Rmd'
+* checking re-building of vignette outputs ... OK
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 7 WARNINGs, 7 NOTEs

@@ -68,9 +68,9 @@ plotMuso <- function(settings = NULL, variable = "all",
                                         stop("Cannot read binary output, please check if the output type is set 2 in the ini files!")})
         colnames(Reva) <- unlist(settings$outputVars[[1]])
         rownames(Reva) <- NULL
-        musoData <- cbind(musoDate(startYear = startYear,numYears = numberOfYears,combined = TRUE,corrigated=FALSE),
+        musoData <- cbind(musoDate(startYear = startYear,numYears = numberOfYears,combined = TRUE),
               rep(1:365,numberOfYears),
-              musoDate(startYear = startYear,numYears = numberOfYears,combined = FALSE,corrigated=FALSE),as.data.frame(Reva))
+              musoDate(startYear = startYear,numYears = numberOfYears,combined = FALSE),as.data.frame(Reva))
         colnames(musoData)[1:5]<-c("date","yearDay","year","day","month")
         musoData <-musoData %>%
             mutate(date=as.Date(as.character(date),"%d.%m.%Y"))

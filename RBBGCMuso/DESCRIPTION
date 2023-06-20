@@ -1,6 +1,6 @@
 Package: RBBGCMuso
-Title: An R package for BiomeBGC-MuSo ecosystem modelling
-Version: 0.7.1
+Title: An R package for Biome-BGCMuSo ecosystem modelling
+Version: 1.0.0
 Authors@R: person("Roland", "Hollo's", , "hollorol@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends: R (>= 3.3.2)
@@ -22,6 +22,10 @@ Imports:
 	rmarkdown,
 	tibble,
 	tidyr,
+	glue,
+	openxlsx,
+	jsonlite,
+	scales,
 	tcltk,
 	digest,
     jsonlite,
@@ -36,10 +40,12 @@ Imports:
     Boruta,
     rpart,
     plotly,
+    shiny,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
-RoxygenNote: 7.2.3
 Suggests: knitr,
     rmarkdown,
 VignetteBuilder: knitr
 ByteCompile: true
+RoxygenNote: 7.2.3
+Encoding: UTF-8

@@ -1,0 +1,25 @@
+* installing *source* package 'RBBGCMuso' ...
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+Note: possible error in 'changemulline(filename = epc[1], ': unused argument (filename = epc[1]) 
+Note: possible error in 'changemulline(filename = iniInput[1], ': unused argument (filename = iniInput[1]) 
+Note: possible error in 'musoDate(startYear = startYear, ': unused argument (corrigated = FALSE) 
+Note: possible error in 'musoDate(startYear = startYear, ': unused argument (corrigated = FALSE) 
+Note: possible error in 'changemulline(filePaths = basename(sourceEpc), ': unused arguments (fileOut = epcOut, fileToChange = "epc") 
+Note: possible error in 'musoDate(settings$startYear, ': unused argument (corrigated = FALSE) 
+Note: possible error in 'changemulline(filename = epc[1], ': unused argument (filename = epc[1]) 
+Note: possible error in 'changemulline(filename = iniInput[1], ': unused argument (filename = iniInput[1]) 
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+This is RBBGCMuso version 1.0
+Default Biome-BGCMuSo version: 7
+** testing if installed package can be loaded from final location
+This is RBBGCMuso version 1.0
+Default Biome-BGCMuSo version: 7
+** testing if installed package keeps a record of temporary installation path
+* DONE (RBBGCMuso)

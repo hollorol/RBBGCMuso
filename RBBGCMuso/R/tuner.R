@@ -1,6 +1,6 @@
 #' tuneMusoUI 
 #' 
-#' This is a simple parameter tuner function which works great in a flat directory systemj
+#' This is a simple parameter tuner function which works great in a flat directory system
 #'
 #' @param parameterFile optional, the parameter csv file
 #' @importFrom plotly plotlyOutput

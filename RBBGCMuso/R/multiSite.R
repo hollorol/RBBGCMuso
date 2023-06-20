@@ -590,7 +590,7 @@ agroLikelihood <- function(modVector,measured){
 #' compareCalibratedWithOriginal
 #'
 #' This functions compareses the likelihood and the RMSE values of the simulations and the measurements
-#' @param key
+#' @param key keyword
 compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                              likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable,
                              groupFun){

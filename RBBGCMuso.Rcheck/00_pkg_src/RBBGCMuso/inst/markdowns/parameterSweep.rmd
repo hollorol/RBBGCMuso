@@ -1,0 +1,115 @@
+---
+title: "ParameterSweep"
+auth or: ""
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE}
+library("RBBGCMuso")
+
+quickAndDirty <- function(settings, parameters, inputDir= "./", outLoc, iterations=2, outVar=8,){
+
+
+
+    outLocPlain <- basename(outLoc)
+    currDir <- getwd()
+    inputDir <- normalizePath(inputDir)
+    tmp <- file.path(outLoc,"tmp/")
+
+    if(!dir.exists(outLoc)){
+        dir.create(outLoc)
+        warning(paste(outLoc," is not exists, so it was created"))
+    }
+
+    if(dir.exists(tmp)){
+        stop("There is a tmp directory inside the output location, please replace it. tmp is an important temporary directory for the function")
+    }
+    dir.create(tmp)
+    outLoc <- normalizePath(outLoc)
+    tmp <- normalizePath(tmp)
+
+    inputFiles <- file.path(inputDir,grep(basename(outLoc),list.files(inputDir),invert = TRUE,value = TRUE)) 
+
+    
+    for(i in inputFiles){
+        file.copy(i,tmp)
+    }
+    
+    setwd(tmp)
+
+    if(is.null(settings)){
+        settings <- setupMuso()
+    }
+
+
+    
+    file.copy(settings$epcInput[2],"epc-save",overwrite = TRUE)
+    calibrationPar <- matrix[,"INDEX"]
+    npar <- nrow(matrix)
+    paramMatrices <- list()    
+    parameters <- matrix(nrow = npar,ncol = iterations)
+    paramtest <- parameters
+    rownames(paramtest) <- matrix[,1]
+   
+    for(i in 1:npar){
+        parameters[i,] <- seq(from=matrix[i,5],to=matrix[i,6],length=iterations)
+        #print(parameters[i,])
+        settings$calibrationPar <- calibrationPar[i]
+        for(j in 1:iterations){
+            p <- try(calibMuso(settings,parameters =parameters[i,j],silent=TRUE))
+
+            if(length(p)>1){
+                   paramtest[i,j] <- max(p[,outVar])
+                #   print(paramtest)
+            } else {
+                paramtest[i,j] <- NA
+              #  print(paramtest)
+            }                   
+        }
+      file.copy("epc-save",settings$epcInput[2],overwrite = TRUE)    
+    }
+    
+  print("###################################################")
+   paramMatrices <- (function(){
+       for(i in 1:nrow(paramtest)){
+           matrx <- matrix(ncol = 2,nrow=iterations)
+           matrx[,1] <- parameters[i,]
+           matrx[,2] <- paramtest[i,]
+           paramMatrices[[i]] <- matrx
+           names(paramMatrices)[i] <- rownames(paramtest)[i]
+       }
+       return(paramMatrices)
+   })()
+
+    
+    return(list(paramtest,paramMatrices))
+
+
+}
+
+```
+
+
+```{r, echo=FALSE,cache=TRUE}
+parconstrains <- read.csv("parconstrains_extended.csv")
+settings <- setupMuso()
+parSeq<-quickAndDirty(settings = settings,matrix = parconstrains,outVar = 8,iterations = 5)
+```
+
+```{r}
+parSeq
+```
+
+```{r,echo=FALSE}
+ parlist<-parSeq[[2]]
+ lparlist<-length(parlist)
+ for(i in 1:lparlist){
+   title<-names(parlist)[i]
+  plot(x = parlist[[i]][,1], y= parlist[[i]][,2], ylim=c(0,15), main=title,ylab="LAI")  
+ }
+```

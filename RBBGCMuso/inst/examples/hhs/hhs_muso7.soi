@@ -1,0 +1,101 @@
+SOILPROP FILE - MuSo6 
+--------------------------------------------------------------------------------
+SOIL GENERIC PARAMETERS
+      3.000000         (m)                                                                                       depth of soil
+     10.000000       (ppm)                                                              C:N ratio of labile soil pool  (soil1)
+     15.000000       (ppm)                                                              C:N ratio of medium soil pool  (soil2)
+     20.000000       (ppm)                                                              C:N ratio of slow soil pool    (soil3)
+     12.000000       (ppm)                                                              C:N ratio of passive soil pool (soil4)
+     10.000000    (kgC/m2)                                                   total SOC content (critical value for spinup run)
+      0.100000      (prop)                                                                              NH4 mobilen proportion
+    107.000000       (s/m)                                                  aerodynamic resistance (Wallace and Holwill, 1997)
+--------------------------------------------------------------------------------
+DECOMPOSITION, NITRIFICATION AND DENITRIFICATION PARAMETERS 
+      0.100000      (prop)                                           VWC ratio to calc. decomposition limit 1 (prop. to FC-HW)
+      1.000000      (prop)                                          VWC ratio to calc. decomposition limit 2 (prop. to SAT-FC)
+      1.000000   (dimless)                                                      curvature of decomposition limitation function
+  -9999.000000   (dimless)                                                   parameter 1 for tscalar function of decomposition
+    308.559998   (dimless)                                                   parameter 2 for tscalar function of decomposition
+     71.019997   (dimless)                                                   parameter 3 for tscalar function of decomposition
+    227.130005   (dimless)                                                   parameter 4 for tscalar function of decomposition
+     -5.000000   (Celsius)                                                          minimum soil temperature for decomposition
+     10.000000         (m)                                                  e-folding depth of decomposition rate depth scalar
+      0.200000      (prop)                                                      net mineralization proportion of nitrification
+      0.100000     (1/day)                                                                          maximum nitrification rate
+      0.020000      (prop)                                                        coefficient of N2O emission of nitrification
+      0.150000   (dimless)                                                  parameter 1 for pHscalar function of nitrification
+      1.000000   (dimless)                                                  parameter 2 for pHscalar function of nitrification
+      5.200000   (dimless)                                                  parameter 3 for pHscalar function of nitrification
+      0.550000   (dimless)                                                  parameter 4 for pHscalar function of nitrification
+  -9999.000000   (dimless)                                                   parameter 1 for tscalar function of nitrification
+    308.559998   (dimless)                                                   parameter 2 for tscalar function of nitrification
+     71.019997   (dimless)                                                   parameter 3 for tscalar function of nitrification
+    227.130005   (dimless)                                                   parameter 4 for tscalar function of nitrification
+      0.100000      (prop)                                                minimum WFPS for scalar of nitrification calculation
+      0.450000      (prop)                                          lower optimum WFPS for scalar of nitrification calculation
+      0.550000      (prop)                                         higher optimum WFPS for scalar of nitrification calculation
+      0.200000      (prop)                                minimum value for saturated WFPS scalar of nitrification calculation
+      0.050000    (1/gCO2)                                                       soil respiration related denitrification rate
+      2.000000   (dimless)                                                     denitrification related N2/N2O ratio multiplier
+      0.550000      (prop)                                                             critical WFPS value for denitrification
+--------------------------------------------------------------------------------
+RATE SCALARS
+      0.390000   (dimless)                                        respiration fractions for fluxes between compartments (11s1)
+      0.550000   (dimless)                                        respiration fractions for fluxes between compartments (l2s2)
+      0.290000   (dimless)                                        respiration fractions for fluxes between compartments (l4s3)
+      0.280000   (dimless)                                        respiration fractions for fluxes between compartments (s1s2)
+      0.460000   (dimless)                                        respiration fractions for fluxes between compartments (s2s3)
+      0.550000   (dimless)                                        respiration fractions for fluxes between compartments (s3s4)
+      0.700000     (1/day)                                                          rate constant scalar of labile litter pool
+      0.070000     (1/day)                                                       rate constant scalar of cellulose litter pool
+      0.014000     (1/day)                                                          rate constant scalar of lignin litter pool
+      0.070000     (1/day)                                              rate constant scalar of  fast microbial recycling pool
+      0.014000     (1/day)                                            rate constant scalar of  medium microbial recycling pool
+      0.001400     (1/day)                                              rate constant scalar of  slow microbial recycling pool
+      0.000100     (1/day)                                                      rate constant scalar of  recalcitrant SOM pool
+      0.001000     (1/day)                              rate constant scalar of  physical fragmentation of coarse woody debris
+      0.000000     (1/day)                                              fraction of direct decomposition of labile litter pool
+      0.000000     (1/day)                                           fraction of direct decomposition of cellulose litter pool
+      0.000000     (1/day)                                              fraction of direct decomposition of lignin litter pool
+--------------------------------------------------------------------------------
+SOIL MOISTURE PARAMETERS
+      6.000000        (mm)                                                                    limit of first stage evaporation
+      5.000000        (mm)                                                                        maximum height of pond water
+      1.000000   (dimless)                                                                   curvature of soil stress function
+  -9999.000000   (dimless)                                measured runoff curve number (0: no runoff, -9999: model estimation)
+      0.002000      (prop)                                                  fraction of dissolved part of SOIL1 organic matter
+      0.002000      (prop)                                                  fraction of dissolved part of SOIL2 organic matter
+      0.001000      (prop)                                                  fraction of dissolved part of SOIL3 organic matter
+      0.001000      (prop)                                                  fraction of dissolved part of SOIL4 organic matter
+      2.000000   (dimless)                                                  mulch parameter: number of layer affected by mulch
+      0.000000    (kgC/m2)                                                                   mulch parameter: critical amount 
+    100.000000   (dimless)                                                                      parameter 1 for mulch function
+      0.750000   (dimless)                                                                     parameter 2 for mulch function 
+      0.750000   (dimless)                                                                      parameter 3 for mulch function
+      0.500000      (prop)                                                              mulch parameter: evaporation reduction
+      0.880000   (dimless)                                                     parameter 1 for diffusion calculation - tipping
+     35.400002   (dimless)                                                     parameter 2 for diffusion calculation - tipping
+      5.000000    (cm/day)                                                 limit of assumed diffusivity in tipping calculation
+--------------------------------------------------------------------------------
+CH4 PARAMETERS
+    212.500000   (dimless)                                                soil CH4 emission bulk density dependence parameter1
+      1.810000   (dimless)                                                soil CH4 emission bulk density dependence parameter2
+     -1.353000   (dimless)                                          soil CH4 emission soil water content dependence parameter1
+      0.200000   dimless)                                           soil CH4 emission soil water content dependence parameter2
+      1.781000   (dimless)                                          soil CH4 emission soil water content dependence parameter3
+      6.786000   (dimless)                                          soil CH4 emission soil water content dependence parameter4
+      0.010000   (dimless)                                            soil CH4 emission soil temperature dependence parameter1
+--------------------------------------------------------------------------------
+SOIL COMPOSITION AND CHARACTERISTIC VALUES (-9999: no measured data)
+     28.000000     28.000000     28.000000     30.000000     30.000000     41.000000     41.000000     41.000000     41.000000     41.000000         (%)       sand percentage by volume in rock-free soil
+     49.000000     49.000000     49.000000     41.000000     46.000000     36.000000     36.000000     36.000000     36.000000     36.000000         (%)       silt percentage by volume in rock-free soil
+      8.200000      8.200000      8.200000      8.500000      8.700000      8.700000      8.700000      8.700000      8.700000      8.700000   (dimless)                                           soil pH
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000   (dimless)                  Clapp-Hornberger soilB parameter
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000     (g/cm3)                                      bulk density
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000     (m3/m3)                                 SWC at saturation
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000     (m3/m3)                             SWC at field capacity
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000     (m3/m3)                              SWC at wilting point
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000     (m3/m3)                  SWC at hygroscopic water content
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000   (dimless)                              drainage coefficient
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000    (cm/day)              hydraulic condictivity at saturation
+  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000  -9999.000000        (cm)                                  capillary fringe

@@ -7,13 +7,13 @@
 updateMusoMapping(excelName, dest = "./", version = getOption("RMuso_version"))
 }
 \arguments{
-\item{excelName}{Name of the excelfile which contains the parameters}
+\item{excelName}{Name of the Excel file which contains the parameters}
 }
 \value{
 The output code-variable matrix, and also the function changes the global variable
 }
 \description{
-This function updates the Biome-BGCMuSo output code-variable matrix (creates a json file that is used internally by RBBGCMuso). Within Biome-BGCMuSo the output state variablesare marked by integer numbers (see the User's Guide). In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production) a conversion table is needed which is handled by this function. The input Excel file must have the following column order: name, index, units, description (plus other optional columns line group). name refers to the abbreviation of the variable; index is the integer number of the output variable; unit is the unit of the variable; description is a meaningful text to explain the variable. The script will NOT work with other column order!
+This function updates the Biome-BGCMuSo output code-variable matrix (creates a json file that is used internally by RBBGCMuso). Within Biome-BGCMuSo the output state variables are marked by integer numbers (see the User's Guide). In order to provide meaningful variable names (e.g. 3009 means Gross Primary Production) a conversion table is needed which is handled by this function. The input Excel file must have the following column order: name, index, units, description (plus other optional columns line group). name refers to the abbreviation of the variable; index is the integer number of the output variable; unit is the unit of the variable; description is a meaningful text to explain the variable. The script will NOT work with other column order!
 }
 \author{
 Roland HOLLOS

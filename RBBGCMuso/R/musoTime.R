@@ -2,12 +2,12 @@
 #'
 #' This function generates MuSo compatibla dates for the data
 #' @author Roland HOLLOS
-#' @param startYear
-#' @param numYears
-#' @param timestep
-#' @param combined
-#' @param corrigated
-#' @param format
+#' @param startYear Start year of the simulations
+#' @param numYears Number of the years of the simulation
+#' @param timestep timestep of date creation
+#' @param combined using separate y m d columns or not?
+#' @param corrigated If leapyear ...
+#' @param format "the date format"
 #' @importFrom lubridate leap_year
 #' @export
 

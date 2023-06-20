@@ -3,6 +3,9 @@
 \name{getSoilDataFull}
 \alias{getSoilDataFull}
 \title{getSoilDataFull}
+\usage{
+getSoilDataFull(lat, lon, apiURL)
+}
 \description{
 This function collects soil data from a given restapi, de default is soilGrid
 }

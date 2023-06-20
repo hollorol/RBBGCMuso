@@ -33,13 +33,21 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       binaryPlace = "./", fileToChange = "epc",
                       skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE,
                       postProcString = NULL,
-                      doBackup=TRUE
+                      doBackup=TRUE,
+                      backupDir="bck",
+                      fixAlloc=FALSE
                       ){ #
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
     if(doBackup){
-        file.copy(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))),file.path(settings$inputLoc),overwrite=FALSE)
+        for(epc in settings$epcInput){
+            file.copy(epc, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
+        }
+
+        for(soi in settings$soilFile){
+            file.copy(soi, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
+        }
     }
 
     bck  <- file.path(settings$inputLoc, "bck",
@@ -121,6 +129,9 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       } else {
                           NULL
                       })
+        if(fixAlloc){
+            fixAlloc(settings)
+        }
                        # fileToChange = fileToChange,)
     }
     
