@@ -45,6 +45,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
          future({
                       tryCatch(
                                musoSingleThread(measuredData, parameters, startDate,
+                                        sourceFile=settings$epc[2], # EPC SPECIFIC
                                         endDate, formatString,
                                         dataVar, outLoc,
                                         preTag, settings,
@@ -53,6 +54,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                                         modifyOriginal, likelihood, uncertainity,
                                         naVal, postProcString, i)
                       , error = function(e){
+                          # browser()
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
 
@@ -130,7 +132,12 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
                 epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
-                epcVals <- results[which.max(liks),1:length(epcIndexes)]
+                if(ncol(liks) == 1){
+                    ml_place <- which.max(liks)
+                } else {
+                    ml_place <- which.max(as.matrix(liks) %*% as.matrix(w))
+                }
+                epcVals <- results[ml_place,1:length(epcIndexes)]
                 epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
                 changemulline(filePaths= epcPlace, epcIndexes,
                               epcVals, src =epcPlace,# settings$epcInput[2],
@@ -183,6 +190,7 @@ copyToThreadDirs <- function(prefix="thread", numcores=parallel::detectCores()-1
 }
 
 musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
+                     sourceFile=NULL,
                      endDate = NULL, formatString = "%Y-%m-%d",
                      dataVar, outLoc = "./calib",
                      preTag = "cal-", settings =  setupMuso(),
