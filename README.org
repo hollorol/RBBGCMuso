@@ -143,7 +143,7 @@ The result should look like this image:
 
 #+BEGIN_HTML
 <img width="600px"  
-src="https://raw.githubusercontent.com/hollorol/RBBGCMuso/Documentation/images/gpp01.png" alt="GPP plot">
+src="https://github.com/hollorol/RBBGCMuso/blob/eae5f7f83aacc68880236c7480d6ba4d17990375/images/gpp01.png" alt="GPP plot">
 #+END_HTML
 
 Now get the 4th year from the dataset and plot it:
