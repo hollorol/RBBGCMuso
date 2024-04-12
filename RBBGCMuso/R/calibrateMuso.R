@@ -55,6 +55,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                                         naVal, postProcString, i)
                       , error = function(e){
                           # browser()
+                                            writeLines(as.character(e),"error.txt")
                                             writeLines(as.character(iterations),"progress.txt")
                                         })
 
@@ -132,7 +133,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
                 epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
-                if(ncol(liks) == 1){
+                if(is.null(dim(liks)) || dim(liks)[2] == 1 ){
                     ml_place <- which.max(liks)
                 } else {
                     ml_place <- which.max(as.matrix(liks) %*% as.matrix(w))
@@ -249,6 +250,7 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     pretag <- file.path(outLoc,preTag)
     ##reading the original epc file at the specified
     ## row numbers
+    # browser()
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
         randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000,sourceFile=sourceFile)
@@ -314,11 +316,21 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     #     colNumb <- length(settings$dailyVarCodes) + 1
     # }
     
+    singleVarCalib <- FALSE
+    if(is.null(dim(randValues))){
+        singleVarCalib <- TRUE
+    }    
 
     for(i in 2:(iterations+1)){
-
+        
+        if(!singleVarCalib){
+            parameters <- randValues[(i-1),]
+        } else {
+            parameters <- randValues[i]
+        }
+        
         tmp <- tryCatch(calibMuso(settings = settings,
-                                  parameters = randValues[(i-1),],
+                                  parameters = parameters,
                                   silent= TRUE,
                                   skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString), error = function (e) NULL)
         if(is.null(tmp)){
@@ -332,7 +344,7 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
                                                            musoCodeToIndex = musoCodeToIndex, uncert = uncert)
         }
 
-        partialResult[1:numParameters] <- randValues[(i-1),]
+        partialResult[1:numParameters] <- parameters
         write.table(x=partialResult, file="preservedCalib.csv", append=TRUE, row.names=FALSE,
                     sep=",", col.names=FALSE)
         write.csv(x=tmp, file=paste0(pretag, (i+1),".csv"))

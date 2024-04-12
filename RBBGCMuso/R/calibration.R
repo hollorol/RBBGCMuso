@@ -248,7 +248,10 @@ musoGlue <- function(presCalFile, w, delta = 0.17, settings=setupMuso(), paramet
     preservedCalib <- preservedCalib[!is.na(preservedCalib$combined),]
     unfilteredLikelihood <-  preservedCalib$combined
     top5points <- preservedCalib$combined>quantile(preservedCalib$combined,0.95)
-    preservedCalibtop5 <- preservedCalib[,]
+    preservedCalibtop5 <- tryCatch(preservedCalib[top5points,], error=function(e){
+       warning("Too few simulation to calculate the top five percent, please increase the iteration number")
+                            preservedCalib
+    })
     optRanges <-t(apply(preservedCalibtop5,2,function(x) quantile(x,c(0.05,0.5,0.95))))  
     pdf("dotplot.pdf")
     if(lg){

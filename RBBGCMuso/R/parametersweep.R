@@ -53,7 +53,7 @@ You can download pandoc from here: 'https://pandoc.org/',\n or Rstudio from here
     
     rmdFile <- sprintf("---\ntitle: \"ParameterSweep basic\"\n---\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\n```\n```{r, echo=FALSE}\nsuppressWarnings(library(RBBGCMuso))\n```\n```{r, echo=FALSE}\nparameters <- read.csv(\"parameters.csv\")\n```\n```{r,fig.width=10, fig.height=3, echo=FALSE}\nnumPar\nfor(i in 1:numPar){\n  suppressWarnings(musoQuickEffect(calibrationPar=parameters[i,2],startVal = parameters[i,3], endVal = parameters[i,4],\nnSteps = 9,\noutVar = \"daily_gpp\",\nparName = parameters[i,1],fixAlloc=%s))\n}\n```",fixAlloc)
     rmdVec <- unlist(strsplit(rmdFile,"\n"))
-    rmdVec[11] <- paste0("parameters <- read.csv(\"",parameters,"\", stringsAsFactor = FALSE)")
+    # rmdVec[11] <- paste0("parameters <- read.csv(\"",parameters,"\", stringsAsFactor = FALSE)")
     rmdVec[14] <- "numPar <- nrow(parameters)"
     rmdVec[17] <- paste0("nSteps = ", iterations - 1,",")
     rmdVec[18] <- paste0("outVar = \"",varNames,"\",")
