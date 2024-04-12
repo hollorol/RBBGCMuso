@@ -17,7 +17,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
 
-    future::plan(future::multisession(workers = numCores))
+    future::plan(future::multisession(workers = numCores), numCores = numCores)
     file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     file.remove(list.files(path = settings$inputLoc, pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
     unlink(file.path(settings$inputLoc,"thread"),recursive=TRUE)
