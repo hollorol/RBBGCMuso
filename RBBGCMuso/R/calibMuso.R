@@ -50,8 +50,22 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
 
-    bck  <- file.path(settings$inputLoc, "bck",
-                      basename(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))))) 
+    bck  <- sapply(fileToChange,
+                   function(changeFile){
+                       if(changeFile %in% c("epc","soil")){
+                           return(
+                            file.path(settings$inputLoc, backupDir,
+                               basename(
+                                   eval(
+                                       parse(text = sprintf("settings$%sInput[2]",
+                                                            fileToChange)))))
+                            )
+
+                       }
+
+                       file.path(settings$inputLoc, backupDir, changeFile)
+                   })
+    browser()
 
     if(!silent){
         cat("Biome-BGC simulation started\n") # ZOLI
