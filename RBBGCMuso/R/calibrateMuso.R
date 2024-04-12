@@ -13,11 +13,11 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL,
                      naVal = NULL, postProcString = NULL,
                      sourceFile=NULL, # bases for musoRand if dependecy group is not fully defined by parameters.csv 
-                     thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
+                     thread_prefix="thread", numCores, pb = txtProgressBar(min=0, max=iterations, style=3),
                      maxLikelihoodEpc=TRUE,
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
 
-    future::plan(future::multisession(workers = numCores), numCores = numCores)
+    future::plan(future::multisession(workers = numCores))
     file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     file.remove(list.files(path = settings$inputLoc, pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
     unlink(file.path(settings$inputLoc,"thread"),recursive=TRUE)
