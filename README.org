@@ -6,7 +6,7 @@
 #+AUTHOR: Roland HOLLÓS, Zoltán BARCZA, Erzsébet KRISTÓF
 
 Please cite this work as follows:
-Hollós, R., Kristóf, E., Fodor, N., Hidy, D., Horváth, F., Barcza, Z. (2023).
+Hollós, R., Kristóf, E., Fodor, N., Hidy, D., Horváth, F., Barcza, Z. (2024).
 RBBGCMuso: an R package to support the application of the [[http://nimbus.elte.hu/bbgc/][Biome-BGCMuSo]] biogeochemical model. URL https://github.com/hollorol/RBBGCMuso.
 
 *Current version: 0.7.0*
