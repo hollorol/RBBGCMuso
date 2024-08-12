@@ -7,6 +7,7 @@
 #' @param endVal The maximum of the given parameter. 
 #' @param nSteps Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot. 
 #' @param fileTochange Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user. 
+#' @param postProcString varname <- f(@varindex) creates a new variable based on varindex
 #' @return Graph showing the runs with the selected parameters with color coding. The graph will show data from the last simulation year. 
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_point aes labs theme ggsave element_blank facet_wrap
 #' @importFrom dplyr filter group_by summarize mutate '%>%' tbl_df select
@@ -15,7 +16,7 @@
 #' @importFrom tidyr separate
 #' @export
 
-musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal", yearNum=1, year=(settings$startYear + yearNum -1),fixAlloc=FALSE){
+musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal", yearNum=1, year=(settings$startYear + yearNum -1),fixAlloc=FALSE, postProcString = NULL){
 
     if(is.character(outVar)){
                       varNames <- as.data.frame(musoMappingFind(outVar))
@@ -45,7 +46,7 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
                                         parameters = parVal,
                                         outVars = outVarIndex,
                                         silent = TRUE,
-                                        fileToChange = fileToChange,fixAlloc=fixAlloc), error = function(e){NULL})
+                                        fileToChange = fileToChange,fixAlloc=fixAlloc, postProcString=postProcString), error = function(e){NULL})
         if(is.null(calResult)){
             b <- cbind(rep(NA,365),parVal)
             rownames(b) <- musoDate(startYear = year, numYears = 1)

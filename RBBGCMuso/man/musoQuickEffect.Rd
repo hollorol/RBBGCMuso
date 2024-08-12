@@ -16,7 +16,8 @@ musoQuickEffect(
   parName = "parVal",
   yearNum = 1,
   year = (settings$startYear + yearNum - 1),
-  fixAlloc = FALSE
+  fixAlloc = FALSE,
+  postProcString = NULL
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ musoQuickEffect(
 \item{endVal}{The maximum of the given parameter.}
 
 \item{nSteps}{Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot.}
+
+\item{postProcString}{varname <- f(@varindex) creates a new variable based on varindex}
 
 \item{fileTochange}{Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user.}
 }
