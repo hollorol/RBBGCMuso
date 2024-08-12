@@ -32,6 +32,44 @@ changeByIndex <- function (rowIndex, parameter, fileStringVector){
     fileStringVector
 }
 
+changeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAlloc){
+
+        switch(fileToChange,
+               epc= {
+                  fileToChange <- tools::file_path_as_absolute(settings$epcInput[2])
+               },
+               soil={
+                   fileToChange <- tools::file_path_as_absolute(settings$soilFile[2])
+               },
+
+               fileToChange <- tools::file_path_as_absolute(fileType)
+        )
+
+        bck  <- file.path(settings$inputLoc, "bck",
+                          basename(fileToChange)) 
+
+        changemulline(filePaths = fileToChange,
+                      calibrationPar = calibrationPar,
+                      contents = parameters,
+                      src = if(file.exists(bck)){
+                          bck
+                      } else {
+                          NULL
+                      })
+        if(fixAlloc){
+            fixAlloc(settings)
+        }
+                       # fileToChange = fileToChange,)
+}
+
+
+
+
+
+
+
+
+
 
 #' musoGetValues 
 #' 

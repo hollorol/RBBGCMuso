@@ -28,6 +28,8 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{leapYear}{Should the function do a leapyear correction on the output data? If TRUE, then the result for 31 December will be doubled in leap years which means that the results for the leap year will cover all 366 days. See the model's User's Guide for notes on leap years.}
 
+\item{calibrationPar}{You might want to change some parameters in your EPC file before running the model. The function offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8).}
+
 \item{keepBinary}{By default RBBGCMuso keeps the working environment as clean as possible, thus deletes all the regular output files. The results are directly written to the standard output (e.g. to the screen), but you can redirect it and save them to a variable. Alternatively, you can export your results to the desired destination in a desired format. Through the keepBinary parameter you can set RBBGCMuso to keep the binary output files. If you would like to set the location of the binary output, please take a look at the binaryPlace argument.}
 
 \item{binaryPlace}{The directory for the binary output files (see the keepBinary parameter).}

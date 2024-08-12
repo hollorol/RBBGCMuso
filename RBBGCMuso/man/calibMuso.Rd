@@ -10,7 +10,9 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 \arguments{
 \item{settings}{You have to run the setupMuso function before calibMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment}
 
-\item{parameters}{In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)}
+\item{calibrationPar}{You might want to change some parameters in your EPC file before running the model. The function offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8).}
+
+\item{parameters}{In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4), Optionally you can have a list when you want to modify more than one file at once. In that case you have to provide fileToChange and parameters with the same length as a list.}
 
 \item{timee}{The required timesteps in the modell output. It can be "d", if it is daily, "m", if it's monthly, "y", it it is yearly. I recommend to use daily data, the yearly and monthly data is not well-tested yet.}
 
@@ -30,7 +32,7 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{binaryPlace}{The place of the binary output files.}
 
-\item{fileToChange}{You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"}
+\item{fileToChange}{You can change any file with this parameter. You have to provide the path to that file or use the epc or soil keywords. When using epc or soild keywords, the filepath will be infered from the settings variable. Optionally you can have a list when you want to modify more than one file at once. In that case you have to provide calibrationPar and parameters with the same length as a list.}
 
 \item{skipSpinup}{If TRUE, calibMuso wont do spinup simulation}
 

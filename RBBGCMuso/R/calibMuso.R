@@ -10,12 +10,13 @@
 #' @param export if it is yes or you give a filename here, it converts the ouxtput to the specific extension. For example, if you set export to "example.csv", it converts the output to "csv", if you set it to "example.xls" it converts to example.xls with the xlsx package. If it is not installed it gives back a warning message and converts it to csv.
 #' @param silent If you set it TRUE all off the modells output to the screen will be suppressed. It can be usefull, because it increases the model-speed.
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
-#' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
+#' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4), Optionally you can have a list when you want to modify more than one file at once. In that case you have to provide fileToChange and parameters with the same length as a list.
 #' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
 #' @param leapYear  Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
 #' @param keepBinary In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.
 #' @param binaryPlace The place of the binary output files.
-#' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"
+#' @param calibrationPar You might want to change some parameters in your EPC file before running the model. The function offers possibility for this without editing the EPC file. In this situation you have to select the appropirate model parameters first. You can refer to these parameters with the number of the line in the EPC file. Indexing of lines start from one. You should use a vector for this referencing like c(1,5,8).
+#' @param fileToChange You can change any file with this parameter. You have to provide the path to that file or use the epc or soil keywords. When using epc or soild keywords, the filepath will be infered from the settings variable. Optionally you can have a list when you want to modify more than one file at once. In that case you have to provide calibrationPar and parameters with the same length as a list.
 #' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
 #' @param prettyOut date ad Date type, separate year, month, day vectors
 #' @return No return, outputs are written to file 
@@ -120,33 +121,21 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     ##change the file determined by filetype if and only if there are given parameters
  
     if(!is.null(parameters)){
-
-        switch(fileToChange,
-               epc= {
-                  fileToChange <- tools::file_path_as_absolute(settings$epcInput[2])
-               },
-               soil={
-                   fileToChange <- tools::file_path_as_absolute(settings$soilFile[2])
-               },
-
-               fileToChange <- tools::file_path_as_absolute(fileType)
-        )
-
-        bck  <- file.path(settings$inputLoc, "bck",
-                          basename(fileToChange)) 
-
-        changemulline(filePaths = fileToChange,
-                      calibrationPar = calibrationPar,
-                      contents = parameters,
-                      src = if(file.exists(bck)){
-                          bck
-                      } else {
-                          NULL
+        if(is.list(parameters)){
+            for(i in seq_along(parameters)){
+                tryCatch(changeMuso(settings, parameters[[i]],
+                                    calibrationPar[[i]],
+                                    fileToChange[[i]], fixAlloc), error = function(e){
+                    stop("Something went wrong with the file change. Parameters, calibrationpar, fileToChange have to be list with the same dimension")
                       })
-        if(fixAlloc){
-            fixAlloc(settings)
+            }
+
         }
-                       # fileToChange = fileToChange,)
+        else {
+            changeMuso(settings, parameters,
+                       calibrationPar,
+                       fileToChange, fixAlloc)
+        }
     }
     
 
@@ -356,18 +345,6 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         Reva <- postProcMuso(Reva,postProcString)
     }
 
-    ## if(leapYear){
-    ##     Reva <- corrigMuso(settings,Reva)
-    ##     if(!prettyOut){
-    ##         rownames(Reva) <- musoDate(settings$startYear,settings$numYears)            
-    ##     }
-
-    ## } else {
-    ##     if(!prettyOut){
-    ##         rownames(Reva) <- musoDate(settings$startYear, settings$numYears)    
-    ##     }
-        
-    ## }
     
     if(!prettyOut){
         rownames(Reva) <- musoDate(settings$startYear, numYears = settings$numYears)
@@ -377,13 +354,6 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     if(export!=FALSE){
         setwd(whereAmI)
 
-        ## switch(fextension(export),
-        ##        "csv"=(write.csv(Reva,export)),
-        ##        "xlsx"=(),
-        ##        "odt"=
-                  
-            
-        ## )
         write.csv(Reva,export)
         
     } else{
