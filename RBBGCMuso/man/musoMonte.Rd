@@ -7,6 +7,7 @@
 musoMonte(
   settings = NULL,
   parameters = NULL,
+  sourceFile = NULL,
   inputDir = "./",
   outLoc = "./calib",
   iterations = 10,

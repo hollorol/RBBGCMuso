@@ -8,6 +8,7 @@ musoRand(
   parameters,
   iterations = 3000,
   fileType = "epc",
+  sourceFile = NULL,
   constrains = NULL,
   burnin = NULL
 )

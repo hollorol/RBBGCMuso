@@ -50,8 +50,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
 
-    bck  <- file.path(settings$inputLoc, "bck",
-                      basename(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))))) 
+
 
     if(!silent){
         cat("Biome-BGC simulation started\n") # ZOLI
@@ -118,10 +117,25 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
      }
 
     
-    ##change the epc file if and only if there are given parameters
-       
+    ##change the file determined by filetype if and only if there are given parameters
+ 
     if(!is.null(parameters)){
-        changemulline(filePaths = epc[2],
+
+        switch(fileToChange,
+               epc= {
+                  fileToChange <- tools::file_path_as_absolute(settings$epcInput[2])
+               },
+               soil={
+                   fileToChange <- tools::file_path_as_absolute(settings$soilFile[2])
+               },
+
+               fileToChange <- tools::file_path_as_absolute(fileType)
+        )
+
+        bck  <- file.path(settings$inputLoc, "bck",
+                          basename(fileToChange)) 
+
+        changemulline(filePaths = fileToChange,
                       calibrationPar = calibrationPar,
                       contents = parameters,
                       src = if(file.exists(bck)){

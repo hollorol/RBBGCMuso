@@ -21,6 +21,7 @@ musoSensi(
   plotTitle = "Sensitivity",
   skipSpinup = TRUE,
   skipZero = TRUE,
+  sourceFile = NULL,
   postProcString = NULL,
   modifyOut = TRUE,
   dpi = 300
