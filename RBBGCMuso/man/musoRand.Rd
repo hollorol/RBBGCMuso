@@ -9,14 +9,14 @@ musoRand(
   iterations = 3000,
   fileType = "epc",
   sourceFile = NULL,
-  constrains = NULL,
+  constraints = NULL,
   burnin = NULL
 )
 }
 \arguments{
 \item{parameters}{This is a dataframe (heterogeneous data-matrix), where the first column is the name of the parameter, the second is a numeric vector of the rownumbers of the given variable in the input EPC file, and the last two columns describe the minimum and the maximum of the parameter (i.e. the parameter ranges), defining the interval for the randomization.}
 
-\item{constrains}{This is a matrix wich specify the constrain rules for the sampling. Parameter dependencies are described in the Biome-BGCMuSo User's Guide. Further informations is coming soon.}
+\item{constraints}{This is a matrix wich specify the constrain rules for the sampling. Parameter dependencies are described in the Biome-BGCMuSo User's Guide. Further informations is coming soon. If its set to "without", no constraints are used}
 
 \item{iteration}{The number of samples for the Monte-Carlo experiment. We propose to use at least 3000 iteration because it is generally fast and it can be subsampled later at any time.}
 }

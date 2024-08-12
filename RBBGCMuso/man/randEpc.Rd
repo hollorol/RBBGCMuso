@@ -9,7 +9,7 @@ randEpc(
   location = "./epcDir",
   sourceEpc = "maize.epc",
   iterations = 1000,
-  constrains = NULL
+  constraints = NULL
 )
 }
 \arguments{

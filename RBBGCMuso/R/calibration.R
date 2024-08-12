@@ -17,7 +17,7 @@
 #' @param calPar a
 #' @param skipSpinup a
 #' @param iterations c
-#' @param constrains d
+#' @param constraints d
 #' @param likelihood d
 #' @param settings e
 #' @param leapYear b
@@ -32,7 +32,7 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
                      preTag = "cal-", settings =  setupMuso(),
                      outVars = NULL, iterations = 30,
                      skipSpinup = TRUE, plotName = "calib.jpg",
-                     modifyOriginal=TRUE, likelihood, uncertainity = NULL,
+                     modifyOriginal=TRUE, likelihood, uncertainity = NULL, constraints=NULL,
                      naVal = NULL, postProcString = NULL, w=NULL, lg=FALSE, parallel = TRUE) {
     # Exanding likelihood
     likelihoodFull <- as.list(rep(NA,length(dataVar)))
@@ -77,10 +77,10 @@ optiMuso <- function(measuredData, parameters = NULL, startDate = NULL,
     ## row numbers
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = 3000)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = NULL, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = iterations)
     }
 
     origEpc <- readValuesFromFile(settings$epc[2],randVals[[1]])

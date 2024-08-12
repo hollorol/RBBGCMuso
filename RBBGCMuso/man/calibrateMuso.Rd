@@ -27,6 +27,7 @@ calibrateMuso(
   thread_prefix = "thread",
   numCores = max(c(parallel::detectCores() - 1, 1)),
   pb = txtProgressBar(min = 0, max = iterations, style = 3),
+  constraints = NULL,
   maxLikelihoodEpc = TRUE,
   pbUpdate = setTxtProgressBar,
   outputLoc = "./",

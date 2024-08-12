@@ -23,6 +23,7 @@ musoSensi(
   skipZero = TRUE,
   sourceFile = NULL,
   postProcString = NULL,
+  constraints = NULL,
   modifyOut = TRUE,
   dpi = 300
 )

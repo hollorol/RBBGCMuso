@@ -3,18 +3,28 @@
 #' This funtion uses the Monte Carlo technique to uniformly sample the parameter space from user defined parameters of the Biome-BGCMuSo model. The sampling algorithm ensures that the parameters are constrained by the model logic which means that parameter dependencies are fully taken into account (parameter dependency means that e.g leaf C:N ratio must be smaller than C:N ratio of litter; more complicated rules apply to the allocation parameters where the allocation fractions to different plant compartments must sum up 1). This function implements a mathematically correct solution to provide uniform distriution for all selected parameters. 
 #' @author Roland HOLLOS
 #' @param parameters This is a dataframe (heterogeneous data-matrix), where the first column is the name of the parameter, the second is a numeric vector of the rownumbers of the given variable in the input EPC file, and the last two columns describe the minimum and the maximum of the parameter (i.e. the parameter ranges), defining the interval for the randomization.
-#' @param constrains This is a matrix wich specify the constrain rules for the sampling. Parameter dependencies are described in the Biome-BGCMuSo User's Guide. Further informations is coming soon.
+#' @param constraints This is a matrix wich specify the constrain rules for the sampling. Parameter dependencies are described in the Biome-BGCMuSo User's Guide. Further informations is coming soon. If its set to "without", no constraints are used
 #' @param iteration The number of samples for the Monte-Carlo experiment. We propose to use at least 3000 iteration because it is generally fast and it can be subsampled later at any time. 
 #' @importFrom limSolve xsample
 #' @export
 
-musoRand <- function(parameters, iterations=3000, fileType="epc", sourceFile=NULL, constrains = NULL, burnin = NULL){
+musoRand <- function(parameters, iterations=3000, fileType="epc", sourceFile=NULL, constraints = NULL, burnin = NULL){
+    
+    if(identical(constraints,"without")){
+        index <- parameters[,2]
+        randVal <- matrix(nrow=iterations, ncol=nrow(parameters))
+        for(i in 1:nrow(parameters)){
+            randVal[,i] <- runif(iterations,parameters[i,3],parameters[i,4])
+        }
+        return(list(INDEX =index, randVal=randVal))
+    }
 
-    if(is.null(constrains)){
-        constMatrix <- constrains
+
+    if(is.null(constraints)){
+        constMatrix <- constraints
         constMatrix <- getOption("RMuso_constMatrix")[[fileType]][[as.character(getOption("RMuso_version"))]]
     } else {
-        constMatrix <- constrains
+        constMatrix <- constraints
     }
 
     parameters <- parameters[,-1]

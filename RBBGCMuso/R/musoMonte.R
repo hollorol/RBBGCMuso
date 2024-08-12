@@ -31,7 +31,7 @@ musoMonte <- function(settings=NULL,
                      skipSpinup = TRUE,
                      debugging = FALSE,
                      keepEpc = FALSE,
-                     constrains = NULL,
+                     constraints = NULL,
                      skipZero = TRUE,
                      postProcString=NULL,
                      modifyOut=TRUE,
@@ -101,10 +101,10 @@ musoMonte <- function(settings=NULL,
     ##reading the original epc file at the specified
     ## row numbers
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = 3000,sourceFile=sourceFile)
+        randVals <- musoRand(parameters = parameters,fileType="epc", constraints=constraints, iterations = 3000,sourceFile=sourceFile)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,fileType="epc", iterations = iterations)
+        randVals <- musoRand(parameters = parameters,fileType="epc", constraints=constraints, iterations = iterations)
     }
     
     origEpc <- readValuesFromEpc(settings$epc[2],parameters[,2])

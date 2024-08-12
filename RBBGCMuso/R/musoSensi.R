@@ -33,6 +33,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      skipZero = TRUE,
                      sourceFile=NULL,
                      postProcString=NULL,
+                     constraints=NULL,
                      modifyOut=TRUE,
                      dpi=300){
 
@@ -100,6 +101,7 @@ musoSensi <- function(monteCarloFile = NULL,
                       skipSpinup = skipSpinup,
                       skipZero=skipZero,
                       postProcString=postProcString,
+                      constraints=NULL,
                       modifyOut=modifyOut
                       )
         M <- cbind(seq_along(M[,1]),M)

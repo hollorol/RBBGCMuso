@@ -20,7 +20,7 @@ musoMonte(
   skipSpinup = TRUE,
   debugging = FALSE,
   keepEpc = FALSE,
-  constrains = NULL,
+  constraints = NULL,
   skipZero = TRUE,
   postProcString = NULL,
   modifyOut = TRUE,

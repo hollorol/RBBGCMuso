@@ -9,7 +9,7 @@
 #' @export
 
 randEpc <- function(parameterFile = "parameters.csv", location = "./epcDir",
-                    sourceEpc = "maize.epc", iterations = 1000, constrains = NULL){
+                    sourceEpc = "maize.epc", iterations = 1000, constraints = NULL){
     
     if(!dir.exists(location)){
         dir.create(location)
@@ -19,10 +19,10 @@ randEpc <- function(parameterFile = "parameters.csv", location = "./epcDir",
     parameters <- read.csv(parameterFile)
 
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = 3000)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = 3000)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),]
     } else {
-        randVals <- musoRand(parameters = parameters,constrains = constrains, iterations = iterations)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = iterations)
     }
     file.copy(sourceEpc,location,overwrite = TRUE)
     setwd(location)

@@ -21,6 +21,7 @@ optiMuso(
   modifyOriginal = TRUE,
   likelihood,
   uncertainity = NULL,
+  constraints = NULL,
   naVal = NULL,
   postProcString = NULL,
   w = NULL,
@@ -49,6 +50,8 @@ optiMuso(
 
 \item{likelihood}{d}
 
+\item{constraints}{d}
+
 \item{measuredDataFile}{a}
 
 \item{sep}{c}
@@ -62,8 +65,6 @@ optiMuso(
 \item{pretag}{a}
 
 \item{calPar}{a}
-
-\item{constrains}{d}
 
 \item{leapYear}{b}
 }
