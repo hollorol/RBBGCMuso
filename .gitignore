@@ -8,3 +8,4 @@
 *.dll
 RBBGCMuso/R/tags
 RBBGCMuso/inst/examples/hhs/example.R
+test/*
