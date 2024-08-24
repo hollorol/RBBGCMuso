@@ -16030,6 +16030,31 @@
     "units": "kgNm-2",
     "descriptions": "Soil N content in maximal rooting zone"
   },
+
+{
+     "codes": 2485,
+     "names": "minerFlux_LtoS_total",
+     "units": "kgNm-2",
+     "descriptions": "Summarized mineralization N flux from litter decomposition in total soil  (miner)"
+   },
+   {
+     "codes": 2486,
+     "names": "minerFlux_StoS_total",
+     "units": "kgNm-2",
+     "descriptions": "Summarized mineralization N flux from soil decomposition in total soil (miner)"
+   },
+   {
+     "codes": 2487,
+     "names": "immobFlux_LtoS_total",
+     "units": "kgNm-2",
+     "descriptions": "Summarized mineralization N flux from litter decomposition in total soil (immob.)"
+   },
+   {
+     "codes": 2488,
+     "names": "immobFlux_StoS_total",
+     "units": "kgNm-2",
+     "descriptions": "Summarized mineralization N flux from soil decomposition in total soil (immob.)"
+   },
   {
     "codes": 3172,
     "names": "litrC_maxRZ",
