@@ -263,7 +263,7 @@ setupMuso <- function(executable=NULL,
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
 
         if(key == "SOIL FILE"){
-            key <- "SOIL? File"
+            key <- "SOI FILE"
         }
         
             if(stringP){
