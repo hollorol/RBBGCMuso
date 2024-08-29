@@ -261,6 +261,10 @@ setupMuso <- function(executable=NULL,
     suppressWarnings(file.remove(paste0(file.path(outputLoc,outputName[2]),".log")))
  
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
+
+        if(key == "SOIL FILE"){
+            key <- "SOIL? File"
+        }
         
             if(stringP){
                 unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
