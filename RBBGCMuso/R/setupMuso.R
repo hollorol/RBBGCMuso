@@ -262,10 +262,6 @@ setupMuso <- function(executable=NULL,
  
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
 
-        if(key == "SOIL FILE"){
-            key <- "SOI FILE"
-        }
-        
             if(stringP){
                 unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
             } else {
@@ -282,7 +278,7 @@ setupMuso <- function(executable=NULL,
     searchBellow(iniFiles[[2]], "OUTPUT_CONTROL",stringP=FALSE,n=5)
     soilFile <- NULL
     if(version >=6){
-        soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOIL_FILE"))}),error = function(e){""})
+        soilFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"SOI_FILE"))}),error = function(e){""})
     }
     epcFiles <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"EPC_FILE"))}),error = function(e){""}) 
     metInput <- tryCatch(sapply(iniFiles,function(x){(searchBellow(x,"MET_INPUT"))}),error = function(e){""})
