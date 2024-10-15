@@ -44,7 +44,7 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
 ############################spinup run############################
 ########################################################## 
 
-    ## obsolete feature, but there can be cases in wich this option is helpfull
+    ## obsolete feature, but there can be cases in wich this option is helpful
     if(aggressive==TRUE){
         cleanupMuso(location=outputLoc,deep=TRUE)} #(:INSIDE: cleanup.R)
 
@@ -66,25 +66,30 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     
     ##Run the spinup modell
     
-    if(silent){#silenc mode
+    if(silent){    #silent mode
+    
         if(Linuxp){
-            #In this case, in linux machines
-            tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
-                   error= function (e){stop("Cannot run the modell-check the executable!")})
-        } else {
-            #In windows machines there is a show.output.on.console option
-            tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
-                     error= function (e){stop("Cannot run the modell-check the executable!")})
-        }} else {
-        system(paste(executable,iniInput[1],sep=" "))
+        #On Linux machines
+            tryCatch(system(paste(executable, iniInput[1], "> /dev/null")),
+                error = function(e) stop("Cannot run the model - check the executable!")
+            )
+            return()
+        }
+
+        #On Windows machines
+        tryCatch(system(paste(executable, iniInput[1]), show.output.on.console = FALSE),
+            error = function(e) stop("Cannot run the model - check the executable!")
+        )
+        return()
     }
+
 ###############################################
 #############LOG SECTION#######################
 ###############################################
     
-      logspinup <- getLogs(outputLoc,outputNames,type="spinup") #(:INSIDE: assistantFunctions.R)
+    logspinup <- getLogs(outputLoc,outputNames,type="spinup") #(:INSIDE: assistantFunctions.R)
  
-  if(length(logspinup)==0){
+    if(length(logspinup)==0){
         if(keepEpc){
             stampnum<-stamp(EPCS)
             lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
@@ -93,7 +98,7 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
             stop("Modell Failure")
         }
         setwd(whereAmI)
-        stop("Modell Failure") #in that case the modell did not create even a logfile
+        stop("Modell Failure") #in that case the model didn't even create a logfile
     }
 
     if(length(logspinup)>1){
@@ -103,8 +108,8 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
             spincrash<-TRUE
         } else {
             spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
-        }
-    }
+          }
+      }
 
     dirName<-normalizePath(paste(inputLoc,"/LOG",sep=""))
     dirERROR<-paste0(inputLoc,"/ERROR")
@@ -120,14 +125,10 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     } else {
         errorsign <- 0}
 
-
-
     if(debugging==TRUE){
         stampAndDir(outputLoc=outputLoc,stampDir=dirName, names=logspinup, type="output") #(:INSIDE: assistantFunctions.R)
     }
 
-    
-    
     if(errorsign==1){
         stop("Modell Failure")
     }
