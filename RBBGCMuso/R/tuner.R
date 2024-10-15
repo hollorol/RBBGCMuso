@@ -19,7 +19,6 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
     settings <- setupMuso(...)
     defaultValues <- musoGetValues(settings$epcInput[2],parameters[,2])            
     fluidPage(
-        # tags$head(tags$style(HTML("#iniContainer {width: 80vw;}"))),
         tags$head(tags$style(HTML("#contolp {height: 80vh;overflow-y:scroll;}"))),
         titlePanel("Biome-BGCMuSo parameter tuner"),
         sidebarLayout(
@@ -32,22 +31,22 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
                        width="40%"
                        ),
                     do.call(tagList,lapply(1:nrow(parameters),function(x){
-                                               numericInput(paste0("param_",x),
+                                            numericInput(paste0("param_",x),
                                                             parameters[x,1],
                                                             defaultValues[x],
                                                             step=defaultValues[x]/10,
                                                             width="40%"
                                                )
-}))),
-              tags$div(actionButton(inputId="runModel","Run MuSo"),
-                       radioButtons(inputId="destination",
+                    }))),
+                tags$div(actionButton(inputId="runModel","Run MuSo"),
+                                    radioButtons(inputId="destination",
                                     label="reference or modified",
                                     choiceValues=c("auto","prev","next"),
                                     choiceNames=c("automatic","reference","modified")))),
                 tabPanel("ini",tags$div(id="iniContainer",
                                         textAreaInput("inifile","Normal Ini file",
-                                                      value=paste(readLines(settings$iniInput[2]),
-                                                                  collapse="\n"))),
+                                        value=paste(readLines(settings$iniInput[2]),
+                                                                    collapse="\n"))),
                          actionButton(inputId="getOriginalIni", "Load original"),
                          actionButton(inputId="overwriteIni", "overwrite")
 
@@ -85,72 +84,61 @@ tuneMusoServer <- function(input, output, session){
 
     observeEvent(input$runModel,{
 
-                     paramVal <- sapply(1:nrow(parameters),function(x){
-                                            input[[paste0("param_", x)]]
-              })
+        paramVal <- sapply(1:nrow(parameters),function(x) input[[paste0("param_", x)]])
 
+        destination <- isolate(input$destination)
+        result <- calibMuso(
+            settings = settings,
+            calibrationPar = parameters[,2],
+            parameters = paramVal
+        )
 
-                     if(isolate(input$destination) == "auto"){
-                         outputList[['prev']] <- isolate(outputList[['next']]) 
-                         outputList[['next']] <- calibMuso(settings = settings,
-                                                           calibrationPar = parameters[,2],
-                                                           parameters = paramVal)       
-                     } else {
-                         outputList[[isolate(input$destination)]] <- calibMuso(settings = settings,
-                                                           calibrationPar = parameters[,2],
-                                                           parameters = paramVal)       
+        if (destination == "auto"){
+            outputList[['prev']] <- isolate(outputList[['next']])
+            outputList[['next']] <- result
+        }
 
-                     }
+        outputList[[destination]] <- result
 
-
-
-                     
     })
 
     observe({
-        if(input$autoupdate){
-                     paramVal <- sapply(1:nrow(parameters),function(x){
-                                            input[[paste0("param_", x)]]
-              })
-
-
-                     if(isolate(input$destination) == "auto"){
-                         outputList[['prev']] <- isolate(outputList[['next']]) 
-                         outputList[['next']] <- calibMuso(settings = settings,
-                                                           calibrationPar = parameters[,2],
-                                                           parameters = paramVal)       
-                     } else {
-                         outputList[[isolate(input$destination)]] <- calibMuso(settings = settings,
-                                                           calibrationPar = parameters[,2],
-                                                           parameters = paramVal)       
-
-                     }
-            
+        if(!input$autoupdate){
+            return()
         }
-    })
 
+        paramVal <- sapply(1:nrow(parameters), function(x) input[[paste0("param_", x)]])            
+
+        destination <- isolate(input$destination)
+        result <- calibMuso(
+            settings = settings, 
+            calibrationPar = parameters[,2],
+            parameters = paramVal
+        )
+
+        if(destination == "auto"){
+            outputList[['prev']] <- isolate(outputList[['next']])
+            outputList[['next']] <- result
+        }
+
+        outputList[[destination]] <- result   
+    })
+            
 
     observe({
         if(length(outputList[['next']])!=0){
-            output$Result <- renderPlotly(
-                                          {
-                                              p <- plot_ly()
-                                              if(length(outputList[['prev']])!=0){
-                                                  p <- add_trace(p, x=dates, y=outputList[['prev']][,input$ovar], type='scatter',
-                                                                    mode='lines')
-                                              }
-                                              add_trace(p, x=dates, y=outputList[['next']][,input$ovar], color="red", type='scatter',
-                                                                    mode='lines')
-                                          }
-            )
-
-
+            output$Result <- renderPlotly({
+                p <- plot_ly()
+                    if(length(outputList[['prev']])!=0){
+                        p <- add_trace(p, x=dates, y=outputList[['prev']][,input$ovar], type='scatter', mode='lines')
+                    }
+                    add_trace(p, x=dates, y=outputList[['next']][,input$ovar], color="red", type='scatter', mode='lines')
+            })
         }
     })
 
     observeEvent(input$getOriginalIni,{
-                     updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"),
-                                                                                              collapse="\n") )
+        updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"), collapse="\n") )
     })
 
 }
@@ -164,10 +152,12 @@ tuneMusoServer <- function(input, output, session){
 #' @export
 tuneMuso <- function(directory = NULL,...){ 
     shinyOptions(workdir = getwd())
+
     if(is.null(directory)){
         shinyOptions(musoRoot = ".")
-    } else {
-        shinyOptions(musoRoot = normalizePath(directory))
+        return(shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...)))
     }
-    shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...))
+
+    shinyOptions(musoRoot = normalizePath(directory))
+    return(shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...)))
 }
