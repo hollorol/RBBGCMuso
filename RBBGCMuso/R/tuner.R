@@ -10,14 +10,14 @@
 
 tuneMusoUI <- function(parameterFile = NULL, ...){
     setwd(getShinyOption("musoRoot"))
-    dir.create("bck",showWarnings = FALSE)
-    file.copy("n.ini","bck/n.ini", overwrite=FALSE)
+    dir.create("bck", showWarnings = FALSE)
+    file.copy("n.ini", "bck/n.ini", overwrite=FALSE)
     if(is.null(parameterFile)){
         parameterFile <- "parameters.csv"
     }
-    parameters <- read.csv(parameterFile, stringsAsFactors=FALSE)
+    parameters <- read.csv(parameterFile, stringsAsFactors = FALSE)
     settings <- setupMuso(...)
-    defaultValues <- musoGetValues(settings$epcInput[2],parameters[,2])            
+    defaultValues <- musoGetValues(settings$epcInput[2], parameters[,2])            
     fluidPage(
         # tags$head(tags$style(HTML("#iniContainer {width: 80vw;}"))),
         tags$head(tags$style(HTML("#contolp {height: 80vh;overflow-y:scroll;}"))),
@@ -75,7 +75,7 @@ tuneMusoServer <- function(input, output, session){
     settings <- setupMuso()
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
 
-    parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
+    parameters <- read.csv("parameters.csv", stringsAsFactors = FALSE)
 
     outputList <- vector(mode = "list", length = 2)
     outputList <- reactiveValues()
@@ -136,11 +136,11 @@ tuneMusoServer <- function(input, output, session){
                                           {
                                               p <- plot_ly()
                                               if(length(outputList[['prev']])!=0){
-                                                  p <- add_trace(p, x=dates, y=outputList[['prev']][,input$ovar], type='scatter',
+                                                  p <- add_trace(p, x = dates, y =o utputList[['prev']][,input$ovar], type = 'scatter',
                                                                     mode='lines')
                                               }
-                                              add_trace(p, x=dates, y=outputList[['next']][,input$ovar], color="red", type='scatter',
-                                                                    mode='lines')
+                                              add_trace(p, x = dates, y = outputList[['next']][,input$ovar], color = "red", type = 'scatter',
+                                                                    mode = 'lines')
                                           }
             )
 
@@ -149,8 +149,8 @@ tuneMusoServer <- function(input, output, session){
     })
 
     observeEvent(input$getOriginalIni,{
-                     updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"),
-                                                                                              collapse="\n") )
+                     updateTextAreaInput(session, "inifile", value = paste(readLines("bck/n.ini"),
+                                                                                              collapse = "\n") )
     })
 
 }
