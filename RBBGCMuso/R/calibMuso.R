@@ -1,6 +1,6 @@
 #' calibMuso 
 #'
-#' This function changes the epc file and after that  runs the BBGC-MuSo model and reads in its outputfile in a well-structured way.
+#' This function changes the epc file and after that runs the BBGC-MuSo model and reads in its outputfile in a well-structured way.
 #' 
 #' @author Roland Hollos
 #' @param settings You have to run the setupMuso function before calibMuso. It is its output which contains all of the necessary system variables. It sets the whole running environment
