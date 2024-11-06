@@ -17,17 +17,17 @@
 
 spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilename=NULL, keepEpc=FALSE, silent=FALSE, aggressive=FALSE, fileToChange="epc"){
 
-##########################################################################
-###########################Set local variables########################
-########################################################################
+    #########################################################################
+    ########################### Set local variables #########################
+    #########################################################################
 
     if(is.null(settings)){
         settings <- setupMuso() #(:INSIDE: setupMuso.R)
-        
     }
-    # The software works on Linux or Windows, Mac is not implemented yet, so with this simple dichotomy we can determine wich system is running
+
+    ## The software works on Linux or Windows, Mac is not implemented yet, so with this simple dichotomy we can determine which system is running
     Linuxp <-(Sys.info()[1]=="Linux")
-    ##Copy the variables from settings for the sake of easy
+    ## Copy the variables from settings for the sake of easier handling
     inputLoc <- settings$inputLoc
     outputLoc <- settings$outputLoc
     outputNames <- settings$outputNames
@@ -36,101 +36,98 @@ spinupMuso <- function(settings=NULL, parameters=NULL, debugging=FALSE, logfilen
     epc <- settings$epcInput
     calibrationPar <- settings$calibrationPar
 
-    ## We want to minimize the number of sideeffects so we store the state to restore in the end.
+    ## We want to minimize the number of side effects so we store the state to restore it in the end
     whereAmI<-getwd()
 
 
-#############################################################
-############################spinup run############################
-########################################################## 
+    #########################################################################
+    ############################# Spinup run ################################
+    #########################################################################
 
-    ## obsolete feature, but there can be cases in wich this option is helpfull
-    if(aggressive==TRUE){
-        cleanupMuso(location=outputLoc,deep=TRUE)} #(:INSIDE: cleanup.R)
+    ## obsolete feature, but there can be cases in wich this option is helpful
+    if(aggressive){
+        cleanupMuso(location = outputLoc,deep = TRUE) #(:INSIDE: cleanup.R)
+    } 
 
-    ## If parameters given, use changemulline, else leave this steps
-    
-     if(!is.null(parameters)){
+    choose_parameters <- function(file_path, params) {
+        tryCatch(
+            changemulline(filePaths = file_path, calibrationPar, params),
+            error = function(e) stop("Cannot change the file: ", file_path)
+        )
+    }
+
+    ## We apply choose_parameters. If parameters are given, use changemulline (from changeMuso.R), else leave these steps
+    if(!is.null(parameters)){
         switch(fileToChange,
-               "epc" = tryCatch(changemulline(filePaths = epc[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
-                              error = function (e) {stop("Cannot change the epc file")}),
-               "ini" = tryCatch(changemulline(filePaths = iniInput[1],calibrationPar,parameters), #(:INSIDE: changeMuso.R)
-                              error = function (e) {stop("Cannot change the ini file")}),
-               "both" = (stop("This option is not implemented yet, please choose epc or ini"))
-               )
+            "epc" = choose_parameters(settings$epc[1], parameters),
+            "ini" = choose_parameters(settings$iniInput[1], parameters),
+            stop("This option is not implemented yet, please choose epc or ini")
+        )
     }
     
     ## Set the working directory to the inputLoc temporary.
     setwd(inputLoc)
 
     
-    ##Run the spinup modell
-    
-    if(silent){#silenc mode
+    ## Run the spinup modell
+    if(silent){ #silent mode
         if(Linuxp){
             #In this case, in linux machines
-            tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
-                   error= function (e){stop("Cannot run the modell-check the executable!")})
+            tryCatch(system(paste(executable, iniInput[1],"> /dev/null", sep=" ")),
+                   error = function (e) {stop("Cannot run the modell-check the executable!")})
         } else {
             #In windows machines there is a show.output.on.console option
-            tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
-                     error= function (e){stop("Cannot run the modell-check the executable!")})
+            tryCatch(system(paste(executable,iniInput[1],sep=" "), show.output.on.console = FALSE),
+                     error = function (e) {stop("Cannot run the modell-check the executable!")})
         }} else {
         system(paste(executable,iniInput[1],sep=" "))
     }
-###############################################
-#############LOG SECTION#######################
-###############################################
+
+    #########################################################################
+    ############################# Log Section ###############################
+    #########################################################################
     
-      logspinup <- getLogs(outputLoc,outputNames,type="spinup") #(:INSIDE: assistantFunctions.R)
- 
-  if(length(logspinup)==0){
+    logspinup <- getLogs(outputLoc, outputNames, type="spinup") #(:INSIDE: assistantFunctions.R)
+
+    if(length(logspinup) == 0){
         if(keepEpc){
-            stampnum<-stamp(EPCS)
-            lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
-            lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
+            stampnum <- stamp(EPCS)
+            lapply(epc, function (x) file.copy(from = x , to = paste0(EPCS, "/", (stampnum + 1), "-", basename(x))))
+            lapply(epc, function (x) file.copy(from = paste0(EPCS, "/", (stampnum + 1), "-", basename(x)), to = WRONGEPC))
             setwd(whereAmI)
             stop("Modell Failure")
         }
         setwd(whereAmI)
-        stop("Modell Failure") #in that case the modell did not create even a logfile
+        stop("Modell Failure") #in that case the modell didn't even create a logfile
     }
 
-    if(length(logspinup)>1){
-        spincrash<-TRUE
+
+    if (length(logspinup) > 1) {
+    spincrash <- TRUE
     } else {
-        if(identical(tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1),character(0))){
-            spincrash<-TRUE
-        } else {
-            spincrash <- (tail(readLines(paste(outputLoc,logspinup,sep="/"),-1),1)!=1)
-        }
+    last_line <- tail(readLines(file.path(outputLoc, logspinup)), 1)
+    spincrash <- identical(last_line, character(0)) || last_line != "1"
     }
 
-    dirName<-normalizePath(paste(inputLoc,"/LOG",sep=""))
-    dirERROR<-paste0(inputLoc,"/ERROR")
+    dirName <- normalizePath(paste0(inputLoc,"/LOG"))
+    dirERROR <- paste0(inputLoc,"/ERROR")
     
     if(!dir.exists(dirName)){
-        dir.create(dirName)}
-
-    if(!dir.exists(dirERROR)){
-        dir.create(dirERROR)}
-
-    if(spincrash){
-        errorsign <- 1
-    } else {
-        errorsign <- 0}
-
-
-
-    if(debugging==TRUE){
-        stampAndDir(outputLoc=outputLoc,stampDir=dirName, names=logspinup, type="output") #(:INSIDE: assistantFunctions.R)
+        dir.create(dirName)
     }
 
+    if(!dir.exists(dirERROR)){
+        dir.create(dirERROR)
+    }
+
+    errorsign <- ifelse(spincrash, 1, 0)
+
+    if(debugging == TRUE){
+        stampAndDir(outputLoc = outputLoc, stampDir = dirName, names = logspinup, type = "output") #(:INSIDE: assistantFunctions.R)
+    }
     
-    
-    if(errorsign==1){
+    if(errorsign == 1){
         stop("Modell Failure")
     }
 
-    
 }

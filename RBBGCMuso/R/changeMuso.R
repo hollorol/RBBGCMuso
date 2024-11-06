@@ -6,7 +6,7 @@
 #' @export
 
 changemulline <- function(filePaths, calibrationPar, contents, src=NULL, outFiles=filePaths){
-    # browser()
+
     if(is.null(src)){
         src <- filePaths
     }
@@ -17,10 +17,9 @@ changemulline <- function(filePaths, calibrationPar, contents, src=NULL, outFile
 
     }, calibrationPar, contents)
     writeLines(fileStringVector, outFiles)
-    
 }
 
-changeNth <- function (string,place,replacement) {
+changeNth <- function (string,place,replacement){
     trimws(gsub(sprintf("^((.*?\\s+){%s})(.*?\\s+)", place), sprintf("\\1%s ", replacement), paste0(string," "), perl=TRUE),
            which="right")
 }
@@ -48,7 +47,7 @@ musoGetValues <- function(filename, indices){
                rowIndex <- as.integer(index)
                as.numeric(unlist(strsplit(readLines(filename)[rowIndex],split="\\s+"))[colIndex])
 
-})
+    })
 }
 
 #' musoCompareFiles 
