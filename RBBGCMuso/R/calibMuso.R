@@ -37,7 +37,7 @@ calibMuso <- function(settings = setupMuso(), calibrationPar = NULL,
                       backupDir ="bck",
                       fixAlloc = FALSE
                       ){ 
-                        
+
     ######################################################################
     ################### Set local variables and places ###################
     ######################################################################
@@ -85,15 +85,15 @@ calibMuso <- function(settings = setupMuso(), calibrationPar = NULL,
 
     ## If debugging option is turned on 
     if (debugging) { # If log or ERROR directory does not exist create it!
-        createDirIfNotExists(file.path(inputLoc, "LOG"))
-        createDirIfNotExists(file.path(inputLoc, "ERROR"))
+        createDirIfNotExist(file.path(inputLoc, "LOG"))
+        createDirIfNotExist(file.path(inputLoc, "ERROR"))
     }
 
     if (keepEpc) {
         WRONGEPC <- file.path(inputLoc, "WRONGEPC")
         EPCS <- file.path(inputLoc, "EPCS")
-        createDirIfNotExists(WRONGEPC)
-        createDirIfNotExists(EPCS)
+        createDirIfNotExist(WRONGEPC)
+        createDirIfNotExist(EPCS)
     }
 
     ##################################################
