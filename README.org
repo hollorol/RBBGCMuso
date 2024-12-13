@@ -164,8 +164,8 @@ The visualization example above used the Hegyhátsál sample simulation with the
 DAILY_OUTPUT
 12       number of daily output variables
 2520     proj_lai
-3009     daily_GPP
-3014     daily_Reco
+3009     GPP
+3014     Reco
 171      evapotransp
 2502     n_actphen
 2603     vwc00-03cm
@@ -204,9 +204,9 @@ Below we list the most common output variables that can be calculated by the mod
 2607  vwc[4] - volumetric soil water content of the 5th layer (60-90 cm) [m3/m3] 
 2608  vwc[5] - volumetric soil water content of the 6th layer (90-120 cm) [m3/m3]
 2609  vwc[6] - volumetric soil water content of the 7th layer (120-150 cm) [m3/m3] 
-3006  daily_npp - daily Net Primary Production [kgC/m2/day]
-3005  daily_nep - daily Net Ecosystem Production (estimated by -NEE) [kgC/m2/day]	
-3009  daily_gpp - daily Gross Primary Production [kgC/m2/day]
+3006  NPP - daily Net Primary Production [kgC/m2/day]
+3005  NEP - daily Net Ecosystem Production (estimated by -NEE) [kgC/m2/day]	
+3009  GPP - daily Gross Primary Production [kgC/m2/day]
 3037  cum_yieldC_HRV - harvested fruit that is crop yield in case of croplands [kgC/m2]
 75    GDD - growing degree day, used for the phenophase length calculations
 1531  SUM of the soil mineral NH4+ in the total soil column [kgN/m2]
