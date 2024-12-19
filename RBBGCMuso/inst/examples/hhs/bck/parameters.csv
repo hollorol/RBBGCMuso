@@ -1,4 +1,9 @@
 ABREVIATION,INDEX,min,max     
+CN_leaf,29,14.3,35
+CN_LeaLitter,30,27,63
+CN_ofFineRoot,31,10,60
+CN_ofFruit,32,10,60
+CN_ofSoftStem,33,10,60
 FLNR,59,0.1,0.4
 MSTOMACOND,61,0.001,0.015
 ROOTDEPTH,67,0.5,3
