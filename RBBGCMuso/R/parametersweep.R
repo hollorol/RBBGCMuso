@@ -17,7 +17,7 @@ paramSweep <- function(inputDir="./",
                        parameters=NULL,
                        outputDir=NULL,
                        iterations=10,
-                       outVar="3009",
+                       outVar= 3009,
                        htmlOutName = "paramsweep.html",
                        fixAlloc=FALSE){
     
@@ -40,9 +40,9 @@ You can download pandoc from here: 'https://pandoc.org/',\n or Rstudio from here
         }
     } else {
         varNames <- musoMapping(outVar)
-        outVarIndex<-outVar
+        outVarIndex <- outVar
     }
-   
+
     if(file.exists("parameters.csv")){
         parameters <- read.csv("parameters.csv")
     }
