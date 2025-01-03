@@ -40,12 +40,12 @@ DECOMPOSITION, NITRIFICATION AND DENITRIFICATION PARAMETERS
 0.85	(prop)		critical WFPS value for denitrification
 ----------------------------------------------------------------------------------------               
 RATE SCALARS  
-0.35 	(dimless) 	respiration fractions for fluxes between compartments (11s1)
-0.50 	(dimless) 	respiration fractions for fluxes between compartments (l2s2)
-0.26 	(dimless) 	respiration fractions for fluxes between compartments (l4s3)
-0.25 	(dimless) 	respiration fractions for fluxes between compartments (s1s2)
-0.42 	(dimless) 	respiration fractions for fluxes between compartments (s2s3)
-0.50 	(dimless) 	respiration fractions for fluxes between compartments (s3s4)
+0.39	(dimless) 	respiration fractions for fluxes between compartments (11s1)
+0.55 	(dimless) 	respiration fractions for fluxes between compartments (l2s2)
+0.29 	(dimless) 	respiration fractions for fluxes between compartments (l4s3)
+0.28 	(dimless) 	respiration fractions for fluxes between compartments (s1s2)
+0.46 	(dimless) 	respiration fractions for fluxes between compartments (s2s3)
+0.55 	(dimless) 	respiration fractions for fluxes between compartments (s3s4)
 0.7     (1/day) 	rate constant scalar of labile litter pool
 0.07    (1/day) 	rate constant scalar of cellulose litter pool
 0.014   (1/day) 	rate constant scalar of lignin litter pool
