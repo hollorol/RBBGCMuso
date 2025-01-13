@@ -17,6 +17,8 @@
 
 musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  startVal, endVal, nSteps = 1, fileToChange="epc",modifyOriginal=TRUE, outVar, parName = "parVal", yearNum=1, year=(settings$startYear + yearNum -1),fixAlloc=FALSE){
 
+
+
     if(is.character(outVar)){
                       varNames <- as.data.frame(musoMappingFind(outVar))
                       if(nrow(varNames)!=1){
@@ -46,6 +48,8 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
                                         outVars = outVarIndex,
                                         silent = TRUE,
                                         fileToChange = fileToChange,fixAlloc=fixAlloc), error = function(e){NULL})
+        #print(calResult)
+
         if(is.null(calResult)){
             b <- cbind(rep(NA,365),parVal)
             rownames(b) <- musoDate(startYear = year, numYears = 1)

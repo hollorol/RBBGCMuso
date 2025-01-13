@@ -15,7 +15,7 @@
 #' @param leapYear  Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
 #' @param keepBinary In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.
 #' @param binaryPlace The place of the binary output files.
-#' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"
+#' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you want to change. Two options possible: "epc", "ini"
 #' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
 #' @param prettyOut date ad Date type, separate year, month, day vectors
 #' @return No return, outputs are written to file 
@@ -40,23 +40,42 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
+
+    #print(parameters)
+    #print(fileToChange)
+
     if(doBackup){
         for(epc in settings$epcInput){
             file.copy(epc, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
         }
 
+    #print("0th checkpoint")
         for(soi in settings$soilFile){
             file.copy(soi, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
         }
     }
 
-    bck  <- file.path(settings$inputLoc, "bck",
+    #print("0.5th checkpoint")
+
+    if(fileToChange == "soil"){
+        bck <- file.path(settings$inputLoc, "bck",
+                         basename(eval(parse(text = sprintf("settings$%sFile[2]", fileToChange)))))
+    }
+
+    else{
+        bck  <- file.path(settings$inputLoc, "bck",
                       basename(eval(parse(text = sprintf("settings$%sInput[2]", fileToChange))))) 
+    }
+
+
+    #print("0.75th checkpoint")
 
     if(!silent){
         cat("Biome-BGC simulation started\n") # ZOLI
     }
     
+    #print("First Checkpoint")
+
     Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
     inputLoc <- settings$inputLoc
@@ -72,7 +91,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     binaryPlace <- normalizePath(binaryPlace)
     whereAmI<-getwd()
 
-
+    #print("Second checkpoint")
     ## Set the working directory to the inputLoc temporarly.
     setwd(inputLoc)
 
@@ -91,6 +110,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
     
+    #print("Third checkpoint")
     if(keepEpc) {
         epcdir <- dirname(epc[1])
         print(epcdir)
@@ -110,7 +130,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 ############################spinup run############################
    ########################################################## 
 
-    
+    #print("Fourth checkpoint")
     
 
      if(aggressive == TRUE){
@@ -118,28 +138,34 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
      }
 
     
-    ##change the epc file if and only if there are given parameters
-       
     if(!is.null(parameters)){
-        changemulline(filePaths = epc[2],
-                      calibrationPar = calibrationPar,
-                      contents = parameters,
-                      src = if(file.exists(bck)){
-                          bck
-                      } else {
-                          NULL
+        #print("Parameters are not NULL")
+        if(is.list(parameters)){
+            for(i in seq_along(parameters)){
+                tryCatch(changeMuso(settings, parameters[[i]],
+                                    calibrationPar[[i]],
+                                    fileToChange[[i]], fixAlloc), error = function(e){
+                    stop("Something went wrong with the file change. Parameters, calibrationpar, fileToChange have to be list with the same dimension")
                       })
-        if(fixAlloc){
-            fixAlloc(settings)
+            }
+
         }
-                       # fileToChange = fileToChange,)
+        else {
+            changeMuso(settings, parameters,
+                       calibrationPar,
+                       fileToChange, fixAlloc)
+        }
+        
     }
-    
+    #else { 
+    #    print("parameters are NULL") 
+    #}    
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
    if(!skipSpinup) {
 
+    #print("ROGER 0")
     ##Run the model for the spinup run.
 
     if(silent){#silenc mode
@@ -161,7 +187,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         system(paste(executable,iniInput[1],sep=" "))
     }
 
-    
+    #print("ROGER 1")
+
     logspinup <- getLogs(outputLoc,outputNames,type="spinup")
     ## logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
     ## logspinup <- list.files(outputLoc)[grep("log$",list.files(outputLoc))]#load the logfiles
@@ -177,6 +204,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         setwd(whereAmI)
         stop("Modell Failure") #in that case the modell did not create even a logfile
     }
+
+    #print("ROGER 2")
 
     if(length(logspinup)>1){
         spincrash<-TRUE
@@ -219,7 +248,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                          stop("Cannot run the modell-check the executable!")})
         }
 
-
+        #print("ROGER 3")
         ##read the output
          
         switch(timee,
@@ -245,7 +274,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
 
-    
+    #print("ROGER 4")
+
     if(skipSpinup){
        logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="normal"),
                                 error = function (e){
@@ -262,6 +292,15 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
+    #print("ROGER 5")
+    #print("checking log files")
+    #print(logfiles)
+    #for (log in logfiles) {
+    #    print(paste("Contents of log file:", log))
+    #    print(readLines(log, warn = FALSE))
+    #}
+
+
 
     if(skipSpinup){
         errorsign <- readErrors(outputLoc=outputLoc,logfiles=logfiles,type="normal")
@@ -289,7 +328,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         
     }
         
-    
+    #print("ROGER 6")
     
 
     if(keepEpc){#if keepepc option turned on
@@ -312,7 +351,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         
                        stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
   
-    
+    #print("ROGER 7")
     #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
         stop("Modell Failure")
@@ -320,7 +359,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 
     
 
-    
+    #print("ROGER 7.5")
+
     if(timee=="d"){
         if(!prettyOut){
             colnames(Reva) <- unlist(settings$outputVars[[1]])
@@ -341,6 +381,8 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     if(!is.null(postProcString)){
         Reva <- postProcMuso(Reva,postProcString)
     }
+
+    #print("ROGER 8")
 
     ## if(leapYear){
     ##     Reva <- corrigMuso(settings,Reva)
@@ -376,4 +418,10 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         setwd(whereAmI)
         return(Reva)
     }
+
+    ## demarkation line
+    print("do we reach the end?")
+
 }
+
+
