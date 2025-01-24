@@ -16,11 +16,14 @@ musoQuickEffect(
   parName = "parVal",
   yearNum = 1,
   year = (settings$startYear + yearNum - 1),
-  fixAlloc = FALSE
+  fixAlloc = FALSE,
+  cols = FALSE
 )
 }
 \arguments{
 \item{settings}{RBBGCMuso uses variables that define the entire simulation environment. Those environment variables include the name of the INI files, the name of the meteorology files, the path to the model executable and its file name, the entire output list, the entire output variable matrix, the dependency rules for the EPC parameters etc. Using the runMuso function RBBGCMuso can automatically create those environment variables by inspecting the files in the working directory (this happens through the setupMuso function). It means that by default model setup is performed automatically in the background and the user has nothing to do. With this settings parameter we can force runMuso to skip automatic environment setup as we provide the environment settings to runMuso. In a typical situation the user can skip this option.}
+
+\item{calibrationPar}{The line number of the parameter inside the ini, soil or epc file to change (see github documentation for how to access multi-column rows).}
 
 \item{startVal}{The initial value of the given parameter.}
 
@@ -28,13 +31,25 @@ musoQuickEffect(
 
 \item{nSteps}{Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot.}
 
-\item{fileTochange}{Please choose "EPC", "INI" or "BOTH". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user.}
+\item{modifyOriginal}{If TRUE, the original parameter values will be changed in file. If FALSE, the original parameter values will not be changed (given it works).}
+
+\item{outVar}{The output variable that we want to visualize according to how the calibrationPar parameter changes. The user can either provide the code (for example 3009) or the name (for example "GPP") of the output variable.}
+
+\item{parName}{This will be the name displayed above the parameter scale.}
+
+\item{yearNum}{The nth year of the simulation the user wants to display. The default is 1 which means the first year.}
+
+\item{year}{The explicit year the user wants to display, for example 2017 if the simulation contains said year.}
+
+\item{cols}{Whether the plot should be colored or not. If false then grey gradients will be used for display.}
+
+\item{fileTochange}{Please choose "EPC", "INI", "BOTH" or "soil". This file will be used for the analysis, and the original parameter values will be changed according to the choice of the user.}
 }
 \value{
 Graph showing the runs with the selected parameters with color coding. The graph will show data from the last simulation year.
 }
 \description{
-This function changes a chosen parameter from the INI or from the ecophysiological constants file (EPC) within a predefined range (defined by the user), and visualizes the effect of the change on the selected output variable. The user has to specify the parameter, the interval for the parameter effect test, and the number of steps. This function focuses only on one parameter. The so-called paramSweep function can manipulate multiple INI/EPC parameters and visualize the results.
+This function changes a chosen parameter from the INI, soil or from the ecophysiological constants file (EPC) within a predefined range (defined by the user), and visualizes the effect of the change on the selected output variable. The user has to specify the parameter, the interval for the parameter effect test, and the number of steps. This function focuses only on one parameter. The so-called paramSweep function can manipulate multiple INI/EPC parameters and visualize the results.
 }
 \author{
 Roland HOLLOS
