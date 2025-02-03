@@ -3,6 +3,7 @@
 #' This is a simple parameter tuner function which works great in a flat directory system
 #'
 #' @param parameterFile optional, the parameter csv file
+#' @importFrom shinyWidgets pickerInput
 #' @importFrom plotly plotlyOutput
 #' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI
 #' @usage ...
@@ -30,11 +31,14 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
                    checkboxInput("autoupdate","Automatic update"),
                      checkboxInput("singleYear", "Single year mode", value = FALSE),
                     uiOutput("yearRangeUI"),
-                   tags$div(id="controlp",selectInput("ovar",
-                       label="Select output Variable",
-                       choices=settings$dailyOutputTable$name,
-                       width="40%"
-                       ), ## slider for parameters
+                   tags$div(id="controlp",shinyWidgets::pickerInput(
+                                inputId = "selected_vars",
+                                label = "Select output variables (multiple can be chosen)",
+                                choices = settings$dailyOutputTable$name,
+                                multiple = TRUE,
+                                options = list(`actions-box` = TRUE)  # Enables checkboxes
+                                ), 
+                                ## slider for parameters
                         do.call(tagList, lapply(1:nrow(parameters), function(x) {
                             sliderInput(paste0("param_", x),
                             label = parameters[x, 1],  
@@ -58,7 +62,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
 
                 )
                 )),
-            mainPanel(plotlyOutput(outputId="Result"))
+            #mainPanel(plotlyOutput(outputId="Result"))
+            mainPanel(uiOutput("dynamicPlots"))
         ) 
     )
 }
@@ -180,63 +185,68 @@ tuneMusoServer <- function(input, output, session){
         }
     })
 
+                output$dynamicPlots <- renderUI({
+                req(input$selected_vars)
+                
+                plot_outputs <- lapply(input$selected_vars, function(var) {
+                    plotlyOutput(paste0("plot_", var), height = "400px")
+                })
+                do.call(tagList, plot_outputs)
+                })
 
-observe({
-    if (length(outputList$nextVal) != 0) {
-        output$Result <- renderPlotly({
-            req(input$yearRange)
-            selectedYears <- if (input$singleYear) {
-                input$yearRange
-            } else {
-                seq(input$yearRange[1], input$yearRange[2])
-            }
+                
+                observe({
+                req(input$selected_vars, length(outputList$nextVal) != 0)
+                lapply(input$selected_vars, function(var) {
+                    output[[paste0("plot_", var)]] <- renderPlotly({
+                    req(input$yearRange)
+                    # Filter data based on selected years
+                    selectedYears <- if (input$singleYear) input$yearRange else seq(input$yearRange[1], input$yearRange[2])
+                    filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
+                    
+                    # Get simulation data
+                    filteredPrev <- if (length(outputList$prev) != 0) {
+                        outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+                    } else NULL
+                    filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+                    
+                    # Apply scaling 
+                    if (var %in% c("GPP", "TR", "NEE")) {
+                        if (!is.null(filteredPrev)) filteredPrev[, var] <- filteredPrev[, var] * 1000
+                        filteredNext[, var] <- filteredNext[, var] * 1000
+                    }
+                    
+                    
+                    p <- plot_ly()
+                    if (!is.null(filteredPrev)) {
+                        p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
+                                    type = 'scatter', mode = 'lines', name = "Previous Simulation")
+                    }
+                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
+                                    type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+                    
+                    # Add measurements IF available
+                    if (var %in% c("NEE", "GPP", "TR", "ET") && !is.null(input$measurementFile)) {
+                        df <- measurements()
+                        measurement_col <- switch(var, "NEE" = 4,"GPP" = 5, "TR" = 6, "ET" = 7)
+                        df_filtered <- df[df$yyyy %in% selectedYears, ]
+                        p <- add_trace(p, x = df_filtered$Date, y = df_filtered[, measurement_col],
+                                    type = 'scatter', mode = 'markers', name = paste(var, "Measurement"),
+                                    marker = list(symbol = "circle", size = 7))
+                    }
+                    #p <- p %>% layout(
+                        #title = list(
+                        #    text = paste("Plot of", var),
+                        #    font = list(size = 16, color = "darkblue")  # Font and color of title
+                        #),
+                        #xaxis = list(title = "Date"),
+                        #yaxis = list(title = var)
+                        #)
 
-            filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
-            filteredPrev <- if (length(outputList$prev) != 0) {
-                outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-            } else {
-                NULL
-            }
-            filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-            
-            if (input$ovar %in% c("GPP", "TR")) {
-                if (!is.null(filteredPrev)) {
-                    filteredPrev[, input$ovar] <- filteredPrev[, input$ovar] * 1000
-                }
-                filteredNext[, input$ovar] <- filteredNext[, input$ovar] * 1000
-            }
-
-            
-            p <- plot_ly()
-
-            # Add simulation traces
-            if (!is.null(filteredPrev)) {
-                p <- add_trace(p, x = filteredDates, y = filteredPrev[, input$ovar], 
-                               type = 'scatter', mode = 'lines', name = "Previous Simulation") 
-            }
-            p <- add_trace(p, x = filteredDates, y = filteredNext[, input$ovar], 
-                           type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
-
-            # Overlay measurements ONLY if a file is uploaded
-            if (input$ovar %in% c("GPP", "TR", "ET") && !is.null(input$measurementFile)) {
-                df <- measurements()
-
-                measurement_col <- switch(input$ovar,
-                                          "GPP" = 5,
-                                          "TR" = 6,
-                                          "ET" = 7)
-                # Filter data for selected years
-                df_filtered <- df[df$yyyy %in% selectedYears, ]
-
-                p <- add_trace(p, x = df_filtered$Date, y = df_filtered[, measurement_col],
-                               type = 'scatter', mode = 'markers', marker = list(symbol = "circle", size = 7),
-                               name = paste(input$ovar, "Measurement"))
-            }
-
-            p  
-        })
-    }
-})
+                    p
+                    })
+                })
+                })
 
     observeEvent(input$getOriginalIni,{
                      updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"),
