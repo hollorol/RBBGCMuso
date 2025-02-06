@@ -6,7 +6,7 @@
 #' @importFrom shinyjs useShinyjs toggle
 #' @importFrom shinyWidgets pickerInput
 #' @importFrom plotly plotlyOutput renderPlotly layout
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification 
 #' @usage ...
 #' @export 
 
