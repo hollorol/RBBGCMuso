@@ -92,7 +92,13 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
                      checkboxInput("singleYear", "Single year mode", value = FALSE),
                     uiOutput("yearRangeUI"),
                     selectInput("selected_epc", "Select EPC File", choices = setNames(epc_files,epc_labels), selected = epc_files[1]),
-                    actionButton("resetParams", "Restore original params"),
+                    #trying to perfectly align the box and the button
+                   tags$div(
+                        style = "display: flex; align-items: center; gap: 10px;",  
+                        actionButton("resetParams", "Reset to originals"),
+                        checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                    ),
+
                    tags$div(id="controlp",shinyWidgets::pickerInput(
                                 inputId = "selected_vars",
                                 label = "Select output variables (multiple can be chosen)",
@@ -196,7 +202,37 @@ tuneMusoServer <- function(input, output, session){
     })
 
 
+    #exit box not quite working as intended, we'll store its state directly
+        restoreFlag <- reactiveVal(FALSE)
 
+        observeEvent(input$restoreOnExit, {
+            restoreFlag(input$restoreOnExit)
+        })
+
+    
+    session$onSessionEnded(function() {
+        if (isolate(restoreFlag())) {  
+            cat("Restoring all EPC files to original...\n")
+            
+            isolate({  # Ensuring all reactive values are accessed
+                for (epc in epc_files) {
+                    if (!is.null(InitialDefaults[[epc]])) {
+                        paramVal <- InitialDefaults[[epc]]  
+
+                        settings$epcInput[["normal"]] <- epc
+                        changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
+                                fileToChange = "epc", fixAlloc = FALSE)
+
+                        cat(paste0("Restored ", epc, " to original values.\n"))
+                    }
+                }
+            })
+        }
+    })
+
+
+
+    # Year range sliders
     output$yearRangeUI <- renderUI({
     req(settings)
     min_year <- as.numeric(format(min(dates), "%Y"))
