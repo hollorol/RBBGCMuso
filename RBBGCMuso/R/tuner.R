@@ -20,51 +20,6 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
     parameters <- read.csv(parameterFile, stringsAsFactors=FALSE)
     settings <- setupMuso(...)
 
-    #for some reason it can't find this function from setupMuso even though it's exported and within namespace, will check later why
-    searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
-        
-            if(stringP){
-                unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
-            } else {
-                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
-            }
-    }
-
-    # looking for the planting file if there is any, else use the epc file within the ini file
-    iniContent <- readLines(settings$iniInput[2])
-    management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
-
-
-     if (file.exists(management_file)) {
-        managementContent <- readLines(management_file)
-
-        # Extract planting file name
-        planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
-
-        if (file.exists(planting_file)) {
-            
-            planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
- 
-            epc_files <- unique(unlist(strsplit(paste(planting_data$CROP.file, collapse = " "), " +")))
-            #used for plotting (not yet implemented):
-            epc_dates <- as.Date(planting_data$DATE, format="%Y.%m.%d") 
-            epc_index_map <- setNames(seq_along(epc_files), epc_files)   
-            epc_labels <- paste0(seq_along(epc_files), ") ", epc_files)
-
-        } else {
-              
-            warning("Planting file not found: ", planting_file)
-            epc_files <- settings$epcInput[2]
-            epc_labels <- NULL
-        }
-    } else {
-        
-        warning("Management file not found: ", management_file)
-        epc_files <- settings$epcInput[2]
-        epc_labels <- NULL
-    }
-
-
     fluidPage(
             useShinyjs(),  
             actionButton("toggleUI", "Show/Hide Controls"),  
@@ -91,7 +46,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
                    checkboxInput("autoupdate","Automatic update"),
                      checkboxInput("singleYear", "Single year mode", value = FALSE),
                     uiOutput("yearRangeUI"),
-                    selectInput("selected_epc", "Select EPC File", choices = setNames(epc_files,epc_labels), selected = epc_files[1]),
+                    uiOutput("selectEPC"), #created in server
                     #trying to perfectly align the box and the button
                    tags$div(
                         style = "display: flex; align-items: center; gap: 10px;",  
@@ -145,13 +100,84 @@ tuneMusoUI <- function(parameterFile = NULL, ...){
 
 tuneMusoServer <- function(input, output, session){
 
+    #for some reason it can't find this function from setupMuso even though it's exported and within namespace, will check later why
+    searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
+        
+            if(stringP){
+                unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
+            } else {
+                as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
+            }
+    }
+
+
     settings <- setupMuso()
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
-    rv <- reactiveValues(settings = setupMuso())
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0))
 
-    parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
+      parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
 
     epcValues <- reactiveValues()  # Store EPC values
+
+
+    # looking for the planting file if there is any, else use the epc file within the ini file
+observe({
+    req(file.exists(settings$iniInput[2]))  # Ensure the INI file exists before reading
+    iniContent <- readLines(settings$iniInput[2])
+    management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
+
+    if (file.exists(management_file)) {
+        managementContent <- readLines(management_file)
+        planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
+
+        if (file.exists(planting_file)) {
+            planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
+
+            epc_files <- unique(unlist(strsplit(paste(planting_data$CROP.file., collapse = " "), " +")))
+
+            #print("EPC files found:")
+            #print(epc_files)
+
+            # Ensure that the update happens safely
+            isolate({
+                rv$epc_files <- epc_files
+                rv$epc_labels <- paste0(seq_along(epc_files), ") ", epc_files)
+            })
+        } else {
+            warning("Planting file not found: ", planting_file)
+            print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+            isolate({
+                rv$epc_files <- settings$epcInput[2]
+                rv$epc_labels <- NULL
+            })
+        }
+    } else {
+        warning("Management file not found: ", management_file)
+        isolate({
+            print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+            rv$epc_files <- settings$epcInput[2]
+            rv$epc_labels <- NULL
+        })
+    }
+        })
+
+        
+       output$selectEPC <- renderUI({
+    req(length(rv$epc_files) > 0)  
+
+    selectInput(
+        "selected_epc",
+        "Select EPC File",
+        choices = setNames(rv$epc_files, rv$epc_labels),
+        selected = rv$epc_files[1]
+    )
+})
+
+    
+
+
+
+  
 
     
     outputList <- reactiveValues(prev = character(0), nextVal = character(0))
@@ -177,8 +203,8 @@ tuneMusoServer <- function(input, output, session){
     InitialDefaults <- reactiveValues()
 
     observe({
-        
-        for (epc in epc_files) {
+        req(rv$epc_files)
+        for (epc in rv$epc_files) {
             # Only initialize if not already present
             if (is.null(InitialDefaults[[epc]])) {
             # Call musoGetValues to get the default parameters for this EPC
@@ -198,7 +224,7 @@ tuneMusoServer <- function(input, output, session){
         for (i in seq_len(nrow(parameters))) {
             updateSliderInput(session, paste0("param_", i), value = defaults[i])
         }
-        print(paste0("Reset sliders to defaults for", epc))
+        print(paste0("Reset sliders to initials for ", epc))
     })
 
 
@@ -215,7 +241,7 @@ tuneMusoServer <- function(input, output, session){
             cat("Restoring all EPC files to original...\n")
             
             isolate({  # Ensuring all reactive values are accessed
-                for (epc in epc_files) {
+                for (epc in rv$epc_files) {
                     if (!is.null(InitialDefaults[[epc]])) {
                         paramVal <- InitialDefaults[[epc]]  
 
