@@ -42,6 +42,8 @@ Imports:
     plotly,
     shiny,
 	shinyWidgets,
+	shinyjs,
+	sortable,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,
