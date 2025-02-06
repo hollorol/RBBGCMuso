@@ -453,19 +453,20 @@ tuneMusoServer <- function(input, output, session){
                 lapply(input$selected_vars, function(var) {
                     output[[paste0("plot_", var)]] <- renderPlotly({
                     # giving condition to check to avoid warning messages
-                    if (isTRUE(input$singleYear)) {
-                        validate(
+                            if (isTRUE(input$singleYear)) {
+                    validate(
                         need(is.finite(input$yearRange), "Year not available yet")
-                        )
-                        selectedYears <- input$yearRange  
-                        validate(
+                    )
+                    selectedYears <- input$yearRange  # single value
+                } else {
+                    validate(
                         need(length(input$yearRange) == 2 &&
                             is.finite(input$yearRange[1]) &&
                             is.finite(input$yearRange[2]),
                             "Year range not available yet")
-                        )
-                        selectedYears <- seq(input$yearRange[1], input$yearRange[2])
-                    }
+                    )
+                    selectedYears <- seq(input$yearRange[1], input$yearRange[2])
+                }
                                         
                     #selectedYears <- if (input$singleYear) input$yearRange else seq(input$yearRange[1], input$yearRange[2])
                     filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
