@@ -9,7 +9,7 @@
 #' @importFrom lubridate year
 #' @importFrom shinyWidgets pickerInput 
 #' @importFrom plotly plotlyOutput renderPlotly layout
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon 
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent 
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -92,7 +92,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       });
     ")),
     
-    # Mouse3 as an additional hotkey to run the model (unaffected by later changes in hotkeys)
+    # Mouse3 as an additional (permanent) hotkey to run the model (unaffected by later changes in hotkeys)
     tags$script(HTML("
       $(document).on('mousedown', function(event) {
         if (event.which === 2) {  // Middle mouse button (Mouse3)
