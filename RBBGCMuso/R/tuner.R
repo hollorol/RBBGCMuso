@@ -4,12 +4,12 @@
 #'
 #' @param parameterFile optional, the parameter csv file
 #' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
-#' @importFrom dplyr filter 
+#' @importFrom dplyr filter %>% select 
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year
 #' @importFrom shinyWidgets pickerInput 
 #' @importFrom plotly plotlyOutput renderPlotly layout
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification 
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon 
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -92,7 +92,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       });
     ")),
     
-
+    # Mouse3 as an additional hotkey to run the model (unaffected by later changes in hotkeys)
     tags$script(HTML("
       $(document).on('mousedown', function(event) {
         if (event.which === 2) {  // Middle mouse button (Mouse3)
@@ -127,7 +127,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
               # Select variables for plotting
               tags$div(
                 id = "controlp",
-                shinyWidgets::pickerInput(
+                pickerInput(
                   inputId = "selected_vars",
                   label = "Select output variables (multiple can be chosen)",
                   choices = settings$dailyOutputTable$name, 
