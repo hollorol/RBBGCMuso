@@ -6,10 +6,10 @@
 #' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
 #' @importFrom dplyr filter %>% select 
 #' @importFrom shinyjqui jqui_resizable 
-#' @importFrom lubridate year
-#' @importFrom shinyWidgets pickerInput 
-#' @importFrom plotly plotlyOutput renderPlotly layout
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent 
+#' @importFrom lubridate year month day 
+#' @importFrom shinyWidgets pickerInput updatePickerInput
+#' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent  
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -23,6 +23,23 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     
     parameters <- read.csv(parameterFile, stringsAsFactors = FALSE)
     settings <- setupMuso(...)
+    
+    # keeping the scrollbar at the same position after refresh upon model run
+    scrollbar_position_retainer <- "
+        Shiny.addCustomMessageHandler('save_scroll', function(message) {
+        var scrollDiv = document.getElementById(message.id);
+        if (scrollDiv) {
+            Shiny.setInputValue(message.id + '_scroll', scrollDiv.scrollTop, {priority: 'event'});
+        }
+        });
+
+        Shiny.addCustomMessageHandler('restore_scroll', function(message) {
+        var scrollDiv = document.getElementById(message.id);
+        if (scrollDiv) {
+            scrollDiv.scrollTop = message.scroll;
+        }
+        });
+        "
 
     fluidPage(
         useShinyjs(),
@@ -47,7 +64,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       .row-container {
           display: flex;
           width: 100%;
-          height: 85vh;
+          height: calc(100vh - 30px); /* the height controls the whole panels height. 90vh is fine without unutilized space but I'll try it dynamically */
       }
       
       /* Control panel styling */
@@ -74,6 +91,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       }
     "))),
     
+    tags$head(tags$script(HTML(scrollbar_position_retainer))),
+
     # moving the title to the right so the toggleui button has space
     titlePanel(div(style = "margin-left: 100px;", "Biome-BGCMuSo Parameter Tuner")),
     
@@ -81,6 +100,11 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     div(
       id = "toggleUIButton",
       actionButton("toggleUI", label = "Toggle UI", icon = icon("bars"))
+    ),
+    # toggle legend button for... toggling the legend
+    div(
+        style = "position: absolute; top: 10px; right: 10px; z-index: 1000;",
+        actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash"))
     ),
     
     # Default keyboard shortcut for running the model
@@ -102,6 +126,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       });
     ")),
 
+
+
+
     # Main container with both panels
     div(class = "row-container",
       # Resizable control panel using jqui
@@ -110,6 +137,20 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           id = "controlPanel",
           tabsetPanel(type = "tabs",
             tabPanel("Parameters",
+                div(
+                style = "display: flex; justify-content: flex-start; margin-top: 10px;",
+                actionButton("runModel", "Run MuSo")
+                ),
+            # Select variables for plotting
+              tags$div(
+                id = "controlp",
+                pickerInput(
+                  inputId = "selected_vars",
+                  label = "Select output variables (multiple can be chosen)",
+                  choices = settings$dailyOutputTable$name, 
+                  multiple = TRUE,
+                  options = list(`actions-box` = TRUE)
+                )),
               fileInput("measurementFile", "Upload Measurement File", 
                         accept = c(".txt")),
               checkboxInput("autoupdate", "Automatic update"),
@@ -123,24 +164,15 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                 actionButton("resetParams", "Reset to originals"),
                 checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
               ),
-              
-              # Select variables for plotting
-              tags$div(
-                id = "controlp",
-                pickerInput(
-                  inputId = "selected_vars",
-                  label = "Select output variables (multiple can be chosen)",
-                  choices = settings$dailyOutputTable$name, 
-                  multiple = TRUE,
-                  options = list(`actions-box` = TRUE)
-                ),
+        
+                tags$div( id ="controlp",
                 tags$div(id = "slider-container", uiOutput("param_sliders"))
               ),
               
               # Hotkey input and run button
               tags$div(
                 style = "margin-bottom: 15px;",
-                textInput("hotkeyInput", "Set Hotkey", value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter"),
+                textInput("hotkeyInput", "Set Hotkey for model run", value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter"),
                 tags$div(
                   style = "display: flex; gap: 10px; align-items: center; margin-top: 10px;",
                   actionButton("setHotkey", "Apply Hotkey"),
@@ -212,6 +244,45 @@ tuneMusoServer <- function(input, output, session){
 
       parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
 
+    
+    parameters <- parameters[!is.na(parameters$ABREVIATION) & parameters$ABREVIATION != "", ]
+    # indexing the rows for the allocation parameters (if they exist)
+    parameters$group <- ifelse(grepl("^(132|133|134|135)\\.", parameters$INDEX),
+                           # Remove the "132.", "133.", "134." or "135." prefix,
+                           sub("^(132|133|134|135)\\.", "", parameters$INDEX),
+                           NA)
+
+    required_main <- c(132, 133, 134, 135)
+
+    # Find the unique dependent groups already in the CSV.
+    dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+
+    # Loop over each dependent group and check for each required main index to see if any of the 3 dependent rows are missing
+    for (g in dep_groups) {
+        for (m in required_main) {
+            # Construct the expected INDEX value 
+            expected_index <- paste0(m, ".", g)
+            # Check if this expected_index is present in the parameters data frame
+            if (!(expected_index %in% parameters$INDEX)) {
+            # The row is missing, we will append a new row
+            
+            new_row <- data.frame(
+                ABREVIATION = paste("Missing", expected_index),
+                INDEX = as.numeric(expected_index),
+                min = 0,   
+                max = 1,    
+                group = g,
+                stringsAsFactors = FALSE
+            )
+            parameters <- rbind(parameters, new_row)
+            message("Added missing parameter row for ", expected_index, " for it was not found in parameters.csv")
+            }
+        }
+    }
+
+
+
+
     epcValues <- reactiveValues()  # Store EPC values
 
 
@@ -268,7 +339,16 @@ tuneMusoServer <- function(input, output, session){
         }
     })
 
-            
+    # making the first output variable the initial selected variable upon opening the app    
+    observe({
+        req(settings$dailyOutputTable$name)  
+        updatePickerInput(
+            session, 
+            inputId = "selected_vars", 
+            selected = settings$dailyOutputTable$name[1]  
+        )
+    })
+
 
 
 
@@ -296,24 +376,10 @@ tuneMusoServer <- function(input, output, session){
         TRUE
     }) %>% debounce(500)  # Debounce time (500ms (0.5 sec)), how long to wait after the last change before triggering the event
 
-    # original values for epc
-    defaultValues <- reactive({
-    req(input$selected_epc)
-    musoGetValues(input$selected_epc, parameters[, 2])
-  })
+    # making a storage for the previous epc file
+    prevEPC <- reactiveVal(NULL)
 
-
-    currentValues <- reactive({
-        req(input$selected_epc)
-        epc <- input$selected_epc
-        if (!is.null(epcValues[[epc]])) {
-        epcValues[[epc]]
-        } else {
-        defaultValues()
-        }
-    })
-
-    # Get the "boot up" values for each EPC file for resetting
+        # Get the "boot up" values for each EPC file for resetting
     InitialDefaults <- reactiveValues()
 
     observe({
@@ -334,12 +400,38 @@ tuneMusoServer <- function(input, output, session){
         epc <- input$selected_epc
         defaults <- InitialDefaults[[epc]]
         epcValues[[epc]] <- defaults
-
+      
         for (i in seq_len(nrow(parameters))) {
+            if (is.na(parameters$group[i])) {
+            # Standard (non-grouped) parameter: update slider with id "param_i"
             updateSliderInput(session, paste0("param_", i), value = defaults[i])
+            } else {
+            # Dependent (grouped) parameter: update slider with id "dep_<INDEX>"
+            updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
+            }
         }
         print(paste0("Reset sliders to initials for ", epc))
     })
+
+
+    # original values for epc
+    defaultValues <- reactive({
+    req(input$selected_epc)
+    musoGetValues(input$selected_epc, parameters[, 2])
+  })
+
+
+    currentValues <- reactive({
+        req(input$selected_epc)
+        epc <- input$selected_epc
+        if (!is.null(epcValues[[epc]])) {
+        epcValues[[epc]]
+        } else {
+        defaultValues()
+        }
+    })
+
+
 
 
     #exit box not quite working as intended, we'll store its state directly
@@ -403,87 +495,228 @@ tuneMusoServer <- function(input, output, session){
         }
     })
 
-    # Read the measurement file
-    measurements <- reactive({
-    req(input$measurementFile)  
-    df <- read.table(input$measurementFile$datapath, header = TRUE, sep = "", stringsAsFactors = FALSE)
-    
-    
-    df[df < 0] <- NA
-    
-    # Convert year, month, day into a Date object
-    df$Date <- as.Date(with(df, paste(yyyy, mm, dd, sep = "-")), "%Y-%m-%d")
-    
-    
+        output$param_sliders <- renderUI({
+            req(input$selected_epc)
+            
+            # Get the current values and print them.
+            vals <- currentValues()
+            #cat("DEBUG: currentValues returned: ", paste(vals, collapse = ", "), "\n")
+            
+            # Check if the values vector is complete:
+            if(length(vals) < nrow(parameters) || any(is.na(vals))) {
+                #cat("DEBUG: currentValues is incomplete; falling back to defaultValues.\n")
+                vals <- defaultValues()
+                #cat("DEBUG: defaultValues returned: ", paste(vals, collapse = ", "), "\n")
+            }
+            
+            # Now print the parameters for each slider as they're created.
+            #for(i in seq_len(nrow(parameters))){
+                #cat("DEBUG: Row", i, 
+                    #" - Abbreviation:", parameters$ABREVIATION[i],
+                    #"min:", parameters[i, 3],
+                    #"max:", parameters[i, 4],
+                    #"value:", vals[i], "\n")
+            #}
+            
+            # Identify dependent rows (those with a non-NA group)
+            dep_indices <- which(!is.na(parameters$group))
+            non_dep_indices <- setdiff(seq_len(nrow(parameters)), dep_indices)
+            
+            standard_sliders <- lapply(non_dep_indices, function(i) {
 
-    return(df)
-    })
+                # cat("Creating slider for row", i, 
+                # "with min =", parameters[i, 3], 
+                # "max =", parameters[i, 4], 
+                # "value =", vals[i], "\n")
+            
+            # If the value is NA or NULL, (needed for debugging only)
+            safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
 
-    
-    # param sliders
-    output$param_sliders <- renderUI({
-        req(currentValues())
-        sliders <- lapply(1:nrow(parameters), function(i) {
-        sliderInput(
-            paste0("param_", i),
-            label = parameters[i, 1],
-            min = parameters[i, 3],
-            max = parameters[i, 4],
-            value = currentValues()[i],
-            step = (parameters[i, 4] - parameters[i, 3]) / 100
-        )
+
+                sliderInput(
+                paste0("param_", i),
+                label = parameters$ABREVIATION[i],
+                min   = parameters[i, 3],
+                max   = parameters[i, 4],
+                value = safe_value,
+                step  = (parameters[i, 4] - parameters[i, 3]) / 100
+                )
+            })
+            
+            # Group the dependent rows by their "group" ID.
+            dep_groups <- unique(parameters$group[dep_indices])
+            
+            dependent_sliders <- lapply(dep_groups, function(g) {
+                group_rows <- which(!is.na(parameters$group) &
+                                    parameters$group == g &
+                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132, 133, 134, 135))
+                group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+
+                
+                slider_list <- lapply(group_rows, function(i) {
+                    #cat("Creating slider for row", i, 
+                #"with min =", parameters[i, 3], 
+                #"max =", parameters[i, 4], 
+                #"value =", vals[i], "\n")
+            
+            # If the value is NA or NULL, fall back to the minimum
+            safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
+                sliderInput(
+                    inputId = paste0("dep_", parameters$INDEX[i]),
+                    label   = parameters$ABREVIATION[i],
+                    min     = 0,
+                    max     = 1,
+                    value   = safe_value,
+                    step    = 0.01
+                )
+                })
+                
+                tagList(
+                h4(paste("Allocation Group", g)),
+                fluidRow(
+                    lapply(slider_list, function(slider) column(4, slider))
+                )
+                )
+            })
+            
+            tagList(
+                standard_sliders,
+                dependent_sliders
+            )
         })
-        do.call(tagList, sliders)
+
+    # Allocations "sum to 1 counter"
+    observe({
+        req(input$selected_epc)  
+        
+        # Identify the unique dependent groups (non-NA in the group column)
+        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+        
+        lapply(dep_groups, function(g) {
+            # Identify the rows belonging to group g where the main indexes are among 132, 133, 134, 135
+            group_rows <- which(!is.na(parameters$group) &
+                                parameters$group == g &
+                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132, 133, 134, 135))
+            # Order the rows by the integer part of the INDEX
+            group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+            
+            # Create a vector of input IDs for these dependent sliders
+            ids <- paste0("dep_", parameters$INDEX[group_rows])
+            
+            # Create a flag to avoid recursive updates
+            groupUpdating <- reactiveVal(FALSE)
+            
+            # For each slider in this group, add an observer that adjusts the others when it changes
+            for (i in seq_along(ids)) {
+                local({
+                    j <- i  # capture the local index
+                    observeEvent(input[[ids[j]]], {
+                        if (groupUpdating()) return()
+                        groupUpdating(TRUE)
+                        
+                        # Get the new value of the changed slider
+                        new_val <- input[[ids[j]]]
+                        
+                        # Identify all the other sliders in this group
+                        other_ids <- ids[-j]
+                        
+                        # Get their current values. If any is NULL, assume 0
+                        current_values <- sapply(other_ids, function(x) {
+                            if (is.null(input[[x]])) 0 else input[[x]]
+                        })
+                        
+                        # Sum up the values for the other sliders
+                        total_other <- sum(current_values)
+                        
+                        # Calculate the remaining value (the sum must be 1)
+                        remaining <- 1 - new_val
+                        
+                        # Determine the new values for the other sliders
+                        # If total_other is zero, distribute evenly
+                        if (total_other == 0) {
+                            new_vals <- rep(remaining / length(other_ids), length(other_ids))
+                        } else {
+                            # need to unname vector to avoid shiny error
+                            new_vals <- unname(remaining * (current_values / total_other))
+                        }
+                        
+                        # Update all the other sliders with their new computed values
+                        for (k in seq_along(other_ids)) {
+                            updateSliderInput(session, other_ids[k], value = new_vals[k])
+                        }
+                        
+                        groupUpdating(FALSE)
+                    }, ignoreInit = TRUE)
+                })
+            }
+        })
     })
+
 
 
     # creating tracker that will avoid auto-update from running the model upon epc switching (not yet used later)
     updatingEPC <- reactiveVal(FALSE)
-
-    # upon selection if no stored values for the selected EPC, initialize with defaults 
+    
+        # saving epc values upon epc change, updating sliders
         observeEvent(input$selected_epc, {
-        req(currentValues())
+            req(input$selected_epc)
+            new_epc <- input$selected_epc
 
-        newVals <- currentValues()
-        for(i in seq_len(nrow(parameters))) {
-            updateSliderInput(session, paste0("param_", i), value = newVals[i])
-        }
-        })
-
-
-                observe({
-                req(input$selected_epc)
-                epc <- input$selected_epc
-                updated <- epcValues[[epc]]
-                indices <- seq_len(nrow(parameters))
-                for (i in indices) {
+            # Saving the previous EPC's slider values 
+            old_epc <- prevEPC()
+            if (!is.null(old_epc) && old_epc != new_epc) {
+                # Retrieving the stored values for the old EPC, if not available, use defaultValues.
+                updated_old <- epcValues[[old_epc]]
+                if (is.null(updated_old) || length(updated_old) < nrow(parameters))
+                updated_old <- defaultValues()
+                
+                # Updating standard sliders (those with group == NA)
+                non_dep_indices <- which(is.na(parameters$group))
+                for (i in non_dep_indices) {
                     slider_val <- input[[paste0("param_", i)]]
                     if (!is.null(slider_val) && length(slider_val) > 0) {
-                    updated[i] <- slider_val
+                        updated_old[i] <- slider_val
                     }
                 }
-                epcValues[[epc]] <- updated
-                })
-
-
-            # Create a reactive value to store the previously selected EPC
-            prevEPC <- reactiveVal(NULL)
-            # When the selected EPC changes (when switching away), write the current slider values for the previous EPC to its file
-            observeEvent(input$selected_epc, {
-                new_epc <- input$selected_epc
-                old_epc <- prevEPC()
-                if (!is.null(old_epc) && old_epc != new_epc) {
-                # Retrieve the stored slider values for the old EPC
-                paramVal_old <- epcValues[[old_epc]]
- 
-                settings$epcInput[["normal"]] <- old_epc
-                # Write the slider values into that EPC file
-                changeMuso(settings, paramVal_old, calibrationPar = parameters[,2],
-                            fileToChange = "epc", fixAlloc = FALSE)
-                print(paste("Saved changes for", old_epc))
+                
+                # Updating dependent sliders (those with a group)
+                dep_indices <- which(!is.na(parameters$group))
+                for (i in dep_indices) {
+                    inputId <- paste0("dep_", parameters$INDEX[i])
+                    slider_val <- input[[inputId]]
+                    if (!is.null(slider_val) && length(slider_val) > 0) {
+                        updated_old[i] <- slider_val
+                    }
                 }
-                prevEPC(new_epc)
-            })
+                epcValues[[old_epc]] <- updated_old
+                
+                # Saving the previous EPC's values to file
+                settings$epcInput[["normal"]] <- old_epc
+                changeMuso(settings, updated_old, calibrationPar = parameters[, 2],
+                        fileToChange = "epc", fixAlloc = FALSE)
+                print(paste("Saved changes for", old_epc))
+            }
+            
+            # Initializing the new EPC's values if needed
+            if (is.null(epcValues[[new_epc]]) || length(epcValues[[new_epc]]) < nrow(parameters)) {
+                epcValues[[new_epc]] <- defaultValues()
+            }
+            newVals <- epcValues[[new_epc]]
+            
+            # Updating all slider inputs for the new EPC
+            for (i in seq_len(nrow(parameters))) {
+                if (is.na(parameters$group[i])) {
+                # Standard slider
+                    updateSliderInput(session, paste0("param_", i), value = newVals[i])
+                } else {
+                # Dependent slider (using its INDEX-based input ID)
+                    updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = newVals[i])
+                }
+            }
+            
+            # Updating the tracker for the previous EPC
+            prevEPC(new_epc)
+        })
 
     # Toggle visibility of the sidebar panel
     observeEvent(input$toggleUI, {
@@ -505,12 +738,51 @@ tuneMusoServer <- function(input, output, session){
     ")
     })
 
+    # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11 but at least it works, alright?
+    updateCurrentEPCValues <- function() {
+        req(input$selected_epc)
+        epc <- input$selected_epc
+        # Retrieving the current vector, if missing, fall back to defaultValues
+        updated <- epcValues[[epc]]
+        if (is.null(updated) || length(updated) < nrow(parameters))
+            updated <- defaultValues()
+        
+        # Updating standard (non-dependent) slider values
+        non_dep_indices <- which(is.na(parameters$group))
+        for (i in non_dep_indices) {
+            slider_val <- input[[paste0("param_", i)]]
+            if (!is.null(slider_val) && length(slider_val) > 0) {
+            updated[i] <- slider_val
+            }
+        }
+        
+        # Updating dependent slider values
+        dep_indices <- which(!is.na(parameters$group))
+        for (i in dep_indices) {
+            inputId <- paste0("dep_", parameters$INDEX[i])
+            slider_val <- input[[inputId]]
+            if (!is.null(slider_val) && length(slider_val) > 0) {
+            updated[i] <- slider_val
+            }
+        }
+        
+        epcValues[[epc]] <<- updated  # Updating the reactive storage
+    }
+
+
 
 
     observeEvent(input$runModel, {
         req(input$selected_epc)
         epc <- input$selected_epc
-        paramVal <- sapply(1:nrow(parameters), function(i) input[[paste0("param_", i)]])
+
+        # forcing an update with the "over-kill" function
+        updateCurrentEPCValues()
+
+        paramVal <- epcValues[[epc]]
+
+        # saving scroll position
+        session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         
         settings$epcInput[["normal"]] <- epc
         print(paste("Updating EPC file", epc, "with new parameters before running model"))
@@ -530,6 +802,15 @@ tuneMusoServer <- function(input, output, session){
         outputList$nextVal <- result
 
         }})
+
+        # restoring scrollbar position
+        observe({
+            if (!is.null(input$plotPanel_scroll)) {
+            session$sendCustomMessage("restore_scroll", list(id = "plotPanel", scroll = input$plotPanel_scroll))
+            }
+        })
+
+
     
     # visual feedback for when the model is running so to prevent the user from changing sliders
     # preventing infinite loop of auto-update. Doesn't seem to work. I mean the model won't run but the values keep alternating indefinitely, breaking the app so sadge
@@ -560,9 +841,8 @@ tuneMusoServer <- function(input, output, session){
         isolate({
             epc <- input$selected_epc
 
-            paramVal <- sapply(1:nrow(parameters),function(x){
-                                                input[[paste0("param_", x)]]
-            })
+           paramVal <- epcValues[[input$selected_epc]]
+
 
             settings$epcInput[["normal"]] <- epc
 
@@ -651,6 +931,17 @@ tuneMusoServer <- function(input, output, session){
             })
         })
 
+
+            # Reactive value to track legend visibility
+            legendVisible <- reactiveVal(TRUE)  # Default: legend is shown
+
+            # Toggle legend state when button is clicked
+            observeEvent(input$toggle_legend, {
+                new_state <- !legendVisible()
+                legendVisible(new_state) 
+                updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
+            })
+
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
@@ -727,6 +1018,17 @@ tuneMusoServer <- function(input, output, session){
 
             #print(paste0("Selected planting dates: ", selected_planting))
                 if (nrow(selected_planting) > 0) {
+                            # adding invisible markers for epc legend
+                            p <- p %>% add_trace(
+                                x = selected_planting$DATE[1],  
+                                y = 0,  
+                                type = 'scatter',
+                                mode = 'markers',
+                                marker = list(symbol = "triangle-down", color = "green", size = 10),
+                                name = "Planting Dates",
+                                visible = "legendonly" 
+                            )
+
                     for (i in 1:nrow(selected_planting)) {
                         current_date <- selected_planting$DATE[i]
                         current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
@@ -751,7 +1053,7 @@ tuneMusoServer <- function(input, output, session){
                             y = 0,                  
                             xref = "x",
                             yref = "paper",
-                            text = "▼",            # changable symbol
+                            text = "▼",          
                             showarrow = FALSE,
                             font = list(color = "green", size = 14)
                         ) %>% #epc labels
@@ -766,7 +1068,8 @@ tuneMusoServer <- function(input, output, session){
                                 font = list(color = "green", size = 10)
                         )
                         
-                         }}}
+                         } 
+                }}
             #}
 
 
@@ -790,6 +1093,11 @@ tuneMusoServer <- function(input, output, session){
                         #xaxis = list(title = "Date"),
                         yaxis = list(title = var)
                         )
+
+                    p <- p %>% plotly::layout(
+                        yaxis = list(title = var),
+                        showlegend = legendVisible()  # Conditionally show/hide legend
+                    )
 
                     p
                     })
