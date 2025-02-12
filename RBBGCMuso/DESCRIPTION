@@ -45,6 +45,7 @@ Imports:
 	shinyjs,
 	sortable,
 	shinyjqui,
+	DT,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,
