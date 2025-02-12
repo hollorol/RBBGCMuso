@@ -41,6 +41,49 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         });
         "
 
+        hide_plot_area <- "
+        $(document).ready(function() {
+            Shiny.addCustomMessageHandler('toggle_plot_visibility', function(message) {
+                let plotPanel = $('#plotPanel');
+                let controlPanel = $('#controlPanel');
+                let button = $('#toggle_plot_field');
+                let standardSliders = $('#standardSliders'); // for non-grouped sliders
+                let dependentContainers = $('.dependentSliderContainer'); // for grouped sliders
+                let parametersLayout = $('#parametersLayout'); // container for controls
+                
+                // Hotkey container: we want to move this between its original placeholder and colRight.
+                let hotkeyContainer = $('#hotkeyContainer');
+                
+                plotPanel.toggle();
+                if (plotPanel.is(':visible')) {
+                    // When plot is visible:
+                    button.text('Hide Plot Area');
+                    button.find('i').removeClass('eye').addClass('eye-slash');
+                    controlPanel.css({'flex': '0 1 auto', 'max-width': '450px'});
+                    standardSliders.removeClass('expanded');
+                    dependentContainers.removeClass('expanded');
+                    parametersLayout.removeClass('expanded');
+                    // Move the hotkey controls back to their original placeholder (left column)
+                    $('#hotkeyOriginal').append(hotkeyContainer);
+                } else {
+                    // When plot is hidden:
+                    button.text('Show Plot Area');
+                    button.find('i').removeClass('eye-slash').addClass('eye');
+                    controlPanel.css({'flex': '1 1 100%', 'max-width': 'none'});
+                    standardSliders.addClass('expanded');
+                    dependentContainers.addClass('expanded');
+                    parametersLayout.addClass('expanded');
+                    // Now move the hotkey controls into the right column, so they appear under the year range.
+                    // Assuming .colRight is the right column container.
+                    $('.colRight').append(hotkeyContainer);
+                }
+                $(window).trigger('resize');
+            });
+        });
+        "
+
+
+
     fluidPage(
         useShinyjs(),
     
@@ -76,6 +119,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           max-width: 450px;
           overflow-y: auto;
           box-sizing: border-box;
+          flex: 0 1 auto;
       }
       
       /* Plot panel styling – fills remaining space */
@@ -89,9 +133,73 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           max-width: none;
           max-height: none;
       }
+
+      /* Default: non-grouped sliders take full width (stack vertically) */
+        #standardSliders .form-group {
+        display: block;
+        width: 100%;
+        }
+
+      /* Expanded mode: display sliders inline (side-by-side) */
+      /* Adjust the width percentage as needed (e.g., 32% for three per row with some margin) */
+        #standardSliders.expanded .form-group {
+        display: inline-block;
+        width: 32%;
+        margin-right: 1%;
+        vertical-align: top;
+        }
+
+        /* Default: when the plot is visible, use 2 sliders per row (50% each, with a little margin) */
+        .dependentSliderContainer .slider-col {
+        display: inline-block;
+        vertical-align: top;
+        width: 48%;   /* roughly 50% */
+        margin-right: 4%;
+        box-sizing: border-box;
+        }
+
+        /* When expanded (plot hidden), use 4 sliders per row (25% each) */
+        .dependentSliderContainer.expanded .slider-col {
+        width: 23%;      /* roughly 25% */
+        margin-right: 2%;
+        }
+
+        .dependentSliderContainer .slider-col:nth-child(2n) {
+        margin-right: 0;
+        }
+
+        .dependentSliderContainer.expanded .slider-col:nth-child(4n) {
+        margin-right: 0;
+        }
+
+        /* Default: stacked vertically (one column) */
+        #parametersLayout {
+        display: block;
+        }
+
+        #parametersLayout .colLeft,
+        #parametersLayout .colRight {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        }
+
+        /* When expanded (plot hidden), display two columns side-by-side */
+        #parametersLayout.expanded {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        }
+
+        #parametersLayout.expanded .colLeft,
+        #parametersLayout.expanded .colRight {
+        width: 50%; /* Adjust as needed */
+        margin-bottom: 0;
+        }
+
     "))),
     
-    tags$head(tags$script(HTML(scrollbar_position_retainer))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, sep = "\n")))),
 
     # moving the title to the right so the toggleui button has space
     titlePanel(div(style = "margin-left: 100px;", "Biome-BGCMuSo Parameter Tuner")),
@@ -101,11 +209,13 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       id = "toggleUIButton",
       actionButton("toggleUI", label = "Toggle UI", icon = icon("bars"))
     ),
-    # toggle legend button for... toggling the legend
+    # toggle legend button for... toggling the legend. And also toggle plot field for expanded ui
     div(
-        style = "position: absolute; top: 10px; right: 10px; z-index: 1000;",
+        style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
+        actionButton("toggle_plot_field", "Hide Plot Area"),
         actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash"))
     ),
+
     
     # Default keyboard shortcut for running the model
     tags$script(HTML("
@@ -137,32 +247,43 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           id = "controlPanel",
           tabsetPanel(type = "tabs",
             tabPanel("Parameters",
-                div(
-                style = "display: flex; justify-content: flex-start; margin-top: 10px;",
-                actionButton("runModel", "Run MuSo")
+                # New container for rearranging controls in two columns when ui is expanded
+                div(id = "parametersLayout",
+                    # Left column: run button, variable picker and file input
+                    div(class = "colLeft",
+                        div(style = "margin-top: 10px;",
+                            actionButton("runModel", "Run MuSo")
+                        ),
+                        
+                        tags$div(
+                            id = "controlp",
+                            pickerInput(
+                            inputId = "selected_vars",
+                            label = "Select output variables (multiple can be chosen)",
+                            choices = settings$dailyOutputTable$name, 
+                            multiple = TRUE,
+                            options = list(`actions-box` = TRUE)
+                            )
+                        ),
+                        fileInput("measurementFile", "Upload Measurement File", accept = c(".txt"))
+                        
+                    ),
+                    # Right column: update checkbox, single year and year range.
+                    div(class = "colRight",
+                        checkboxInput("autoupdate", "Automatic update"),
+                        checkboxInput("singleYear", "Single year mode", value = FALSE),
+                        uiOutput("yearRangeUI"),
+                       
+                        
+                    )
                 ),
-            # Select variables for plotting
-              tags$div(
-                id = "controlp",
-                pickerInput(
-                  inputId = "selected_vars",
-                  label = "Select output variables (multiple can be chosen)",
-                  choices = settings$dailyOutputTable$name, 
-                  multiple = TRUE,
-                  options = list(`actions-box` = TRUE)
-                )),
-              fileInput("measurementFile", "Upload Measurement File", 
-                        accept = c(".txt")),
-              checkboxInput("autoupdate", "Automatic update"),
-              checkboxInput("singleYear", "Single year mode", value = FALSE),
-              uiOutput("yearRangeUI"),
-              uiOutput("selectEPC"),
-              
+               uiOutput("selectEPC"),
               # Reset buttons
               tags$div(
-                style = "display: flex; align-items: center; gap: 10px;",  
+                style = "display: flex; align-items: center; gap: 10px;", 
                 actionButton("resetParams", "Reset to originals"),
                 checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                
               ),
         
                 tags$div( id ="controlp",
@@ -170,15 +291,16 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
               ),
               
               # Hotkey input and run button
-              tags$div(
-                style = "margin-bottom: 15px;",
-                textInput("hotkeyInput", "Set Hotkey for model run", value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter"),
-                tags$div(
-                  style = "display: flex; gap: 10px; align-items: center; margin-top: 10px;",
-                  actionButton("setHotkey", "Apply Hotkey"),
-                  actionButton(inputId = "runModel", "Run MuSo")
-                )
-              ),
+           div(id = "hotkeyContainer",
+               tags$div(
+                 style = "margin-bottom: 15px;",
+                 textInput("hotkeyInput", "Set Hotkey for model run", value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter")
+               ),
+               tags$div(
+                 style = "display: flex; gap: 10px; align-items: center; margin-top: 10px;",
+                 actionButton("setHotkey", "Apply Hotkey")
+               )
+           ),
               
               # Reference or modified selection
               radioButtons(
@@ -351,7 +473,7 @@ tuneMusoServer <- function(input, output, session){
 
 
 
-
+        #ui for epc selection
         output$selectEPC <- renderUI({
         req(length(rv$epc_files) > 0)  
 
@@ -495,162 +617,289 @@ tuneMusoServer <- function(input, output, session){
         }
     })
 
+        # reactive value that will track the locked or unlock state of the allocation locking button
+        lockStates <- reactiveValues()
+
         output$param_sliders <- renderUI({
-            req(input$selected_epc)
-            
-            # Get the current values and print them.
-            vals <- currentValues()
-            #cat("DEBUG: currentValues returned: ", paste(vals, collapse = ", "), "\n")
-            
-            # Check if the values vector is complete:
-            if(length(vals) < nrow(parameters) || any(is.na(vals))) {
-                #cat("DEBUG: currentValues is incomplete; falling back to defaultValues.\n")
-                vals <- defaultValues()
-                #cat("DEBUG: defaultValues returned: ", paste(vals, collapse = ", "), "\n")
-            }
-            
-            # Now print the parameters for each slider as they're created.
-            #for(i in seq_len(nrow(parameters))){
-                #cat("DEBUG: Row", i, 
-                    #" - Abbreviation:", parameters$ABREVIATION[i],
-                    #"min:", parameters[i, 3],
-                    #"max:", parameters[i, 4],
-                    #"value:", vals[i], "\n")
-            #}
-            
-            # Identify dependent rows (those with a non-NA group)
-            dep_indices <- which(!is.na(parameters$group))
-            non_dep_indices <- setdiff(seq_len(nrow(parameters)), dep_indices)
-            
-            standard_sliders <- lapply(non_dep_indices, function(i) {
-
-                # cat("Creating slider for row", i, 
-                # "with min =", parameters[i, 3], 
-                # "max =", parameters[i, 4], 
-                # "value =", vals[i], "\n")
-            
-            # If the value is NA or NULL, (needed for debugging only)
-            safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
-
-
-                sliderInput(
-                paste0("param_", i),
-                label = parameters$ABREVIATION[i],
-                min   = parameters[i, 3],
-                max   = parameters[i, 4],
-                value = safe_value,
-                step  = (parameters[i, 4] - parameters[i, 3]) / 100
-                )
-            })
-            
-            # Group the dependent rows by their "group" ID.
-            dep_groups <- unique(parameters$group[dep_indices])
-            
-            dependent_sliders <- lapply(dep_groups, function(g) {
-                group_rows <- which(!is.na(parameters$group) &
-                                    parameters$group == g &
-                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132, 133, 134, 135))
-                group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
-
-                
-                slider_list <- lapply(group_rows, function(i) {
-                    #cat("Creating slider for row", i, 
-                #"with min =", parameters[i, 3], 
-                #"max =", parameters[i, 4], 
-                #"value =", vals[i], "\n")
-            
-            # If the value is NA or NULL, fall back to the minimum
-            safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
-                sliderInput(
-                    inputId = paste0("dep_", parameters$INDEX[i]),
-                    label   = parameters$ABREVIATION[i],
-                    min     = 0,
-                    max     = 1,
-                    value   = safe_value,
-                    step    = 0.01
-                )
-                })
-                
-                tagList(
-                h4(paste("Allocation Group", g)),
-                fluidRow(
-                    lapply(slider_list, function(slider) column(4, slider))
-                )
-                )
-            })
-            
-            tagList(
-                standard_sliders,
-                dependent_sliders
+  req(input$selected_epc)
+  
+  vals <- currentValues()
+  if(length(vals) < nrow(parameters) || any(is.na(vals))) {
+    vals <- defaultValues()
+  }
+  
+  dep_indices <- which(!is.na(parameters$group))
+  non_dep_indices <- setdiff(seq_len(nrow(parameters)), dep_indices)
+  
+  standard_sliders <- lapply(non_dep_indices, function(i) {
+    safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
+    sliderInput(
+      paste0("param_", i),
+      label = parameters$ABREVIATION[i],
+      min   = parameters[i, 3],
+      max   = parameters[i, 4],
+      value = safe_value,
+      step  = (parameters[i, 4] - parameters[i, 3]) / 100
+    )
+  })
+  
+  dep_groups <- unique(parameters$group[dep_indices])
+  
+  dependent_sliders <- lapply(dep_groups, function(g) {
+    group_rows <- which(!is.na(parameters$group) &
+                          parameters$group == g &
+                          as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+    group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+    
+    slider_list <- lapply(group_rows, function(i) {
+      safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
+      slider_id <- paste0("dep_", parameters$INDEX[i])
+      lock_btn_id <- paste0("lock_", parameters$INDEX[i])
+      div(
+        sliderInput(
+          inputId = slider_id,
+          label   = parameters$ABREVIATION[i],
+          min     = 0,
+          max     = 1,
+          value   = safe_value,
+          step    = 0.01
+        ),
+        actionButton(lock_btn_id, label = NULL, icon = icon("unlock"),
+                     style = "margin-top: -10px; margin-bottom: 10px;")
+      )
+    })
+    
+    tagList(
+      h4(paste("Allocation Group", g)),
+        div(style = "margin-bottom: 10px;",
+            div(style = "display: inline-block; vertical-align: middle;",
+                checkboxInput(inputId = paste0("autoCalc_", g), label = "Auto‑calc", value = TRUE)
+            ),
+            div(style = "display: inline-block; vertical-align: middle; margin-left: 20px;",
+                textOutput(paste0("sumCounter_", g), container = span)
             )
-        })
+        ),
+      div(class = "dependentSliderContainer",
+          lapply(slider_list, function(slider) {
+            div(class = "slider-col", slider)
+          })
+      )
+    )
+  })
+  
+  tagList(
+    div(id = "standardSliders", standard_sliders),
+    dependent_sliders
+  )
+})
 
-    # Allocations "sum to 1 counter"
-    observe({
-        req(input$selected_epc)  
+
+        observe({
+            req(input$selected_epc)
+            dep_indices <- which(!is.na(parameters$group))
+            # For each dependent parameter, set its lock state if not already set.
+            for(i in dep_indices) {
+                slider_id <- paste0("dep_", parameters$INDEX[i])
+                if (is.null(lockStates[[slider_id]]))
+                lockStates[[slider_id]] <- FALSE
+            }
+            })
+
+        observe({
+            req(input$selected_epc)
+            dep_indices <- which(!is.na(parameters$group))
+            
+            lapply(parameters$INDEX[dep_indices], function(idx) {
+                slider_id <- paste0("dep_", idx)
+                lock_btn_id <- paste0("lock_", idx)
+                
+                # Only attach if the input for the lock button exists.
+                if (!is.null(input[[lock_btn_id]])) {
+                observeEvent(input[[lock_btn_id]], {
+                    # Toggle the lock state
+                    lockStates[[slider_id]] <- !lockStates[[slider_id]]
+                    # Update the button icon accordingly:
+                    new_icon <- if (lockStates[[slider_id]]) "lock" else "unlock"
+                    updateActionButton(session, lock_btn_id, icon = icon(new_icon))
+                }, ignoreInit = TRUE)
+                }
+            })
+            })
+
+observe({
+  req(input$selected_epc)
+  
+  tol <- 1e-6  # small tolerance to avoid oscillation
+  
+  # Get the unique groups.
+  dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+  
+  lapply(dep_groups, function(g) {
+    # For group g, get the rows and slider IDs.
+    group_rows <- which(!is.na(parameters$group) &
+                          parameters$group == g &
+                          as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+    group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+    ids <- paste0("dep_", parameters$INDEX[group_rows])
+    
+    # A flag to prevent recursive updates.
+    groupUpdating <- reactiveVal(FALSE)
+    
+    for(i in seq_along(ids)) {
+      local({
+        j <- i
+        slider_id <- ids[j]
+        debouncedSliderVal <- reactive({ input[[slider_id]] }) %>% debounce(500)
         
-        # Identify the unique dependent groups (non-NA in the group column)
+        observeEvent(debouncedSliderVal(), {
+          if (groupUpdating()) return()
+          groupUpdating(TRUE)
+          
+          # Only auto-calc if the auto-calc checkbox is checked for this group.
+          if (isTRUE(input[[paste0("autoCalc_", g)]])) {
+            # Compute total locked for the whole group.
+            locked_vals <- unlist(lapply(ids, function(x) {
+              if (isTRUE(lockStates[[x]])) {
+                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+              } else 0
+            }))
+            L <- sum(locked_vals)
+            available_total <- 1 - L
+            
+            new_val <- as.numeric(debouncedSliderVal())
+            # Clamp if new_val exceeds available_total.
+            if (new_val >= available_total - tol) {
+              new_val <- available_total
+              updateSliderInput(session, slider_id, value = new_val)
+              # Set all other unlocked sliders to 0.
+              for (other in ids[-j]) {
+                if (!isTRUE(lockStates[[other]]))
+                  updateSliderInput(session, other, value = 0)
+              }
+            } else {
+              # Distribute the remaining available among the other unlocked sliders.
+              remaining_available <- available_total - new_val
+              other_ids <- ids[-j][ !sapply(ids[-j], function(x) isTRUE(lockStates[[x]])) ]
+              current_unlocked <- unlist(lapply(other_ids, function(x) {
+                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+              }))
+              total_unlocked <- sum(current_unlocked)
+              if (length(other_ids) > 0) {
+                if (total_unlocked == 0) {
+                  new_unlocked <- rep(remaining_available / length(other_ids), length(other_ids))
+                } else {
+                  new_unlocked <- unname(remaining_available * (current_unlocked / total_unlocked))
+                }
+                for (k in seq_along(other_ids)) {
+                  updateSliderInput(session, other_ids[k], value = new_unlocked[k])
+                }
+              }
+            }
+          }
+          groupUpdating(FALSE)
+        }, ignoreInit = TRUE)
+      })
+    }
+  })
+})
+
+observe({
+  req(input$selected_epc)
+  
+  dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+  
+  lapply(dep_groups, function(g) {
+    observeEvent(input[[paste0("autoCalc_", g)]], {
+      # When autoCalc is toggled on, perform a recalculation for group g.
+      if (isTRUE(input[[paste0("autoCalc_", g)]])) {
+        group_rows <- which(!is.na(parameters$group) &
+                              parameters$group == g &
+                              as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+        group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+        ids <- paste0("dep_", parameters$INDEX[group_rows])
+        
+        # Calculate total locked and available for unlocked.
+        locked_vals <- unlist(lapply(ids, function(x) {
+          if (isTRUE(lockStates[[x]])) {
+            if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+          } else 0
+        }))
+        L <- sum(locked_vals)
+        available_total <- 1 - L
+        
+        # For unlocked sliders, recalculate their values proportionally.
+        unlocked_ids <- ids[ !sapply(ids, function(x) isTRUE(lockStates[[x]])) ]
+        current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
+          if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+        }))
+        total_unlocked <- sum(current_unlocked)
+        if (length(unlocked_ids) > 0) {
+          if (total_unlocked == 0) {
+            new_unlocked <- rep(available_total / length(unlocked_ids), length(unlocked_ids))
+          } else {
+            new_unlocked <- unname(available_total * (current_unlocked / total_unlocked))
+          }
+          for (x in seq_along(unlocked_ids)) {
+            updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
+          }
+        }
+      }
+    }, ignoreInit = TRUE)
+  })
+})
+
+
+observe({
+  req(input$selected_epc)
+  
+  dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+  lapply(dep_groups, function(g) {
+    group_rows <- which(!is.na(parameters$group) &
+                          parameters$group == g &
+                          as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+    group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+    ids <- paste0("dep_", parameters$INDEX[group_rows])
+    
+    output[[paste0("sumCounter_", g)]] <- renderText({
+      vals <- unlist(lapply(ids, function(x) {
+        if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+      }))
+      total <- sum(vals)
+      if (total > 1) {
+        paste0("Total: ", round(total, 2), " (Warning: Sum > 1!)")
+      } else {
+        paste0("Total: ", round(total, 2))
+      }
+    })
+  })
+})
+
+
+        observe({
+        req(input$selected_epc)
         dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-        
         lapply(dep_groups, function(g) {
-            # Identify the rows belonging to group g where the main indexes are among 132, 133, 134, 135
             group_rows <- which(!is.na(parameters$group) &
                                 parameters$group == g &
                                 as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132, 133, 134, 135))
-            # Order the rows by the integer part of the INDEX
             group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
-            
-            # Create a vector of input IDs for these dependent sliders
             ids <- paste0("dep_", parameters$INDEX[group_rows])
             
-            # Create a flag to avoid recursive updates
-            groupUpdating <- reactiveVal(FALSE)
-            
-            # For each slider in this group, add an observer that adjusts the others when it changes
-            for (i in seq_along(ids)) {
-                local({
-                    j <- i  # capture the local index
-                    observeEvent(input[[ids[j]]], {
-                        if (groupUpdating()) return()
-                        groupUpdating(TRUE)
-                        
-                        # Get the new value of the changed slider
-                        new_val <- input[[ids[j]]]
-                        
-                        # Identify all the other sliders in this group
-                        other_ids <- ids[-j]
-                        
-                        # Get their current values. If any is NULL, assume 0
-                        current_values <- sapply(other_ids, function(x) {
-                            if (is.null(input[[x]])) 0 else input[[x]]
-                        })
-                        
-                        # Sum up the values for the other sliders
-                        total_other <- sum(current_values)
-                        
-                        # Calculate the remaining value (the sum must be 1)
-                        remaining <- 1 - new_val
-                        
-                        # Determine the new values for the other sliders
-                        # If total_other is zero, distribute evenly
-                        if (total_other == 0) {
-                            new_vals <- rep(remaining / length(other_ids), length(other_ids))
-                        } else {
-                            # need to unname vector to avoid shiny error
-                            new_vals <- unname(remaining * (current_values / total_other))
-                        }
-                        
-                        # Update all the other sliders with their new computed values
-                        for (k in seq_along(other_ids)) {
-                            updateSliderInput(session, other_ids[k], value = new_vals[k])
-                        }
-                        
-                        groupUpdating(FALSE)
-                    }, ignoreInit = TRUE)
-                })
+            output[[paste0("sumCounter_", g)]] <- renderText({
+            vals <- unlist(lapply(ids, function(x) {
+                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+            }))
+            total <- sum(vals)
+            if (total > 1) {
+                paste0("Total: ", round(total, 2), " (Warning: Sum > 1!)")
+            } else {
+                paste0("Total: ", round(total, 2))
             }
+            })
         })
-    })
+        })
+
+
 
 
 
@@ -737,6 +986,13 @@ tuneMusoServer <- function(input, output, session){
         }
     ")
     })
+
+
+    observeEvent(input$toggle_plot_field, {
+        session$sendCustomMessage("toggle_plot_visibility", list())
+    })
+
+
 
     # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11 but at least it works, alright?
     updateCurrentEPCValues <- function() {
