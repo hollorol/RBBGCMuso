@@ -41,7 +41,7 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
                   } else {
                       varNames <- musoMapping(outVar)
                       outVarIndex <- outVar
-                      varUnit <- musoUnit
+                      varUnit <- NA
                   }
     
      if(is.null(calibrationPar)){

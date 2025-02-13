@@ -42,7 +42,7 @@ musoMapping <- function(code,
         if (nrow(result) == 0) {
             stop(sprintf("The code %s in inifile is not a valid muso output variable code", code))
         }
-        musoUnit <<- as.character(result[1, 3])  ## storing the unit of the variable solely for graphical use
+        #musoUnit <<- as.character(result[1, 3])  ## storing the unit of the variable solely for graphical use (not used since making global variable is meh)
         return(unlist(result[1, 2])) 
     }
 }
