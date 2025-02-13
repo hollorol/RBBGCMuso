@@ -11,7 +11,7 @@
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -1139,9 +1139,9 @@ tuneMusoServer <- function(input, output, session){
             }))
             total <- sum(vals)
             if (total > 1) {
-                paste0("Total: ", round(total, 2), " (Warning: Sum > 1!)")
+                paste0("Total sum: ", round(total, 2), " (Warning: Sum > 1!)")
             } else {
-                paste0("Total: ", round(total, 2))
+                paste0("Total sum: ", round(total, 2))
             }
             })
         })
@@ -1323,11 +1323,29 @@ tuneMusoServer <- function(input, output, session){
 
      simData <- reactive({
             req(outputList$nextVal)  
-            outputList$nextVal
+            result <- outputList$nextVal
+            dfs <- as.data.frame(result)
+            dfs$Date <- as.Date(rownames(result), format = "%d.%m.%Y")
+            dfs
     })
 
-    metricsData <- reactive({
-        req(measurementData(), mappingRV(), input$yearRange, simData)
+     metricsData <- reactive({
+        req(simData(), input$yearRange)  # Only require simulation data and year range
+        
+        # Get measurement data (if any) and mapping
+        meas_df <- measurementData()
+        mapping <- mappingRV()
+        
+        # If no measurement data or no mapping is provided, return an empty data frame.
+        if (is.null(meas_df) || nrow(meas_df) == 0 || is.null(mapping) || length(mapping) == 0) {
+            return(data.frame(
+            Measurement = character(),
+            OutputVariable = character(),
+            RMSE = numeric(),
+            Correlation = numeric(),
+            stringsAsFactors = FALSE
+            ))
+        }
         
         # Determine selected years
         selectedYears <- if (input$singleYear) {
@@ -1337,37 +1355,49 @@ tuneMusoServer <- function(input, output, session){
         }
         
         # Filter measurement and simulation data to the selected years
-        meas_df <- measurementData()
         meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
         
         sim_df <- simData()
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
-        # Merge the two data sets on Date
+        # Merge the two datasets on Date (common columns get suffixes)
         merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_sim"))
         
-        mapping <- mappingRV()
-        
+        # For each mapped measurement, calculate RMSE and correlation.
         metrics_list <- lapply(names(mapping), function(meas_col) {
             output_var <- mapping[[meas_col]]
             if (output_var == "None") return(NULL)
             
-            # Ensure the simulation data has the desired output variable
-            if (!output_var %in% colnames(sim_df)) return(NULL)
+            # Find the correct columns in merged_df.
+            x_col <- if (meas_col %in% colnames(merged_df)) {
+            meas_col
+            } else if (paste0(meas_col, "_meas") %in% colnames(merged_df)) {
+            paste0(meas_col, "_meas")
+            } else {
+            NULL
+            }
             
-            x <- merged_df[[meas_col]]
-            y <- merged_df[[output_var]]
+            y_col <- if (output_var %in% colnames(merged_df)) {
+            output_var
+            } else if (paste0(output_var, "_sim") %in% colnames(merged_df)) {
+            paste0(output_var, "_sim")
+            } else {
+            NULL
+            }
             
-            # Remove pairs where either value is NA
+            # Skip if we can’t find the necessary columns.
+            if (is.null(x_col) || is.null(y_col)) return(NULL)
+            
+            x <- merged_df[[x_col]]
+            y <- merged_df[[y_col]]
+            
+            # Remove pairs where either value is NA.
             valid <- complete.cases(x, y)
-            
-            # If no valid pairs exist, set metrics to NA
             if (sum(valid) == 0) {
             rmse_val <- NA
             corr_val <- NA
             } else {
             rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
-            # Only compute correlation if at least 2 points exist.
             corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid]) else NA
             }
             
@@ -1380,10 +1410,18 @@ tuneMusoServer <- function(input, output, session){
             )
         })
         
-        # Combine all non-NULL results into a single data frame.
         metrics <- do.call(rbind, metrics_list)
-        return(metrics)
-    })
+        if (is.null(metrics)) {
+            metrics <- data.frame(
+            Measurement = character(),
+            OutputVariable = character(),
+            RMSE = numeric(),
+            Correlation = numeric(),
+            stringsAsFactors = FALSE
+            )
+        }
+        metrics
+        })
 
 
 
@@ -1654,7 +1692,7 @@ tuneMusoServer <- function(input, output, session){
                     # Filter data by selected years
                     df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
 
-                    #metrics_df <- metricsData()
+                    metrics_df <- metricsData()
 
                     if (!is.null(mapping)) {
                         # Find measurement columns mapped to the current var
@@ -1670,25 +1708,25 @@ tuneMusoServer <- function(input, output, session){
                                     yData[yData < 0] <- NA
                                 }
                                 
-                              #m_row <- metrics_df[metrics_df$Measurement == col, ]
-                              #  rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) {
-                              #      sprintf("RMSE: %.2f", m_row$RMSE)
-                              #  } else {
-                              #      "RMSE: NA"
-                              #  }
-                              #  corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
-                              #      sprintf("Corr: %.2f", m_row$Correlation)
-                              #  } else {
-                              #      "Corr: NA"
-                              #  }
-                              #  metric_label <- paste(rmse_str, corr_str, sep = " | ")
+                              m_row <- metrics_df[metrics_df$Measurement == col, ]
+                                rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) {
+                                    sprintf("RMSE: %.2f", m_row$RMSE)
+                                } else {
+                                    "RMSE: NA"
+                                }
+                                corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
+                                    sprintf("Corr: %.2f", m_row$Correlation)
+                                } else {
+                                    "Corr: NA"
+                                }
+                                metric_label <- paste(rmse_str, corr_str, sep = " | ")
 
                                 p <- add_trace(p,
                                             x = df_filtered$Date,
                                             y = yData,
                                             type = 'scatter',
                                             mode = 'markers',
-                                            name = paste(col, "Measurement (", ")"),
+                                            name = paste0(col, " Measurement\n", metric_label),
                                             marker = list(symbol = "circle", size = 7, color = "#337a12"))
                                             
                             }
