@@ -3,7 +3,7 @@
 #' This is a simple parameter tuner function which works great in a flat directory system
 #'
 #' @param parameterFile optional, the parameter csv file
-#' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
+#' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs
 #' @importFrom dplyr filter %>% select full_join
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
@@ -213,6 +213,34 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         #hoverSliderContainer:hover #yearSliderContent {
         display: block;
         }
+
+        /* Base lock styles */
+        .btn.lock-btn {
+            background-color: transparent;
+            border: none;
+            padding: 5px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Locked state */
+        .btn.lock-btn.locked {
+            background-color: #ff4444 !important;
+            border-color: #ff4444 !important;
+        }
+
+        /* Unlocked state */
+        .btn.lock-btn.unlocked {
+            background-color: #44ff44 !important;
+            border-color: #44ff44 !important;
+        }
   "))),
     
     # year slider for the hover area
@@ -347,9 +375,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                 ),
                                 actionButton("outputMapping", "Output Mapping",
                                 style = "background-color: blue; color: white; border-color: black;"),
-                                downloadButton("exportData", "Export Data"),
                                 actionButton("editColNames", "Edit Column Names"),
-
+                                downloadButton("exportData", "Export Data"),
+                                checkboxInput("keepMapping", "Keep mapping on export", value = FALSE),
 
                                     column(4,
                                     h4("Delete Columns"),
@@ -443,56 +471,67 @@ tuneMusoServer <- function(input, output, session){
     # Reading and processing of measurement files
     measurementData <- reactiveVal(NULL)
 
-        observeEvent(input$measurementFile, {
-                req(input$measurementFile)
-                files <- input$measurementFile
-                
-                # Read each file using column indexes.
-                new_data_list <- lapply(seq_len(nrow(files)), function(i) {
-                    # Read file with header = TRUE.
-                    df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
-                    
-                    # Create a Date column from columns 1, 2, and 3 (assumed to be yyyy, mm, dd)
-                    df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
-                    df[df == -9999] <- NA
-                    # Extract measurement data from columns 4 onwards
-                    meas <- df[ , -(1:3), drop = FALSE]
-                    # In case the file header includes a "Date" column in these measurement columns,
-                    # remove it so that only our computed Date column remains.
-                    meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
-                    
-                    # Create a new data frame with only one Date column and the measurement data
-                    new_df <- data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
-                    return(new_df)
-                })
-                
-                # Combine the new data frames by full joining on Date
-                new_data_combined <- Reduce(function(x, y) {
-                    dplyr::full_join(x, y, by = "Date")
-                }, new_data_list)
-                
-                # Create a complete sequence of dates from the min model year to max model year (since the rest of the data doesn't matter  )
-                req(settings)
-                min_year <- as.numeric(format(min(dates), "%Y"))
-                max_year <- as.numeric(format(max(dates), "%Y"))
-                sim_start <- as.Date(paste0(min_year, "-01-01"))
-                sim_end   <- as.Date(paste0(max_year, "-12-31"))
-
-              all_dates <- seq.Date(sim_start, sim_end, by = "day")
-                base_df <- data.frame(Date = all_dates)
-                
-                # Merge to ensure that every date in the full range is present (missing measurement values become NA)
-                new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
-                
-              if (is.null(measurementData())) {
-                    measurementData(new_data_complete)
-                } else {
-                    combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
-                    # Filter out any dates outside the simulation period
-                    combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
-                    measurementData(combined)
-                }
+    observeEvent(input$measurementFile, {
+        req(input$measurementFile)
+        files <- input$measurementFile
+        
+        # Reading and combine files 
+        new_data_list <- lapply(seq_len(nrow(files)), function(i) {
+            df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
+            df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
+            df[df == -9999] <- NA
+            meas <- df[ , -(1:3), drop = FALSE]
+            meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
+            data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
         })
+        
+            new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
+            
+            # Create complete date sequence
+            req(settings)
+            min_year <- as.numeric(format(min(dates), "%Y"))
+            max_year <- as.numeric(format(max(dates), "%Y"))
+            sim_start <- as.Date(paste0(min_year, "-01-01"))
+            sim_end <- as.Date(paste0(max_year, "-12-31"))
+            all_dates <- seq.Date(sim_start, sim_end, by = "day")
+            base_df <- data.frame(Date = all_dates)
+        
+        # Merging with base dates
+        new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
+        
+        # Processing mappings IN THE COMPLETE DATA
+        mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
+        mapping <- list()
+        
+        # handling mapping columns, if they exist we map them to the output variables and remove them from the data table
+        if (length(mapping_cols) > 0) {
+            for (map_col in mapping_cols) {
+                output_var <- sub("_MAPPING$", "", map_col)
+                meas_cols <- unique(na.omit(new_data_complete[[map_col]])) 
+                
+                if (length(meas_cols) > 0) {
+                    for (col in strsplit(meas_cols, ",")[[1]]) {
+                        if (col %in% names(new_data_complete)) {
+                            mapping[[col]] <- output_var
+                        }
+                    }
+                }
+            }
+            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols]
+        }
+        
+        # Updating measurementData with complete, filtered data
+        if (is.null(measurementData())) {
+            measurementData(new_data_complete)
+        } else {
+            combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
+            combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
+            measurementData(combined)
+        }
+        
+        # Setting mapping AFTER data processing
+        if (length(mapping) > 0) mappingRV(mapping)
+    })
 
 
 
@@ -662,11 +701,29 @@ tuneMusoServer <- function(input, output, session){
                 export_df$Month <- format(export_df$Date, "%m")
                 export_df$Day   <- format(export_df$Date, "%d")
                 
+                # Add mapping columns if mapping export button is pressed
+                if (input$keepMapping) {
+                    mapping <- mappingRV()
+                    var_mapping <- list()
+                    
+                    # Create inverse mapping (output var -> measurement cols)
+                    for (meas_col in names(mapping)) {
+                        output_var <- mapping[[meas_col]]
+                        if (output_var != "None") {
+                        var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
+                        }
+                    }
+                    
+                    for (output_var in names(var_mapping)) {
+                        export_df[[paste0(output_var, "_MAPPING")]] <- 
+                        paste(var_mapping[[output_var]], collapse = ",")
+                    }
+                }
                
                 other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
                 export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
                 
-                # Replace NA values with -9999 (for export only), currently if we leave NAs they will show up as empty cells in the CSV
+                # Replace NA values with -9999 (for export only), currently if we leave NAs they will show up as empty cells in the CSV (bad)
                 export_df[is.na(export_df)] <- -9999
                 
               
@@ -906,8 +963,7 @@ tuneMusoServer <- function(input, output, session){
             
         })
 
-        # reactive value that will track the locked or unlock state of the allocation locking button
-        lockStates <- reactiveValues()
+       
 
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
@@ -954,7 +1010,7 @@ tuneMusoServer <- function(input, output, session){
                     value   = safe_value,
                     step    = 0.01
                     ),
-                    actionButton(lock_btn_id, label = NULL, icon = icon("unlock"),
+                    actionButton(lock_btn_id, label = NULL, icon = icon("unlock"), class = "btn lock-btn unlocked",
                                 style = "margin-top: -10px; margin-bottom: 10px;")
                 )
                 })
@@ -986,7 +1042,8 @@ tuneMusoServer <- function(input, output, session){
             )
             })
 
-
+        # reactive value that will track the locked or unlock state of the allocation locking button
+        lockStates <- reactiveValues()
         observe({
             req(input$selected_epc)
             dep_indices <- which(!is.na(parameters$group))
@@ -998,29 +1055,55 @@ tuneMusoServer <- function(input, output, session){
             }
             })
 
-        # lock button observer
+    ####### lock button observer ########
+        # Lock states outside reactivity
+        lockStates <- reactiveValues()
+        dep_indices <- which(!is.na(parameters$group))
+        lapply(dep_indices, function(i) {
+        slider_id <- paste0("dep_", parameters$INDEX[i])
+        lockStates[[slider_id]] <- FALSE
+        })
+
+        # Single observer for all buttons
         observe({
             req(input$selected_epc)
-            dep_indices <- which(!is.na(parameters$group))
             
-            lapply(parameters$INDEX[dep_indices], function(idx) {
-                slider_id <- paste0("dep_", idx)
+            lapply(dep_indices, function(i) {
+                idx <- parameters$INDEX[i]
                 lock_btn_id <- paste0("lock_", idx)
+                slider_id <- paste0("dep_", idx)
                 
-                # Only attach if the input for the lock button exists
-                if (!is.null(input[[lock_btn_id]])) {
-                observeEvent(input[[lock_btn_id]], {
-                    # Toggle the lock state
+                # Creating observer with proper scoping
+                observe({
+                req(input[[lock_btn_id]])
+                isolate({
+                    # Toggle state
                     lockStates[[slider_id]] <- !lockStates[[slider_id]]
-                    # Update the button icon accordingly:
+
+                    if (lockStates[[slider_id]]) {
+                        # When locking: add locked class, remove unlocked class
+                        shinyjs::addClass(id = lock_btn_id, class = "locked")
+                        shinyjs::removeClass(id = lock_btn_id, class = "unlocked")
+                    } else {
+                        # When unlocking: add unlocked class, remove locked class (so the lock icon changes)
+                        shinyjs::addClass(id = lock_btn_id, class = "unlocked")
+                        shinyjs::removeClass(id = lock_btn_id, class = "locked")
+                    }
+                    
+                    # Update UI
                     new_icon <- if (lockStates[[slider_id]]) "lock" else "unlock"
                     updateActionButton(session, lock_btn_id, icon = icon(new_icon))
-                }, ignoreInit = TRUE)
-                }
+                    shinyjs::toggleClass(
+                    id = lock_btn_id,
+                    class = "locked",
+                    condition = lockStates[[slider_id]]
+                    )
+                })
+                }) %>% bindEvent(input[[lock_btn_id]], ignoreInit = TRUE)
             })
-            })
+        })
 
-        # sum to 1 counter for allocation
+        ##### sum to 1 counter for allocation ######
         observe({
         req(input$selected_epc)
         
@@ -1744,11 +1827,12 @@ tuneMusoServer <- function(input, output, session){
                                 } else {
                                     "Bias: NA"
                                 }
-                                corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
-                                    sprintf("Corr: %.2f", m_row$Correlation)
+                               corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
+                                    sprintf("R<sup>2</sup>: %.2f", m_row$Correlation)  # R² formatted
                                 } else {
-                                    "Corr: NA"
+                                    "R<sup>2</sup>: NA"
                                 }
+
                                 metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
 
                                 p <- add_trace(p,
