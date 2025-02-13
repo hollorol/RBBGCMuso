@@ -7,6 +7,7 @@
 #' @importFrom dplyr filter %>% select full_join
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
+#' @importFrom data.table fread fwrite
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
@@ -249,8 +250,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                                    options = list(`actions-box` = TRUE)
                                                )
                                            ),
-                                           fileInput("measurementFile", "Upload Measurement File", 
-                                                     accept = c(".txt"), multiple = TRUE)
+                                           fileInput("measurementFile", "Upload Measurement Files", 
+                                                     accept = c(".txt",".csv"), multiple = TRUE)
                                        ),
                                        # Right column: checkboxes, single year, year range.
                                        div(class = "colRight",
@@ -309,6 +310,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                 ),
                                 actionButton("outputMapping", "Output Mapping",
                                 style = "background-color: blue; color: white; border-color: black;"),
+                                downloadButton("exportData", "Export Data"),
+                                actionButton("editColNames", "Edit Column Names"),
+
 
                                     column(4,
                                     h4("Delete Columns"),
@@ -403,58 +407,67 @@ tuneMusoServer <- function(input, output, session){
     measurementData <- reactiveVal(NULL)
 
 
-observeEvent(input$measurementFile, {
-  req(input$measurementFile)
-  
-  files <- input$measurementFile
-  
-  # Read each file using column indexes.
-  new_data_list <- lapply(seq_len(nrow(files)), function(i) {
-    # Read file with header = TRUE.
-    df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
-    
-    # Create a Date column from columns 1, 2, and 3 (assumed to be yyyy, mm, dd).
-    df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
-    df[df == -9999] <- NA
-    # Extract measurement data from columns 4 onward.
-    meas <- df[ , -(1:3), drop = FALSE]
-    # In case the file header includes a "Date" column in these measurement columns,
-    # remove it so that only our computed Date column remains.
-    meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
-    
-    # Create a new data frame with only one Date column and the measurement data.
-    new_df <- data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
-    return(new_df)
-  })
-  
-  # Combine the new data frames by full joining on Date.
-  new_data_combined <- Reduce(function(x, y) {
-    dplyr::full_join(x, y, by = "Date")
-  }, new_data_list)
-  
-  # Create a complete sequence of dates from the minimum to maximum date.
-  all_dates <- seq.Date(min(new_data_combined$Date, na.rm = TRUE),
-                        max(new_data_combined$Date, na.rm = TRUE),
-                        by = "day")
-  base_df <- data.frame(Date = all_dates)
-  
-  # Merge to ensure that every date in the full range is present (missing measurement values become NA).
-  new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
-  
-  # Update the cumulative data: if no data exists yet, use the new data; otherwise, merge.
-  if (is.null(measurementData())) {
-    measurementData(new_data_complete)
-  } else {
-    combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
-    measurementData(combined)
-  }
-})
+        observeEvent(input$measurementFile, {
+
+            
+
+                req(input$measurementFile)
+              
+
+                files <- input$measurementFile
+                
+                # Read each file using column indexes.
+                new_data_list <- lapply(seq_len(nrow(files)), function(i) {
+                    # Read file with header = TRUE.
+                    df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
+                    
+                    # Create a Date column from columns 1, 2, and 3 (assumed to be yyyy, mm, dd).
+                    df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
+                    df[df == -9999] <- NA
+                    # Extract measurement data from columns 4 onward.
+                    meas <- df[ , -(1:3), drop = FALSE]
+                    # In case the file header includes a "Date" column in these measurement columns,
+                    # remove it so that only our computed Date column remains.
+                    meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
+                    
+                    # Create a new data frame with only one Date column and the measurement data.
+                    new_df <- data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
+                    return(new_df)
+                })
+                
+                # Combine the new data frames by full joining on Date.
+                new_data_combined <- Reduce(function(x, y) {
+                    dplyr::full_join(x, y, by = "Date")
+                }, new_data_list)
+                
+                # Create a complete sequence of dates from the min model year to max model year (since the rest of the data doesn't matter  )
+                req(settings)
+                min_year <- as.numeric(format(min(dates), "%Y"))
+                max_year <- as.numeric(format(max(dates), "%Y"))
+                sim_start <- as.Date(paste0(min_year, "-01-01"))
+                sim_end   <- as.Date(paste0(max_year, "-12-31"))
+
+              all_dates <- seq.Date(sim_start, sim_end, by = "day")
+                base_df <- data.frame(Date = all_dates)
+                
+                # Merge to ensure that every date in the full range is present (missing measurement values become NA).
+                new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
+                
+              if (is.null(measurementData())) {
+                    measurementData(new_data_complete)
+                } else {
+                    combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
+                    # Filter out any dates outside the simulation period.
+                    combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
+                    measurementData(combined)
+                }
+        })
 
 
 
             observe({
             req(measurementData())
-            # Get all column names except "Date" (if you want to keep Date always)
+            # Get all column names except Date
             cols <- setdiff(colnames(measurementData()), "Date")
             updateCheckboxGroupInput(session, "colsToDelete", choices = cols, selected = character(0))
             })
@@ -559,8 +572,81 @@ observeEvent(input$measurementFile, {
             removeModal()
             })
 
+        # update column names button
+        observeEvent(input$editColNames, {
+            req(measurementData())
+            cols <- colnames(measurementData())
+            
+            showModal(modalDialog(
+                title = "Edit Column Names",
+                # Only generate inputs for columns 2 through end (keeping Date as it is)
+                tagList(
+                lapply(2:length(cols), function(i) {
+                    textInput(inputId = paste0("colName_", i), 
+                            label = paste("Column", i, ":"), 
+                            value = cols[i])
+                })
+                ),
+                footer = tagList(
+                modalButton("Cancel"),
+                actionButton("saveColNames", "Save")
+                ),
+                easyClose = TRUE,
+                size = "m"
+            ))
+        })
 
-    # EPC HANDLING
+        # saving the new column names
+        observeEvent(input$saveColNames, {
+            req(measurementData())
+            oldCols <- colnames(measurementData())
+            
+            newCols <- c(oldCols[1],
+                        sapply(2:length(oldCols), function(i) {
+                            input[[paste0("colName_", i)]]
+                        }))
+            
+            df <- measurementData()
+            colnames(df) <- newCols
+            measurementData(df)
+            removeModal()
+        })
+
+
+
+
+
+        # exporting our data frame
+        output$exportData <- downloadHandler(
+            filename = function() {
+                paste("measurementData-", Sys.Date(), ".csv", sep = "")
+            },
+            content = function(file) {
+                # Make a copy for export.
+                export_df <- measurementData()
+                
+                # Create Year, Month, and Day columns from the Date column (so we have the same file format required for our measurement inputs)
+                export_df$Year  <- format(export_df$Date, "%Y")
+                export_df$Month <- format(export_df$Date, "%m")
+                export_df$Day   <- format(export_df$Date, "%d")
+                
+               
+                other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
+                export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
+                
+                # Replace NA values with -9999 (for export only), currently if we leave NAs they will show up as empty cells in the CSV
+                export_df[is.na(export_df)] <- -9999
+                
+              
+                fwrite(export_df, file, row.names = FALSE, sep = " ")
+            }
+        )
+
+
+
+
+
+    ########## EPC HANDLING ############
     epcValues <- reactiveValues()  # Store EPC values
 
 
@@ -1190,7 +1276,7 @@ observeEvent(input$measurementFile, {
 
 
 
-    observeEvent(input$runModel, {
+    observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
         epc <- input$selected_epc
 
@@ -1219,6 +1305,8 @@ observeEvent(input$measurementFile, {
         print("Model ran successfully")
         outputList$nextVal <- result
 
+       
+
         }})
 
         # restoring scrollbar position
@@ -1227,6 +1315,76 @@ observeEvent(input$measurementFile, {
             session$sendCustomMessage("restore_scroll", list(id = "plotPanel", scroll = input$plotPanel_scroll))
             }
         })
+
+
+
+        
+    ######## METRICS CALCULATION #########
+
+     simData <- reactive({
+            req(outputList$nextVal)  
+            outputList$nextVal
+    })
+
+    metricsData <- reactive({
+        req(measurementData(), mappingRV(), input$yearRange, simData)
+        
+        # Determine selected years
+        selectedYears <- if (input$singleYear) {
+            input$yearRange
+        } else {
+            seq(input$yearRange[1], input$yearRange[2])
+        }
+        
+        # Filter measurement and simulation data to the selected years
+        meas_df <- measurementData()
+        meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
+        
+        sim_df <- simData()
+        sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
+        
+        # Merge the two data sets on Date
+        merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_sim"))
+        
+        mapping <- mappingRV()
+        
+        metrics_list <- lapply(names(mapping), function(meas_col) {
+            output_var <- mapping[[meas_col]]
+            if (output_var == "None") return(NULL)
+            
+            # Ensure the simulation data has the desired output variable
+            if (!output_var %in% colnames(sim_df)) return(NULL)
+            
+            x <- merged_df[[meas_col]]
+            y <- merged_df[[output_var]]
+            
+            # Remove pairs where either value is NA
+            valid <- complete.cases(x, y)
+            
+            # If no valid pairs exist, set metrics to NA
+            if (sum(valid) == 0) {
+            rmse_val <- NA
+            corr_val <- NA
+            } else {
+            rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
+            # Only compute correlation if at least 2 points exist.
+            corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid]) else NA
+            }
+            
+            data.frame(
+            Measurement = meas_col,
+            OutputVariable = output_var,
+            RMSE = rmse_val,
+            Correlation = corr_val,
+            stringsAsFactors = FALSE
+            )
+        })
+        
+        # Combine all non-NULL results into a single data frame.
+        metrics <- do.call(rbind, metrics_list)
+        return(metrics)
+    })
+
 
 
     
@@ -1361,14 +1519,14 @@ observeEvent(input$measurementFile, {
             })
 
             ################ PLOTTING ###############
-                output$dynamicPlots <- renderUI({
-                req(input$selected_vars)
+                #output$dynamicPlots <- renderUI({
+                #req(input$selected_vars)
                 
-                plot_outputs <- lapply(input$selected_vars, function(var) {
-                    plotlyOutput(paste0("plot_", var), height = "100%")
-                })
-                do.call(tagList, plot_outputs)
-                })
+                #plot_outputs <- lapply(input$selected_vars, function(var) {
+                #  plotlyOutput(paste0("plot_", var), height = "100%")
+                #})
+                #do.call(tagList, plot_outputs)
+                #})
 
                 
 
@@ -1496,6 +1654,8 @@ observeEvent(input$measurementFile, {
                     # Filter data by selected years
                     df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
 
+                    #metrics_df <- metricsData()
+
                     if (!is.null(mapping)) {
                         # Find measurement columns mapped to the current var
                         mappedCols <- names(mapping)[mapping == var]
@@ -1510,24 +1670,42 @@ observeEvent(input$measurementFile, {
                                     yData[yData < 0] <- NA
                                 }
                                 
+                              #m_row <- metrics_df[metrics_df$Measurement == col, ]
+                              #  rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) {
+                              #      sprintf("RMSE: %.2f", m_row$RMSE)
+                              #  } else {
+                              #      "RMSE: NA"
+                              #  }
+                              #  corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
+                              #      sprintf("Corr: %.2f", m_row$Correlation)
+                              #  } else {
+                              #      "Corr: NA"
+                              #  }
+                              #  metric_label <- paste(rmse_str, corr_str, sep = " | ")
+
                                 p <- add_trace(p,
                                             x = df_filtered$Date,
                                             y = yData,
                                             type = 'scatter',
                                             mode = 'markers',
-                                            name = paste(col, "Measurement"),
+                                            name = paste(col, "Measurement (", ")"),
                                             marker = list(symbol = "circle", size = 7, color = "#337a12"))
+                                            
                             }
                         }
                     }
-                    p <- p %>% plotly::layout(
+                    # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
+                    common_x_range <- range(filteredDates, na.rm = TRUE)
+
+                #p <- p %>% plotly::layout(
                         #title = list(text = paste("Plot of", var),
                         #    font = list(size = 16, color = "black")),
                         #xaxis = list(title = "Date"),
-                        yaxis = list(title = var)
-                        )
+                   #     yaxis = list(title = var)
+                   #     )
 
                     p <- p %>% plotly::layout(
+                        xaxis = list(range = common_x_range),
                         yaxis = list(title = var),
                         showlegend = legendVisible()  # Conditionally show/hide legend
                     )
