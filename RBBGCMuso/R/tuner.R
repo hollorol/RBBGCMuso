@@ -376,7 +376,7 @@ tuneMusoServer <- function(input, output, session){
 
     required_main <- c(132, 133, 134, 135)
 
-    # Find the unique dependent groups already in the CSV.
+    # Find the unique dependent groups already in the CSV
     dep_groups <- unique(parameters$group[!is.na(parameters$group)])
 
     # Loop over each dependent group and check for each required main index to see if any of the 3 dependent rows are missing
@@ -403,17 +403,11 @@ tuneMusoServer <- function(input, output, session){
     }
 
 
-      # Read the measurement file
+    # Reading and processing of measurement files
     measurementData <- reactiveVal(NULL)
 
-
         observeEvent(input$measurementFile, {
-
-            
-
                 req(input$measurementFile)
-              
-
                 files <- input$measurementFile
                 
                 # Read each file using column indexes.
@@ -421,21 +415,21 @@ tuneMusoServer <- function(input, output, session){
                     # Read file with header = TRUE.
                     df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
                     
-                    # Create a Date column from columns 1, 2, and 3 (assumed to be yyyy, mm, dd).
+                    # Create a Date column from columns 1, 2, and 3 (assumed to be yyyy, mm, dd)
                     df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
                     df[df == -9999] <- NA
-                    # Extract measurement data from columns 4 onward.
+                    # Extract measurement data from columns 4 onwards
                     meas <- df[ , -(1:3), drop = FALSE]
                     # In case the file header includes a "Date" column in these measurement columns,
                     # remove it so that only our computed Date column remains.
                     meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
                     
-                    # Create a new data frame with only one Date column and the measurement data.
+                    # Create a new data frame with only one Date column and the measurement data
                     new_df <- data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
                     return(new_df)
                 })
                 
-                # Combine the new data frames by full joining on Date.
+                # Combine the new data frames by full joining on Date
                 new_data_combined <- Reduce(function(x, y) {
                     dplyr::full_join(x, y, by = "Date")
                 }, new_data_list)
@@ -450,14 +444,14 @@ tuneMusoServer <- function(input, output, session){
               all_dates <- seq.Date(sim_start, sim_end, by = "day")
                 base_df <- data.frame(Date = all_dates)
                 
-                # Merge to ensure that every date in the full range is present (missing measurement values become NA).
+                # Merge to ensure that every date in the full range is present (missing measurement values become NA)
                 new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
                 
               if (is.null(measurementData())) {
                     measurementData(new_data_complete)
                 } else {
                     combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
-                    # Filter out any dates outside the simulation period.
+                    # Filter out any dates outside the simulation period
                     combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
                     measurementData(combined)
                 }
@@ -472,7 +466,7 @@ tuneMusoServer <- function(input, output, session){
             updateCheckboxGroupInput(session, "colsToDelete", choices = cols, selected = character(0))
             })
 
-            # Render the measurement table.
+            
             output$measurementTable <- DT::renderDataTable({
             req(measurementData())
             #trying to display NAs
@@ -484,21 +478,22 @@ tuneMusoServer <- function(input, output, session){
                             rownames = FALSE)
             })
 
-            # When the user clicks the delete button, remove the selected columns.
+            # When the user clicks the delete button, remove the selected columns
             observeEvent(input$deleteCols, {
             req(measurementData())
             colsToRemove <- input$colsToDelete
             if(length(colsToRemove) > 0){
-                # Remove the selected columns from the data frame.
+                # Remove the selected columns from the data frame
                 df <- measurementData()
                 df <- df[, !(colnames(df) %in% colsToRemove), drop = FALSE]
                 measurementData(df)
                 
-                # Update the checkbox group input to reflect the new column names.
+                # Update the checkbox group input to reflect the new column names
                 updateCheckboxGroupInput(session, "colsToDelete", choices = setdiff(colnames(df), "Date"), selected = character(0))
             }
             })
 
+        # Mapping ui
         mappingRV <- reactiveVal(NULL)
             observeEvent(input$outputMapping, {
             req(measurementData())
@@ -517,7 +512,7 @@ tuneMusoServer <- function(input, output, session){
                 column(6, strong("Measurement Column")),
                 column(6, strong("Mapped Output Variable"))
                 ),
-                # For each measurement column, create a row with the column name and a dropdown.
+                # For each measurement column, create a row with the column name and a dropdown
                 lapply(measCols, function(col) {
                 fluidRow(
                     column(6, div(style = "padding: 5px;", col)),
@@ -565,7 +560,7 @@ tuneMusoServer <- function(input, output, session){
             # Save the mapping in the reactive value
             mappingRV(mapping)
             
-            # Optionally, you can print mappingRV() to verify
+          
             #print(mappingRV())
             
             # Close the modal
@@ -622,7 +617,7 @@ tuneMusoServer <- function(input, output, session){
                 paste("measurementData-", Sys.Date(), ".csv", sep = "")
             },
             content = function(file) {
-                # Make a copy for export.
+                # Make a copy for export
                 export_df <- measurementData()
                 
                 # Create Year, Month, and Day columns from the Date column (so we have the same file format required for our measurement inputs)
@@ -743,7 +738,7 @@ tuneMusoServer <- function(input, output, session){
     # making a storage for the previous epc file
     prevEPC <- reactiveVal(NULL)
 
-        # Get the "boot up" values for each EPC file for resetting
+    # Get the "boot up" values for each EPC file for resetting
     InitialDefaults <- reactiveValues()
 
     observe({
@@ -798,7 +793,7 @@ tuneMusoServer <- function(input, output, session){
 
 
 
-    #exit box not quite working as intended, we'll store its state directly
+    #exit box not quite working as intended, we'll store its state directly (now it works)
         restoreFlag <- reactiveVal(FALSE)
 
         observeEvent(input$restoreOnExit, {
@@ -810,7 +805,7 @@ tuneMusoServer <- function(input, output, session){
         if (isolate(restoreFlag())) {  
             cat("Restoring all EPC files to original...\n")
             
-            isolate({  # Ensuring all reactive values are accessed
+            isolate({  # Ensuring all reactive values are accessed to avoid buggies
                 for (epc in rv$epc_files) {
                     if (!is.null(InitialDefaults[[epc]])) {
                         paramVal <- InitialDefaults[[epc]]  
@@ -943,7 +938,7 @@ tuneMusoServer <- function(input, output, session){
         observe({
             req(input$selected_epc)
             dep_indices <- which(!is.na(parameters$group))
-            # For each dependent parameter, set its lock state if not already set.
+            # For each dependent parameter, set its lock state if not already set
             for(i in dep_indices) {
                 slider_id <- paste0("dep_", parameters$INDEX[i])
                 if (is.null(lockStates[[slider_id]]))
@@ -960,7 +955,7 @@ tuneMusoServer <- function(input, output, session){
                 slider_id <- paste0("dep_", idx)
                 lock_btn_id <- paste0("lock_", idx)
                 
-                # Only attach if the input for the lock button exists.
+                # Only attach if the input for the lock button exists
                 if (!is.null(input[[lock_btn_id]])) {
                 observeEvent(input[[lock_btn_id]], {
                     # Toggle the lock state
@@ -1058,7 +1053,7 @@ tuneMusoServer <- function(input, output, session){
         
         lapply(dep_groups, function(g) {
             observeEvent(input[[paste0("autoCalc_", g)]], {
-            # When autoCalc is toggled on, perform a recalculation for group g.
+            # When autoCalc is toggled on, INSTANTLY perform a recalculation for group g 
             if (isTRUE(input[[paste0("autoCalc_", g)]])) {
                 group_rows <- which(!is.na(parameters$group) &
                                     parameters$group == g &
@@ -1066,7 +1061,7 @@ tuneMusoServer <- function(input, output, session){
                 group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
                 ids <- paste0("dep_", parameters$INDEX[group_rows])
                 
-                # Calculate total locked and available for unlocked.
+                # Calculate total locked and available for unlocked
                 locked_vals <- unlist(lapply(ids, function(x) {
                 if (isTRUE(lockStates[[x]])) {
                     if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
@@ -1075,7 +1070,7 @@ tuneMusoServer <- function(input, output, session){
                 L <- sum(locked_vals)
                 available_total <- 1 - L
                 
-                # For unlocked sliders, recalculate their values proportionally.
+                # For unlocked sliders, recalculate their values proportionally
                 unlocked_ids <- ids[ !sapply(ids, function(x) isTRUE(lockStates[[x]])) ]
                 current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
                 if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
@@ -1096,33 +1091,7 @@ tuneMusoServer <- function(input, output, session){
         })
         })
 
-
-        observe({
-        req(input$selected_epc)
-        
-        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-        lapply(dep_groups, function(g) {
-            group_rows <- which(!is.na(parameters$group) &
-                                parameters$group == g &
-                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
-            group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
-            ids <- paste0("dep_", parameters$INDEX[group_rows])
-            
-            output[[paste0("sumCounter_", g)]] <- renderText({
-            vals <- unlist(lapply(ids, function(x) {
-                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-            }))
-            total <- sum(vals)
-            if (total > 1) {
-                paste0("Total: ", round(total, 2), " (Warning: Sum > 1!)")
-            } else {
-                paste0("Total: ", round(total, 2))
-            }
-            })
-        })
-        })
-
-
+        # sum counter viusalization
         observe({
         req(input$selected_epc)
         dep_groups <- unique(parameters$group[!is.na(parameters$group)])
@@ -1162,7 +1131,7 @@ tuneMusoServer <- function(input, output, session){
             # Saving the previous EPC's slider values 
             old_epc <- prevEPC()
             if (!is.null(old_epc) && old_epc != new_epc) {
-                # Retrieving the stored values for the old EPC, if not available, use defaultValues.
+                # Retrieving the stored values for the old EPC, if not available, use defaultValues
                 updated_old <- epcValues[[old_epc]]
                 if (is.null(updated_old) || length(updated_old) < nrow(parameters))
                 updated_old <- defaultValues()
@@ -1330,13 +1299,13 @@ tuneMusoServer <- function(input, output, session){
     })
 
      metricsData <- reactive({
-        req(simData(), input$yearRange)  # Only require simulation data and year range
+        req(simData(), input$yearRange)  
         
         # Get measurement data (if any) and mapping
         meas_df <- measurementData()
         mapping <- mappingRV()
         
-        # If no measurement data or no mapping is provided, return an empty data frame.
+        # If no measurement data or no mapping is provided, return an empty data frame (so plots are still generated)
         if (is.null(meas_df) || nrow(meas_df) == 0 || is.null(mapping) || length(mapping) == 0) {
             return(data.frame(
             Measurement = character(),
@@ -1360,15 +1329,15 @@ tuneMusoServer <- function(input, output, session){
         sim_df <- simData()
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
-        # Merge the two datasets on Date (common columns get suffixes)
+        # Merge the two datasets on Date (common columns get suffixes to avoid stinky bugs)
         merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_sim"))
         
-        # For each mapped measurement, calculate RMSE and correlation.
+        # For each mapped measurement, calculate RMSE and correlation
         metrics_list <- lapply(names(mapping), function(meas_col) {
             output_var <- mapping[[meas_col]]
             if (output_var == "None") return(NULL)
             
-            # Find the correct columns in merged_df.
+            # Find the correct columns in merged_df
             x_col <- if (meas_col %in% colnames(merged_df)) {
             meas_col
             } else if (paste0(meas_col, "_meas") %in% colnames(merged_df)) {
@@ -1385,13 +1354,13 @@ tuneMusoServer <- function(input, output, session){
             NULL
             }
             
-            # Skip if we can’t find the necessary columns.
+            # Skip if we can’t find the necessary columns
             if (is.null(x_col) || is.null(y_col)) return(NULL)
             
             x <- merged_df[[x_col]]
             y <- merged_df[[y_col]]
             
-            # Remove pairs where either value is NA.
+            # Remove pairs where either value is NA
             valid <- complete.cases(x, y)
             if (sum(valid) == 0) {
             rmse_val <- NA
