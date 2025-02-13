@@ -1365,6 +1365,7 @@ tuneMusoServer <- function(input, output, session){
             Measurement = character(),
             OutputVariable = character(),
             RMSE = numeric(),
+            BIAS = numeric(),
             Correlation = numeric(),
             stringsAsFactors = FALSE
             ))
@@ -1424,9 +1425,11 @@ tuneMusoServer <- function(input, output, session){
             valid <- complete.cases(x, y)
             if (sum(valid) == 0) {
             rmse_val <- NA
+            bias_val <- NA
             corr_val <- NA
             } else {
             rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
+            bias_val <- mean(x[valid] - y[valid])
             corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid]) else NA
             }
             
@@ -1434,6 +1437,7 @@ tuneMusoServer <- function(input, output, session){
             Measurement = meas_col,
             OutputVariable = output_var,
             RMSE = rmse_val,
+            BIAS = bias_val,
             Correlation = corr_val,
             stringsAsFactors = FALSE
             )
@@ -1445,6 +1449,7 @@ tuneMusoServer <- function(input, output, session){
             Measurement = character(),
             OutputVariable = character(),
             RMSE = numeric(),
+            BIAS = numeric(),
             Correlation = numeric(),
             stringsAsFactors = FALSE
             )
@@ -1734,18 +1739,24 @@ tuneMusoServer <- function(input, output, session){
                                 } else {
                                     "RMSE: NA"
                                 }
+                                bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) {
+                                    sprintf("Bias: %.2f", m_row$BIAS)
+                                } else {
+                                    "Bias: NA"
+                                }
                                 corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
                                     sprintf("Corr: %.2f", m_row$Correlation)
                                 } else {
                                     "Corr: NA"
                                 }
-                                metric_label <- paste(rmse_str, corr_str, sep = " | ")
+                                metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
 
                                 p <- add_trace(p,
                                             x = df_filtered$Date,
                                             y = yData,
                                             type = 'scatter',
                                             mode = 'markers',
+                                            #name = paste0(col, " Measurement<br>", metric_label),
                                             name = paste0(col, " Measurement\n", metric_label),
                                             marker = list(symbol = "circle", size = 7, color = "#337a12"))
                                             
