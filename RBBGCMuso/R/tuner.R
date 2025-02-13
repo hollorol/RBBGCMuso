@@ -182,8 +182,45 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           width: 50%;
           margin-bottom: 0;
       }
+       /* Initially hidden hover area for big plot changes*/
+        #hoverSliderContainer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 10px; /* Small height initially */
+        background: rgba(0, 0, 0, 0.2); /* Transparent black */
+        text-align: center;
+        transition: height 0.3s ease-in-out;
+        z-index: 1000;
+        display: none; /* HIDE by default */
+        }
+
+        /* Expanded area when hovered */
+        #hoverSliderContainer:hover {
+        height: 60px; /* Expand when hovered */
+        background: rgba(0, 0, 0, 0.8); /* Darker background */
+        }
+
+        /* Inner div for the year slider */
+        #yearSliderContent {
+        display: none; /* Hidden by default */
+        color: white;
+        padding-top: 10px;
+        }
+
+        /* Show content when hovered */
+        #hoverSliderContainer:hover #yearSliderContent {
+        display: block;
+        }
   "))),
     
+    # year slider for the hover area
+    #div(
+    #id = "hoverSliderContainer",
+    #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
+    #),
+
     tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, sep = "\n")))),
 
     # moving the title to the right so the toggleui button has space
@@ -821,7 +858,10 @@ tuneMusoServer <- function(input, output, session){
         }
     })
 
-
+    # year range refresh delay
+    debounced_yearRange <- reactive({
+        input$yearRange
+    }) %>% debounce(500)
 
     # Year range sliders
     output$yearRangeUI <- renderUI({
@@ -853,6 +893,18 @@ tuneMusoServer <- function(input, output, session){
         )
         }
     })
+
+        # saving the scrollbar position on year changing UI refresh
+        observeEvent(input$yearRange, {
+    
+            session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
+            
+            
+                if (!is.null(input$plotPanel_scroll)) {
+                session$sendCustomMessage("restore_scroll", list(id = "plotPanel", scroll = input$plotPanel_scroll))
+                }
+            
+        })
 
         # reactive value that will track the locked or unlock state of the allocation locking button
         lockStates <- reactiveValues()
@@ -1191,9 +1243,11 @@ tuneMusoServer <- function(input, output, session){
         // If the control panel is hidden, force the plot panel to expand
         if ($('#controlPanel').is(':visible')) {
             $('#plotPanel').css('flex', '2');
+            $('#hoverSliderContainer').hide(); // HIDE the hover slider when UI is visible
         } else {
             // Set flex property so that plot panel fills the entire row
             $('#plotPanel').css('flex', '1 1 100%');
+            $('#hoverSliderContainer').show(); // SHOW the hover slider when UI is hidden
         }
         // Trigger a window resize event
         $(window).trigger('resize');
@@ -1329,6 +1383,12 @@ tuneMusoServer <- function(input, output, session){
         sim_df <- simData()
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
+        # for the good rmse calc
+        cols_to_modify <- c("GPP", "RT", "NEE")  
+        existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
+
+        sim_df[existing_cols] <- sim_df[existing_cols] * 1000
+
         # Merge the two datasets on Date (common columns get suffixes to avoid stinky bugs)
         merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_sim"))
         
@@ -1526,15 +1586,6 @@ tuneMusoServer <- function(input, output, session){
             })
 
             ################ PLOTTING ###############
-                #output$dynamicPlots <- renderUI({
-                #req(input$selected_vars)
-                
-                #plot_outputs <- lapply(input$selected_vars, function(var) {
-                #  plotlyOutput(paste0("plot_", var), height = "100%")
-                #})
-                #do.call(tagList, plot_outputs)
-                #})
-
                 
 
                 output$dynamicPlots <- renderUI({
