@@ -1384,7 +1384,7 @@ tuneMusoServer <- function(input, output, session){
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
         # for the good rmse calc
-        cols_to_modify <- c("GPP", "RT", "NEE")  
+        cols_to_modify <- c("GPP", "TR", "NEE")  
         existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
 
         sim_df[existing_cols] <- sim_df[existing_cols] * 1000
