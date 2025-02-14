@@ -477,12 +477,12 @@ tuneMusoServer <- function(input, output, session){
         
         # Reading and combine files 
         new_data_list <- lapply(seq_len(nrow(files)), function(i) {
-            df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE)
+            df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
             df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
             df[df == -9999] <- NA
             meas <- df[ , -(1:3), drop = FALSE]
             meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
-            data.frame(Date = df$Date, meas, stringsAsFactors = FALSE)
+            data.frame(Date = df$Date, meas, stringsAsFactors = FALSE, check.names = FALSE)
         })
         
             new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
@@ -506,7 +506,7 @@ tuneMusoServer <- function(input, output, session){
         # handling mapping columns, if they exist we map them to the output variables and remove them from the data table
         if (length(mapping_cols) > 0) {
             for (map_col in mapping_cols) {
-                output_var <- sub("_MAPPING$", "", map_col)
+                output_var <- sub("_MAPPING$", "", map_col, fixed = FALSE)
                 meas_cols <- unique(na.omit(new_data_complete[[map_col]])) 
                 
                 if (length(meas_cols) > 0) {
