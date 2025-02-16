@@ -25,6 +25,7 @@ Imports:
 	glue,
 	openxlsx,
 	jsonlite,
+	RColorBrewer,
 	scales,
 	tcltk,
 	digest,

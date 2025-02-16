@@ -10,6 +10,8 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput
+#' @importFrom grDevices colorRampPalette
+#' @importFrom RColorBrewer brewer.pal
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
 #' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler
 #' @usage ...
@@ -81,6 +83,50 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
             });
         "
 
+    # expanded window
+    expandedWindow <- "
+            $(document).ready(function(){
+            window.moveTo(0, 0);
+            window.resizeTo(screen.width, screen.height);
+        });
+    "
+
+    fullscreen <- "
+      function toggleFullscreen() {
+        if (!document.fullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.msFullscreenElement) {
+          // Enter full screen
+          var elem = document.documentElement;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          } else if (elem.mozRequestFullScreen) { 
+            elem.mozRequestFullScreen();
+          } else if (elem.webkitRequestFullscreen) { 
+            elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+          } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+          }
+        } else {
+          // Exit full screen
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.mozCancelFullScreen) { 
+            document.mozCancelFullScreen();
+          } else if (document.webkitExitFullscreen) { 
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        }
+      }
+      
+      // Bind the toggle function to the button click event
+      $(document).on('click', '#fullscreen_btn', function(){
+        toggleFullscreen();
+      });
+    "
 
 
  fluidPage(
@@ -241,6 +287,18 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
             background-color: #44ff44 !important;
             border-color: #44ff44 !important;
         }
+        /* Make the tab headers sticky within the control panel */
+        #controlPanel .nav-tabs {
+            position: sticky;
+            top: 0;
+            z-index: 1100;
+            background-color: #fff; /* ensures it covers content underneath */
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 0; /* remove extra spacing so content doesn't slide under */
+        }
+        body.modal-open #controlPanel .nav-tabs {
+            display: none;
+        }
   "))),
     
     # year slider for the hover area
@@ -249,11 +307,15 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, sep = "\n")))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, sep = "\n"))),
+    
+    tags$title("Biome-BGCMuSo Parameter Tuner")
+    ),
+
 
     # moving the title to the right so the toggleui button has space
     titlePanel(div(style = "margin-left: 100px;", "Biome-BGCMuSo Parameter Tuner")),
-    
+  
     # Floating toggle button to collapse/restore the control panel
     div(
       id = "toggleUIButton",
@@ -262,6 +324,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     # toggle legend button for... toggling the legend. And also toggle plot field for expanded ui
     div(
         style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
+        actionButton("settings_btn", label = NULL, icon = icon("cog")),
         actionButton("toggle_plot_field", "Hide Plot Area"),
         actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash"))
     ),
@@ -321,7 +384,10 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                        # Right column: checkboxes, single year, year range.
                                        div(class = "colRight",
                                            checkboxInput("autoupdate", "Automatic update"),
-                                           checkboxInput("singleYear", "Single year mode", value = FALSE),
+                                            div(style = "display: flex; align-items: center; gap: 0px;",
+                                            checkboxInput("singleYear", "Single year mode", value = FALSE),
+                                            checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
+                                            ),
                                            uiOutput("yearRangeUI")
                                        )
                                    ),
@@ -369,23 +435,38 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                    actionButton(inputId = "overwriteIni", "Overwrite")
                           ),
                           tabPanel("Measurement Manager",
-                            fluidRow(
+                           fluidRow(
                                 column(12,
-                                DT::dataTableOutput("measurementTable")
+                                    DT::dataTableOutput("measurementTable")
                                 ),
-                                actionButton("outputMapping", "Output Mapping",
-                                style = "background-color: blue; color: white; border-color: black;"),
-                                actionButton("editColNames", "Edit Column Names"),
-                                downloadButton("exportData", "Export Data"),
-                                checkboxInput("keepMapping", "Keep mapping on export", value = FALSE),
-
-                                    column(4,
+                                column(12,
+                                    fileInput("measurementFile2", "Upload Measurement Files", 
+                                            accept = c(".txt", ".csv"), multiple = TRUE)
+                                ),
+                                column(12,
+                                    actionButton("outputMapping", "Output Mapping", 
+                                                style = "background-color: blue; color: white; border-color: black;"),
+                                    actionButton("editColNames", "Edit Column Names"),
+                                    downloadButton("exportData", "Export Data"),
+                                    actionButton("editMeasurementTransforms", "Edit Measurement Data"),
+                                    actionButton("make_output", "Make Output Variable"),
+                                    checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
+                                ),
+                                # Now wrap the delete and reset checkboxes side by side in their own fluidRow:
+                                fluidRow(
+                                    column(6,
                                     h4("Delete Columns"),
                                     checkboxGroupInput("colsToDelete", "Select columns to delete:", choices = NULL),
                                     actionButton("deleteCols", "Delete Selected Columns")
+                                    ),
+                                    column(6,
+                                    h4("Reset Columns From Manipulated Values"),
+                                    checkboxGroupInput("colsToReset", "Select columns to reset:", choices = NULL),
+                                    actionButton("resetCols", "Reset Selected Columns")
+                                    )
                                 )
-                            )
-                            )
+                                )
+                        )
               )
           ),
           options = list(handles = "e")  # Allow resizing only on the right edge
@@ -424,8 +505,9 @@ tuneMusoServer <- function(input, output, session){
             }
     }
 
-
+    
     settings <- setupMuso()
+    #epcIni <- settings$epcInput[2]
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
 
@@ -444,7 +526,7 @@ tuneMusoServer <- function(input, output, session){
     # Find the unique dependent groups already in the CSV
     dep_groups <- unique(parameters$group[!is.na(parameters$group)])
 
-    # Loop over each dependent group and check for each required main index to see if any of the 3 dependent rows are missing
+    # Loop over each dependent group and check for each required main index to see if any of the 4 dependent rows are missing
     for (g in dep_groups) {
         for (m in required_main) {
             # Construct the expected INDEX value 
@@ -467,9 +549,11 @@ tuneMusoServer <- function(input, output, session){
         }
     }
 
+     dailyOutputNames <- reactiveVal(settings$dailyOutputTable$name)
 
     # Reading and processing of measurement files
     measurementData <- reactiveVal(NULL)
+    initialMeasurementData <- reactiveVal(NULL)
 
     observeEvent(input$measurementFile, {
         req(input$measurementFile)
@@ -523,16 +607,103 @@ tuneMusoServer <- function(input, output, session){
         # Updating measurementData with complete, filtered data
         if (is.null(measurementData())) {
             measurementData(new_data_complete)
+            initialMeasurementData(new_data_complete)
         } else {
             combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
             combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
             measurementData(combined)
+
+            init_data <- initialMeasurementData()
+             new_cols <- setdiff(colnames(new_data_complete), colnames(init_data))
+
+                 if (length(new_cols) > 0) {
+                    # Create a data frame with Date and the new columns
+                    new_initials <- new_data_complete[, c("Date", new_cols), drop = FALSE]
+                    # Merge the new columns into the initial data
+                    init_data <- dplyr::full_join(init_data, new_initials, by = "Date")
+                    initialMeasurementData(init_data)
+                }
         }
         
         # Setting mapping AFTER data processing
         if (length(mapping) > 0) mappingRV(mapping)
     })
 
+
+        # DUPLICATING CODE FOR THE SECOND MEASUREMENT READ BUTTON I KNOW IT'S HORRIBLE BUT I actually don't see a trivial way to do this, I'll edit it later when I can get my head around it
+         observeEvent(input$measurementFile2, {
+        req(input$measurementFile2)
+        files <- input$measurementFile2
+        
+        # Reading and combine files 
+        new_data_list <- lapply(seq_len(nrow(files)), function(i) {
+            df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+            df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
+            df[df == -9999] <- NA
+            meas <- df[ , -(1:3), drop = FALSE]
+            meas <- meas[, !(colnames(meas) %in% c("Date")), drop = FALSE]
+            data.frame(Date = df$Date, meas, stringsAsFactors = FALSE, check.names = FALSE)
+        })
+        
+            new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
+            
+            # Create complete date sequence
+            req(settings)
+            min_year <- as.numeric(format(min(dates), "%Y"))
+            max_year <- as.numeric(format(max(dates), "%Y"))
+            sim_start <- as.Date(paste0(min_year, "-01-01"))
+            sim_end <- as.Date(paste0(max_year, "-12-31"))
+            all_dates <- seq.Date(sim_start, sim_end, by = "day")
+            base_df <- data.frame(Date = all_dates)
+        
+        # Merging with base dates
+        new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
+        
+        # Processing mappings IN THE COMPLETE DATA
+        mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
+        mapping <- list()
+        
+        # handling mapping columns, if they exist we map them to the output variables and remove them from the data table
+        if (length(mapping_cols) > 0) {
+            for (map_col in mapping_cols) {
+                output_var <- sub("_MAPPING$", "", map_col, fixed = FALSE)
+                meas_cols <- unique(na.omit(new_data_complete[[map_col]])) 
+                
+                if (length(meas_cols) > 0) {
+                    for (col in strsplit(meas_cols, ",")[[1]]) {
+                        if (col %in% names(new_data_complete)) {
+                            mapping[[col]] <- output_var
+                        }
+                    }
+                }
+            }
+            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols]
+        }
+        
+        # Updating measurementData with complete, filtered data
+        if (is.null(measurementData())) {
+            measurementData(new_data_complete)
+            initialMeasurementData(new_data_complete)
+        } else {
+            combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
+            combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
+            measurementData(combined)
+            
+            init_data <- initialMeasurementData()
+             new_cols <- setdiff(colnames(new_data_complete), colnames(init_data))
+
+                 if (length(new_cols) > 0) {
+                    # Create a data frame with Date and the new columns
+                    new_initials <- new_data_complete[, c("Date", new_cols), drop = FALSE]
+                    # Merge the new columns into the initial data
+                    init_data <- dplyr::full_join(init_data, new_initials, by = "Date")
+                    initialMeasurementData(init_data)
+                }
+        }
+        
+        # Setting mapping AFTER data processing
+        if (length(mapping) > 0) mappingRV(mapping)
+    })
 
 
             observe({
@@ -578,7 +749,7 @@ tuneMusoServer <- function(input, output, session){
             measCols <- setdiff(colnames(measurementData()), "Date")
             
             # Get available output variables from your settings
-            availableOutputVars <- settings$dailyOutputTable$name
+            #availableOutputVars <- reactive({ settings$dailyOutputTable$name })
             
             # Create the modal's content:
             modalContent <- tagList(
@@ -596,12 +767,12 @@ tuneMusoServer <- function(input, output, session){
                     selectInput(
                         inputId = paste0("mapping_", col),
                         label = NULL,
-                        choices = c("None", availableOutputVars),
+                        choices = c("None", dailyOutputNames()),
                         # Use the saved mapping if it exists, otherwise default to "None"
                         selected = if (!is.null(mappingRV()) && !is.null(mappingRV()[[col]])) {
                         mappingRV()[[col]]
                         } else {
-                        "None"
+                        character(0)
                         },
                         width = "100%"
                     )
@@ -609,7 +780,7 @@ tuneMusoServer <- function(input, output, session){
                 )
                 })
             )
-            
+
             showModal(modalDialog(
                 modalContent,
                 title = "Output Mapping",
@@ -690,7 +861,7 @@ tuneMusoServer <- function(input, output, session){
         # exporting our data frame
         output$exportData <- downloadHandler(
             filename = function() {
-                paste("measurementData-", Sys.Date(), ".csv", sep = "")
+                paste("tuneMusoExport_measurementData-", Sys.Date(), ".csv", sep = "")
             },
             content = function(file) {
                 # Make a copy for export
@@ -730,7 +901,6 @@ tuneMusoServer <- function(input, output, session){
                 fwrite(export_df, file, row.names = FALSE, sep = " ")
             }
         )
-
 
 
 
@@ -1319,6 +1489,244 @@ tuneMusoServer <- function(input, output, session){
             prevEPC(new_epc)
         })
 
+debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
+   observe({
+  # Ensure inputs exist before proceeding
+  req(input$auto_epc_selection, input$singleYear)
+  
+  # Check if auto selection is enabled and single-year mode is active
+  if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
+    
+    req(debounced_yearRange2(), rv$epc_dates)  # Ensure these inputs exist
+
+    # The selected year from the single-year slider
+    selected_year <- as.character(debounced_yearRange2())
+    
+    # Ensure the DATE column is in Date format
+    if (!inherits(rv$epc_dates$DATE, "Date")) {
+      rv$epc_dates$DATE <- as.Date(rv$epc_dates$DATE, format = "%Y.%m.%d")
+    }
+    
+    # Filter to find EPC files from the selected year
+    filtered <- rv$epc_dates[ format(rv$epc_dates$DATE, "%Y") == selected_year & 
+                              rv$epc_dates[["CROP.file."]] %in% rv$epc_files, ]
+    
+    if (nrow(filtered) > 0) {
+      # Pick the row with the earliest date
+      earliest_row <- filtered[ which.min(filtered$DATE), ]
+      
+      # Extract the EPC file name from that row
+      selected_epc <- earliest_row[["CROP.file."]]
+      
+      # Update the EPC selection only if different
+      if (!is.null(selected_epc) && selected_epc != input$selected_epc) {
+        updateSelectInput(session, "selected_epc", selected = selected_epc)
+      }
+    }
+  }
+})
+
+
+
+
+
+        # measurement manipuplation modal
+        observeEvent(input$editMeasurementTransforms, {
+  req(measurementData())
+  
+  showModal(modalDialog(
+    title = "Measurement Data Transformations",
+    size = "l",
+    easyClose = TRUE,
+    footer = modalButton("Close"),
+    tabsetPanel(
+      # Tab for replacing negatives with NA
+ tabPanel("Set Values to NA",
+        fluidRow(
+          column(4,
+            selectInput("col_to_na", "Select column:", 
+                        choices = setdiff(colnames(measurementData()), "Date"))
+          ),
+          column(4,
+            numericInput("na_lower", "Lower bound:", value = NA),
+            helpText("Leave blank (or NA) if not used")
+          ),
+          column(4,
+            numericInput("na_upper", "Upper bound:", value = NA),
+            helpText("Leave blank (or NA) if not used")
+          )
+        ),
+        fluidRow(
+          column(12,
+            actionButton("apply_na", "Apply Transformation")
+          )
+        )
+      ),
+      
+      # Tab for arithmetic operations
+     tabPanel("Arithmetic Operation",
+  fluidRow(
+    column(4,
+      selectInput("col_arith", "Select column:", 
+                  choices = setdiff(colnames(measurementData()), "Date"))
+    ),
+    column(4,
+      selectInput("arith_op", "Operation", 
+                  choices = c("Add", "Subtract", "Multiply", "Divide"))
+    ),
+    column(4,
+      numericInput("arith_val", "Value:", value = 0)
+    )
+  ),
+  fluidRow(
+    column(12,
+      actionButton("apply_arith", "Apply Transformation")
+    )
+  )
+),
+
+      
+      # Tab for column interaction (e.g., multiplying two columns)
+tabPanel("Column Interaction",
+  fluidRow(
+    column(4,
+      selectInput("col1", "Column 1:", 
+                  choices = setdiff(colnames(measurementData()), "Date"))
+    ),
+    column(4,
+      selectInput("col2", "Column 2:", 
+                  choices = setdiff(colnames(measurementData()), "Date"))
+    ),
+    column(4,
+      selectInput("interaction_op", "Operation", 
+                  choices = c("Multiply", "Add", "Subtract", "Divide"))
+    )
+  ),
+  fluidRow(
+    column(12,
+      actionButton("apply_interaction", "Apply Transformation")
+    )
+  )
+)
+
+    )
+  ))
+})
+
+
+observeEvent(input$apply_na, {
+  req(measurementData(), input$col_to_na)
+  df <- measurementData()
+  col <- input$col_to_na
+  
+  # Retrieve the bounds. They might be NA if the user did not set them.
+  lower_bound <- input$na_lower
+  upper_bound <- input$na_upper
+  
+  # Determine which values fall into the specified range:
+  if (!is.na(lower_bound) && !is.na(upper_bound)) {
+    # Both bounds provided: set values between lower and upper to NA.
+    df[[col]][df[[col]] >= lower_bound & df[[col]] <= upper_bound] <- NA
+  } else if (!is.na(lower_bound)) {
+    # Only lower bound provided: set values greater than or equal to lower_bound to NA.
+    df[[col]][df[[col]] >= lower_bound] <- NA
+  } else if (!is.na(upper_bound)) {
+    # Only upper bound provided: set values less than or equal to upper_bound to NA.
+    df[[col]][df[[col]] <= upper_bound] <- NA
+  } else {
+    showNotification("Please specify at least one bound.", type = "error")
+    return()
+  }
+  
+  measurementData(df)
+  showNotification(paste("Updated", col, ": values in defined range set to NA"))
+})
+
+observeEvent(input$apply_arith, {
+  req(measurementData(), input$col_arith, input$arith_op, input$arith_val)
+  df <- measurementData()
+  col <- input$col_arith
+  op <- input$arith_op
+  val <- input$arith_val
+  
+  # Apply the chosen arithmetic operation on the selected column.
+  df[[col]] <- switch(op,
+    "Add" = df[[col]] + val,
+    "Subtract" = df[[col]] - val,
+    "Multiply" = df[[col]] * val,
+    "Divide" = {
+      if(val == 0) {
+        showNotification("Division by zero not allowed", type = "error")
+        df[[col]]  # no change
+      } else {
+        df[[col]] / val
+      }
+    }
+  )
+  
+  measurementData(df)
+  showNotification(paste("Applied", op, "operation to", col))
+})
+
+observeEvent(input$apply_interaction, {
+  req(measurementData(), input$col1, input$col2, input$interaction_op)
+  df <- measurementData()
+  col1 <- input$col1
+  col2 <- input$col2
+  op <- input$interaction_op
+  
+  # Apply the chosen operation between the two selected columns.
+  new_col <- switch(op,
+    "Multiply" = df[[col1]] * df[[col2]],
+    "Add"      = df[[col1]] + df[[col2]],
+    "Subtract" = df[[col1]] - df[[col2]],
+    "Divide"   = {
+      # Check for division by zero elementwise.
+      # We'll set any division by zero result to NA and show a warning.
+      div_res <- df[[col1]] / ifelse(df[[col2]] == 0, NA, df[[col2]])
+      if(any(df[[col2]] == 0, na.rm = TRUE)) {
+        showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
+      }
+      div_res
+    }
+  )
+  
+  new_col_name <- paste(col1, op, col2, sep = "_")
+  df[[new_col_name]] <- new_col
+  measurementData(df)
+  showNotification(paste("Created new column", new_col_name, "using", op, "operation"))
+})
+
+
+    # reset manipulated column
+    observe({
+    req(measurementData())
+    cols <- setdiff(colnames(measurementData()), "Date")
+    updateCheckboxGroupInput(session, "colsToReset", choices = cols, selected = character(0))
+    })
+
+    observeEvent(input$resetCols, {
+        req(measurementData(), initialMeasurementData())
+        colsToReset <- input$colsToReset
+        if (length(colsToReset) > 0) {
+            df_current <- measurementData()
+            df_initial <- initialMeasurementData()
+            
+            # For each selected column, revert its values to the initial values
+            for (col in colsToReset) {
+            if (col %in% names(df_current) && col %in% names(df_initial)) {
+                df_current[[col]] <- df_initial[[col]]
+            }
+            }
+            
+            measurementData(df_current)
+            
+            updateCheckboxGroupInput(session, "colsToReset", choices = setdiff(colnames(df_current), "Date"), selected = character(0))
+            showNotification("Selected column(s) have been reset to their initial values", type = "message")
+        }
+    })
+
+
     # Toggle visibility of the sidebar panel
     observeEvent(input$toggleUI, {
     toggle("controlPanel", anim = FALSE)
@@ -1379,9 +1787,40 @@ tuneMusoServer <- function(input, output, session){
         epcValues[[epc]] <<- updated  # Updating the reactive storage
     }
 
+    # if new variable creation is chosen, we'll store here
+    newVars <- reactiveValues(defs = list())
 
+          layers <- list(
+            c(0, 3),    # Layer 1: VWC[0]
+            c(3, 10),   # Layer 2: VWC[1]
+            c(10, 30),  # Layer 3: VWC[2]
+            c(30, 60),  # Layer 4: VWC[3]
+            c(60, 90),  # Layer 5: VWC[4]
+            c(90, 120), # Layer 6: VWC[5]
+            c(120, 150),# Layer 7: VWC[6]
+            c(150, 200),# Layer 8: VWC[7]
+            c(200, 400),# Layer 9: VWC[8]
+            c(400, 1000)# Layer 10: VWC[9]
+        ) 
+        
+    calc_weighted_swc <- function(swc_values, min_depth, max_depth, layers) {
+        # Use only as many layers as are available in swc_values:
+        n <- length(swc_values)
+        total_weight <- 0
+        weighted_sum <- 0
+        for (i in seq_len(n)) {
+            layer_min <- layers[[i]][1]
+            layer_max <- layers[[i]][2]
+            overlap <- max(0, min(max_depth, layer_max) - max(min_depth, layer_min))
+            if (overlap > 0) {
+                weighted_sum <- weighted_sum + swc_values[i] * overlap
+                total_weight <- total_weight + overlap
+            }
+        }
+        if (total_weight > 0) return(weighted_sum / total_weight) else return(NA)
+    }
 
-
+        #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
         epc <- input$selected_epc
@@ -1400,20 +1839,65 @@ tuneMusoServer <- function(input, output, session){
         changeMuso(settings, paramVal, calibrationPar = parameters[,2],
                 fileToChange = "epc", fixAlloc = FALSE)
         
-        settings <- setupMuso()
+        # this is probably not needed but I'm smoothbraining it. Explanation why not needed: 
+        # 1) Since this is crop rotation it doesn't matter what's the epc file in the ini
+        # 2) At non crop rotation situations this is a redefinition since their is only 1 epc file
+        # 3) calibMuso doesn't even use this information
+        # okay I'm convinced I'll comment it out and delete it later when I'm not smoothbraining, I gotta watch Shrek 2
+        # settings$epcInput[["normal"]] <- epcIni
         
         
         result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
         if (length(result) == 0) {
-        showNotification("Model did not return results!", type = "error")
+            showNotification("Model did not return results!", type = "error")
         } else {
 
         print("Model ran successfully")
+
+        dfs_orig <- as.data.frame(result)  # 'result' is the simulation output matrix
+        # Detect the VWC columns from the original output:
+        #vwc_cols <- grep("^VWC\\[", names(dfs_orig), value = TRUE)
+        #print("Detected VWC columns:")
+        #print(vwc_cols)
+
+        if (length(newVars$defs) > 0) {
+            #dfs_orig <- as.data.frame(result)
+            #vwc_cols <- grep("^VWC\\[", names(dfs_orig), value = TRUE)
+            #vwc_indices <- as.numeric(gsub("VWC\\[|\\]", "", vwc_cols))
+            #current_layers <- layers[vwc_indices + 1]  # Adjust indexing
+                for (var_name in names(newVars$defs)) {
+                    def <- newVars$defs[[var_name]]
+                    pattern <- paste0("^", def$base_variable, "\\[")
+                    base_cols <- grep(pattern, names(dfs_orig), value = TRUE)
+                     
+                    if (length(base_cols) == 0) {
+                        showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
+                        next
+                    }
+                    pattern_ind <- paste0(def$base_variable, "\\[|\\]")
+                    base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
+                    current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
+                        
+     
+                   
+                    
+                    
+                    
+                    
+                    new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
+                    swc_vals <- as.numeric(r)
+                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    })
+                    dfs_orig[[var_name]] <- new_val
+                }
+            result <- as.matrix(dfs_orig)
+        }
         outputList$nextVal <- result
 
        
 
-        }})
+    }
+    })
 
         # restoring scrollbar position
         observe({
@@ -1542,6 +2026,134 @@ tuneMusoServer <- function(input, output, session){
 
 
 
+        ########## SOIL WATER CONTENT CALCULATION ############
+        observeEvent(input$make_output, {
+            showModal(modalDialog(
+            title = "Create New Output Variable",
+            numericInput("min_depth", "Min Depth (cm)", value = 0, min = 0),
+            numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0),
+            textInput("variable_name", "Variable Name", value = "SWC_0_50"),
+            selectInput("base_variable","Base Variable",
+                choices = c("VWC","tsoil"),
+                selected = "VWC"),
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("create_variable", "Create variable")
+            )
+            ))
+        })
+  
+        # to change the textinput if we switch to tsoil
+        observeEvent(input$base_variable, {
+            if(input$base_variable == "VWC" && input$variable_name %in% c("Tsoil_0_50", "tsoil_0_50")) {
+                updateTextInput(session, "variable_name", value = "SWC_0_50")
+            } else if(input$base_variable == "tsoil" && input$variable_name %in% c("SWC_0_50", "swc_0_50")) {
+                updateTextInput(session, "variable_name", value = "Tsoil_0_50")
+            }
+        })
+
+
+
+
+       
+observeEvent(input$create_variable, {
+  req(input$min_depth, input$max_depth, input$variable_name, input$base_variable)
+  #  cat("BEFORE updating picker:\n")
+  #cat(" input$selected_vars is:", input$selected_vars, "\n")
+  #cat(" newVars$defs keys:", names(newVars$defs), "\n")
+  # Check for existing variable name
+  if (input$variable_name %in% names(newVars$defs)) {
+    showNotification("Variable name already exists. Choose a unique name.", type = "error")
+    return()
+  }
+  
+  # Add new variable definition
+  newVars$defs[[input$variable_name]] <- list(
+    min_depth = input$min_depth,
+    max_depth = input$max_depth,
+    base_variable = input$base_variable,
+    variable_name = input$variable_name
+  )
+  
+  # If output exists, recompute all variables
+  if (!is.null(outputList$nextVal)) {
+    dfs <- as.data.frame(outputList$nextVal, row.names = rownames(outputList$nextVal))
+    
+    if(nrow(dfs) > 0){
+    # Extract current VWC columns and their indices
+  
+    # Compute all variables in newVars$defs
+    for (var_name in names(newVars$defs)) {
+      def <- newVars$defs[[var_name]]
+
+    pattern <- paste0("^", def$base_variable, "\\[")
+    base_cols <- grep(pattern, names(dfs), value = TRUE)
+    if (length(base_cols) == 0) {
+        showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
+        next
+      }
+    pattern_ind <- paste0(def$base_variable, "\\[|\\]")
+    base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
+    current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
+    
+     
+
+      dfs_num <- dfs[, base_cols, drop = FALSE]
+
+    new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
+        swc_vals <- as.numeric(r)
+        calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+      })
+      dfs[[var_name]] <- new_val
+    }
+    
+    outputList$nextVal <- as.matrix(dfs)
+  }
+  else {
+     showNotification("Simulation output is empty. The new variable will be computed on the next model run.", type = "warning")
+  }
+  } else {
+    showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "warning")
+  }
+  
+  # Update picker input
+  new_row <- data.frame(
+    index = max(rv$settings$dailyOutputTable$index) + 1,
+    code = NA,
+    name = input$variable_name
+  )
+
+ #   cat("DEBUG: ABOUT TO append new_row = ", new_row$name, "\n")
+#cat("DEBUG: dailyOutputTable BEFORE appending:\n")
+#print(settings$dailyOutputTable)
+
+
+
+  rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+    #print(settings$dailyOutputTable)
+
+  dailyOutputNames(rv$settings$dailyOutputTable$name)
+ updatePickerInput(session, "selected_vars",
+  choices  = rv$settings$dailyOutputTable$name,
+  selected = input$selected_vars
+  #selected = unique(c(input$selected_vars, input$variable_name))
+)
+ #cat("AFTER updating picker - code ran\n")
+  # cat(" input$selected_vars is:", input$selected_vars, "\n")
+  #cat(" newVars$defs keys:", names(newVars$defs), "\n")
+  #print(settings$dailyOutputTable)
+   showNotification(paste("New variable", input$variable_name, "has been added to the current output."))
+
+  removeModal()
+})
+
+
+#observe({
+#  invalidateLater(3000)  # check every 1 second
+#  cat("DEBUG CHECK — after 1s:\n")
+#  cat("   dailyOutputTable$name:", rv$settings$dailyOutputTable$name, "\n")
+#  cat("   input$selected_vars:  ", input$selected_vars, "\n")
+#})
     
     # visual feedback for when the model is running so to prevent the user from changing sliders
     # preventing infinite loop of auto-update. Doesn't seem to work. I mean the model won't run but the values keep alternating indefinitely, breaking the app so sadge
@@ -1669,9 +2281,44 @@ tuneMusoServer <- function(input, output, session){
             # Toggle legend state when button is clicked
             observeEvent(input$toggle_legend, {
                 new_state <- !legendVisible()
-                legendVisible(new_state) 
+                legendVisible(new_state)
                 updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
             })
+
+        # Settings (so far only for resolution)
+        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5)
+
+          observeEvent(input$settings_btn, {
+            showModal(modalDialog(
+            title = "Settings",
+            # Inputs for resolution settings
+            numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
+            numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
+            numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
+            tags$button(
+                id = "fullscreen_btn",
+                class = "btn btn-default",
+                tags$i(class = "fa fa-expand"),  
+                title = "Go Fullscreen [F11] (only works in browser)"  
+            ),
+            
+            easyClose = TRUE,
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("apply_settings", "Apply")
+            )
+            ))
+        })
+        
+        # When the user clicks "Apply", update the reactive values and close the modal
+        observeEvent(input$apply_settings, {
+            exportSettings$width <- input$export_width
+            exportSettings$height <- input$export_height
+            exportSettings$scale <- input$export_scale
+            removeModal()
+        })
+
+
 
             ################ PLOTTING ###############
                 
@@ -1723,6 +2370,7 @@ tuneMusoServer <- function(input, output, session){
                     
                     
                     p <- plot_ly()
+
                     if (!is.null(filteredPrev)) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
                                     type = 'scatter', mode = 'lines', name = "Previous Simulation")
@@ -1801,14 +2449,19 @@ tuneMusoServer <- function(input, output, session){
                     df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
 
                     metrics_df <- metricsData()
+                    
 
                     if (!is.null(mapping)) {
                         # Find measurement columns mapped to the current var
                         mappedCols <- names(mapping)[mapping == var]
-                        
+                       
                         if (length(mappedCols) > 0) {
+                        n_meas <- length(mappedCols)
+                        meas_colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Greens")[4:9]))(n_meas)
+
                             # Add each mapped measurement column
-                            for (col in mappedCols) {
+                            for (i in seq_along(mappedCols)) {
+                                col <- mappedCols[i]
                                 yData <- df_filtered[[col]]
                                 
                                 # Convert negatives to NA for GPP and TR (might be obsolete if data frame manipulation is added)
@@ -1842,7 +2495,7 @@ tuneMusoServer <- function(input, output, session){
                                             mode = 'markers',
                                             #name = paste0(col, " Measurement<br>", metric_label),
                                             name = paste0(col, " Measurement\n", metric_label),
-                                            marker = list(symbol = "circle", size = 7, color = "#337a12"))
+                                            marker = list(symbol = "circle", size = 7, color =meas_colors[i]))
                                             
                             }
                         }
@@ -1863,6 +2516,12 @@ tuneMusoServer <- function(input, output, session){
                         showlegend = legendVisible()  # Conditionally show/hide legend
                     )
 
+                    p <- p %>% plotly::config(toImageButtonOptions = list(
+                    format = "png", 
+                    width = exportSettings$width, 
+                    height = exportSettings$height, 
+                    scale = exportSettings$scale))
+                    
                     p
                     })
                 })
@@ -1883,12 +2542,13 @@ tuneMusoServer <- function(input, output, session){
 #' @param ... Other parameters for shinyApp function
 #' @importFrom shiny shinyApp shinyOptions
 #' @export
-tuneMuso <- function(directory = NULL,...){ 
+tuneMuso <- function(directory = NULL, ...){ 
     shinyOptions(workdir = getwd())
     if(is.null(directory)){
         shinyOptions(musoRoot = ".")
     } else {
         shinyOptions(musoRoot = normalizePath(directory))
     }
+    #shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = c(list(launch.browser = TRUE), list(...)))
     shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...))
 }
