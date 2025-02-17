@@ -1231,7 +1231,6 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # reactive value that will track the locked or unlock state of the allocation locking button
-      # Define lockStates only once
         lockStates <- reactiveValues()
 
         # Initialize lockStates for each dependent parameter (if not already set)
@@ -1245,19 +1244,7 @@ tuneMusoServer <- function(input, output, session){
             }
         }
         })
-
-    ####### lock button observer ########
-        # Lock states outside reactivity
-        #lockStates <- reactiveValues()
-        #dep_indices <- which(!is.na(parameters$group))
-        #lapply(dep_indices, function(i) {
-        #slider_id <- paste0("dep_", parameters$INDEX[i])
-        #lockStates[[slider_id]] <- FALSE
-        #})
-
-        # Single observer for all buttons
-     
-
+        # observer for lock evenets
         dep_indices <- which(!is.na(parameters$group))
         lapply(dep_indices, function(i) {
             slider_id <- paste0("dep_", parameters$INDEX[i])
@@ -1499,265 +1486,264 @@ tuneMusoServer <- function(input, output, session){
             # Updating the tracker for the previous EPC
             prevEPC(new_epc)
         })
-last_year <- reactiveVal(NULL)
+        last_year <- reactiveVal(NULL)
 
-debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
+        debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
 
-observeEvent(
-  list(debounced_yearRange2(), input$auto_epc_selection, input$singleYear), 
-  {
-    req(!is.null(input$auto_epc_selection),
-        !is.null(input$singleYear),
-        rv$epc_dates)
-    
-    if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
-      req(debounced_yearRange2())
-      
-      # If the slider returns more than one value, take the first
-      selected_year_val <- debounced_yearRange2()
-      if (length(selected_year_val) > 1) {
-        selected_year_val <- selected_year_val[1]
-      }
-      selected_year <- as.character(selected_year_val)
-      
-      # Ensure the DATE column is in Date format.
-      if (!inherits(rv$epc_dates$DATE, "Date")) {
-        rv$epc_dates$DATE <- as.Date(rv$epc_dates$DATE, format = "%Y.%m.%d")
-      }
-      
-      # Filter EPC files for the selected year.
-      filtered <- rv$epc_dates[
-        format(rv$epc_dates$DATE, "%Y") == selected_year &
-          rv$epc_dates[["CROP.file."]] %in% rv$epc_files, 
-      ]
-      
-      if (nrow(filtered) > 0) {
-        # Get the available EPC file names for this year.
-        choices <- unique(filtered[["CROP.file."]])
-        # Get corresponding labels (assuming rv$epc_files and rv$epc_labels align).
-        choices_labels <- rv$epc_labels[match(choices, rv$epc_files)]
-        # Build a named vector for the selectInput.
-        choices_named <- setNames(choices, choices_labels)
-        
-        # Update the selectInput with the filtered choices.
-        updateSelectInput(session, "selected_epc", choices = choices_named)
-        
-        # Only auto-select the earliest EPC if:
-        # - The year has just changed, OR
-        # - The current (isolated) selection is not among the choices.
-        if (is.null(last_year()) ||
-            last_year() != selected_year ||
-            !isolate(input$selected_epc) %in% choices) {
-          earliest_row <- filtered[which.min(filtered$DATE), ]
-          earliest_epc <- earliest_row[["CROP.file."]]
-          updateSelectInput(session, "selected_epc", selected = earliest_epc)
-        }
-        
-        # Store the current year.
-        last_year(selected_year)
-      }
-      
-    } else {
-      # When auto-selection is disabled, update to show the full list with labels.
-      full_choices <- setNames(rv$epc_files, rv$epc_labels)
-      updateSelectInput(session, "selected_epc", choices = full_choices)
-    }
-  }
-)
+        observeEvent(
+        list(debounced_yearRange2(), input$auto_epc_selection, input$singleYear), 
+        {
+            req(!is.null(input$auto_epc_selection),
+                !is.null(input$singleYear),
+                rv$epc_dates)
+            
+            if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
+            req(debounced_yearRange2())
+            
+            # If the slider returns more than one value, take the first
+            selected_year_val <- debounced_yearRange2()
+            if (length(selected_year_val) > 1) {
+                selected_year_val <- selected_year_val[1]
+            }
+            selected_year <- as.character(selected_year_val)
+            
+            # Ensure the DATE column is in Date format.
+            if (!inherits(rv$epc_dates$DATE, "Date")) {
+                rv$epc_dates$DATE <- as.Date(rv$epc_dates$DATE, format = "%Y.%m.%d")
+            }
+            
+            # Filter EPC files for the selected year.
+            filtered <- rv$epc_dates[
+                format(rv$epc_dates$DATE, "%Y") == selected_year &
+                rv$epc_dates[["CROP.file."]] %in% rv$epc_files, 
+            ]
+            
+            if (nrow(filtered) > 0) {
+                # Get the available EPC file names for this year.
+                choices <- unique(filtered[["CROP.file."]])
+                # Get corresponding labels (assuming rv$epc_files and rv$epc_labels align).
+                choices_labels <- rv$epc_labels[match(choices, rv$epc_files)]
+                # Build a named vector for the selectInput.
+                choices_named <- setNames(choices, choices_labels)
+                
+                # Update the selectInput with the filtered choices.
+                updateSelectInput(session, "selected_epc", choices = choices_named)
+                
+                # Only auto-select the earliest EPC if:
+                # - The year has just changed, OR
+                # - The current (isolated) selection is not among the choices.
+                if (is.null(last_year()) ||
+                    last_year() != selected_year ||
+                    !isolate(input$selected_epc) %in% choices) {
+                earliest_row <- filtered[which.min(filtered$DATE), ]
+                earliest_epc <- earliest_row[["CROP.file."]]
+                updateSelectInput(session, "selected_epc", selected = earliest_epc)
+                }
+                
+                # Store the current year.
+                last_year(selected_year)
+            }
+            
+            } else {
+            # When auto-selection is disabled, update to show the full list with labels.
+            full_choices <- setNames(rv$epc_files, rv$epc_labels)
+            updateSelectInput(session, "selected_epc", choices = full_choices)
+            }
+        })
 
 
 
 
         # measurement manipuplation modal
         observeEvent(input$editMeasurementTransforms, {
-  req(measurementData())
-  
-  showModal(modalDialog(
-    title = "Measurement Data Transformations",
-    size = "l",
-    easyClose = TRUE,
-    footer = modalButton("Close"),
-    tabsetPanel(
-      # Tab for replacing negatives with NA
- tabPanel("Set Values to NA",
-  fluidRow(
-    column(4,
-      selectInput("col_to_na", "Select column:", 
-                  choices = setdiff(colnames(measurementData()), "Date"))
-    ),
-    column(4,
-      numericInput("na_lower", "Lower bound:", value = NA)
-    ),
-    column(4,
-      numericInput("na_upper", "Upper bound:", value = NA)
-    )
-  ),
-  fluidRow(
-    column(4,
-      checkboxInput("na_newcol", "Add as new column", value = FALSE)
-    ),
-    column(8,
-      actionButton("apply_na", "Apply Transformation")
-    )
-  )
-),
-      
-      # Tab for arithmetic operations
- tabPanel("Arithmetic Operation",
-  fluidRow(
-    column(4,
-      selectInput("col_arith", "Select column:", 
-                  choices = setdiff(colnames(measurementData()), "Date"))
-    ),
-    column(4,
-      selectInput("arith_op", "Operation", 
-                  choices = c("Add", "Subtract", "Multiply", "Divide"))
-    ),
-    column(4,
-      numericInput("arith_val", "Value:", value = 0)
-    )
-  ),
-  fluidRow(
-    column(4,
-      checkboxInput("arith_newcol", "Add as new column", value = FALSE)
-    ),
-    column(8,
-      actionButton("apply_arith", "Apply Transformation")
-    )
-  )
-),
+            req(measurementData())
+            
+            showModal(modalDialog(
+                title = "Measurement Data Transformations",
+                size = "l",
+                easyClose = TRUE,
+                footer = modalButton("Close"),
+                tabsetPanel(
+                # Tab for replacing negatives with NA
+            tabPanel("Set Values to NA",
+            fluidRow(
+                column(4,
+                selectInput("col_to_na", "Select column:", 
+                            choices = setdiff(colnames(measurementData()), "Date"))
+                ),
+                column(4,
+                numericInput("na_lower", "Lower bound:", value = NA)
+                ),
+                column(4,
+                numericInput("na_upper", "Upper bound:", value = NA)
+                )
+            ),
+            fluidRow(
+                column(4,
+                checkboxInput("na_newcol", "Add as new column", value = FALSE)
+                ),
+                column(8,
+                actionButton("apply_na", "Apply Transformation")
+                )
+            )
+            ),
+                
+                # Tab for arithmetic operations
+            tabPanel("Arithmetic Operation",
+            fluidRow(
+                column(4,
+                selectInput("col_arith", "Select column:", 
+                            choices = setdiff(colnames(measurementData()), "Date"))
+                ),
+                column(4,
+                selectInput("arith_op", "Operation", 
+                            choices = c("Add", "Subtract", "Multiply", "Divide"))
+                ),
+                column(4,
+                numericInput("arith_val", "Value:", value = 0)
+                )
+            ),
+            fluidRow(
+                column(4,
+                checkboxInput("arith_newcol", "Add as new column", value = FALSE)
+                ),
+                column(8,
+                actionButton("apply_arith", "Apply Transformation")
+                )
+            )
+            ),
 
-      
-      # Tab for column interaction
-tabPanel("Column Interaction",
-  fluidRow(
-    column(4,
-      selectInput("col1", "Column 1:", 
-                  choices = setdiff(colnames(measurementData()), "Date"))
-    ),
-    column(4,
-      selectInput("col2", "Column 2:", 
-                  choices = setdiff(colnames(measurementData()), "Date"))
-    ),
-    column(4,
-      selectInput("interaction_op", "Operation", 
-                  choices = c("Multiply", "Add", "Subtract", "Divide"))
-    )
-  ),
-  fluidRow(
-    column(4,
-      checkboxInput("interaction_newcol", "Add as new column", value = FALSE)
-    ),
-    column(8,
-      actionButton("apply_interaction", "Apply Transformation")
-    )
-  )
-)
+                
+                # Tab for column interaction
+            tabPanel("Column Interaction",
+            fluidRow(
+                column(4,
+                selectInput("col1", "Column 1:", 
+                            choices = setdiff(colnames(measurementData()), "Date"))
+                ),
+                column(4,
+                selectInput("col2", "Column 2:", 
+                            choices = setdiff(colnames(measurementData()), "Date"))
+                ),
+                column(4,
+                selectInput("interaction_op", "Operation", 
+                            choices = c("Multiply", "Add", "Subtract", "Divide"))
+                )
+            ),
+            fluidRow(
+                column(4,
+                checkboxInput("interaction_newcol", "Add as new column", value = FALSE)
+                ),
+                column(8,
+                actionButton("apply_interaction", "Apply Transformation")
+                )
+            )
+            )
 
-    )
-  ))
-})
+                )
+            ))
+            })
 
 
-observeEvent(input$apply_na, {
-  req(measurementData(), input$col_to_na)
-  df <- measurementData()
-  col <- input$col_to_na
-  
-  lower_bound <- input$na_lower
-  upper_bound <- input$na_upper
-  
-  # Start with the current values.
-  new_values <- df[[col]]
-  
-  if (!is.na(lower_bound) && !is.na(upper_bound)) {
-    new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
-  } else if (!is.na(lower_bound)) {
-    new_values[new_values >= lower_bound] <- NA
-  } else if (!is.na(upper_bound)) {
-    new_values[new_values <= upper_bound] <- NA
-  } else {
-    showNotification("Please specify at least one bound.", type = "error")
-    return()
-  }
-  
-  if (isTRUE(input$na_newcol)) {
-    new_col_name <- paste(col, "NA", sep = "_")
-    df[[new_col_name]] <- new_values
-  } else {
-    df[[col]] <- new_values
-  }
-  
-  measurementData(df)
-  showNotification(paste("Updated", col, "with NA transformation"))
-})
+        observeEvent(input$apply_na, {
+            req(measurementData(), input$col_to_na)
+            df <- measurementData()
+            col <- input$col_to_na
+            
+            lower_bound <- input$na_lower
+            upper_bound <- input$na_upper
+            
+            # Start with the current values.
+            new_values <- df[[col]]
+            
+            if (!is.na(lower_bound) && !is.na(upper_bound)) {
+                new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
+            } else if (!is.na(lower_bound)) {
+                new_values[new_values >= lower_bound] <- NA
+            } else if (!is.na(upper_bound)) {
+                new_values[new_values <= upper_bound] <- NA
+            } else {
+                showNotification("Please specify at least one bound.", type = "error")
+                return()
+            }
+            
+            if (isTRUE(input$na_newcol)) {
+                new_col_name <- paste(col, "NA", sep = "_")
+                df[[new_col_name]] <- new_values
+            } else {
+                df[[col]] <- new_values
+            }
+            
+            measurementData(df)
+            showNotification(paste("Updated", col, "with NA transformation"))
+            })
 
-observeEvent(input$apply_arith, {
-  req(measurementData(), input$col_arith, input$arith_op, input$arith_val)
-  df <- measurementData()
-  col <- input$col_arith
-  op <- input$arith_op
-  val <- input$arith_val
-  
-  # Calculate new values based on the chosen operation.
-  new_values <- switch(op,
-    "Add" = df[[col]] + val,
-    "Subtract" = df[[col]] - val,
-    "Multiply" = df[[col]] * val,
-    "Divide" = {
-      if(val == 0) {
-        showNotification("Division by zero not allowed", type = "error")
-        return()
-      } else {
-        df[[col]] / val
-      }
-    }
-  )
-  
-  if (isTRUE(input$arith_newcol)) {
-    # Create a new column name, for example: OriginalColumn_Add_5
-    new_col_name <- paste(col, op, val, sep = "_")
-    df[[new_col_name]] <- new_values
-  } else {
-    # Update the selected column in place.
-    df[[col]] <- new_values
-  }
-  
-  measurementData(df)
-  showNotification(paste("Applied", op, "operation to", col))
-})
+            observeEvent(input$apply_arith, {
+            req(measurementData(), input$col_arith, input$arith_op, input$arith_val)
+            df <- measurementData()
+            col <- input$col_arith
+            op <- input$arith_op
+            val <- input$arith_val
+            
+            # Calculate new values based on the chosen operation.
+            new_values <- switch(op,
+                "Add" = df[[col]] + val,
+                "Subtract" = df[[col]] - val,
+                "Multiply" = df[[col]] * val,
+                "Divide" = {
+                if(val == 0) {
+                    showNotification("Division by zero not allowed", type = "error")
+                    return()
+                } else {
+                    df[[col]] / val
+                }
+                }
+            )
+            
+            if (isTRUE(input$arith_newcol)) {
+                # Create a new column name, for example: OriginalColumn_Add_5
+                new_col_name <- paste(col, op, val, sep = "_")
+                df[[new_col_name]] <- new_values
+            } else {
+                # Update the selected column in place.
+                df[[col]] <- new_values
+            }
+            
+            measurementData(df)
+            showNotification(paste("Applied", op, "operation to", col))
+        })
 
-observeEvent(input$apply_interaction, {
-  req(measurementData(), input$col1, input$col2, input$interaction_op)
-  df <- measurementData()
-  col1 <- input$col1
-  col2 <- input$col2
-  op <- input$interaction_op
-  
-  new_values <- switch(op,
-    "Multiply" = df[[col1]] * df[[col2]],
-    "Add"      = df[[col1]] + df[[col2]],
-    "Subtract" = df[[col1]] - df[[col2]],
-    "Divide"   = {
-      div_res <- df[[col1]] / ifelse(df[[col2]] == 0, NA, df[[col2]])
-      if(any(df[[col2]] == 0, na.rm = TRUE)) {
-        showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
-      }
-      div_res
-    }
-  )
-  
-  if (isTRUE(input$interaction_newcol)) {
-    new_col_name <- paste(col1, op, col2, sep = "_")
-    df[[new_col_name]] <- new_values
-  } else {
-    # Update the first chosen column (col1) in place.
-    df[[col1]] <- new_values
-  }
-  
-  measurementData(df)
-  showNotification(paste("Applied", op, "operation between", col1, "and", col2))
-})
+        observeEvent(input$apply_interaction, {
+            req(measurementData(), input$col1, input$col2, input$interaction_op)
+            df <- measurementData()
+            col1 <- input$col1
+            col2 <- input$col2
+            op <- input$interaction_op
+            
+            new_values <- switch(op,
+                "Multiply" = df[[col1]] * df[[col2]],
+                "Add"      = df[[col1]] + df[[col2]],
+                "Subtract" = df[[col1]] - df[[col2]],
+                "Divide"   = {
+                div_res <- df[[col1]] / ifelse(df[[col2]] == 0, NA, df[[col2]])
+                if(any(df[[col2]] == 0, na.rm = TRUE)) {
+                    showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
+                }
+                div_res
+                }
+            )
+            
+            if (isTRUE(input$interaction_newcol)) {
+                new_col_name <- paste(col1, op, col2, sep = "_")
+                df[[new_col_name]] <- new_values
+            } else {
+                # Update the first chosen column (col1) in place.
+                df[[col1]] <- new_values
+            }
+            
+            measurementData(df)
+            showNotification(paste("Applied", op, "operation between", col1, "and", col2))
+        })
 
     # reset manipulated column
     observe({
@@ -1937,13 +1923,7 @@ observeEvent(input$apply_interaction, {
                     }
                     pattern_ind <- paste0(def$base_variable, "\\[|\\]")
                     base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
-                    current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
-                        
-     
-                   
-                    
-                    
-                    
+                    current_layers <- layers[base_indices + 1]  
                     
                     new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
@@ -1954,8 +1934,6 @@ observeEvent(input$apply_interaction, {
             result <- as.matrix(dfs_orig)
         }
         outputList$nextVal <- result
-
-       
 
     }
     })
@@ -1980,7 +1958,7 @@ observeEvent(input$apply_interaction, {
             dfs
     })
 
-     metricsData <- reactive({
+    metricsData <- reactive({
         req(simData(), input$yearRange)  
         
         # Get measurement data (if any) and mapping
@@ -2083,7 +2061,7 @@ observeEvent(input$apply_interaction, {
             )
         }
         metrics
-        })
+    })
 
 
 
@@ -2117,96 +2095,96 @@ observeEvent(input$apply_interaction, {
 
 
        
-observeEvent(input$create_variable, {
-  req(input$min_depth, input$max_depth, input$variable_name, input$base_variable)
-  #  cat("BEFORE updating picker:\n")
-  #cat(" input$selected_vars is:", input$selected_vars, "\n")
-  #cat(" newVars$defs keys:", names(newVars$defs), "\n")
-  # Check for existing variable name
-  if (input$variable_name %in% names(newVars$defs)) {
-    showNotification("Variable name already exists. Choose a unique name.", type = "error")
-    return()
-  }
-  
-  # Add new variable definition
-  newVars$defs[[input$variable_name]] <- list(
-    min_depth = input$min_depth,
-    max_depth = input$max_depth,
-    base_variable = input$base_variable,
-    variable_name = input$variable_name
-  )
-  
-  # If output exists, recompute all variables
-  if (!is.null(outputList$nextVal)) {
-    dfs <- as.data.frame(outputList$nextVal, row.names = rownames(outputList$nextVal))
-    
-    if(nrow(dfs) > 0){
-    # Extract current VWC columns and their indices
-  
-    # Compute all variables in newVars$defs
-    for (var_name in names(newVars$defs)) {
-      def <- newVars$defs[[var_name]]
+    observeEvent(input$create_variable, {
+        req(input$min_depth, input$max_depth, input$variable_name, input$base_variable)
+        #  cat("BEFORE updating picker:\n")
+        #cat(" input$selected_vars is:", input$selected_vars, "\n")
+        #cat(" newVars$defs keys:", names(newVars$defs), "\n")
+        # Check for existing variable name
+        if (input$variable_name %in% names(newVars$defs)) {
+            showNotification("Variable name already exists. Choose a unique name.", type = "error")
+            return()
+        }
+        
+        # Add new variable definition
+        newVars$defs[[input$variable_name]] <- list(
+            min_depth = input$min_depth,
+            max_depth = input$max_depth,
+            base_variable = input$base_variable,
+            variable_name = input$variable_name
+        )
+        
+        # If output exists, recompute all variables
+        if (!is.null(outputList$nextVal)) {
+            dfs <- as.data.frame(outputList$nextVal, row.names = rownames(outputList$nextVal))
+            
+            if(nrow(dfs) > 0){
+            # Extract current VWC columns and their indices
+        
+            # Compute all variables in newVars$defs
+            for (var_name in names(newVars$defs)) {
+                def <- newVars$defs[[var_name]]
 
-    pattern <- paste0("^", def$base_variable, "\\[")
-    base_cols <- grep(pattern, names(dfs), value = TRUE)
-    if (length(base_cols) == 0) {
-        showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
-        next
-      }
-    pattern_ind <- paste0(def$base_variable, "\\[|\\]")
-    base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
-    current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
-    
-     
+                pattern <- paste0("^", def$base_variable, "\\[")
+                base_cols <- grep(pattern, names(dfs), value = TRUE)
+                if (length(base_cols) == 0) {
+                    showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
+                    next
+                }
+                pattern_ind <- paste0(def$base_variable, "\\[|\\]")
+                base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
+                current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
+                
+                
 
-      dfs_num <- dfs[, base_cols, drop = FALSE]
+                dfs_num <- dfs[, base_cols, drop = FALSE]
 
-    new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
-        swc_vals <- as.numeric(r)
-        calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
-      })
-      dfs[[var_name]] <- new_val
-    }
-    
-    outputList$nextVal <- as.matrix(dfs)
-  }
-  else {
-     showNotification("Simulation output is empty. The new variable will be computed on the next model run.", type = "warning")
-  }
-  } else {
-    showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "warning")
-  }
-  
-  # Update picker input
-  new_row <- data.frame(
-    index = max(rv$settings$dailyOutputTable$index) + 1,
-    code = NA,
-    name = input$variable_name
-  )
+                new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
+                    swc_vals <- as.numeric(r)
+                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                })
+                dfs[[var_name]] <- new_val
+            }
+            
+            outputList$nextVal <- as.matrix(dfs)
+        }
+        else {
+            showNotification("Simulation output is empty. The new variable will be computed on the next model run.", type = "warning")
+        }
+        } else {
+            showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "warning")
+        }
+        
+        # Update picker input
+        new_row <- data.frame(
+            index = max(rv$settings$dailyOutputTable$index) + 1,
+            code = NA,
+            name = input$variable_name
+        )
 
- #   cat("DEBUG: ABOUT TO append new_row = ", new_row$name, "\n")
-#cat("DEBUG: dailyOutputTable BEFORE appending:\n")
-#print(settings$dailyOutputTable)
+        #   cat("DEBUG: ABOUT TO append new_row = ", new_row$name, "\n")
+        #cat("DEBUG: dailyOutputTable BEFORE appending:\n")
+        #print(settings$dailyOutputTable)
 
 
 
-  rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
-    #print(settings$dailyOutputTable)
+        rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+            #print(settings$dailyOutputTable)
 
-  dailyOutputNames(rv$settings$dailyOutputTable$name)
- updatePickerInput(session, "selected_vars",
-  choices  = rv$settings$dailyOutputTable$name,
-  selected = input$selected_vars
-  #selected = unique(c(input$selected_vars, input$variable_name))
-)
- #cat("AFTER updating picker - code ran\n")
-  # cat(" input$selected_vars is:", input$selected_vars, "\n")
-  #cat(" newVars$defs keys:", names(newVars$defs), "\n")
-  #print(settings$dailyOutputTable)
-   showNotification(paste("New variable", input$variable_name, "has been added to the current output."))
+        dailyOutputNames(rv$settings$dailyOutputTable$name)
+        updatePickerInput(session, "selected_vars",
+        choices  = rv$settings$dailyOutputTable$name,
+        selected = input$selected_vars
+        #selected = unique(c(input$selected_vars, input$variable_name))
+        )
+        #cat("AFTER updating picker - code ran\n")
+        # cat(" input$selected_vars is:", input$selected_vars, "\n")
+        #cat(" newVars$defs keys:", names(newVars$defs), "\n")
+        #print(settings$dailyOutputTable)
+        showNotification(paste("New variable", input$variable_name, "has been added to the current output."))
 
-  removeModal()
-})
+        removeModal()
+    })
 
 
 #observe({
@@ -2379,11 +2357,7 @@ observeEvent(input$create_variable, {
             removeModal()
         })
 
-
-
             ################ PLOTTING ###############
-                
-
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
                 
