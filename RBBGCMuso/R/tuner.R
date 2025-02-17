@@ -516,27 +516,37 @@ tuneMusoServer <- function(input, output, session){
     
     parameters <- parameters[!is.na(parameters$ABREVIATION) & parameters$ABREVIATION != "", ]
     # indexing the rows for the allocation parameters (if they exist)
-    parameters$group <- ifelse(grepl("^(132|133|134|135)\\.", parameters$INDEX),
+    parametersFixed <- sprintf("%.2f", parameters$INDEX)
+    parameters$group <- ifelse(grepl("^(132|133|134|135)\\.", parametersFixed),
                            # Remove the "132.", "133.", "134." or "135." prefix,
-                           sub("^(132|133|134|135)\\.", "", parameters$INDEX),
+                           sub("^(132|133|134|135)\\.", "", parametersFixed),
                            NA)
 
     required_main <- c(132, 133, 134, 135)
 
+    allocationNames <- c("132" = "Leaf",
+                     "133" = "Fine Root",
+                     "134" = "Fruit",
+                     "135" = "Soft Stem")
+
     # Find the unique dependent groups already in the CSV
     dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+
+
 
     # Loop over each dependent group and check for each required main index to see if any of the 4 dependent rows are missing
     for (g in dep_groups) {
         for (m in required_main) {
             # Construct the expected INDEX value 
             expected_index <- paste0(m, ".", g)
+            expected_index_num <- as.numeric(expected_index)
+
             # Check if this expected_index is present in the parameters data frame
-            if (!(expected_index %in% parameters$INDEX)) {
+            if (!(expected_index_num %in% parameters$INDEX)) {
             # The row is missing, we will append a new row
             
             new_row <- data.frame(
-                ABREVIATION = paste("Missing", expected_index),
+                ABREVIATION = paste("Missing", allocationNames[as.character(m)]),
                 INDEX = as.numeric(expected_index),
                 min = 0,   
                 max = 1,    
@@ -544,7 +554,7 @@ tuneMusoServer <- function(input, output, session){
                 stringsAsFactors = FALSE
             )
             parameters <- rbind(parameters, new_row)
-            message("Added missing parameter row for ", expected_index, " for it was not found in parameters.csv")
+           message("Added missing parameter row for ", expected_index, " (", allocationNames[as.character(m)], ") since it was not found in parameters.csv")
             }
         }
     }
@@ -1185,11 +1195,19 @@ tuneMusoServer <- function(input, output, session){
                 )
                 })
                 
+                    group_numeric <- as.numeric(g)
+                    if (!is.na(group_numeric) && group_numeric >= 60) {
+                        phenophase <- group_numeric - 59
+                        groupLabel <- paste("Allocation group, phenophase", phenophase)
+                    } else {
+                        groupLabel <- paste("Allocation group", g)
+                    }
+    
                 # condition whether hide plot area is active or not (so upon epc switching the sliders will retain their aligments)
                 containerClass <- if (!is.null(input$plotHidden) && input$plotHidden) "dependentSliderContainer expanded" else "dependentSliderContainer"
                 
                 tagList(
-                h4(paste("Allocation Group", g)),
+                h4(groupLabel),
                     div(style = "margin-bottom: 10px;",
                         div(style = "display: inline-block; vertical-align: middle;",
                             checkboxInput(inputId = paste0("autoCalc_", g), label = "Auto‑calc", value = TRUE)
@@ -1213,65 +1231,58 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # reactive value that will track the locked or unlock state of the allocation locking button
+      # Define lockStates only once
         lockStates <- reactiveValues()
+
+        # Initialize lockStates for each dependent parameter (if not already set)
         observe({
-            req(input$selected_epc)
-            dep_indices <- which(!is.na(parameters$group))
-            # For each dependent parameter, set its lock state if not already set
-            for(i in dep_indices) {
-                slider_id <- paste0("dep_", parameters$INDEX[i])
-                if (is.null(lockStates[[slider_id]]))
-                lockStates[[slider_id]] <- FALSE
+        req(input$selected_epc)
+        dep_indices <- which(!is.na(parameters$group))
+        for (i in dep_indices) {
+            slider_id <- paste0("dep_", parameters$INDEX[i])
+            if (is.null(lockStates[[slider_id]])) {
+            lockStates[[slider_id]] <- FALSE
             }
-            })
+        }
+        })
 
     ####### lock button observer ########
         # Lock states outside reactivity
-        lockStates <- reactiveValues()
-        dep_indices <- which(!is.na(parameters$group))
-        lapply(dep_indices, function(i) {
-        slider_id <- paste0("dep_", parameters$INDEX[i])
-        lockStates[[slider_id]] <- FALSE
-        })
+        #lockStates <- reactiveValues()
+        #dep_indices <- which(!is.na(parameters$group))
+        #lapply(dep_indices, function(i) {
+        #slider_id <- paste0("dep_", parameters$INDEX[i])
+        #lockStates[[slider_id]] <- FALSE
+        #})
 
         # Single observer for all buttons
-        observe({
-            req(input$selected_epc)
-            
-            lapply(dep_indices, function(i) {
-                idx <- parameters$INDEX[i]
-                lock_btn_id <- paste0("lock_", idx)
-                slider_id <- paste0("dep_", idx)
-                
-                # Creating observer with proper scoping
-                observe({
-                req(input[[lock_btn_id]])
-                isolate({
-                    # Toggle state
-                    lockStates[[slider_id]] <- !lockStates[[slider_id]]
+     
 
-                    if (lockStates[[slider_id]]) {
-                        # When locking: add locked class, remove unlocked class
-                        shinyjs::addClass(id = lock_btn_id, class = "locked")
-                        shinyjs::removeClass(id = lock_btn_id, class = "unlocked")
-                    } else {
-                        # When unlocking: add unlocked class, remove locked class (so the lock icon changes)
-                        shinyjs::addClass(id = lock_btn_id, class = "unlocked")
-                        shinyjs::removeClass(id = lock_btn_id, class = "locked")
-                    }
-                    
-                    # Update UI
+        dep_indices <- which(!is.na(parameters$group))
+        lapply(dep_indices, function(i) {
+            slider_id <- paste0("dep_", parameters$INDEX[i])
+            lock_btn_id <- paste0("lock_", parameters$INDEX[i])
+            
+            observeEvent(input[[lock_btn_id]], {
+                isolate({
+                # Toggle the lock state
+                lockStates[[slider_id]] <- !lockStates[[slider_id]]
+                
+                if (lockStates[[slider_id]]) {
+                    shinyjs::addClass(id = lock_btn_id, class = "locked")
+                    shinyjs::removeClass(id = lock_btn_id, class = "unlocked")
+                } else {
+                    shinyjs::addClass(id = lock_btn_id, class = "unlocked")
+                    shinyjs::removeClass(id = lock_btn_id, class = "locked")
+                }
+                
+                    # Update the button icon accordingly
                     new_icon <- if (lockStates[[slider_id]]) "lock" else "unlock"
                     updateActionButton(session, lock_btn_id, icon = icon(new_icon))
-                    shinyjs::toggleClass(
-                    id = lock_btn_id,
-                    class = "locked",
-                    condition = lockStates[[slider_id]]
-                    )
-                })
-                }) %>% bindEvent(input[[lock_btn_id]], ignoreInit = TRUE)
-            })
+                    })
+            }, ignoreInit = TRUE)
         })
+
 
         ##### sum to 1 counter for allocation ######
         observe({
@@ -1488,44 +1499,71 @@ tuneMusoServer <- function(input, output, session){
             # Updating the tracker for the previous EPC
             prevEPC(new_epc)
         })
+last_year <- reactiveVal(NULL)
 
 debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
-   observe({
-  # Ensure inputs exist before proceeding
-  req(input$auto_epc_selection, input$singleYear)
-  
-  # Check if auto selection is enabled and single-year mode is active
-  if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
-    
-    req(debounced_yearRange2(), rv$epc_dates)  # Ensure these inputs exist
 
-    # The selected year from the single-year slider
-    selected_year <- as.character(debounced_yearRange2())
+observeEvent(
+  list(debounced_yearRange2(), input$auto_epc_selection, input$singleYear), 
+  {
+    req(!is.null(input$auto_epc_selection),
+        !is.null(input$singleYear),
+        rv$epc_dates)
     
-    # Ensure the DATE column is in Date format
-    if (!inherits(rv$epc_dates$DATE, "Date")) {
-      rv$epc_dates$DATE <- as.Date(rv$epc_dates$DATE, format = "%Y.%m.%d")
-    }
-    
-    # Filter to find EPC files from the selected year
-    filtered <- rv$epc_dates[ format(rv$epc_dates$DATE, "%Y") == selected_year & 
-                              rv$epc_dates[["CROP.file."]] %in% rv$epc_files, ]
-    
-    if (nrow(filtered) > 0) {
-      # Pick the row with the earliest date
-      earliest_row <- filtered[ which.min(filtered$DATE), ]
+    if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
+      req(debounced_yearRange2())
       
-      # Extract the EPC file name from that row
-      selected_epc <- earliest_row[["CROP.file."]]
-      
-      # Update the EPC selection only if different
-      if (!is.null(selected_epc) && selected_epc != input$selected_epc) {
-        updateSelectInput(session, "selected_epc", selected = selected_epc)
+      # If the slider returns more than one value, take the first
+      selected_year_val <- debounced_yearRange2()
+      if (length(selected_year_val) > 1) {
+        selected_year_val <- selected_year_val[1]
       }
+      selected_year <- as.character(selected_year_val)
+      
+      # Ensure the DATE column is in Date format.
+      if (!inherits(rv$epc_dates$DATE, "Date")) {
+        rv$epc_dates$DATE <- as.Date(rv$epc_dates$DATE, format = "%Y.%m.%d")
+      }
+      
+      # Filter EPC files for the selected year.
+      filtered <- rv$epc_dates[
+        format(rv$epc_dates$DATE, "%Y") == selected_year &
+          rv$epc_dates[["CROP.file."]] %in% rv$epc_files, 
+      ]
+      
+      if (nrow(filtered) > 0) {
+        # Get the available EPC file names for this year.
+        choices <- unique(filtered[["CROP.file."]])
+        # Get corresponding labels (assuming rv$epc_files and rv$epc_labels align).
+        choices_labels <- rv$epc_labels[match(choices, rv$epc_files)]
+        # Build a named vector for the selectInput.
+        choices_named <- setNames(choices, choices_labels)
+        
+        # Update the selectInput with the filtered choices.
+        updateSelectInput(session, "selected_epc", choices = choices_named)
+        
+        # Only auto-select the earliest EPC if:
+        # - The year has just changed, OR
+        # - The current (isolated) selection is not among the choices.
+        if (is.null(last_year()) ||
+            last_year() != selected_year ||
+            !isolate(input$selected_epc) %in% choices) {
+          earliest_row <- filtered[which.min(filtered$DATE), ]
+          earliest_epc <- earliest_row[["CROP.file."]]
+          updateSelectInput(session, "selected_epc", selected = earliest_epc)
+        }
+        
+        # Store the current year.
+        last_year(selected_year)
+      }
+      
+    } else {
+      # When auto-selection is disabled, update to show the full list with labels.
+      full_choices <- setNames(rv$epc_files, rv$epc_labels)
+      updateSelectInput(session, "selected_epc", choices = full_choices)
     }
   }
-})
-
+)
 
 
 
