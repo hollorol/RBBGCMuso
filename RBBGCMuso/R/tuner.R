@@ -460,7 +460,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                     actionButton("deleteCols", "Delete Selected Columns")
                                     ),
                                     column(6,
-                                    h4("Reset Columns From Manipulated Values"),
+                                    h4("Reset Columns From Edited Values"),
                                     checkboxGroupInput("colsToReset", "Select columns to reset:", choices = NULL),
                                     actionButton("resetCols", "Reset Selected Columns")
                                     )
@@ -1542,29 +1542,30 @@ debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
     tabsetPanel(
       # Tab for replacing negatives with NA
  tabPanel("Set Values to NA",
-        fluidRow(
-          column(4,
-            selectInput("col_to_na", "Select column:", 
-                        choices = setdiff(colnames(measurementData()), "Date"))
-          ),
-          column(4,
-            numericInput("na_lower", "Lower bound:", value = NA),
-            helpText("Leave blank (or NA) if not used")
-          ),
-          column(4,
-            numericInput("na_upper", "Upper bound:", value = NA),
-            helpText("Leave blank (or NA) if not used")
-          )
-        ),
-        fluidRow(
-          column(12,
-            actionButton("apply_na", "Apply Transformation")
-          )
-        )
-      ),
+  fluidRow(
+    column(4,
+      selectInput("col_to_na", "Select column:", 
+                  choices = setdiff(colnames(measurementData()), "Date"))
+    ),
+    column(4,
+      numericInput("na_lower", "Lower bound:", value = NA)
+    ),
+    column(4,
+      numericInput("na_upper", "Upper bound:", value = NA)
+    )
+  ),
+  fluidRow(
+    column(4,
+      checkboxInput("na_newcol", "Add as new column", value = FALSE)
+    ),
+    column(8,
+      actionButton("apply_na", "Apply Transformation")
+    )
+  )
+),
       
       # Tab for arithmetic operations
-     tabPanel("Arithmetic Operation",
+ tabPanel("Arithmetic Operation",
   fluidRow(
     column(4,
       selectInput("col_arith", "Select column:", 
@@ -1579,14 +1580,17 @@ debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
     )
   ),
   fluidRow(
-    column(12,
+    column(4,
+      checkboxInput("arith_newcol", "Add as new column", value = FALSE)
+    ),
+    column(8,
       actionButton("apply_arith", "Apply Transformation")
     )
   )
 ),
 
       
-      # Tab for column interaction (e.g., multiplying two columns)
+      # Tab for column interaction
 tabPanel("Column Interaction",
   fluidRow(
     column(4,
@@ -1603,7 +1607,10 @@ tabPanel("Column Interaction",
     )
   ),
   fluidRow(
-    column(12,
+    column(4,
+      checkboxInput("interaction_newcol", "Add as new column", value = FALSE)
+    ),
+    column(8,
       actionButton("apply_interaction", "Apply Transformation")
     )
   )
@@ -1619,27 +1626,32 @@ observeEvent(input$apply_na, {
   df <- measurementData()
   col <- input$col_to_na
   
-  # Retrieve the bounds. They might be NA if the user did not set them.
   lower_bound <- input$na_lower
   upper_bound <- input$na_upper
   
-  # Determine which values fall into the specified range:
+  # Start with the current values.
+  new_values <- df[[col]]
+  
   if (!is.na(lower_bound) && !is.na(upper_bound)) {
-    # Both bounds provided: set values between lower and upper to NA.
-    df[[col]][df[[col]] >= lower_bound & df[[col]] <= upper_bound] <- NA
+    new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
   } else if (!is.na(lower_bound)) {
-    # Only lower bound provided: set values greater than or equal to lower_bound to NA.
-    df[[col]][df[[col]] >= lower_bound] <- NA
+    new_values[new_values >= lower_bound] <- NA
   } else if (!is.na(upper_bound)) {
-    # Only upper bound provided: set values less than or equal to upper_bound to NA.
-    df[[col]][df[[col]] <= upper_bound] <- NA
+    new_values[new_values <= upper_bound] <- NA
   } else {
     showNotification("Please specify at least one bound.", type = "error")
     return()
   }
   
+  if (isTRUE(input$na_newcol)) {
+    new_col_name <- paste(col, "NA", sep = "_")
+    df[[new_col_name]] <- new_values
+  } else {
+    df[[col]] <- new_values
+  }
+  
   measurementData(df)
-  showNotification(paste("Updated", col, ": values in defined range set to NA"))
+  showNotification(paste("Updated", col, "with NA transformation"))
 })
 
 observeEvent(input$apply_arith, {
@@ -1649,20 +1661,29 @@ observeEvent(input$apply_arith, {
   op <- input$arith_op
   val <- input$arith_val
   
-  # Apply the chosen arithmetic operation on the selected column.
-  df[[col]] <- switch(op,
+  # Calculate new values based on the chosen operation.
+  new_values <- switch(op,
     "Add" = df[[col]] + val,
     "Subtract" = df[[col]] - val,
     "Multiply" = df[[col]] * val,
     "Divide" = {
       if(val == 0) {
         showNotification("Division by zero not allowed", type = "error")
-        df[[col]]  # no change
+        return()
       } else {
         df[[col]] / val
       }
     }
   )
+  
+  if (isTRUE(input$arith_newcol)) {
+    # Create a new column name, for example: OriginalColumn_Add_5
+    new_col_name <- paste(col, op, val, sep = "_")
+    df[[new_col_name]] <- new_values
+  } else {
+    # Update the selected column in place.
+    df[[col]] <- new_values
+  }
   
   measurementData(df)
   showNotification(paste("Applied", op, "operation to", col))
@@ -1675,14 +1696,11 @@ observeEvent(input$apply_interaction, {
   col2 <- input$col2
   op <- input$interaction_op
   
-  # Apply the chosen operation between the two selected columns.
-  new_col <- switch(op,
+  new_values <- switch(op,
     "Multiply" = df[[col1]] * df[[col2]],
     "Add"      = df[[col1]] + df[[col2]],
     "Subtract" = df[[col1]] - df[[col2]],
     "Divide"   = {
-      # Check for division by zero elementwise.
-      # We'll set any division by zero result to NA and show a warning.
       div_res <- df[[col1]] / ifelse(df[[col2]] == 0, NA, df[[col2]])
       if(any(df[[col2]] == 0, na.rm = TRUE)) {
         showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
@@ -1691,12 +1709,17 @@ observeEvent(input$apply_interaction, {
     }
   )
   
-  new_col_name <- paste(col1, op, col2, sep = "_")
-  df[[new_col_name]] <- new_col
+  if (isTRUE(input$interaction_newcol)) {
+    new_col_name <- paste(col1, op, col2, sep = "_")
+    df[[new_col_name]] <- new_values
+  } else {
+    # Update the first chosen column (col1) in place.
+    df[[col1]] <- new_values
+  }
+  
   measurementData(df)
-  showNotification(paste("Created new column", new_col_name, "using", op, "operation"))
+  showNotification(paste("Applied", op, "operation between", col1, "and", col2))
 })
-
 
     # reset manipulated column
     observe({
