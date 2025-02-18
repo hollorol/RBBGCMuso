@@ -3,7 +3,7 @@
 #' This is a simple parameter tuner function which works great in a flat directory system
 #'
 #' @param parameterFile optional, the parameter csv file
-#' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs
+#' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
 #' @importFrom dplyr filter %>% select full_join
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
@@ -83,7 +83,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
             });
         "
 
-    # expanded window
+    # expanded window, yes
     expandedWindow <- "
             $(document).ready(function(){
             window.moveTo(0, 0);
@@ -843,15 +843,25 @@ tuneMusoServer <- function(input, output, session){
 
             
             output$measurementTable <- DT::renderDataTable({
-            req(measurementData())
-            #trying to display NAs
-            df <- measurementData()
-            df_display <- df
-            df_display[is.na(df_display)] <- "NA"
-            DT::datatable(df_display, editable = FALSE,
-                            options = list(pageLength = 10, scrollY = "400px", autoWidth = TRUE),
+                req(measurementData())
+                df <- measurementData()     
+                df_display <- df
+                df_display[is.na(df_display)] <- "NA"
+                
+                DT::datatable(df_display,
+                            editable = FALSE,
+                            options = list(
+                                pageLength = 50,
+                                lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
+                                                c("10", "25", "50", "100", "500", "1000")),
+                                scrollY = "400px",
+                                autoWidth = TRUE,
+                                stateSave = TRUE
+                            ),
                             rownames = FALSE)
-            })
+        
+        })
+        
 
             # When the user clicks the delete button, remove the selected columns
             observeEvent(input$deleteCols, {
@@ -932,13 +942,12 @@ tuneMusoServer <- function(input, output, session){
                 input[[paste0("mapping_", col)]]
             }, simplify = FALSE)
             
-            # Save the mapping in the reactive value
+       
             mappingRV(mapping)
             
           
             #print(mappingRV())
-            
-            # Close the modal
+        
             removeModal()
             })
 
@@ -1593,7 +1602,7 @@ tuneMusoServer <- function(input, output, session){
             if (nrow(filtered) > 0) {
                 # Get the available EPC file names for this year.
                 choices <- unique(filtered[["CROP.file."]])
-                # Get corresponding labels (assuming rv$epc_files and rv$epc_labels align).
+                # Get corresponding labels 
                 choices_labels <- rv$epc_labels[match(choices, rv$epc_files)]
                 # Build a named vector for the selectInput.
                 choices_named <- setNames(choices, choices_labels)
@@ -2406,11 +2415,34 @@ tuneMusoServer <- function(input, output, session){
             numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
             numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
             numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
-            tags$button(
-                id = "fullscreen_btn",
-                class = "btn btn-default",
-                tags$i(class = "fa fa-expand"),  
-                title = "Go Fullscreen [F11] (only works in browser)"  
+           div(
+                style = "position: absolute; top: 10px; right: 10px;",
+                  tags$button(
+                id = "info_btn",
+                class = "btn btn-default action-button",  # Added 'action-button'
+                tags$i(class = "fa fa-info-circle"),  
+                title = "App Information"
+            ),
+                tags$button(
+                    id = "fullscreen_btn",
+                    class = "btn btn-default",
+                    tags$i(class = "fa fa-expand"),  
+                    title = "Go Fullscreen [F11] (only works in browser)"
+                )
+            ),
+            div(
+                id = "info_overlay",
+                style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
+                tags$p(div(HTML("
+                    <p><strong>Version 2.10.</strong></p>
+                    <p>Current bugs:</p>
+                    <ul>
+                        <li>IT</li>
+                        <li>WORKS</li>
+                        <li>(the text in the info panel, not the app. Current bugs are on the way)</li>
+                    </ul>
+                    "))),
+                #actionButton("close_info_overlay", "Close")
             ),
             
             easyClose = TRUE,
@@ -2420,6 +2452,29 @@ tuneMusoServer <- function(input, output, session){
             )
             ))
         })
+
+
+     observeEvent(input$info_btn, {
+    shinyjs::toggle("info_overlay", anim = TRUE)  # Toggle visibility
+  })
+
+  
+  observeEvent(input$close_info_overlay, {
+    shinyjs::hide("info_overlay", anim = TRUE)
+  })
+
+
+
+observeEvent(input$close_info_overlay, {
+  shinyjs::hide("info_overlay", anim = TRUE)
+})
+    #    observeEvent(input$info_btn, {
+    #    showModal(modalDialog(
+    #        title = "App Information",
+    #        "Version: 2.10. Current bugs: blabla test",
+    #        easyClose = TRUE
+    #    ))
+    #})
         
         # When the user clicks "Apply", update the reactive values and close the modal
         observeEvent(input$apply_settings, {
