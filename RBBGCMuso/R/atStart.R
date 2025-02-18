@@ -52,11 +52,11 @@ styledText <- function(text, style_code) {
   cat(sprintf("%s\n", paste0("⚠️ ", colorTextBg("IMPORTANT", red_bg), " ⚠️")))
   cat(sprintf("%s\n", plainText("Certain functions of this package can modify the following files:")))
   cat(sprintf("%s\n", plainText(paste0("- ", styledText(".ini", "1"),  # 1 is bold, 3 is italic
-                                         plainText(", "), 
+                                         plainText(" "), # there was a comma here once
                                          styledText(".epc", "1"), 
-                                         plainText(", "), 
-                                         styledText(".soil", "1"), 
-                                         plainText(" files"))))) # I'm pyhsically dying
+                                         plainText(" "), # here too
+                                         styledText(".soil", "1") 
+                                         )))) # I'm pyhsically dying
   cat(sprintf("%s\n", colorTextBg("It is advised to always maintain a backup of them!", red_bg)), file = stderr())
     
     # OLD DESIGN

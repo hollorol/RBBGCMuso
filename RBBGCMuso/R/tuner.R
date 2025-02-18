@@ -511,27 +511,143 @@ tuneMusoServer <- function(input, output, session){
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
 
-      parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
-
+    # This is going to be ugly but calculating the woody_flag within the observer below and making it reactive is actually hard to deal with when we process the parameters.csv
+    if (file.exists(settings$iniInput[2])) {
+    iniContent <- readLines(settings$iniInput[2])
+    management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
     
-    parameters <- parameters[!is.na(parameters$ABREVIATION) & parameters$ABREVIATION != "", ]
-    # indexing the rows for the allocation parameters (if they exist)
-    parametersFixed <- sprintf("%.2f", parameters$INDEX)
-    parameters$group <- ifelse(grepl("^(132|133|134|135)\\.", parametersFixed),
-                           # Remove the "132.", "133.", "134." or "135." prefix,
-                           sub("^(132|133|134|135)\\.", "", parametersFixed),
-                           NA)
+    if (file.exists(management_file)) {
+        managementContent <- readLines(management_file)
+        planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
+        
+        if (file.exists(planting_file)) {
+        
+        woody_flag <- 0
+        } else {
 
-    required_main <- c(132, 133, 134, 135)
+        single_epc_dat <- readLines(settings$epcInput[2])
+        woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG", n = 1))
+        }
+    } else {
+      
+        single_epc_dat <- readLines(settings$epcInput[2])
+        woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG", n = 1))
+    }
+    } else {
+    stop("INI file not found!")
+    }
 
+    # looking for the planting file if there is any, else use the epc file within the ini file
+    observe({
+        req(file.exists(settings$iniInput[2]))  # Ensure the INI file exists before reading
+        iniContent <- readLines(settings$iniInput[2])
+        management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
+
+        if (file.exists(management_file)) {
+            managementContent <- readLines(management_file)
+            planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
+
+
+            if (file.exists(planting_file)) {
+                planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
+
+                epc_files <- unique(unlist(strsplit(paste(planting_data$CROP.file., collapse = " "), " +")))
+                
+                planting_data$DATE <- as.Date(planting_data$DATE, format = "%Y.%m.%d")
+                epc_dates <- planting_data
+                #planting_dates <- 
+                #print("EPC files found:")
+                #print(epc_files)
+
+                # Ensure that the update happens safely
+                isolate({
+                    rv$epc_files <- epc_files
+                    #rv$woody_flag <- 0
+                    rv$epc_labels <- paste0(seq_along(epc_files), ") ", epc_files)
+                    rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
+
+                    rv$epc_dates <- epc_dates
+                })
+            } else {
+                warning("Planting file not found: ", planting_file)
+                print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+                isolate({
+                    rv$epc_files <- settings$epcInput[2]
+
+                    single_epc_dat <- readlines(rv$epc_files)
+                    #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
+
+                    rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
+                    rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
+                    #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
+                    rv$epc_dates <- NULL
+                })
+            }
+        } else {
+            warning("Management file not found: ", management_file)
+            isolate({
+                print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+                rv$epc_files <- settings$epcInput[2]
+                single_epc_dat <- readlines(rv$epc_files)
+                #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
+                rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
+                rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
+                #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
+                rv$epc_dates <- NULL
+            })
+        }
+    })
+
+    parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
+   
+    herbaceous_main <- c(132, 133, 134, 135)
+    woody_main      <- c(136, 137, 138, 139)
+    # Must be done, otherwise it can't access it since it's reactive
+    
+    if( woody_flag == 1) {
+    main_indices <- c(herbaceous_main, woody_main)
     allocationNames <- c("132" = "Leaf",
-                     "133" = "Fine Root",
-                     "134" = "Fruit",
-                     "135" = "Soft Stem")
+                        "133" = "Fine Root",
+                        "134" = "Fruit",
+                        "135" = "Soft Stem",
+                        "136" = "Live Woody Stem",
+                        "137" = "Dead Woody Stem",
+                        "138" = "Live Coarse Root",
+                        "139" = "Dead Coarse Root")
+    allocation_pattern <- "^(132|133|134|135|136|137|138|139)\\."
+    message("Biome type flag: 'woody' found, including woody allocation parameters")
+    } else {
+    main_indices <- herbaceous_main
+    allocationNames <- c("132" = "Leaf",
+                        "133" = "Fine Root",
+                        "134" = "Fruit",
+                        "135" = "Soft Stem")
+    allocation_pattern <- "^(132|133|134|135)\\."
+
+
+      parametersFixed <- sprintf("%.2f", parameters$INDEX)
+        woody_rows <- grepl("^(136|137|138|139)\\.", parametersFixed)
+        if(any(woody_rows)) {
+            warning("Biome type flag is non-woody, the following parameters.csv lines are not included: ",
+                    paste(parameters$INDEX[woody_rows], collapse=", "))
+            parameters <- parameters[!woody_rows, ]
+        }
+    }
+
+    parameters <- parameters[!is.na(parameters$ABREVIATION) & parameters$ABREVIATION != "", ]
+
+    ## Format the INDEX values to preserve trailing zeros for extraction
+    parametersFixed <- sprintf("%.2f", parameters$INDEX)
+
+    ## Compute the group (i.e. the digits after the decimal) only for the relevant indices:
+    parameters$group <- ifelse(grepl(allocation_pattern, parametersFixed),
+                            sub("^(132|133|134|135|136|137|138|139)\\.", "", parametersFixed),
+                            NA)
+
+    required_main <- main_indices
 
     # Find the unique dependent groups already in the CSV
     dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-
 
 
     # Loop over each dependent group and check for each required main index to see if any of the 4 dependent rows are missing
@@ -557,7 +673,9 @@ tuneMusoServer <- function(input, output, session){
            message("Added missing parameter row for ", expected_index, " (", allocationNames[as.character(m)], ") since it was not found in parameters.csv")
             }
         }
-    }
+        }
+
+  
 
      dailyOutputNames <- reactiveVal(settings$dailyOutputTable$name)
 
@@ -919,59 +1037,6 @@ tuneMusoServer <- function(input, output, session){
     epcValues <- reactiveValues()  # Store EPC values
 
 
-    # looking for the planting file if there is any, else use the epc file within the ini file
-    observe({
-        req(file.exists(settings$iniInput[2]))  # Ensure the INI file exists before reading
-        iniContent <- readLines(settings$iniInput[2])
-        management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
-
-        if (file.exists(management_file)) {
-            managementContent <- readLines(management_file)
-            planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
-
-
-            if (file.exists(planting_file)) {
-                planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
-
-                epc_files <- unique(unlist(strsplit(paste(planting_data$CROP.file., collapse = " "), " +")))
-                planting_data$DATE <- as.Date(planting_data$DATE, format = "%Y.%m.%d")
-                epc_dates <- planting_data
-                #planting_dates <- 
-                #print("EPC files found:")
-                #print(epc_files)
-
-                # Ensure that the update happens safely
-                isolate({
-                    rv$epc_files <- epc_files
-                    rv$epc_labels <- paste0(seq_along(epc_files), ") ", epc_files)
-                    rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
-
-                    rv$epc_dates <- epc_dates
-                })
-            } else {
-                warning("Planting file not found: ", planting_file)
-                print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
-                isolate({
-                    rv$epc_files <- settings$epcInput[2]
-                    rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
-                    rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
-                    #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
-                    rv$epc_dates <- NULL
-                })
-            }
-        } else {
-            warning("Management file not found: ", management_file)
-            isolate({
-                print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
-                rv$epc_files <- settings$epcInput[2]
-                rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
-                rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
-                #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
-                rv$epc_dates <- NULL
-            })
-        }
-    })
-
     # making the first output variable the initial selected variable upon opening the app    
     observe({
         req(settings$dailyOutputTable$name)  
@@ -1149,6 +1214,9 @@ tuneMusoServer <- function(input, output, session){
         output$param_sliders <- renderUI({
             req(input$selected_epc)
             
+
+
+
             vals <- currentValues()
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
                 vals <- defaultValues()
@@ -1174,7 +1242,7 @@ tuneMusoServer <- function(input, output, session){
             dependent_sliders <- lapply(dep_groups, function(g) {
                 group_rows <- which(!is.na(parameters$group) &
                                     parameters$group == g &
-                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
                 group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
                 
                 slider_list <- lapply(group_rows, function(i) {
@@ -1284,7 +1352,7 @@ tuneMusoServer <- function(input, output, session){
             # For group g, get the rows and slider IDs
             group_rows <- which(!is.na(parameters$group) &
                                 parameters$group == g &
-                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
             group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
             ids <- paste0("dep_", parameters$INDEX[group_rows])
             
@@ -1360,7 +1428,7 @@ tuneMusoServer <- function(input, output, session){
             if (isTRUE(input[[paste0("autoCalc_", g)]])) {
                 group_rows <- which(!is.na(parameters$group) &
                                     parameters$group == g &
-                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132,133,134,135))
+                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
                 group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
                 ids <- paste0("dep_", parameters$INDEX[group_rows])
                 
@@ -1401,7 +1469,7 @@ tuneMusoServer <- function(input, output, session){
         lapply(dep_groups, function(g) {
             group_rows <- which(!is.na(parameters$group) &
                                 parameters$group == g &
-                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% c(132, 133, 134, 135))
+                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
             group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
             ids <- paste0("dep_", parameters$INDEX[group_rows])
             
@@ -1412,7 +1480,11 @@ tuneMusoServer <- function(input, output, session){
             total <- sum(vals)
             if (total > 1) {
                 paste0("Total sum: ", round(total, 2), " (Warning: Sum > 1!)")
-            } else {
+            } 
+            else if (total < 1){
+                paste0("Total sum: ",round(total, 2), " (Warning: Sum < 1!)")
+            }
+            else {
                 paste0("Total sum: ", round(total, 2))
             }
             })
