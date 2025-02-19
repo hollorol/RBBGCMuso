@@ -55,7 +55,7 @@ styledText <- function(text, style_code) {
                                          plainText(" "), # there was a comma here once
                                          styledText(".epc", "1"), 
                                          plainText(" "), # here too
-                                         styledText(".soil", "1") 
+                                         styledText(".soi", "1") 
                                          )))) # I'm pyhsically dying
   cat(sprintf("%s\n", colorTextBg("It is advised to always maintain a backup of them!", red_bg)), file = stderr())
     

@@ -1117,7 +1117,8 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
             }
         }
-        print(paste0("Reset sliders to initials for ", epc))
+        #print(paste0("Reset sliders to initials for ", epc))
+        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message")
     })
 
 
@@ -1148,7 +1149,7 @@ tuneMusoServer <- function(input, output, session){
             restoreFlag(input$restoreOnExit)
         })
 
-    
+    # file value change method (no overwrite file with original file)
     session$onSessionEnded(function() {
         if (isolate(restoreFlag())) {  
             cat("Restoring all EPC files to original...\n")
@@ -1157,17 +1158,48 @@ tuneMusoServer <- function(input, output, session){
                 for (epc in rv$epc_files) {
                     if (!is.null(InitialDefaults[[epc]])) {
                         paramVal <- InitialDefaults[[epc]]  
-
+    
                         settings$epcInput[["normal"]] <- epc
                         changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
                                 fileToChange = "epc", fixAlloc = FALSE)
 
-                        cat(paste0("Restored ", epc, " to original values.\n"))
+                           cat(paste0("Restored ", epc, " to original values.\n"))
                     }
                 }
             })
         }
     })
+
+    # dosen't work for some reason
+     #   tempdir <- "C:/muso/Polkovice/czpol70/temp_epc/"
+        
+    #    backupPaths <- list()
+    #    for (epc in isolate(rv$epc_files)) {
+    #        tempPath <- file.path(tempdir(), basename(epc))
+    #        if (file.copy(epc, tempPath, overwrite = TRUE)) {
+    #            backupPaths[[epc]] <- tempPath
+    #            cat(paste("Backup created for", epc, "at", tempPath, "\n"))
+    #        } else {
+    #            cat(paste("Failed to backup", epc, "\n"))
+    #        }
+    #    }
+
+    #session$onSessionEnded(function() {
+    #    if (isolate(restoreFlag())) {
+    #        cat("Restoring all EPC files to original...\n")
+    #        for (epc in rv$epc_files) {
+    #        backupPath <- backupPaths[[epc]]
+    #        if (!is.null(backupPath) && file.exists(backupPath)) {
+    #            if (file.copy(backupPath, epc, overwrite = TRUE)) {
+    #            cat(paste("Restored", epc, "from backup.\n"))
+    #            } else {
+    #            cat(paste("Failed to restore", epc, "\n"))
+    #            }
+    #        }
+    #        }
+    #    }
+    #})
+
 
     # year range refresh delay
     debounced_yearRange <- reactive({
@@ -1539,12 +1571,13 @@ tuneMusoServer <- function(input, output, session){
                     }
                 }
                 epcValues[[old_epc]] <- updated_old
-                
+                showNotification(paste0("Updated slider values for: ", old_epc), type = "message")
+                #print(paste("Updated values for", old_epc, "in memory"))
                 # Saving the previous EPC's values to file
-                settings$epcInput[["normal"]] <- old_epc
-                changeMuso(settings, updated_old, calibrationPar = parameters[, 2],
-                        fileToChange = "epc", fixAlloc = FALSE)
-                print(paste("Saved changes for", old_epc))
+           #     settings$epcInput[["normal"]] <- old_epc
+           #     changeMuso(settings, updated_old, calibrationPar = parameters[, 2],
+           #             fileToChange = "epc", fixAlloc = FALSE)
+           #     print(paste("Saved changes for", old_epc))
             }
             
             # Initializing the new EPC's values if needed
@@ -1879,12 +1912,13 @@ tuneMusoServer <- function(input, output, session){
 
 
     observeEvent(input$toggle_plot_field, {
+        updateCurrentEPCValues() # HAHA! I knew this function would be useful!! (I hope)
         session$sendCustomMessage("toggle_plot_visibility", list())
     })
 
 
 
-    # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11 but at least it works, alright?
+    # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11. but at least it works, alright? Wait, maybe it is not so bad after all (sent, 2025.02.19.)
     updateCurrentEPCValues <- function() {
         req(input$selected_epc)
         epc <- input$selected_epc
@@ -1951,21 +1985,27 @@ tuneMusoServer <- function(input, output, session){
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
-        epc <- input$selected_epc
-
-        # forcing an update with the "over-kill" function
+        #epc <- input$selected_epc
+        # updating current epc values
         updateCurrentEPCValues()
-
-        paramVal <- epcValues[[epc]]
 
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-        
-        settings$epcInput[["normal"]] <- epc
-        print(paste("Updating EPC file", epc, "with new parameters before running model"))
-    
-        changeMuso(settings, paramVal, calibrationPar = parameters[,2],
-                fileToChange = "epc", fixAlloc = FALSE)
+
+        #print("Writing parameter values to file before model run:...")
+        showNotification(paste0("Parameter values written into the epc files"), type = "message")
+        for (epc in rv$epc_files) {
+            paramVal <- epcValues[[epc]]
+            if (is.null(paramVal)) {
+                paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
+            }
+            settings$epcInput[["normal"]] <- epc
+            changeMuso(settings, paramVal, 
+                    calibrationPar = parameters[, 2], 
+                    fileToChange = "epc", 
+                    fixAlloc = FALSE)
+            #print(paste0("Written for: ", epc))
+        }
         
         # this is probably not needed but I'm smoothbraining it. Explanation why not needed: 
         # 1) Since this is crop rotation it doesn't matter what's the epc file in the ini
@@ -2434,12 +2474,12 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.10.</strong></p>
-                    <p>Current bugs:</p>
+                    <p><strong>Version 2.11</strong></p>
+                    <p>Current bugs/problems:</p>
                     <ul>
-                        <li>IT</li>
-                        <li>WORKS</li>
-                        <li>(the text in the info panel, not the app. Current bugs are on the way)</li>
+                        <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc</li>
+                        <li>Automatic update may not always work as intended, use hotkeys for running the model</li>
+                        <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
                     </ul>
                     "))),
                 #actionButton("close_info_overlay", "Close")
@@ -2468,13 +2508,6 @@ tuneMusoServer <- function(input, output, session){
 observeEvent(input$close_info_overlay, {
   shinyjs::hide("info_overlay", anim = TRUE)
 })
-    #    observeEvent(input$info_btn, {
-    #    showModal(modalDialog(
-    #        title = "App Information",
-    #        "Version: 2.10. Current bugs: blabla test",
-    #        easyClose = TRUE
-    #    ))
-    #})
         
         # When the user clicks "Apply", update the reactive values and close the modal
         observeEvent(input$apply_settings, {
