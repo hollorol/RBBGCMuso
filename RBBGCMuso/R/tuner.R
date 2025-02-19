@@ -8,6 +8,8 @@
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
 #' @importFrom data.table fread fwrite
+#' @importFrom jsonlite fromJSON
+#' @importFrom httr POST
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom grDevices colorRampPalette
@@ -128,6 +130,30 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       });
     "
 
+    Notifications <- "
+        Shiny.addCustomMessageHandler('checkNotification', function(notification_message) {
+            var lastRead = localStorage.getItem('last_notification');
+            if (lastRead !== notification_message) {
+            // If different, mark as new: add class and badge.
+            $('#show_notification').addClass('new-notification');
+            if ($('#badge').length === 0) {
+                $('#show_notification').append('<span id=\"badge\">1</span>');
+            }
+            } else {
+            // If already read, ensure no badge is visible.
+            $('#show_notification').removeClass('new-notification');
+            $('#badge').remove();
+            }
+        });
+    "
+
+    disableSpellCheck <- "
+        document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('textarea, input').forEach(function(el) {
+            el.setAttribute('spellcheck', 'false');
+        });
+        });
+    "
 
  fluidPage(
   useShinyjs(),
@@ -299,6 +325,36 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         body.modal-open #controlPanel .nav-tabs {
             display: none;
         }
+
+        .new-notification {
+        position: relative;
+        animation: shake 0.5s;
+        animation-iteration-count: 1;
+      }
+      @keyframes shake {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+      }
+      #badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: red;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 5px;
+        font-size: 10px;
+      }
+  
   "))),
     
     # year slider for the hover area
@@ -307,7 +363,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck,sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -326,7 +382,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
         actionButton("settings_btn", label = NULL, icon = icon("cog")),
         actionButton("toggle_plot_field", "Hide Plot Area"),
-        actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash"))
+        actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash")),
+         actionButton("show_notification", label=NULL, icon = icon("bell"))#, style = "display: none;")
     ),
 
     
@@ -423,7 +480,10 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                        label = "Reference or Modified",
                                        choiceValues = c("auto", "prev", "nextVal"),
                                        choiceNames = c("automatic", "reference", "modified")
-                                   )
+                                   ),
+                                    textAreaInput("feedback_message", "Feedback", placeholder = "Report a bug or request a feature."),
+                                    actionButton("submit_feedback", "Send Feedback"),
+                                    verbatimTextOutput("feedback_status")
                           ),
                           tabPanel("INI File",
                                    tags$div(
@@ -1259,6 +1319,7 @@ tuneMusoServer <- function(input, output, session){
 
 
             vals <- currentValues()
+
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
                 vals <- defaultValues()
             }
@@ -1547,10 +1608,19 @@ tuneMusoServer <- function(input, output, session){
             # Saving the previous EPC's slider values 
             old_epc <- prevEPC()
             if (!is.null(old_epc) && old_epc != new_epc) {
+
+
+                old_values <- epcValues[[old_epc]]
+                if (is.null(old_values) || length(old_values) < nrow(parameters)) 
+                old_values <- defaultValues()
+                
+
                 # Retrieving the stored values for the old EPC, if not available, use defaultValues
-                updated_old <- epcValues[[old_epc]]
-                if (is.null(updated_old) || length(updated_old) < nrow(parameters))
-                updated_old <- defaultValues()
+                #updated_old <- epcValues[[old_epc]]
+                updated_old <- old_values
+
+                #if (is.null(updated_old) || length(updated_old) < nrow(parameters))
+                #updated_old <- defaultValues()
                 
                 # Updating standard sliders (those with group == NA)
                 non_dep_indices <- which(is.na(parameters$group))
@@ -1571,7 +1641,11 @@ tuneMusoServer <- function(input, output, session){
                     }
                 }
                 epcValues[[old_epc]] <- updated_old
-                showNotification(paste0("Updated slider values for: ", old_epc), type = "message")
+
+                if (!identical(updated_old, old_values)) {
+                    showNotification(paste0("Updating slider values for: ", old_epc), type = "message")
+                }
+    
                 #print(paste("Updated values for", old_epc, "in memory"))
                 # Saving the previous EPC's values to file
            #     settings$epcInput[["normal"]] <- old_epc
@@ -1993,7 +2067,7 @@ tuneMusoServer <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
 
         #print("Writing parameter values to file before model run:...")
-        showNotification(paste0("Parameter values written into the epc files"), type = "message")
+        showNotification(paste0("Parameter slider values written into the epc files"), type = "message")
         for (epc in rv$epc_files) {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
@@ -2021,6 +2095,7 @@ tuneMusoServer <- function(input, output, session){
         } else {
 
         print("Model ran successfully")
+        showNotification("Model ran successfully")
 
         dfs_orig <- as.data.frame(result)  # 'result' is the simulation output matrix
         # Detect the VWC columns from the original output:
@@ -2477,7 +2552,8 @@ tuneMusoServer <- function(input, output, session){
                     <p><strong>Version 2.11</strong></p>
                     <p>Current bugs/problems:</p>
                     <ul>
-                        <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc</li>
+                        <li>Potential issues in metrics calculation</li>
+                        <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
                         <li>Automatic update may not always work as intended, use hotkeys for running the model</li>
                         <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
                     </ul>
@@ -2728,7 +2804,93 @@ observeEvent(input$close_info_overlay, {
                                                                                               collapse="\n") )
     })
 
+
+        # messaging
+        get_remote_message <- function() {
+  
+            base_url <- "https://raw.githubusercontent.com/Cyb3rNani/tuneMessage/refs/heads/main/message.json"
+            
+            url <- paste0(base_url, "?t=", as.numeric(Sys.time()))
+            tryCatch({
+                # Fetch the JSON file
+                response <- httr::GET(url, httr::user_agent("Shiny App"))
+                
+                # Check if the request was successful
+                if (httr::http_status(response)$category != "Success") {
+                return(paste("Error: Failed to fetch JSON. HTTP Status:", httr::http_status(response)$message))
+                }
+                
+                # Parse the JSON content
+                json_data <- jsonlite::fromJSON(httr::content(response, "text"))
+                
+                # Check if the "message" key exists
+                if (!is.null(json_data$message)) {
+                return(json_data$message)
+                } else {
+                return("Error: 'message' key not found in JSON.")
+                }
+            }, error = function(e) {
+                return(paste("Error retrieving notification:", e$message))
+            })
+        }
+
+        # Function to send user feedback to Google Sheets
+        send_feedback <- function(message) {
+        url <- "https://script.google.com/macros/s/AKfycbyeApSnxnbQXB-m0Ziw24cdhZIK0pm8FBJFLCHC-OfO_ABOJwWlHy788FuKYDKYi_U7Ng/exec"
+            tryCatch({
+                response <- httr::POST(
+                url,
+                body = list(message = message),
+                encode = "json",
+                #httr::verbose() # Enable to debug request/response
+                )
+                # Check if the request was successful
+                if (httr::status_code(response) == 200) {
+                    
+                    showNotification("Feedback successfully sent", type = "message")
+                    success <- "Feedback submitted successfully!"
+
+                } else {
+                    showNotification("Failed to send feedback", type = "error")
+                    success <- paste("Error: HTTP", httr::status_code(response))
+                }
+
+                return(success)
+            }, error = function(e) {
+                showNotification("Error in sending the feedback", type = "error")
+                return(paste("Error submitting feedback:", e$message))
+                
+            })
+        }
+
+      notification_message <- get_remote_message()
+    session$sendCustomMessage("checkNotification", notification_message)
+        
+        # When the button is clicked, show a modal dialog with the notification message
+       observeEvent(input$show_notification, {
+            showModal(modalDialog(
+            title = "Notification",
+            notification_message,
+            easyClose = TRUE,
+            footer = modalButton("Close")
+            ))
+            # Mark the notification as read by updating localStorage and removing the badge.
+            safe_message <- gsub("'", "\\\\'", notification_message)  # Escape single quotes.
+            runjs(sprintf("localStorage.setItem('last_notification', '%s'); $('#show_notification').removeClass('new-notification'); $('#badge').remove();", safe_message))
+        })
+        
+        
+        observeEvent(input$submit_feedback, {
+            if (input$feedback_message != "") {
+            result <- send_feedback(input$feedback_message)
+            output$feedback_status <- renderText({ result })
+            } else {
+            output$feedback_status <- renderText("Please enter a message before submitting.")
+            }
+        })
+
 }
+
 
 
 #' tuneMuso
