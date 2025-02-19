@@ -51,10 +51,10 @@ styledText <- function(text, style_code) {
   # Warning Section
   cat(sprintf("%s\n", paste0("⚠️ ", colorTextBg("IMPORTANT", red_bg), " ⚠️")))
   cat(sprintf("%s\n", plainText("Certain functions of this package can modify the following files:")))
-  cat(sprintf("%s\n", plainText(paste0("- ", styledText(".ini", "1"),  # 1 is bold, 3 is italic
-                                         plainText(" "), # there was a comma here once
+  cat(sprintf("%s\n", plainText(paste0("  ", styledText(".ini", "1"),  # 1 is bold, 3 is italic
+                                         plainText("  "), # there was a comma here once
                                          styledText(".epc", "1"), 
-                                         plainText(" "), # here too
+                                         plainText("  "), # here too
                                          styledText(".soi", "1") 
                                          )))) # I'm pyhsically dying
   cat(sprintf("%s\n", colorTextBg("It is advised to always maintain a backup of them!", red_bg)), file = stderr())
