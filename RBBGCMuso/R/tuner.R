@@ -3108,7 +3108,7 @@ observeEvent(input$autoMulti, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.12</strong></p>
+                    <p><strong>Version 2.12.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
