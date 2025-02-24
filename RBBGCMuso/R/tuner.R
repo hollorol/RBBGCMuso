@@ -4,7 +4,7 @@
 #'
 #' @param parameterFile optional, the parameter csv file
 #' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
-#' @importFrom dplyr filter %>% select full_join
+#' @importFrom dplyr filter %>% select full_join left_join mutate across
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
 #' @importFrom data.table fread fwrite
@@ -129,6 +129,16 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         toggleFullscreen();
       });
     "
+    # bugs
+    #ApplyGreenColUponPressingApplyTrans <- "
+    #    $(document).on('click', '#apply_na_output, #apply_arith_output, #apply_interaction_output', function() {
+    #        var btn = $(this);
+    #        btn.css('background-color', '#28a745');  // Green
+    #        setTimeout(function() {
+    #            btn.css('background-color', '#007bff');  // Back to Blue
+    #        }, 1000);
+    #    });
+    #"
 
     Notifications <- "
         Shiny.addCustomMessageHandler('checkNotification', function(notification_message) {
@@ -354,7 +364,11 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         padding: 2px 5px;
         font-size: 10px;
       }
-  
+    /* Increase z-index for pickerInput dropdown */
+    .bootstrap-select .dropdown-menu {
+      z-index: 12000 !important;
+    }
+
   "))),
     
     # year slider for the hover area
@@ -363,7 +377,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck,sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -526,7 +540,35 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                     )
                                 )
                                 )
+                        ),
+                       tabPanel("Output Manager",
+                                fluidRow(
+                                column(12, DT::dataTableOutput("outputTable"))
+                                ),
+                                fluidRow(
+                               
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                    downloadButton("exportDataSim", "Export Data", width = "auto")),
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                    actionButton("editOutputTransforms", "Edit Simulation Data", width = "auto")),
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                     actionButton("AppendSim", "Append To Measurement", width = "auto")),
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                     actionButton("resetOutputMods", "Reset Edits", width = "auto")),
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                    pickerInput("exportCols", "Select columns for export/reset/append",
+                                                choices = NULL, multiple = TRUE, width = "250px",options = list(`actions-box` = TRUE))),
+                                div(style = "display: block; margin-top: 5px;",
+                                    checkboxInput("appendSimSuffix", "Append '_sim' to column names upon export/append", value = FALSE)),
+                                div(style = "display: block; margin-top: 5px;",
+                                    checkboxInput("autoMulti", "Multiply GPP, TR, NEE by 1000 to get gC", value = TRUE))
+
+                                
+                            
+                                )
                         )
+
+
               )
           ),
           options = list(handles = "e")  # Allow resizing only on the right edge
@@ -763,13 +805,26 @@ tuneMusoServer <- function(input, output, session){
             req(settings)
             min_year <- as.numeric(format(min(dates), "%Y"))
             max_year <- as.numeric(format(max(dates), "%Y"))
-            sim_start <- as.Date(paste0(min_year, "-01-01"))
-            sim_end <- as.Date(paste0(max_year, "-12-31"))
-            all_dates <- seq.Date(sim_start, sim_end, by = "day")
-            base_df <- data.frame(Date = all_dates)
-        
+            
+            all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
+                # Create the full sequence for the year
+                start_date <- as.Date(paste0(yr, "-01-01"))
+                end_date   <- as.Date(paste0(yr, "-12-31"))
+                dates_year <- seq.Date(start_date, end_date, by = "day")
+                
+                # If the year is a leap year (contains Feb 29), remove December 31
+                if (any(format(dates_year, "%m-%d") == "02-29")) {
+                dates_year <- dates_year[format(dates_year, "%m-%d") != "12-31"]
+                }
+                
+                return(dates_year)
+            })), origin = "1970-01-01")
+
+        base_df <- data.frame(Date = all_dates)
+        sim_start <- min(base_df$Date)
+        sim_end   <- max(base_df$Date)
         # Merging with base dates
-        new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
+        new_data_complete <- dplyr::left_join(base_df, new_data_combined, by = "Date")
         
         # Processing mappings IN THE COMPLETE DATA
         mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
@@ -799,6 +854,7 @@ tuneMusoServer <- function(input, output, session){
         } else {
             combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
             combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
+            combined <- combined[combined$Date %in% base_df$Date, ]
             measurementData(combined)
 
             init_data <- initialMeasurementData()
@@ -839,13 +895,26 @@ tuneMusoServer <- function(input, output, session){
             req(settings)
             min_year <- as.numeric(format(min(dates), "%Y"))
             max_year <- as.numeric(format(max(dates), "%Y"))
-            sim_start <- as.Date(paste0(min_year, "-01-01"))
-            sim_end <- as.Date(paste0(max_year, "-12-31"))
-            all_dates <- seq.Date(sim_start, sim_end, by = "day")
-            base_df <- data.frame(Date = all_dates)
-        
+
+            all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
+                # Create the full sequence for the year
+                start_date <- as.Date(paste0(yr, "-01-01"))
+                end_date   <- as.Date(paste0(yr, "-12-31"))
+                dates_year <- seq.Date(start_date, end_date, by = "day")
+                
+                # If the year is a leap year (contains Feb 29), remove December 31
+                if (any(format(dates_year, "%m-%d") == "02-29")) {
+                dates_year <- dates_year[format(dates_year, "%m-%d") != "12-31"]
+                }
+                
+                return(dates_year)
+            })), origin = "1970-01-01")
+
+        base_df <- data.frame(Date = all_dates)
+        sim_start <- min(base_df$Date)
+        sim_end   <- max(base_df$Date)
         # Merging with base dates
-        new_data_complete <- dplyr::full_join(base_df, new_data_combined, by = "Date")
+        new_data_complete <- dplyr::left_join(base_df, new_data_combined, by = "Date")
         
         # Processing mappings IN THE COMPLETE DATA
         mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
@@ -875,6 +944,7 @@ tuneMusoServer <- function(input, output, session){
         } else {
             combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
             combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
+            combined <- combined[combined$Date %in% base_df$Date, ]
             measurementData(combined)
             
             init_data <- initialMeasurementData()
@@ -906,19 +976,28 @@ tuneMusoServer <- function(input, output, session){
                 req(measurementData())
                 df <- measurementData()     
                 df_display <- df
+                
+
+
+                cols_to_rename <- setdiff(names(df), "Date")
+            
+                numeric_cols <- sapply(df_display, is.numeric)
+                df_display[numeric_cols] <- lapply(df_display[numeric_cols], round, digits = 5)
                 df_display[is.na(df_display)] <- "NA"
                 
-                DT::datatable(df_display,
-                            editable = FALSE,
-                            options = list(
-                                pageLength = 50,
-                                lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
-                                                c("10", "25", "50", "100", "500", "1000")),
-                                scrollY = "400px",
-                                autoWidth = TRUE,
-                                stateSave = TRUE
-                            ),
-                            rownames = FALSE)
+      DT::datatable(df_display,
+                editable = FALSE,
+                options = list(
+                  pageLength = 50,
+                  scrollX = FALSE,          # Enables horizontal scrolling, disabled though because for some reason the data table gets small
+                  lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
+                                    c("10", "25", "50", "100", "500", "1000")),
+                  scrollY = "400px",
+                  autoWidth = TRUE,
+                  stateSave = TRUE
+                ),
+                rownames = FALSE)
+
         
         })
         
@@ -2143,19 +2222,499 @@ tuneMusoServer <- function(input, output, session){
 
 
 
+    simTableDat <- reactive({
+        req(outputList$nextVal)
+        result <- outputList$nextVal
+        
+        # Convert result to a data frame without altering column names
+        dfs <- as.data.frame(result, check.names = FALSE)
+        
+        # Convert rownames (which are in "dd.mm.YYYY" format) to Date objects
+        sim_dates <- as.Date(rownames(result), format = "%d.%m.%Y")
+        
+      
+        
+        # Create a new data frame with a single Date column in front (Date objects display as "YYYY-mm-dd")
+        sim_df <- data.frame(Date = sim_dates, dfs, stringsAsFactors = FALSE)
+        sim_df
+    })
+
+    output$outputTable <- DT::renderDataTable({
+        req(outputData())
+        df <- outputData()
+
+         cols_to_rename <- setdiff(names(df), "Date")
+        df_renamed <- df
+          
+        numeric_cols <- sapply(df_renamed, is.numeric)
+        df_renamed[numeric_cols] <- lapply(df_renamed[numeric_cols], round, digits = 5)
+
+        #names(df_renamed)[names(df_renamed) %in% cols_to_rename] <-
+         #   paste0(names(df_renamed)[names(df_renamed) %in% cols_to_rename], "_sim")
+          
+                # Replace NA values for display
+                df_renamed[is.na(df_renamed)] <- "NA"
+           DT::datatable(df_renamed,
+                editable = FALSE,
+                options = list(
+                  pageLength = 50,
+                  scrollX = TRUE,          # Enables horizontal scrolling (headers move with the data)
+                  fixedHeader = TRUE,      # Optional: fixes header when scrolling vertically
+                  lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
+                                    c("10", "25", "50", "100", "500", "1000")),
+                  scrollY = "400px",
+                  autoWidth = TRUE,
+                  stateSave = TRUE
+                ),
+                rownames = FALSE)
+
+    })
+
+       output$exportDataSim <- downloadHandler(
+  filename = function() {
+    paste("tuneMusoExport_simData-", Sys.Date(), ".csv", sep = "")
+  },
+  content = function(file) {
+    # Make a copy for export
+    export_df <- outputData()
+    
+    # Create Year, Month, and Day columns from the Date column 
+    # (so we have the same file format required for our measurement inputs)
+    export_df$Year  <- format(export_df$Date, "%Y")
+    export_df$Month <- format(export_df$Date, "%m")
+    export_df$Day   <- format(export_df$Date, "%d")
+    
+  
+    
+    # Rearrange columns so that Year, Month, and Day come first
+    # Remove the original Date column because we already have Year/Month/Day
+    other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
+    export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
+    
+        # If the user has selected specific columns to export, subset accordingly.
+    # Assume input$exportCols returns a character vector of column names.
+        if (!is.null(input$exportCols) && length(input$exportCols) > 0) {
+        # Get only the columns that exist in export_df
+        valid_cols <- intersect(input$exportCols, names(export_df))
+        # Always include the date columns
+        valid_cols <- unique(c("Year", "Month", "Day", valid_cols))
+        export_df <- export_df[, valid_cols, drop = FALSE]
+        }
+    # If the user requested the "_sim" suffix, append it to non-date columns
+    if (isTRUE(input$appendSimSuffix)) {
+      # Here, "other_cols" are all columns except Year, Month, Day.
+      names(export_df)[names(export_df) %in% other_cols] <-
+        paste0(names(export_df)[names(export_df) %in% other_cols], "_sim")
+    }
+    
+
+    
+    # Replace NA values with -9999 for export (so they don't appear as empty cells)
+    export_df[is.na(export_df)] <- -9999
+    
+    # Write the CSV file (here using space as a separator; adjust if needed)
+    fwrite(export_df, file, row.names = FALSE, sep = " ")
+  }
+)
+
+        observe({
+            req(simTableDat())
+            df <- simTableDat()
+           
+            available_cols <- setdiff(names(df), "Date")
+            
+            updatePickerInput(session,
+                                inputId = "exportCols",
+                                choices = available_cols,
+                                selected = NULL)  
+        })
+
+         ######## OUTPUT EDITING ############
+        outputData <- reactiveVal()
+
+        # An observer that sets outputData when simTableDat() is available.
+
+        observe({
+            req(outputData())
+            updatePickerInput(session, "exportCols", choices = colnames(outputData()))
+        })
+        # A reactiveValues list to track modifications for each column.
+        outputTransformsTracker <- reactiveValues(modifications = list())
+        outputTransforms <- reactiveValues(transforms = list())
+
+        ## ---- Output Transformation Modal ----
+        observeEvent(input$editOutputTransforms, {
+        req(simTableDat())
+        showModal(modalDialog(
+            title = "Output Data Transformations",
+            size = "l",
+            easyClose = TRUE,
+            footer = modalButton("Close"),
+            tabsetPanel(
+            # Tab for replacing values with NA
+            tabPanel("Set Values to NA",
+                fluidRow(
+                column(4,
+                    pickerInput("col_to_na_output", "Select column(s):", 
+                                choices = setdiff(colnames(simTableDat()), "Date"),
+                                multiple = TRUE,
+                                options = list(`actions-box` = TRUE))
+                ),
+                column(4,
+                    numericInput("na_lower_output", "Lower bound:", value = NA)
+                ),
+                column(4,
+                    numericInput("na_upper_output", "Upper bound:", value = NA)
+                )
+                ),
+                fluidRow(
+                column(4,
+                    # Label changed from "Add as new column" to the new functionality.
+                    checkboxInput("na_keep_transformation", "Keep transformation upon model run", value = TRUE)
+                ),
+                column(8,
+                        div(style = "text-align: right;", # Align to the right
+                            actionButton("apply_na_output", "Apply Transformation", 
+                                         style = "color: white; background-color: #007bff; border-color: #007bff;")
+                        )
+                )
+                )
+            ),
+            # Tab for arithmetic operations
+            tabPanel("Arithmetic Operation",
+                fluidRow(
+                column(4,
+                    pickerInput("col_arith_output", "Select column(s):", 
+                                choices = setdiff(colnames(simTableDat()), "Date"), 
+                                multiple = TRUE,
+                                options = list(`actions-box` = TRUE))
+                ),
+                column(4,
+                    selectInput("arith_op_output", "Operation", 
+                                choices = c("Add", "Subtract", "Multiply", "Divide"))
+                ),
+                column(4,
+                    numericInput("arith_val_output", "Value:", value = 0)
+                )
+                ),
+                fluidRow(
+                column(4,
+                    checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE)
+                ),
+                column(8,
+                        div(style = "text-align: right;", 
+                            actionButton("apply_arith_output", "Apply Transformation", 
+                                         style = "color: white; background-color: #007bff; border-color: #007bff;")
+                        )
+                )
+                )
+            ),
+            # Tab for interactions between columns
+            tabPanel("Column Interaction",
+                fluidRow(
+                column(4,
+                    selectInput("col1_output", "Column 1:", 
+                                choices = setdiff(colnames(simTableDat()), "Date"))
+                ),
+                column(4,
+                    selectInput("col2_output", "Column 2:", 
+                                choices = setdiff(colnames(simTableDat()), "Date"))
+                ),
+                column(4,
+                    selectInput("interaction_op_output", "Operation", 
+                                choices = c("Multiply", "Add", "Subtract", "Divide"))
+                )
+                ),
+                fluidRow(
+                column(4,
+                    checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = FALSE)
+                ),
+                column(8,
+                    actionButton("apply_interaction_output", "Apply Transformation")
+                )
+                )
+            )
+            )
+        ))
+        })
+
+        ## ---- Observers for Each Transformation ---- (I'm going to cry by the end of this)
+        ##                                             update: I'm crying but ig it works kinda
+
+        # NA Transformation
+      observeEvent(input$apply_na_output, {
+    req(outputData(), input$col_to_na_output)
+    df <- outputData()
+    cols <- input$col_to_na_output
+    lower_bound <- input$na_lower_output
+    upper_bound <- input$na_upper_output
+    
+    # Define the transformation function
+      na_transform <- function(data, col) {
+        new_values <- data[[col]]
+        if (!is.na(lower_bound) && !is.na(upper_bound)) {
+            new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
+        } else if (!is.na(lower_bound)) {
+            new_values[new_values >= lower_bound] <- NA
+        } else if (!is.na(upper_bound)) {
+            new_values[new_values <= upper_bound] <- NA
+        }
+        return(new_values)
+    }
+
+    # Apply the transformation to all selected columns
+    for (col in cols) {
+        df[[col]] <- na_transform(df, col)
+    }
+
+  if (isTRUE(input$na_keep_transformation)) {
+  for (col in cols) {
+    local({
+      currentCol <- col
+      outputTransforms$transforms[[currentCol]] <- function(data) na_transform(data, currentCol)
+      outputTransformsTracker$modifications[[currentCol]] <-
+        c(outputTransformsTracker$modifications[[currentCol]],
+          paste("Persistent NA transformation on", currentCol, "with lower =", lower_bound, "and upper =", upper_bound))
+    })
+  }
+} else {
+  for (col in cols) {
+    outputTransforms$transforms[[col]] <- NULL
+    outputTransformsTracker$modifications[[col]] <-
+      c(outputTransformsTracker$modifications[[col]],
+        paste("One-time NA transformation on", col, "with lower =", lower_bound, "and upper =", upper_bound))
+  }
+}
+
+    outputData(df)
+    showNotification(paste("Updated", paste(cols, collapse = ", "), "with NA transformation"))
+})
+
+        # Arithmetic Operation
+      observeEvent(input$apply_arith_output, {
+  req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
+  df <- outputData()
+  cols <- input$col_arith_output
+  op <- input$arith_op_output
+  val <- input$arith_val_output
+  
+  # Define the transformation function
+  arith_transform <- function(data, col) {
+        switch(op,
+            "Add"      = data[[col]] + val,
+            "Subtract" = data[[col]] - val,
+            "Multiply" = data[[col]] * val,
+            "Divide"   = {
+                if (val == 0) {
+                    showNotification("Division by zero not allowed", type = "error")
+                    return(data[[col]])  # Return original values if division by zero
+                } else {
+                    return(data[[col]] / val)
+                }
+            }
+        )
+    }
+  
+  # Always update the original column
+  #df[[col]] <- arith_transform(df)
+
+    for (col in cols) {
+        df[[col]] <- arith_transform(df, col)
+    }
+  
+    if (isTRUE(input$arith_keep_transformation)) {
+        for (col in cols) {
+            local({
+            # Store function for persistence
+            currentCol <- col
+            outputTransforms$transforms[[currentCol]] <- function(data) arith_transform(data, currentCol)
+            outputTransformsTracker$modifications[[currentCol]] <- 
+                c(outputTransformsTracker$modifications[[currentCol]], 
+                  paste(op, "operation persistent on", currentCol, "with value", val))
+            })
+        }
+    } else {
+        for (col in cols) {
+            # Do not store function (one-time transformation)
+            outputTransforms$transforms[[col]] <- NULL
+            outputTransformsTracker$modifications[[col]] <- 
+                c(outputTransformsTracker$modifications[[col]], 
+                  paste(op, "operation one-time on", col, "with value", val))
+        }
+    }
+  
+  
+    outputData(df)
+    showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
+})
+
+
+        # Column Interaction
+     observeEvent(input$apply_interaction_output, {
+  req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
+  df <- outputData()
+  col1 <- input$col1_output
+  col2 <- input$col2_output
+  op <- input$interaction_op_output
+  
+  # Define the transformation function for interaction
+  interaction_transform <- function(data) {
+    switch(op,
+      "Multiply" = data[[col1]] * data[[col2]],
+      "Add"      = data[[col1]] + data[[col2]],
+      "Subtract" = data[[col1]] - data[[col2]],
+      "Divide"   = {
+        res <- data[[col1]] / ifelse(data[[col2]] == 0, NA, data[[col2]])
+        if(any(data[[col2]] == 0, na.rm = TRUE)) {
+          showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
+        }
+        res
+      }
+    )
+  }
+  
+   df[[col1]] <- interaction_transform(df)
+  
+  if (isTRUE(input$interaction_keep_transformation)) {
+    outputTransforms$transforms[[col1]] <- interaction_transform
+    outputTransformsTracker$modifications[[col1]] <-
+      c(outputTransformsTracker$modifications[[col1]],
+        paste(op, "operation persistent on", col1, "with", col2))
+  } else {
+    outputTransforms$transforms[[col1]] <- NULL
+    outputTransformsTracker$modifications[[col1]] <-
+      c(outputTransformsTracker$modifications[[col1]],
+        paste(op, "operation one-time on", col1, "with", col2))
+  }
+  
+  outputData(df)
+  showNotification(paste("Applied", op, "operation between", col1, "and", col2))
+})
+
+
+        ## ---- Reset Transformations UI & Observer ----
+
+        observe({
+            req(outputData())
+            df <- outputData()
+            available_cols <- setdiff(names(df), "Date")
+            updatePickerInput(session,
+                                inputId = "exportCols",
+                                choices = available_cols,
+                                selected = character(0))
+        })
+
+        # Observer to reset modifications: this reverts columns back to the original simTableDat values.
+        observeEvent(input$resetOutputMods, {
+            req(outputData(), simTableDat())
+            colsToReset <- input$exportCols  # using the same pickerInput for reset
+            if (length(colsToReset) > 0) {
+                df_current <- outputData()
+                df_initial <- simTableDat()  # Original simulation output
+                for (col in colsToReset) {
+                if (col %in% names(outputTransforms$transforms)) {
+                    if (col %in% colnames(df_current) && col %in% colnames(df_initial)) {
+                    df_current[[col]] <- df_initial[[col]]
+                    }
+                    # Remove the stored transformation function and history log for this column
+                    outputTransforms$transforms[[col]] <- NULL
+                    outputTransformsTracker$modifications[[col]] <- NULL
+                } else {
+                    showNotification(paste("Column", col, "has not been modified."), type = "message")
+                }
+                }
+                outputData(df_current)
+                showNotification("Selected modification(s) have been reset", type = "message")
+            }
+        })
+
+  auto_multi_transform <- function(data) {
+    target_cols <- c("GPP", "TR", "NEE")
+    data %>% 
+        mutate(across(any_of(target_cols), ~ . * 1000))
+}
+
+observe({
+    req(simTableDat())
+    newData <- simTableDat()
+    
+    # Clear previous auto-multi transform if checkbox is unchecked
+    if (!isTRUE(input$autoMulti)) {
+        outputTransforms$transforms[["autoMulti"]] <- NULL
+    }
+    
+    # Apply all transformations in sequence
+    for (tranName in names(outputTransforms$transforms)) {
+        if (tranName == "autoMulti" && isTRUE(input$autoMulti)) {
+            # Apply to entire dataframe
+            newData <- outputTransforms$transforms[[tranName]](newData)
+        } else {
+            # Handle column-specific transformations
+            newData[[tranName]] <- outputTransforms$transforms[[tranName]](newData)
+        }
+    }
+    
+    if (!identical(newData, outputData())) {
+        outputData(newData)
+    }
+})
+
+observeEvent(input$autoMulti, {
+    if (isTRUE(input$autoMulti)) {
+        # Store transformation only when checked
+        outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
+        outputTransformsTracker$modifications[["autoMulti"]] <- "Auto-multiplied GPP, TR, NEE by 1000"
+    }
+})
+
+#observeEvent(simTableDat(), {
+#    req(simTableDat())
+#    outputData(simTableDat())
+#    outputTransforms$transforms <- list()  # Clear transformations on new data
+#    outputTransformsTracker$modifications <- list()
+#})
+
+
+        observeEvent(input$AppendSim, {
+            req(measurementData(), outputData(), input$exportCols)
+            
+            # Extract Date and the selected simulation columns from outputData()
+            sim_subset <- outputData()[, c("Date", input$exportCols), drop = FALSE]
+            
+            # If the checkbox is checked, rename the selected columns to add the "_sim" suffix
+            if (isTRUE(input$appendSimSuffix)) {
+                # Create new names for the selected columns
+                new_names <- paste0(input$exportCols, "_sim")
+                # Rename only the non-Date columns
+                names(sim_subset)[names(sim_subset) %in% input$exportCols] <- new_names
+            }
+            
+            # Get the current measurement data
+            meas_df <- measurementData()
+            
+            # Merge by "Date" (since both data frames have a Date column, left_join will not duplicate it)
+            new_meas_df <- dplyr::left_join(meas_df, sim_subset, by = "Date")
+            
+            # Update the measurement data reactive value
+            measurementData(new_meas_df)
+            
+            showNotification("Selected simulation columns appended to measurement data.", type = "message")
+        })
+
+
         
     ######## METRICS CALCULATION #########
 
-     simData <- reactive({
-            req(outputList$nextVal)  
-            result <- outputList$nextVal
-            dfs <- as.data.frame(result)
-            dfs$Date <- as.Date(rownames(result), format = "%d.%m.%Y")
-            dfs
-    })
+   #  simData <- reactive({
+   #         req(outputList$nextVal)  
+   #         result <- outputList$nextVal
+   #         dfs <- as.data.frame(result)
+   #         dfs$Date <- as.Date(rownames(result), format = "%d.%m.%Y")
+   #         dfs
+   # })
 
     metricsData <- reactive({
-        req(simData(), input$yearRange)  
+        req(outputData(), input$yearRange)  
         
         # Get measurement data (if any) and mapping
         meas_df <- measurementData()
@@ -2183,17 +2742,17 @@ tuneMusoServer <- function(input, output, session){
         # Filter measurement and simulation data to the selected years
         meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
         
-        sim_df <- simData()
+        sim_df <- outputData()
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
         # for the good rmse calc
         cols_to_modify <- c("GPP", "TR", "NEE")  
         existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
 
-        sim_df[existing_cols] <- sim_df[existing_cols] * 1000
+        #sim_df[existing_cols] <- sim_df[existing_cols] * 1000 # COMMENTED OUT BECAUSE OF THE NEW OUTPUT VARIABLE MANAGER
 
         # Merge the two datasets on Date (common columns get suffixes to avoid stinky bugs)
-        merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_sim"))
+        merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_simi"))
         
         # For each mapped measurement, calculate RMSE and correlation
         metrics_list <- lapply(names(mapping), function(meas_col) {
@@ -2211,8 +2770,8 @@ tuneMusoServer <- function(input, output, session){
             
             y_col <- if (output_var %in% colnames(merged_df)) {
             output_var
-            } else if (paste0(output_var, "_sim") %in% colnames(merged_df)) {
-            paste0(output_var, "_sim")
+            } else if (paste0(output_var, "_simi") %in% colnames(merged_df)) {
+            paste0(output_var, "_simi")
             } else {
             NULL
             }
@@ -2549,8 +3108,8 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.11</strong></p>
-                    <p>Current bugs/problems:</p>
+                    <p><strong>Version 2.12</strong></p>
+                    <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Potential issues in metrics calculation</li>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -2605,7 +3164,8 @@ observeEvent(input$close_info_overlay, {
 
                 
                 observe({
-                req(input$selected_vars, length(outputList$nextVal) != 0)
+                #req(input$selected_vars, length(outputList$nextVal) != 0)
+                req(input$selected_vars, outputData())
                 lapply(input$selected_vars, function(var) {
                     output[[paste0("plot_", var)]] <- renderPlotly({
                     # giving condition to check to avoid warning messages
@@ -2631,13 +3191,13 @@ observeEvent(input$close_info_overlay, {
                     filteredPrev <- if (length(outputList$prev) != 0) {
                         outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
                     } else NULL
-                    filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    
-                    # Apply scaling 
-                    if (var %in% c("GPP", "TR", "NEE")) {
-                        if (!is.null(filteredPrev)) filteredPrev[, var] <- filteredPrev[, var] * 1000
-                        filteredNext[, var] <- filteredNext[, var] * 1000
-                    }
+                    #filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+                    filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+                    # Apply scaling. COMMENTED OUT BECAUSE OF THE EDIT VARIABLES OPTION (for now)
+                    #if (var %in% c("GPP", "TR", "NEE")) {
+                    #    if (!is.null(filteredPrev)) filteredPrev[, var] <- filteredPrev[, var] * 1000
+                    #    filteredNext[, var] <- filteredNext[, var] * 1000
+                    #}
                     
                     
                     p <- plot_ly()
@@ -2834,7 +3394,7 @@ observeEvent(input$close_info_overlay, {
             })
         }
 
-        # Function to send user feedback to Google Sheets
+        # Function to send user feedback to google sheets
         send_feedback <- function(message) {
         url <- "https://script.google.com/macros/s/AKfycbyeApSnxnbQXB-m0Ziw24cdhZIK0pm8FBJFLCHC-OfO_ABOJwWlHy788FuKYDKYi_U7Ng/exec"
             tryCatch({
@@ -2866,7 +3426,7 @@ observeEvent(input$close_info_overlay, {
       notification_message <- get_remote_message()
     session$sendCustomMessage("checkNotification", notification_message)
         
-        # When the button is clicked, show a modal dialog with the notification message
+        
        observeEvent(input$show_notification, {
             showModal(modalDialog(
             title = "Notification",
@@ -2874,8 +3434,8 @@ observeEvent(input$close_info_overlay, {
             easyClose = TRUE,
             footer = modalButton("Close")
             ))
-            # Mark the notification as read by updating localStorage and removing the badge.
-            safe_message <- gsub("'", "\\\\'", notification_message)  # Escape single quotes.
+            # Mark the notification as read by updating localStorage and removing the badge (it actually works let's go!)
+            safe_message <- gsub("'", "\\\\'", notification_message)  # Escape single quotes
             runjs(sprintf("localStorage.setItem('last_notification', '%s'); $('#show_notification').removeClass('new-notification'); $('#badge').remove();", safe_message))
         })
         
