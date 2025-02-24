@@ -3111,7 +3111,6 @@ observeEvent(input$autoMulti, {
                     <p><strong>Version 2.12</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
-                        <li>Potential issues in metrics calculation</li>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
                         <li>Automatic update may not always work as intended, use hotkeys for running the model</li>
                         <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
