@@ -2176,7 +2176,7 @@ tuneMusoServer <- function(input, output, session){
         print("Model ran successfully")
         showNotification("Model ran successfully")
 
-        dfs_orig <- as.data.frame(result)  # 'result' is the simulation output matrix
+        dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
         # Detect the VWC columns from the original output:
         #vwc_cols <- grep("^VWC\\[", names(dfs_orig), value = TRUE)
         #print("Detected VWC columns:")
@@ -2235,7 +2235,7 @@ tuneMusoServer <- function(input, output, session){
       
         
         # Create a new data frame with a single Date column in front (Date objects display as "YYYY-mm-dd")
-        sim_df <- data.frame(Date = sim_dates, dfs, stringsAsFactors = FALSE)
+        sim_df <- data.frame(Date = sim_dates, dfs, stringsAsFactors = FALSE, check.names = FALSE)
         sim_df
     })
 
@@ -2270,52 +2270,52 @@ tuneMusoServer <- function(input, output, session){
 
     })
 
-       output$exportDataSim <- downloadHandler(
-  filename = function() {
-    paste("tuneMusoExport_simData-", Sys.Date(), ".csv", sep = "")
-  },
-  content = function(file) {
-    # Make a copy for export
-    export_df <- outputData()
-    
-    # Create Year, Month, and Day columns from the Date column 
-    # (so we have the same file format required for our measurement inputs)
-    export_df$Year  <- format(export_df$Date, "%Y")
-    export_df$Month <- format(export_df$Date, "%m")
-    export_df$Day   <- format(export_df$Date, "%d")
-    
-  
-    
-    # Rearrange columns so that Year, Month, and Day come first
-    # Remove the original Date column because we already have Year/Month/Day
-    other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
-    export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
-    
-        # If the user has selected specific columns to export, subset accordingly.
-    # Assume input$exportCols returns a character vector of column names.
-        if (!is.null(input$exportCols) && length(input$exportCols) > 0) {
-        # Get only the columns that exist in export_df
-        valid_cols <- intersect(input$exportCols, names(export_df))
-        # Always include the date columns
-        valid_cols <- unique(c("Year", "Month", "Day", valid_cols))
-        export_df <- export_df[, valid_cols, drop = FALSE]
-        }
-    # If the user requested the "_sim" suffix, append it to non-date columns
-    if (isTRUE(input$appendSimSuffix)) {
-      # Here, "other_cols" are all columns except Year, Month, Day.
-      names(export_df)[names(export_df) %in% other_cols] <-
-        paste0(names(export_df)[names(export_df) %in% other_cols], "_sim")
-    }
-    
+    output$exportDataSim <- downloadHandler(
+        filename = function() {
+            paste("tuneMusoExport_simData-", Sys.Date(), ".csv", sep = "")
+        },
+        content = function(file) {
+            # Make a copy for export
+            export_df <- outputData()
+            
+            # Create Year, Month, and Day columns from the Date column 
+            # (so we have the same file format required for our measurement inputs)
+            export_df$Year  <- format(export_df$Date, "%Y")
+            export_df$Month <- format(export_df$Date, "%m")
+            export_df$Day   <- format(export_df$Date, "%d")
+            
+        
+            
+            # Rearrange columns so that Year, Month, and Day come first
+           
+            other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
+            export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
+            
+                # If the user has selected specific columns to export, subset accordingly
+           
+                if (!is.null(input$exportCols) && length(input$exportCols) > 0) {
+                # Get only the columns that exist in export_df
+                valid_cols <- intersect(input$exportCols, names(export_df))
+                # Always include the date columns
+                valid_cols <- unique(c("Year", "Month", "Day", valid_cols))
+                export_df <- export_df[, valid_cols, drop = FALSE]
+                }
+            # If the user requested the "_sim" suffix, append it to non-date columns
+            if (isTRUE(input$appendSimSuffix)) {
+            # Here, "other_cols" are all columns except Year, Month, Day
+            names(export_df)[names(export_df) %in% other_cols] <-
+                paste0(names(export_df)[names(export_df) %in% other_cols], "_sim")
+            }
+            
 
-    
-    # Replace NA values with -9999 for export (so they don't appear as empty cells)
-    export_df[is.na(export_df)] <- -9999
-    
-    # Write the CSV file (here using space as a separator; adjust if needed)
-    fwrite(export_df, file, row.names = FALSE, sep = " ")
-  }
-)
+            
+            # Replace NA values with -9999 for export (so they don't appear as empty cells)
+            export_df[is.na(export_df)] <- -9999
+            
+           
+            fwrite(export_df, file, row.names = FALSE, sep = " ")
+        }
+    )
 
         observe({
             req(simTableDat())
@@ -2442,154 +2442,154 @@ tuneMusoServer <- function(input, output, session){
         ##                                             update: I'm crying but ig it works kinda
 
         # NA Transformation
-      observeEvent(input$apply_na_output, {
-    req(outputData(), input$col_to_na_output)
-    df <- outputData()
-    cols <- input$col_to_na_output
-    lower_bound <- input$na_lower_output
-    upper_bound <- input$na_upper_output
-    
-    # Define the transformation function
-      na_transform <- function(data, col) {
-        new_values <- data[[col]]
-        if (!is.na(lower_bound) && !is.na(upper_bound)) {
-            new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
-        } else if (!is.na(lower_bound)) {
-            new_values[new_values >= lower_bound] <- NA
-        } else if (!is.na(upper_bound)) {
-            new_values[new_values <= upper_bound] <- NA
-        }
-        return(new_values)
-    }
+        observeEvent(input$apply_na_output, {
+            req(outputData(), input$col_to_na_output)
+            df <- outputData()
+            cols <- input$col_to_na_output
+            lower_bound <- input$na_lower_output
+            upper_bound <- input$na_upper_output
+            
+            # Define the transformation function
+            na_transform <- function(data, col) {
+                new_values <- data[[col]]
+                if (!is.na(lower_bound) && !is.na(upper_bound)) {
+                    new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
+                } else if (!is.na(lower_bound)) {
+                    new_values[new_values >= lower_bound] <- NA
+                } else if (!is.na(upper_bound)) {
+                    new_values[new_values <= upper_bound] <- NA
+                }
+                return(new_values)
+            }
 
-    # Apply the transformation to all selected columns
-    for (col in cols) {
-        df[[col]] <- na_transform(df, col)
-    }
+            # Apply the transformation to all selected columns
+            for (col in cols) {
+                df[[col]] <- na_transform(df, col)
+            }
 
-  if (isTRUE(input$na_keep_transformation)) {
-  for (col in cols) {
-    local({
-      currentCol <- col
-      outputTransforms$transforms[[currentCol]] <- function(data) na_transform(data, currentCol)
-      outputTransformsTracker$modifications[[currentCol]] <-
-        c(outputTransformsTracker$modifications[[currentCol]],
-          paste("Persistent NA transformation on", currentCol, "with lower =", lower_bound, "and upper =", upper_bound))
-    })
-  }
-} else {
-  for (col in cols) {
-    outputTransforms$transforms[[col]] <- NULL
-    outputTransformsTracker$modifications[[col]] <-
-      c(outputTransformsTracker$modifications[[col]],
-        paste("One-time NA transformation on", col, "with lower =", lower_bound, "and upper =", upper_bound))
-  }
-}
+            if (isTRUE(input$na_keep_transformation)) {
+            for (col in cols) {
+                local({
+                currentCol <- col
+                outputTransforms$transforms[[currentCol]] <- function(data) na_transform(data, currentCol)
+                outputTransformsTracker$modifications[[currentCol]] <-
+                    c(outputTransformsTracker$modifications[[currentCol]],
+                    paste("Persistent NA transformation on", currentCol, "with lower =", lower_bound, "and upper =", upper_bound))
+                })
+            }
+            } else {
+            for (col in cols) {
+                outputTransforms$transforms[[col]] <- NULL
+                outputTransformsTracker$modifications[[col]] <-
+                c(outputTransformsTracker$modifications[[col]],
+                    paste("One-time NA transformation on", col, "with lower =", lower_bound, "and upper =", upper_bound))
+            }
+            }
 
-    outputData(df)
-    showNotification(paste("Updated", paste(cols, collapse = ", "), "with NA transformation"))
-})
+                outputData(df)
+                showNotification(paste("Updated", paste(cols, collapse = ", "), "with NA transformation"))
+        })
 
         # Arithmetic Operation
-      observeEvent(input$apply_arith_output, {
-  req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
-  df <- outputData()
-  cols <- input$col_arith_output
-  op <- input$arith_op_output
-  val <- input$arith_val_output
-  
-  # Define the transformation function
-  arith_transform <- function(data, col) {
-        switch(op,
-            "Add"      = data[[col]] + val,
-            "Subtract" = data[[col]] - val,
-            "Multiply" = data[[col]] * val,
-            "Divide"   = {
-                if (val == 0) {
-                    showNotification("Division by zero not allowed", type = "error")
-                    return(data[[col]])  # Return original values if division by zero
-                } else {
-                    return(data[[col]] / val)
+        observeEvent(input$apply_arith_output, {
+            req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
+            df <- outputData()
+            cols <- input$col_arith_output
+            op <- input$arith_op_output
+            val <- input$arith_val_output
+            
+            # Define the transformation function
+            arith_transform <- function(data, col) {
+                    switch(op,
+                        "Add"      = data[[col]] + val,
+                        "Subtract" = data[[col]] - val,
+                        "Multiply" = data[[col]] * val,
+                        "Divide"   = {
+                            if (val == 0) {
+                                showNotification("Division by zero not allowed", type = "error")
+                                return(data[[col]])  # Return original values if division by zero
+                            } else {
+                                return(data[[col]] / val)
+                            }
+                        }
+                    )
                 }
-            }
-        )
-    }
-  
-  # Always update the original column
-  #df[[col]] <- arith_transform(df)
+            
+            # Always update the original column
+            #df[[col]] <- arith_transform(df)
 
-    for (col in cols) {
-        df[[col]] <- arith_transform(df, col)
-    }
-  
-    if (isTRUE(input$arith_keep_transformation)) {
-        for (col in cols) {
-            local({
-            # Store function for persistence
-            currentCol <- col
-            outputTransforms$transforms[[currentCol]] <- function(data) arith_transform(data, currentCol)
-            outputTransformsTracker$modifications[[currentCol]] <- 
-                c(outputTransformsTracker$modifications[[currentCol]], 
-                  paste(op, "operation persistent on", currentCol, "with value", val))
-            })
-        }
-    } else {
-        for (col in cols) {
-            # Do not store function (one-time transformation)
-            outputTransforms$transforms[[col]] <- NULL
-            outputTransformsTracker$modifications[[col]] <- 
-                c(outputTransformsTracker$modifications[[col]], 
-                  paste(op, "operation one-time on", col, "with value", val))
-        }
-    }
-  
-  
-    outputData(df)
-    showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
-})
+                for (col in cols) {
+                    df[[col]] <- arith_transform(df, col)
+                }
+            
+                if (isTRUE(input$arith_keep_transformation)) {
+                    for (col in cols) {
+                        local({
+                        # Store function for persistence
+                        currentCol <- col
+                        outputTransforms$transforms[[currentCol]] <- function(data) arith_transform(data, currentCol)
+                        outputTransformsTracker$modifications[[currentCol]] <- 
+                            c(outputTransformsTracker$modifications[[currentCol]], 
+                            paste(op, "operation persistent on", currentCol, "with value", val))
+                        })
+                    }
+                } else {
+                    for (col in cols) {
+                        # Do not store function (one-time transformation)
+                        outputTransforms$transforms[[col]] <- NULL
+                        outputTransformsTracker$modifications[[col]] <- 
+                            c(outputTransformsTracker$modifications[[col]], 
+                            paste(op, "operation one-time on", col, "with value", val))
+                    }
+                }
+            
+        
+            outputData(df)
+            showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
+        })
 
 
         # Column Interaction
-     observeEvent(input$apply_interaction_output, {
-  req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
-  df <- outputData()
-  col1 <- input$col1_output
-  col2 <- input$col2_output
-  op <- input$interaction_op_output
-  
-  # Define the transformation function for interaction
-  interaction_transform <- function(data) {
-    switch(op,
-      "Multiply" = data[[col1]] * data[[col2]],
-      "Add"      = data[[col1]] + data[[col2]],
-      "Subtract" = data[[col1]] - data[[col2]],
-      "Divide"   = {
-        res <- data[[col1]] / ifelse(data[[col2]] == 0, NA, data[[col2]])
-        if(any(data[[col2]] == 0, na.rm = TRUE)) {
-          showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
-        }
-        res
-      }
-    )
-  }
-  
-   df[[col1]] <- interaction_transform(df)
-  
-  if (isTRUE(input$interaction_keep_transformation)) {
-    outputTransforms$transforms[[col1]] <- interaction_transform
-    outputTransformsTracker$modifications[[col1]] <-
-      c(outputTransformsTracker$modifications[[col1]],
-        paste(op, "operation persistent on", col1, "with", col2))
-  } else {
-    outputTransforms$transforms[[col1]] <- NULL
-    outputTransformsTracker$modifications[[col1]] <-
-      c(outputTransformsTracker$modifications[[col1]],
-        paste(op, "operation one-time on", col1, "with", col2))
-  }
-  
-  outputData(df)
-  showNotification(paste("Applied", op, "operation between", col1, "and", col2))
-})
+        observeEvent(input$apply_interaction_output, {
+            req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
+            df <- outputData()
+            col1 <- input$col1_output
+            col2 <- input$col2_output
+            op <- input$interaction_op_output
+            
+            # Define the transformation function for interaction
+            interaction_transform <- function(data) {
+                switch(op,
+                "Multiply" = data[[col1]] * data[[col2]],
+                "Add"      = data[[col1]] + data[[col2]],
+                "Subtract" = data[[col1]] - data[[col2]],
+                "Divide"   = {
+                    res <- data[[col1]] / ifelse(data[[col2]] == 0, NA, data[[col2]])
+                    if(any(data[[col2]] == 0, na.rm = TRUE)) {
+                    showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
+                    }
+                    res
+                }
+                )
+            }
+            
+            df[[col1]] <- interaction_transform(df)
+            
+            if (isTRUE(input$interaction_keep_transformation)) {
+                outputTransforms$transforms[[col1]] <- interaction_transform
+                outputTransformsTracker$modifications[[col1]] <-
+                c(outputTransformsTracker$modifications[[col1]],
+                    paste(op, "operation persistent on", col1, "with", col2))
+            } else {
+                outputTransforms$transforms[[col1]] <- NULL
+                outputTransformsTracker$modifications[[col1]] <-
+                c(outputTransformsTracker$modifications[[col1]],
+                    paste(op, "operation one-time on", col1, "with", col2))
+            }
+            
+            outputData(df)
+            showNotification(paste("Applied", op, "operation between", col1, "and", col2))
+        })
 
 
         ## ---- Reset Transformations UI & Observer ----
@@ -2628,44 +2628,44 @@ tuneMusoServer <- function(input, output, session){
             }
         })
 
-  auto_multi_transform <- function(data) {
-    target_cols <- c("GPP", "TR", "NEE")
-    data %>% 
-        mutate(across(any_of(target_cols), ~ . * 1000))
-}
-
-observe({
-    req(simTableDat())
-    newData <- simTableDat()
-    
-    # Clear previous auto-multi transform if checkbox is unchecked
-    if (!isTRUE(input$autoMulti)) {
-        outputTransforms$transforms[["autoMulti"]] <- NULL
-    }
-    
-    # Apply all transformations in sequence
-    for (tranName in names(outputTransforms$transforms)) {
-        if (tranName == "autoMulti" && isTRUE(input$autoMulti)) {
-            # Apply to entire dataframe
-            newData <- outputTransforms$transforms[[tranName]](newData)
-        } else {
-            # Handle column-specific transformations
-            newData[[tranName]] <- outputTransforms$transforms[[tranName]](newData)
+        auto_multi_transform <- function(data) {
+            target_cols <- c("GPP", "TR", "NEE")
+            data %>% 
+                mutate(across(any_of(target_cols), ~ . * 1000))
         }
-    }
-    
-    if (!identical(newData, outputData())) {
-        outputData(newData)
-    }
-})
 
-observeEvent(input$autoMulti, {
-    if (isTRUE(input$autoMulti)) {
-        # Store transformation only when checked
-        outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
-        outputTransformsTracker$modifications[["autoMulti"]] <- "Auto-multiplied GPP, TR, NEE by 1000"
-    }
-})
+        observe({
+            req(simTableDat())
+            newData <- simTableDat()
+            
+            # Clear previous auto-multi transform if checkbox is unchecked
+            if (!isTRUE(input$autoMulti)) {
+                outputTransforms$transforms[["autoMulti"]] <- NULL
+            }
+            
+            # Apply all transformations in sequence
+            for (tranName in names(outputTransforms$transforms)) {
+                if (tranName == "autoMulti" && isTRUE(input$autoMulti)) {
+                    # Apply to entire dataframe
+                    newData <- outputTransforms$transforms[[tranName]](newData)
+                } else {
+                    # Handle column-specific transformations
+                    newData[[tranName]] <- outputTransforms$transforms[[tranName]](newData)
+                }
+            }
+            
+            if (!identical(newData, outputData())) {
+                outputData(newData)
+            }
+        })
+
+        observeEvent(input$autoMulti, {
+            if (isTRUE(input$autoMulti)) {
+                # Store transformation only when checked
+                outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
+                outputTransformsTracker$modifications[["autoMulti"]] <- "Auto-multiplied GPP, TR, NEE by 1000"
+            }
+        })
 
 #observeEvent(simTableDat(), {
 #    req(simTableDat())
@@ -2751,7 +2751,7 @@ observeEvent(input$autoMulti, {
 
         #sim_df[existing_cols] <- sim_df[existing_cols] * 1000 # COMMENTED OUT BECAUSE OF THE NEW OUTPUT VARIABLE MANAGER
 
-        # Merge the two datasets on Date (common columns get suffixes to avoid stinky bugs)
+        # Merge the two datasets on Date (columns get suffixes to avoid stinky bugs)
         merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_simi"))
         
         # For each mapped measurement, calculate RMSE and correlation
@@ -2791,7 +2791,7 @@ observeEvent(input$autoMulti, {
             } else {
             rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
             bias_val <- mean(x[valid] - y[valid])
-            corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid])^2 else NA
+            corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid])^2 else NA  #R2
             }
             
             data.frame(
@@ -3108,7 +3108,7 @@ observeEvent(input$autoMulti, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.12.2</strong></p>
+                    <p><strong>Version 2.12.3</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
