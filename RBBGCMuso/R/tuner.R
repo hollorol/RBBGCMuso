@@ -2790,7 +2790,7 @@ tuneMusoServer <- function(input, output, session){
             corr_val <- NA
             } else {
             rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
-            bias_val <- mean(x[valid] - y[valid])
+            bias_val <- mean(y[valid] - x[valid])
             corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid])^2 else NA  #R2
             }
             

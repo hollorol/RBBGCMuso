@@ -12,10 +12,10 @@
 #' @param aggressive It deletes every possible modell-outputs from the previous modell runs.
 #' @param parameters In the settings variable you have set the row indexes of the variables, you wish to change. In this parameter you can give an exact value for them in a vector like: c(1,2,3,4)
 #' @param logfilename If you want to set a specific name for your logfiles you can set this via logfile parameter
-#' @param leapYear  Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.
+#' @param leapYearHandling  Should the function do a leapyear correction on the outputdata? If TRUE, then the dec 31 is removed for every leap year 
 #' @param keepBinary In default RBBGCMuso to keep  working area as clean as possible, deletes all the regular output files. The results are directly printed to the standard output, but you can redirect it, and save it to a variable, or you can export your results to the desired destination in a desired format. Whith this variable you can enable to keep the binary output files. If you want to set the location of the binary output, please take a look at the binaryPlace argument.
 #' @param binaryPlace The place of the binary output files.
-#' @param fileToChange You can change any line of the epc or the ini file, you just have to specify with this variable which file you want to change. Two options possible: "epc", "ini"
+#' @param fileToChange You can change any line of the epc, soil or the ini file, you just have to specify with this variable which file you want to change. Three options possible: "epc", "ini", "soil"
 #' @param skipSpinup If TRUE, calibMuso wont do spinup simulation
 #' @param prettyOut date ad Date type, separate year, month, day vectors
 #' @return No return, outputs are written to file 
@@ -31,7 +31,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       silent=FALSE, aggressive=FALSE,
                       keepBinary=FALSE,
                       binaryPlace = "./", fileToChange = "epc",
-                      skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE,
+                      skipSpinup = TRUE, modifyOriginal = FALSE, prettyOut = FALSE, leapYearHandling = TRUE,
                       postProcString = NULL,
                       doBackup=TRUE,
                       backupDir="bck",
@@ -361,22 +361,24 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 
     #print("ROGER 7.5")
 
-    if(timee=="d"){
-        if(!prettyOut){
-            colnames(Reva) <- unlist(settings$outputVars[[1]])
-        } else{
-            Reva <- cbind.data.frame(
-                musoDate(startYear = settings$startYear,
-                         numYears = settings$numYears,
-                         combined = FALSE, prettyOut = TRUE),
-                Reva)
-            colnames(Reva) <- as.character(c("date","day","month","year",unlist(settings$outputVars[[1]])) )
-            
-        }
-    } else {
-        if(timee=="y")
+        if (timee == "d") {
+            if (!prettyOut) {
+                colnames(Reva) <- unlist(settings$outputVars[[1]])
+            } else {
+                Reva <- cbind.data.frame(
+                    musoDate(startYear = settings$startYear,
+                            numYears  = settings$numYears,
+                            combined  = FALSE,
+                            prettyOut = TRUE,
+                            leapYearHandling = leapYearHandling),
+                    Reva)
+                colnames(Reva) <- c("date", "day", "month", "year", 
+                                    unlist(settings$outputVars[[1]]))
+            }
+        } else if (timee == "y") {
             colnames(Reva) <- unlist(settings$outputVars[[2]])
-    }
+        }
+
 
     if(!is.null(postProcString)){
         Reva <- postProcMuso(Reva,postProcString)
@@ -397,9 +399,14 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         
     ## }
     
-    if(!prettyOut){
-        rownames(Reva) <- musoDate(settings$startYear, numYears = settings$numYears)
-   }
+    if (!prettyOut) {
+        # Assigning row names directly from musoDate
+        rownames(Reva) <- musoDate(startYear = settings$startYear,
+                                    numYears  = settings$numYears,
+                                    combined  = TRUE,
+                                    prettyOut = FALSE,
+                                    leapYearHandling = leapYearHandling)
+    }
 
     
     if(export!=FALSE){

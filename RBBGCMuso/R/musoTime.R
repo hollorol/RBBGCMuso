@@ -11,49 +11,45 @@
 #' @importFrom lubridate leap_year
 #' @export
 
-musoDate <- function(startYear, endYears = NULL, numYears, combined = TRUE, leapYearHandling = FALSE, prettyOut = FALSE){
-
-    if(is.null(endYears) & is.null(numYears)){
+musoDate <- function(startYear, endYears = NULL, numYears, 
+                      combined = TRUE, leapYearHandling = FALSE, prettyOut = FALSE) {
+    if (is.null(endYears) & is.null(numYears)) {
         stop("You should provide endYears or numYears")
     }
     
-    if(is.null(endYears)){
-        endYear <- startYear + numYears -1
-    }
-    
-    dates <- seq(from = as.Date(paste0(startYear,"01","01"),format = "%Y%m%d"), to =  as.Date(paste0(endYear,"12","31"),format = "%Y%m%d"), by = "day")
-    if(leapYearHandling){
-        if(prettyOut){
-            return(cbind(format(dates,"%d.%m.%Y"),
-                         as.numeric(format(dates,"%d")),
-                         as.numeric(format(dates,"%m")),
-                         as.numeric(format(dates,"%Y")))   )
-        }
-        
-        if(combined == FALSE){
-            return(cbind(format(dates,"%d"),format(dates,"%m"),format(dates,"%Y")))
-        } else {
-            return(format(dates,"%d.%m.%Y"))            
-        }
-
+    if (is.null(endYears)) {
+        endYear <- startYear + numYears - 1
     } else {
-         dates <- dates[format(dates,"%m%d")!="0229"]
-        if(prettyOut){
-            return(data.frame(date = format(dates,"%d.%m.%Y"),
-                              day = as.numeric(format(dates,"%d")),
-                              month = as.numeric(format(dates,"%m")),
-                              year = as.numeric(format(dates,"%Y"))))
-        }
-       
-
-        if(combined == FALSE){
-            return(cbind(format(dates,"%d"),format(dates,"%m"),format(dates,"%Y")))
-        } else {
-            return(format(dates,"%d.%m.%Y"))            
-        }
+        endYear <- endYears
     }
     
+    # Building full sequence of dates
+    dates <- seq(from = as.Date(paste0(startYear, "-01-01")),
+                 to   = as.Date(paste0(endYear, "-12-31")),
+                 by   = "day")
+    
+    if (leapYearHandling) {
+        # For each leap year, remove December 31
+        years <- as.numeric(format(dates, "%Y"))
+        isLeap <- ((years %% 4 == 0 & years %% 100 != 0) | (years %% 400 == 0))
+        dates <- dates[!(isLeap & format(dates, "%m-%d") == "12-31")]
+    } else {
+        # Otherwise, remove Feb 29
+        dates <- dates[format(dates, "%m-%d") != "02-29"]
+    }
+    
+    if (prettyOut) {
+        return(data.frame(date  = format(dates, "%d.%m.%Y"),
+                          day   = as.numeric(format(dates, "%d")),
+                          month = as.numeric(format(dates, "%m")),
+                          year  = as.numeric(format(dates, "%Y"))))
+    } else if (!combined) {
+        return(cbind(format(dates, "%d"), format(dates, "%m"), format(dates, "%Y")))
+    } else {
+        return(format(dates, "%d.%m.%Y"))
+    }
 }
+
 #' alignData
 #'
 #' This function align the data to the model and the model to the data
