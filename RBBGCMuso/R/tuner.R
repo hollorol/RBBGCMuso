@@ -165,6 +165,18 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         });
     "
 
+    ToggleEpcSoil <- "
+      Shiny.addCustomMessageHandler('setSwitchState', function(message) {
+      if(message.switched){
+        $('#switch_mode').addClass('switched');
+      } else {
+        $('#switch_mode').removeClass('switched');
+      }
+    });
+    "
+
+
+
  fluidPage(
   useShinyjs(),
   tags$head(tags$style(HTML("
@@ -225,20 +237,25 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           vertical-align: top;
       }
 
+    .dependentSliderContainer {
+    display: flex;
+    flex-wrap: wrap;
+    /* Optionally remove whitespace issues by setting font-size: 0 if needed */
+    font-size: 0;
+    }
       /* Dependent sliders layout */
       .dependentSliderContainer .slider-col {
-          display: inline-block;
-          vertical-align: top;
-          width: 48%;
-          margin-right: 4%;
-          box-sizing: border-box;
+           font-size: 14px; /* Reset font-size for children */
+    width: 48%;
+    margin-right: 4%;
+    box-sizing: border-box;
       }
       .dependentSliderContainer.expanded .slider-col {
           width: 23%;
-          margin-right: 2%;
+          margin-right: 1%;
       }
       .dependentSliderContainer .slider-col:nth-child(2n) {
-          margin-right: 0;
+          margin-right: 0%;
       }
       .dependentSliderContainer.expanded .slider-col:nth-child(4n) {
           margin-right: 0;
@@ -369,6 +386,39 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       z-index: 12000 !important;
     }
 
+    .switch-container {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+      overflow: visible;
+    }
+    .switch-icon {
+      position: absolute;
+      transition: transform 0.5s ease-in-out;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .green-up {
+      color: green;
+      top: 0; left: 0;
+    }
+    .brown-down {
+      color: brown;
+      top: 0; left: 20px;
+    }
+
+    /* Default (not switched) state */
+    .green-up { transform: translateX(0) rotate(0deg); }
+    .brown-down { transform: translateX(0) rotate(0deg); }
+
+    /* Toggled (switched) state: arrows swap places & rotate 180 */
+    #switch_mode.switched .green-up {
+      transform: translateX(20px) rotate(180deg);
+    }
+    #switch_mode.switched .brown-down {
+      transform: translateX(-20px) rotate(180deg);
+    }
   "))),
     
     # year slider for the hover area
@@ -377,7 +427,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -462,12 +512,35 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                            uiOutput("yearRangeUI")
                                        )
                                    ),
-                                   uiOutput("selectEPC"),
+                                    div(
+                                        style = "display: flex; align-items: center; gap: 10px;",
+                                            div(
+                                                style = "width: 300px;",  
+                                                uiOutput("selectEPC")
+                                            ),
+                                            div(
+                                                style = "margin-top: 9.5px;",
+                                                title = "Switch between EPC and Soil Sliders",
+                                                actionButton(
+                                                    "switch_mode",
+                                                    label = tags$span(
+                                                    class = "switch-container",
+                                                    icon("arrow-up",   class = "switch-icon green-up"),
+                                                    icon("arrow-down", class = "switch-icon brown-down")
+                                                    ),
+                                                    style = "border: none; background: none; padding: 0;"
+                                                )
+
+                                            )
+                                    ),
                                    # Reset buttons
                                    tags$div(
                                        style = "display: flex; align-items: center; gap: 10px;", 
                                        actionButton("resetParams", "Reset to originals"),
-                                       checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                                       div(
+                                        style = "margin-top: 6px;",
+                                        checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                                       )
                                    ),
                                    tags$div(id = "controlp",
                                             tags$div(id = "slider-container", uiOutput("param_sliders"))
@@ -583,6 +656,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 )
 }
 
+
 #' tuneMusoServer 
 #' 
 #' Server program for tumeMuso
@@ -609,9 +683,31 @@ tuneMusoServer <- function(input, output, session){
 
     
     settings <- setupMuso()
+
+    soilValues <- reactiveValues(values = NULL)
+   
+
     #epcIni <- settings$epcInput[2]
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
+
+
+     observe({
+        req(settings$iniInput[2])
+        iniContent <- readLines(settings$iniInput[2])
+        sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
+        if(!is.null(sf) && file.exists(sf)) {
+            soil_file(sf)
+            # message("Shiny is actually using soil_file() = '", soil_file(), "'")
+              lines <- readLines(soil_file())
+            #message("It has ", length(lines), " lines. For line #4: ", lines[4])
+        } else {
+            showNotification("Soil file not found in INI or file missing", type="error")
+        }
+    })
+
+
+
 
     # This is going to be ugly but calculating the woody_flag within the observer below and making it reactive is actually hard to deal with when we process the parameters.csv
     if (file.exists(settings$iniInput[2])) {
@@ -777,7 +873,46 @@ tuneMusoServer <- function(input, output, session){
         }
         }
 
-  
+        
+       
+        soil_file <- reactiveVal(NULL)
+        soil_parameters <- reactiveVal(NULL)
+
+        observe({
+            req(settings$iniInput[2])
+            iniContent <- readLines(settings$iniInput[2])
+            sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
+            soil_file(sf)
+            
+            req(file.exists("parameters_soil.csv"))
+                sp <- read.csv("parameters_soil.csv", stringsAsFactors=FALSE)
+                soil_parameters(sp)
+                #print(soil_parameters()[,2])
+        })
+
+
+          observeEvent(soil_parameters(), {
+            # Fetch defaults only once
+            req(soil_file(), soil_parameters())
+            defaults <- musoGetValues(soil_file(), soil_parameters()[, 2])
+            soilValues$values <- defaults
+        }, once = TRUE)  
+        
+
+        #observe({
+        #    req(soil_parameters())
+        #    cat("soil_parameters() has", nrow(soil_parameters()), "rows and columns named:",
+        #        paste(colnames(soil_parameters()), collapse=", "), "\n\n")
+        #    print(soil_parameters())
+        #    })
+
+        currentMode <- reactiveVal("epc")
+        #observeEvent(input$switch_mode, {
+        #    
+            
+        #    print(paste0("Initital mode: ", currentMode()))
+        #})
+
 
      dailyOutputNames <- reactiveVal(settings$dailyOutputTable$name)
 
@@ -1199,15 +1334,35 @@ tuneMusoServer <- function(input, output, session){
 
         #ui for epc selection
         output$selectEPC <- renderUI({
+        if(currentMode() == "epc") {
         req(length(rv$epc_files) > 0)  
 
         selectInput(
             "selected_epc",
-            "Select EPC File",
+            tags$span("Select EPC File", style = "color: green; font-weight: bold;"),
             choices = setNames(rv$epc_files, rv$epc_labels),
-            selected = rv$epc_files[1]
+            selected = rv$epc_files[1],
+            width = "100%"
         )
+        }
+        else {
+            selectInput(
+                "selected_soil", 
+                tags$span("Soil File", style = "color: brown; font-weight: bold;"),
+                choices = list(basename(soil_file())),
+                selected = basename(soil_file()),
+                width = "100%"
+                ) #%>% shiny::tagAppendAttributes(disabled = "disabled")
+        }
         })
+
+   output$soilFileName <- renderText({
+    req(soil_file())
+    if(is.null(soil_file()) || !file.exists(soil_file())) {
+        return("No soil file found")
+    }
+    basename(soil_file())
+})
 
     
     outputList <- reactiveValues(prev = character(0), nextVal = character(0))
@@ -1240,8 +1395,24 @@ tuneMusoServer <- function(input, output, session){
         }
         })
 
+    InitialDefaultsSoil <- reactiveValues(values = NULL)
+    observe({
+    req(soil_file())
+    if(is.null(InitialDefaultsSoil$values)){
+
+     InitialDefaultsSoil$values <- musoGetValues(soil_file(), soil_parameters()[, 2])
+    #message("testVals length: ", length(InitialDefaultsSoil$values))
+    }
+    })
+
+
+    #soilDefaultValues <- reactive({
+    #    musoGetValues(soil_file(), soil_parameters()[, 2])
+    #})
+
     # Reset the sliders to the default values for the selected EPC
-    observeEvent(input$resetParams, { 
+      observeEvent(input$resetParams, { 
+        if(currentMode() == "epc"){
         req(input$selected_epc)
         epc <- input$selected_epc
         defaults <- InitialDefaults[[epc]]
@@ -1256,8 +1427,19 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
             }
         }
-        #print(paste0("Reset sliders to initials for ", epc))
         showNotification(paste0("Sliders reset to initials for: ", epc), type = "message")
+        }
+        else {
+          req(soil_parameters())
+        soilValues$values <- InitialDefaultsSoil$values
+        
+        lapply(1:nrow(soil_parameters()), function(i) {
+            updateSliderInput(session, paste0("soil_param_", i), 
+                            value = InitialDefaultsSoil$values)
+        })
+        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message")
+       
+        }
     })
 
 
@@ -1305,6 +1487,17 @@ tuneMusoServer <- function(input, output, session){
                            cat(paste0("Restored ", epc, " to original values.\n"))
                     }
                 }
+               
+               cat("Restoring SOIL file to original...\n")
+                #if(currentMode() == "soil") {
+                    paramVal <- InitialDefaultsSoil$values
+                    changeMuso(settings, paramVal, 
+                     calibrationPar = soil_parameters()[,2],
+                     fileToChange = "soil", fixAlloc = FALSE)
+                #}  
+                cat(paste0("Restored ", soil_file(), " to original values.\n"))
+
+
             })
         }
     })
@@ -1392,11 +1585,9 @@ tuneMusoServer <- function(input, output, session){
 
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
+            if(currentMode() == "epc"){
             req(input$selected_epc)
-            
-
-
-
+        
             vals <- currentValues()
 
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
@@ -1431,6 +1622,7 @@ tuneMusoServer <- function(input, output, session){
                 slider_id <- paste0("dep_", parameters$INDEX[i])
                 lock_btn_id <- paste0("lock_", parameters$INDEX[i])
                 div(
+                    #style = "width: 300px;",
                     sliderInput(
                     inputId = slider_id,
                     label   = parameters$ABREVIATION[i],
@@ -1477,7 +1669,93 @@ tuneMusoServer <- function(input, output, session){
                 div(id = "standardSliders", class = if (!is.null(input$plotHidden) && input$plotHidden) "expanded" else "", standard_sliders),
                 dependent_sliders
             )
+           
+            }
+            else {
+            req(currentMode() == "soil")
+            req(soil_parameters(), soilValues$values)
+            df <- soil_parameters()
+            vals <- soilValues$values
+            div(
+                id = "standardSliders",
+                class = if (!is.null(input$plotHidden) && input$plotHidden) "expanded" else "",
+                lapply(seq_len(nrow(df)), function(i) {
+                    div(
+                        class = "slider-col",
+                        #style = "width: 300px;",
+                        sliderInput(
+                        inputId = paste0("soil_param_", i),
+                        label   = df$ABREVIATION[i],
+                        min     = df$min[i],
+                        max     = df$max[i],
+                        value   = vals[i],
+                        step    = (df$max[i] - df$min[i]) / 100
+                        )
+                    )
+
+                })
+            )
+        }
+        }) 
+
+    
+    
+
+        observe({
+        req(soil_parameters())
+        lapply(seq_len(nrow(soil_parameters())), function(i) {
+            observeEvent(input[[paste0("soil_param_", i)]], {
+            isolate({
+                current <- soilValues$values
+                current[i] <- input[[paste0("soil_param_", i)]]
+                soilValues$values <- current
             })
+            }, ignoreInit = TRUE)
+        })
+        })
+
+
+        observeEvent(input$switch_mode, {
+            #print(currentMode())
+        # Save current state before switching
+           if (currentMode() == "epc") {
+               if (is.null(soil_parameters())) {
+                    if (file.exists("parameters_soil.csv")) {
+                        sp <- tryCatch(
+                        read.csv("parameters_soil.csv", stringsAsFactors = FALSE),
+                        error = function(e) NULL
+                        )
+                        soil_parameters(sp)
+                    }
+                    # If still NULL after trying to read, notify and revert
+                    if (is.null(soil_parameters())) {
+                        showNotification("parameters_soil.csv not found. You can try pressing it again once its made", type = "error")
+                        session$sendCustomMessage("setSwitchState", list(switched = FALSE))
+                        return(NULL)
+                    }
+                }
+                updateCurrentEPCValues()
+            } else {
+                updateCurrentSoilValues()
+            }
+            
+        # Toggle mode
+            #print(currentMode())
+            #new_mode <- ifelse(currentMode() == "epc", "soil", "epc")
+          
+            new_mode <- ifelse(currentMode() == "epc", "soil", "epc")
+            currentMode(new_mode)
+            #new_label <- ifelse(currentMode() == "epc", "Switch to Soil", "Switch to EPC")
+            
+            session$sendCustomMessage("setSwitchState", list(switched = (new_mode == "soil")))
+            #updateActionButton(session, "switch_mode")
+            #,
+                #label = new_label)
+            
+        })
+
+
+
 
         # reactive value that will track the locked or unlock state of the allocation locking button
         lockStates <- reactiveValues()
@@ -2065,7 +2343,12 @@ tuneMusoServer <- function(input, output, session){
 
 
     observeEvent(input$toggle_plot_field, {
+        if(currentMode() == "epc"){
         updateCurrentEPCValues() # HAHA! I knew this function would be useful!! (I hope)
+        }
+        else{
+        updateCurrentSoilValues()
+        }
         session$sendCustomMessage("toggle_plot_visibility", list())
     })
 
@@ -2073,6 +2356,7 @@ tuneMusoServer <- function(input, output, session){
 
     # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11. but at least it works, alright? Wait, maybe it is not so bad after all (sent, 2025.02.19.)
     updateCurrentEPCValues <- function() {
+        if(currentMode() == "epc"){
         req(input$selected_epc)
         epc <- input$selected_epc
         # Retrieving the current vector, if missing, fall back to defaultValues
@@ -2100,7 +2384,34 @@ tuneMusoServer <- function(input, output, session){
         }
         
         epcValues[[epc]] <<- updated  # Updating the reactive storage
+        }
     }
+
+
+    updateCurrentSoilValues <- function() {
+        if(currentMode() == "soil"){
+            req(soil_file())
+            updated <- soilValues$values
+            
+            # Let's see the lengths first:
+            #cat("length(updated) =", length(updated), "\n")
+            #cat("nrow(soil_parameters()) =", nrow(soil_parameters()), "\n")
+            
+            for (i in seq_len(nrow(soil_parameters()))) {
+                sliderVal <- input[[paste0("soil_param_", i)]]
+                #cat("i=", i, " sliderVal=", sliderVal, "\n")
+                
+                # If sliderVal is NULL, you can't do updated[i] <- NULL
+                if (!is.null(sliderVal)) {
+                updated[i] <- sliderVal
+                }
+            }
+            
+            soilValues$values <- updated
+            #cat("All done, length(updated)=", length(updated), "\n")
+        }
+    }
+
 
     # if new variable creation is chosen, we'll store here
     newVars <- reactiveValues(defs = list())
@@ -2160,15 +2471,16 @@ tuneMusoServer <- function(input, output, session){
             #print(paste0("Written for: ", epc))
         }
         
-        # this is probably not needed but I'm smoothbraining it. Explanation why not needed: 
-        # 1) Since this is crop rotation it doesn't matter what's the epc file in the ini
-        # 2) At non crop rotation situations this is a redefinition since their is only 1 epc file
-        # 3) calibMuso doesn't even use this information
-        # okay I'm convinced I'll comment it out and delete it later when I'm not smoothbraining, I gotta watch Shrek 2
-        # settings$epcInput[["normal"]] <- epcIni
+        paramVal <- soilValues$values
+        updateCurrentSoilValues()
+        #paramVal <- soilValues[[input$selected_soil]]
+        req(soil_file(), soil_parameters())
+        changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                fileToChange = "soil", fixAlloc = FALSE)
+       showNotification(paste0("Parameter slider values written into the soil file"), type = "message")
         
-        
-        result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
+        #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
+        result <- calibMuso(settings = settings, silent = TRUE)
         if (length(result) == 0) {
             showNotification("Model did not return results!", type = "error")
         } else {
@@ -3108,10 +3420,10 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.12.4</strong></p>
+                    <p><strong>Version 2.13</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
-                        <li>Auto-calculation for allocation can make the sliders oscillate between two values (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
+                        <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
                         <li>Automatic update may not always work as intended, use hotkeys for running the model</li>
                         <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
                     </ul>
