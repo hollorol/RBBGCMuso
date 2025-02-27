@@ -175,6 +175,20 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     });
     "
 
+    PersistentNotif <- "
+        $(document).on('mouseenter', '.shiny-notification', function() {
+            // Cancel any pending fade-out timeout
+            clearTimeout($(this).data('timeout'));
+            $(this).stop(true, true).css('opacity', '1'); 
+        }).on('mouseleave', '.shiny-notification', function() {
+            var $this = $(this);
+            // Wait 4 seconds after leaving before starting fade-out over 4 seconds
+            var timeout = setTimeout(function() {
+            $this.fadeOut(4000);
+            }, 4000);
+            $this.data('timeout', timeout);
+        });
+    "
 
 
  fluidPage(
@@ -427,7 +441,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, PersistentNotif, sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -1427,7 +1441,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
             }
         }
-        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message")
+        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message", duration = 5000)
         }
         else {
           req(soil_parameters())
@@ -1437,7 +1451,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("soil_param_", i), 
                             value = InitialDefaultsSoil$values)
         })
-        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message")
+        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message", duration = 5000)
        
         }
     })
@@ -2471,14 +2485,15 @@ tuneMusoServer <- function(input, output, session){
             #print(paste0("Written for: ", epc))
         }
         
+        if (!is.null(soil_parameters())){
         paramVal <- soilValues$values
         updateCurrentSoilValues()
         #paramVal <- soilValues[[input$selected_soil]]
         req(soil_file(), soil_parameters())
         changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                 fileToChange = "soil", fixAlloc = FALSE)
-       showNotification(paste0("Parameter slider values written into the soil file"), type = "message")
-        
+        showNotification(paste0("Parameter slider values written into the soil file"), type = "message")
+        }
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
         result <- calibMuso(settings = settings, silent = TRUE)
         if (length(result) == 0) {
@@ -3420,7 +3435,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13</strong></p>
+                    <p><strong>Version 2.13.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
