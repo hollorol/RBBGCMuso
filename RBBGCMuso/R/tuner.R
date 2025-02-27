@@ -786,7 +786,7 @@ tuneMusoServer <- function(input, output, session){
                 isolate({
                     rv$epc_files <- settings$epcInput[2]
 
-                    single_epc_dat <- readlines(rv$epc_files)
+                    single_epc_dat <- readLines(rv$epc_files)
                     #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
 
                     rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
@@ -800,7 +800,7 @@ tuneMusoServer <- function(input, output, session){
             isolate({
                 print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
                 rv$epc_files <- settings$epcInput[2]
-                single_epc_dat <- readlines(rv$epc_files)
+                single_epc_dat <- readLines(rv$epc_files)
                 #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
                 rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
                 rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
