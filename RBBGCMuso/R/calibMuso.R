@@ -174,13 +174,13 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
             tryCatch(system(paste(executable,iniInput[1],"> /dev/null",sep=" ")),
                      error= function (e){
                          setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
+                         stop("Cannot run the model-check the executable!")})
         } else {
             #In windows machines there is a show.output.on.console option
             tryCatch(system(paste(executable,iniInput[1],sep=" "),show.output.on.console = FALSE),
                      error= function (e){
                          setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
+                         stop("Cannot run the model-check the executable!")})
         }
         
     } else {
@@ -199,10 +199,10 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
             lapply(epc,function (x) file.copy(from = x ,to=paste(EPCS,"/",(stampnum+1),"-", basename(x),sep="")))
             lapply(epc, function (x) file.copy(from = paste(EPCS,"/",(stampnum+1),"-",basename(x),sep=""), to=WRONGEPC))
             setwd(whereAmI)
-            stop("Modell Failure")
+            stop("Model Failure")
         }
         setwd(whereAmI)
-        stop("Modell Failure") #in that case the modell did not create even a logfile
+        stop("Model Failure") #in that case the modell did not create even a logfile
     }
 
     #print("ROGER 2")
@@ -233,19 +233,19 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                 tryCatch(system(paste(executable,iniInput[2],"> /dev/null",sep=" ")),
                          error =function (e){
                              setwd((whereAmI))
-                             stop("Cannot run the modell-check the executable!")})
+                             stop("Cannot run the model-check the executable!")})
             } else {
                 tryCatch(system(paste(executable,iniInput[2],sep=" "),show.output.on.console = FALSE),
                          error =function (e){
                              setwd((whereAmI))
-                             stop("Cannot run the modell-check the executable!")} )
+                             stop("Cannot run the model-check the executable!")} )
             }
             
         } else {
             tryCatch(system(paste(executable,iniInput[2],sep=" ")),
                      error =function (e){
                          setwd((whereAmI))
-                         stop("Cannot run the modell-check the executable!")})
+                         stop("Cannot run the model-check the executable!")})
         }
 
         #print("ROGER 3")
@@ -354,7 +354,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     #print("ROGER 7")
     #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
-        stop("Modell Failure")
+        stop("Model Failure")
     }
 
     

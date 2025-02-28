@@ -10,8 +10,9 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr POST
+#' @importFrom future plan future multisession value
 #' @importFrom DT dataTableOutput datatable renderDataTable
-#' @importFrom shinyWidgets pickerInput updatePickerInput
+#' @importFrom shinyWidgets pickerInput updatePickerInput confirmSweetAlert
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
@@ -441,7 +442,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, PersistentNotif, sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -684,7 +685,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 #' @export 
 
 tuneMusoServer <- function(input, output, session){
-
+    
+    # running the model (calibMuso) in a separate process so if it crashes the shiny app won't
+    plan(multisession)
     #for some reason it can't find this function from setupMuso even though it's exported and within namespace, will check later why
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
         
@@ -783,6 +786,7 @@ tuneMusoServer <- function(input, output, session){
             } else {
                 warning("Planting file not found: ", planting_file)
                 print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+                showNotification(paste0("Using EPC file from INI file ", settings$epcInput[2]), type="message")
                 isolate({
                     rv$epc_files <- settings$epcInput[2]
 
@@ -799,6 +803,7 @@ tuneMusoServer <- function(input, output, session){
             warning("Management file not found: ", management_file)
             isolate({
                 print(paste0("Using EPC file from INI file ", settings$epcInput[2]))
+                showNotification(paste0("Management file not found. Using epc from ini file: ", settings$epcInput[2]), type="message")
                 rv$epc_files <- settings$epcInput[2]
                 single_epc_dat <- readLines(rv$epc_files)
                 #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
@@ -1441,7 +1446,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
             }
         }
-        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message", duration = 5000)
+        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message")
         }
         else {
           req(soil_parameters())
@@ -1451,7 +1456,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("soil_param_", i), 
                             value = InitialDefaultsSoil$values)
         })
-        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message", duration = 5000)
+        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message")
        
         }
     })
@@ -2460,6 +2465,22 @@ tuneMusoServer <- function(input, output, session){
         if (total_weight > 0) return(weighted_sum / total_weight) else return(NA)
     }
 
+
+        # if model crashes, we'll store the last good values here to reset later
+        lastGoodValues <- reactiveValues(
+            epc = list(),  
+            soil = NULL    
+        )
+        
+        updateLastGoodValues <- function() {
+            # Cycle through all epc files and store their current slider values
+            for(epc in rv$epc_files) {
+                lastGoodValues$epc[[epc]] <<- epcValues[[epc]]
+            }
+            # Store the current soil slider values
+            lastGoodValues$soil <<- soilValues$values
+        }
+
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
@@ -2471,7 +2492,7 @@ tuneMusoServer <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
 
         #print("Writing parameter values to file before model run:...")
-        showNotification(paste0("Parameter slider values written into the epc files"), type = "message")
+        showNotification(paste0("Parameter slider values written into the epc files"), type = "message", duration = 5)
         for (epc in rv$epc_files) {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
@@ -2488,20 +2509,51 @@ tuneMusoServer <- function(input, output, session){
         if (!is.null(soil_parameters())){
         paramVal <- soilValues$values
         updateCurrentSoilValues()
-        #paramVal <- soilValues[[input$selected_soil]]
+        
         req(soil_file(), soil_parameters())
         changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                 fileToChange = "soil", fixAlloc = FALSE)
-        showNotification(paste0("Parameter slider values written into the soil file"), type = "message")
+        showNotification(paste0("Parameter slider values written into the soil file.\n Running the model..."), type = "message", duration = 7)
         }
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
-        result <- calibMuso(settings = settings, silent = TRUE)
+            model_future <- future({
+                calibMuso(settings = settings, silent = TRUE)
+            })
+
+            result <- tryCatch({
+                value(model_future)
+                }, error = function(e) {
+                # If there's an error (model crash), trigger a non-intrusive toast confirmation
+                if(isTRUE(exportSettings$auto_reset)){
+                    resetToLastGoodValues()
+                    #showNotification(paste("Model error:", e$message, "\nResetting to last good values..."), type = "error")
+                }
+                else {
+                    confirmSweetAlert(
+                        session = session,
+                        inputId = "resetConfirm",
+                        title = "Model Crash!",
+                        text = "The model crashed. Would you like to reset parameters to the last good values?",
+                        type = "warning",
+                        btn_labels = c("No", "Yes"),
+                        closeOnClickOutside = TRUE,
+                        timer = 0,         # No auto-dismiss
+                        toast = TRUE,      # Makes it a non-blocking toast-style popup
+                        position = "top-right"
+                    )
+                }
+                    return(NULL)
+                })
+
         if (length(result) == 0) {
-            showNotification("Model did not return results!", type = "error")
+            showNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
+             if(isTRUE(exportSettings$auto_reset)) showNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
 
         print("Model ran successfully")
-        showNotification("Model ran successfully")
+        #showNotification("Model ran successfully", type = "message")
+        
+        updateLastGoodValues()
 
         dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
         # Detect the VWC columns from the original output:
@@ -2547,6 +2599,56 @@ tuneMusoServer <- function(input, output, session){
             }
         })
 
+
+           resetToLastGoodValues <- function() {
+                if(!is.null(lastGoodValues$epc)) {
+                    for(epc in names(lastGoodValues$epc)) {
+                    # Restore reactive storage for this epc file
+                    epcValues[[epc]] <<- lastGoodValues$epc[[epc]]
+                    
+                        epc_vals <- lastGoodValues$epc[[epc]]
+                        for(i in seq_len(nrow(parameters))) {
+                            if (is.na(parameters$group[i])) {
+                                updateSliderInput(session,
+                                                inputId = paste0("param_", i),
+                                                value = epc_vals[i])
+                            } else {
+                                updateSliderInput(session,
+                                                inputId = paste0("dep_", parameters$INDEX[i]),
+                                                value = epc_vals[i])
+                            }
+                        }
+                    }
+                }
+                else {
+                    showNotification("No last good values found for EPC files.", type = "warning")
+                }
+                # restore soil values
+                if (!is.null(lastGoodValues$soil)) {
+                  soilValues$values <<- lastGoodValues$soil
+        
+                    for (i in seq_along(lastGoodValues$soil)) {
+                    updateSliderInput(session,
+                                        inputId = paste0("soil_param_", i),
+                                        value = lastGoodValues$soil[i])
+                    }
+                }
+                else{
+                    showNotification("No last good values found for soil file.", type = "warning")
+                }
+           }
+
+        # resetting all the epc and soil sliders to their last good values
+        observeEvent(input$resetConfirm, {
+            if (isTRUE(input$resetConfirm)) {
+                resetToLastGoodValues()
+                
+                showNotification("All parameter sets restored to the last good values.", type = "message")
+            } else {
+                showNotification("Parameters remain unchanged.", type = "message")
+            }
+        })
+        
 
 
     simTableDat <- reactive({
@@ -3407,7 +3509,8 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5)
+        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE)
+
 
           observeEvent(input$settings_btn, {
             showModal(modalDialog(
@@ -3416,6 +3519,7 @@ tuneMusoServer <- function(input, output, session){
             numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
             numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
             numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
+            checkboxInput("auto_reset", "Auto Reset Sliders Upon Model Crash To Last Successful Values", value = exportSettings$auto_reset),
            div(
                 style = "position: absolute; top: 10px; right: 10px;",
                   tags$button(
@@ -3435,7 +3539,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.2</strong></p>
+                    <p><strong>Version 2.13.3</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -3455,26 +3559,27 @@ tuneMusoServer <- function(input, output, session){
         })
 
 
-     observeEvent(input$info_btn, {
-    shinyjs::toggle("info_overlay", anim = TRUE)  # Toggle visibility
-  })
+        observeEvent(input$info_btn, {
+            shinyjs::toggle("info_overlay", anim = TRUE)  # Toggle visibility
+        })
 
-  
-  observeEvent(input$close_info_overlay, {
-    shinyjs::hide("info_overlay", anim = TRUE)
-  })
+        
+        observeEvent(input$close_info_overlay, {
+            shinyjs::hide("info_overlay", anim = TRUE)
+        })
 
 
 
-observeEvent(input$close_info_overlay, {
-  shinyjs::hide("info_overlay", anim = TRUE)
-})
+        #observeEvent(input$close_info_overlay, {
+        #    shinyjs::hide("info_overlay", anim = TRUE)
+        #})
         
         # When the user clicks "Apply", update the reactive values and close the modal
         observeEvent(input$apply_settings, {
             exportSettings$width <- input$export_width
             exportSettings$height <- input$export_height
             exportSettings$scale <- input$export_scale
+            exportSettings$auto_reset <- input$auto_reset
             removeModal()
         })
 
