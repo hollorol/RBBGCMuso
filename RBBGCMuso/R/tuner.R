@@ -1519,6 +1519,35 @@ tuneMusoServer <- function(input, output, session){
 
             })
         }
+        else if (isolate(modelCrashed())) {
+           if(length(isolate(lastGoodValues$epc)) > 0){
+                isolate({
+                    for(epc in names(lastGoodValues$epc)) {
+                        # Restore reactive storage for this epc file
+                        paramVal <- lastGoodValues$epc[[epc]]
+                        settings$epcInput[["normal"]] <- epc
+                            changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
+                                    fileToChange = "epc", fixAlloc = FALSE)
+                    }
+                })
+           }
+                cat("Restored EPC files to last good values to avoid saving files that cause model crash\n")
+                if(length(isolate(lastGoodValues$soil)) > 0){
+                    if(!is.null(isolate(soil_parameters()))){ # checking whether we should check for soil file
+                        isolate({
+                            paramVal <- lastGoodValues$soil
+                                changeMuso(settings, paramVal, 
+                                calibrationPar = soil_parameters()[,2],
+                                fileToChange = "soil", fixAlloc = FALSE)
+                        })
+                cat("Restored SOIL files to last good values to avoid saving files that cause model crash\n")
+                    }
+                
+                }
+            else {
+                cat("No last good values found, unable to restore EPC and/or Soil files to avoid saving files that cause model crash\n")
+            }
+        }
     })
 
     # dosen't work for some reason
@@ -2477,10 +2506,13 @@ tuneMusoServer <- function(input, output, session){
             for(epc in rv$epc_files) {
                 lastGoodValues$epc[[epc]] <<- epcValues[[epc]]
             }
-            # Store the current soil slider values
-            lastGoodValues$soil <<- soilValues$values
+            if(!is.null(soil_parameters())) {
+                lastGoodValues$soil <<- soilValues$values
+            }
+            
         }
 
+        modelCrashed <- reactiveVal(FALSE)
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
@@ -2523,6 +2555,7 @@ tuneMusoServer <- function(input, output, session){
             result <- tryCatch({
                 value(model_future)
                 }, error = function(e) {
+                    modelCrashed(TRUE)
                 # If there's an error (model crash), trigger a non-intrusive toast confirmation
                 if(isTRUE(exportSettings$auto_reset)){
                     resetToLastGoodValues()
@@ -2549,7 +2582,7 @@ tuneMusoServer <- function(input, output, session){
             showNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
              if(isTRUE(exportSettings$auto_reset)) showNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
-
+        modelCrashed(FALSE)
         print("Model ran successfully")
         #showNotification("Model ran successfully", type = "message")
         
@@ -2601,7 +2634,7 @@ tuneMusoServer <- function(input, output, session){
 
 
            resetToLastGoodValues <- function() {
-                if(!is.null(lastGoodValues$epc)) {
+                if(length(lastGoodValues$epc) > 0) {
                     for(epc in names(lastGoodValues$epc)) {
                     # Restore reactive storage for this epc file
                     epcValues[[epc]] <<- lastGoodValues$epc[[epc]]
@@ -2624,7 +2657,7 @@ tuneMusoServer <- function(input, output, session){
                     showNotification("No last good values found for EPC files.", type = "warning")
                 }
                 # restore soil values
-                if (!is.null(lastGoodValues$soil)) {
+                if (length(lastGoodValues$soil) > 0 && !is.null(soil_parameters())) {
                   soilValues$values <<- lastGoodValues$soil
         
                     for (i in seq_along(lastGoodValues$soil)) {
@@ -2633,7 +2666,7 @@ tuneMusoServer <- function(input, output, session){
                                         value = lastGoodValues$soil[i])
                     }
                 }
-                else{
+                else if (!is.null(soil_parameters())) {
                     showNotification("No last good values found for soil file.", type = "warning")
                 }
            }
@@ -2643,7 +2676,9 @@ tuneMusoServer <- function(input, output, session){
             if (isTRUE(input$resetConfirm)) {
                 resetToLastGoodValues()
                 
-                showNotification("All parameter sets restored to the last good values.", type = "message")
+                if(length(lastGoodValues$epc) > 0) {
+                    showNotification("All parameter sets restored to the last good values.", type = "message")
+                }
             } else {
                 showNotification("Parameters remain unchanged.", type = "message")
             }
