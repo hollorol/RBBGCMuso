@@ -3575,7 +3575,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.3</strong></p>
+                    <p><strong>Version 2.13.5</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
