@@ -1375,13 +1375,13 @@ tuneMusoServer <- function(input, output, session){
         }
         })
 
-   output$soilFileName <- renderText({
-    req(soil_file())
-    if(is.null(soil_file()) || !file.exists(soil_file())) {
-        return("No soil file found")
-    }
-    basename(soil_file())
-})
+        output$soilFileName <- renderText({
+            req(soil_file())
+            if(is.null(soil_file()) || !file.exists(soil_file())) {
+                return("No soil file found")
+            }
+            basename(soil_file())
+        })
 
     
     outputList <- reactiveValues(prev = character(0), nextVal = character(0))
@@ -1416,7 +1416,7 @@ tuneMusoServer <- function(input, output, session){
 
     InitialDefaultsSoil <- reactiveValues(values = NULL)
     observe({
-    req(soil_file())
+    req(soil_file(), soil_parameters())
     if(is.null(InitialDefaultsSoil$values)){
 
      InitialDefaultsSoil$values <- musoGetValues(soil_file(), soil_parameters()[, 2])
@@ -1507,6 +1507,7 @@ tuneMusoServer <- function(input, output, session){
                     }
                 }
                
+               if(!is.null(soil_parameters())){
                cat("Restoring SOIL file to original...\n")
                 #if(currentMode() == "soil") {
                     paramVal <- InitialDefaultsSoil$values
@@ -1515,7 +1516,7 @@ tuneMusoServer <- function(input, output, session){
                      fileToChange = "soil", fixAlloc = FALSE)
                 #}  
                 cat(paste0("Restored ", soil_file(), " to original values.\n"))
-
+               }
 
             })
         }
