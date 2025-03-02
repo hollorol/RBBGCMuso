@@ -2568,6 +2568,7 @@ tuneMusoServer <- function(input, output, session){
         }
 
         modelCrashed <- reactiveVal(FALSE)
+        firstRun <- reactiveVal(TRUE)
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
@@ -2595,7 +2596,7 @@ tuneMusoServer <- function(input, output, session){
             myShowNotification(paste0(epc), type = "message", duration = 7)
             modifiedEpcList <- modifiedEpcList + 1
         }
-        if (modifiedEpcList == 0) {
+        if (modifiedEpcList == 0 && !firstRun()) {
             myShowNotification("No changes in EPC values detected, no files were written", type = "warning", duration = 7)
         }
         
@@ -2612,12 +2613,12 @@ tuneMusoServer <- function(input, output, session){
                         fileToChange = "soil", fixAlloc = FALSE)
                 myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
             }
-            else {
+            else if (!firstRun()){
                 myShowNotification("No changes in SOIL parameters detected, soil file wasn't written", type = "warning", duration = 8)
             }
         }
 
-            if (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged)) {
+            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged))) {
                 myShowNotification("No changes in EPC and/or SOIL parameters detected. Not running the model", 
                                 type = "message", duration = 9)
                 return()  
@@ -2697,6 +2698,8 @@ tuneMusoServer <- function(input, output, session){
             result <- as.matrix(dfs_orig)
         }
         outputList$nextVal <- result
+        
+        if (firstRun()) firstRun(FALSE) #after successful model run, we se the actual first model run to false
 
     }
     })
