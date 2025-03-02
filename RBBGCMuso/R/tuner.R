@@ -1446,7 +1446,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
             }
         }
-        showNotification(paste0("Sliders reset to initials for: ", epc), type = "message")
+        myShowNotification(paste0("Sliders reset to initials for: ", epc), type = "message", duration = 5)
         }
         else {
           req(soil_parameters())
@@ -1456,7 +1456,7 @@ tuneMusoServer <- function(input, output, session){
             updateSliderInput(session, paste0("soil_param_", i), 
                             value = InitialDefaultsSoil$values)
         })
-        showNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message")
+        myShowNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message", duration = 5)
        
         }
     })
@@ -1498,7 +1498,7 @@ tuneMusoServer <- function(input, output, session){
                 for (epc in rv$epc_files) {
                     if (!is.null(InitialDefaults[[epc]])) {
                         paramVal <- InitialDefaults[[epc]]  
-    
+                        #if(identical(paramVal, epcValues[[epc]])) next
                         settings$epcInput[["normal"]] <- epc
                         changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
                                 fileToChange = "epc", fixAlloc = FALSE)
@@ -1508,14 +1508,20 @@ tuneMusoServer <- function(input, output, session){
                 }
                
                if(!is.null(soil_parameters())){
+                
                cat("Restoring SOIL file to original...\n")
                 #if(currentMode() == "soil") {
                     paramVal <- InitialDefaultsSoil$values
+                    #if(!identical(paramVal, soilValues$values)) {
                     changeMuso(settings, paramVal, 
                      calibrationPar = soil_parameters()[,2],
                      fileToChange = "soil", fixAlloc = FALSE)
                 #}  
                 cat(paste0("Restored ", soil_file(), " to original values.\n"))
+                    #}
+                    #else{
+                    #    cat(paste0(soil_file()," values were unchanged.\n"))
+                    #}
                }
 
             })
@@ -2049,7 +2055,7 @@ tuneMusoServer <- function(input, output, session){
                 epcValues[[old_epc]] <- updated_old
 
                 if (!identical(updated_old, old_values)) {
-                    showNotification(paste0("Updating slider values for: ", old_epc), type = "message")
+                    myShowNotification(paste0("Updating slider values for: ", old_epc), type = "message",duration = 5)
                 }
     
                 #print(paste("Updated values for", old_epc, "in memory"))
@@ -2085,11 +2091,13 @@ tuneMusoServer <- function(input, output, session){
         debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
 
         observeEvent(
-        list(debounced_yearRange2(), input$auto_epc_selection, input$singleYear), 
+        list(currentMode(),debounced_yearRange2(), input$auto_epc_selection, input$singleYear), 
         {
             req(!is.null(input$auto_epc_selection),
                 !is.null(input$singleYear),
-                rv$epc_dates)
+                rv$epc_dates,
+                currentMode() == "epc",
+                )
             
             if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
             req(debounced_yearRange2())
@@ -2269,7 +2277,7 @@ tuneMusoServer <- function(input, output, session){
             }
             
             measurementData(df)
-            showNotification(paste("Updated", col, "with NA transformation"))
+            myShowNotification(paste("Updated", col, "with NA transformation"), type = "message", duration = 5)
             })
 
             observeEvent(input$apply_arith, {
@@ -2523,31 +2531,42 @@ tuneMusoServer <- function(input, output, session){
 
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-
+        modifiedEpcList <- 0
         #print("Writing parameter values to file before model run:...")
-        showNotification(paste0("Parameter slider values written into the epc files"), type = "message", duration = 5)
+        myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "message", duration = 7)
         for (epc in rv$epc_files) {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
             }
+            if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
             settings$epcInput[["normal"]] <- epc
             changeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
                     fixAlloc = FALSE)
             #print(paste0("Written for: ", epc))
+            myShowNotification(paste0(epc), type = "message", duration = 5)
+            modifiedEpcList <- modifiedEpcList + 1
+        }
+        if (modifiedEpcList == 0) {
+            myShowNotification("No changes in EPC values detected, no files were written", type = "message", duration = 7)
         }
         
         if (!is.null(soil_parameters())){
-        paramVal <- soilValues$values
-        updateCurrentSoilValues()
-        
-        req(soil_file(), soil_parameters())
-        changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
-                fileToChange = "soil", fixAlloc = FALSE)
-        showNotification(paste0("Parameter slider values written into the soil file.\n Running the model..."), type = "message", duration = 7)
+            updateCurrentSoilValues()
+            paramVal <- soilValues$values
+            if (!identical(paramVal, InitialDefaultsSoil$values)) {
+                req(soil_file(), soil_parameters())
+                changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                        fileToChange = "soil", fixAlloc = FALSE)
+                myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
+            }
+            else {
+                myShowNotification("No changes in soil parameters detected, soil file wasn't written", type = "message", duration = 7)
+            }
         }
+        myShowNotification("Running the model...", type = "message", duration = 5)
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
             model_future <- future({
                 calibMuso(settings = settings, silent = TRUE)
@@ -2580,8 +2599,8 @@ tuneMusoServer <- function(input, output, session){
                 })
 
         if (length(result) == 0) {
-            showNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
-             if(isTRUE(exportSettings$auto_reset)) showNotification("Resetting to last good values...", type = "message", duration = 8)
+            myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
+             if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
         modelCrashed(FALSE)
         print("Model ran successfully")
@@ -2678,10 +2697,10 @@ tuneMusoServer <- function(input, output, session){
                 resetToLastGoodValues()
                 
                 if(length(lastGoodValues$epc) > 0) {
-                    showNotification("All parameter sets restored to the last good values.", type = "message")
+                    myShowNotification("All parameter sets restored to the last good values.", type = "message", duration = 5)
                 }
             } else {
-                showNotification("Parameters remain unchanged.", type = "message")
+                myShowNotification("Parameters remain unchanged.", type = "message", duration = 5)
             }
         })
         
@@ -3369,10 +3388,10 @@ tuneMusoServer <- function(input, output, session){
             outputList$nextVal <- as.matrix(dfs)
         }
         else {
-            showNotification("Simulation output is empty. The new variable will be computed on the next model run.", type = "warning")
+            showNotification("Simulation output is empty. The new variable will be computed on the next model run.", type = "message")
         }
         } else {
-            showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "warning")
+            showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "message")
         }
         
         # Update picker input
@@ -3545,7 +3564,7 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE)
+        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE)
 
 
           observeEvent(input$settings_btn, {
@@ -3556,6 +3575,7 @@ tuneMusoServer <- function(input, output, session){
             numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
             numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
             checkboxInput("auto_reset", "Auto Reset Sliders Upon Model Crash To Last Successful Values", value = exportSettings$auto_reset),
+            checkboxInput("mute_notif", "Mute Common Notifications", value = exportSettings$muteNotif),
            div(
                 style = "position: absolute; top: 10px; right: 10px;",
                   tags$button(
@@ -3575,7 +3595,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.5</strong></p>
+                    <p><strong>Version 2.13.6</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -3616,8 +3636,20 @@ tuneMusoServer <- function(input, output, session){
             exportSettings$height <- input$export_height
             exportSettings$scale <- input$export_scale
             exportSettings$auto_reset <- input$auto_reset
+            exportSettings$muteNotif <- input$mute_notif
             removeModal()
         })
+
+        #
+        observeEvent(input$mute_notif, {
+            exportSettings$muteNotif <- input$mute_notif
+        })
+
+        myShowNotification <- function(message, type = "message", duration = NULL, ...) {
+            if (!exportSettings$muteNotif) {
+                showNotification(message, type = type, duration = duration, ...)
+            }
+        }
 
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
