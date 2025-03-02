@@ -908,13 +908,18 @@ tuneMusoServer <- function(input, output, session){
                 soil_parameters(sp)
                 #print(soil_parameters()[,2])
         })
-
+          # if model crashes, we'll store the last good values here to reset later
+        lastGoodValues <- reactiveValues(
+            epc = list(),  
+            soil = NULL    
+        )
 
           observeEvent(soil_parameters(), {
             # Fetch defaults only once
             req(soil_file(), soil_parameters())
             defaults <- musoGetValues(soil_file(), soil_parameters()[, 2])
             soilValues$values <- defaults
+            lastGoodValues$soil <- defaults
         }, once = TRUE)  
         
 
@@ -1410,6 +1415,8 @@ tuneMusoServer <- function(input, output, session){
             # Call musoGetValues to get the default parameters for this EPC
             #This is done only once per EPC
             InitialDefaults[[epc]] <- musoGetValues(epc, parameters[, 2])
+            lastGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
+            epcValues[[epc]] <<- InitialDefaults[[epc]]
             }
         }
         })
@@ -1432,41 +1439,53 @@ tuneMusoServer <- function(input, output, session){
     # Reset the sliders to the default values for the selected EPC
       observeEvent(input$resetParams, { 
         if(currentMode() == "epc"){
-        req(input$selected_epc)
-        epc <- input$selected_epc
-        defaults <- InitialDefaults[[epc]]
-        epcValues[[epc]] <- defaults
-      
-        for (i in seq_len(nrow(parameters))) {
-            if (is.na(parameters$group[i])) {
-            # Standard (non-grouped) parameter: update slider with id "param_i"
-            updateSliderInput(session, paste0("param_", i), value = defaults[i])
-            } else {
-            # Dependent (grouped) parameter: update slider with id "dep_<INDEX>"
-            updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
+            req(input$selected_epc)
+            epc <- input$selected_epc
+
+            if(identical(epcValues[[epc]], InitialDefaults[[epc]])) {
+                myShowNotification(paste0("Sliders already at initial (boot-up) values for: ", epc), type = "message", duration = 5)
+                return()
             }
-        }
-        myShowNotification(paste0("Sliders reset to initials for: ", epc), type = "message", duration = 5)
+            
+            defaults <- InitialDefaults[[epc]]
+            epcValues[[epc]] <- defaults
+        
+            for (i in seq_len(nrow(parameters))) {
+                if (is.na(parameters$group[i])) {
+                # Standard (non-grouped) parameter: update slider with id "param_i"
+                updateSliderInput(session, paste0("param_", i), value = defaults[i])
+                } else {
+                # Dependent (grouped) parameter: update slider with id "dep_<INDEX>"
+                updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
+                }
+            }
+            myShowNotification(paste0("Sliders reset to initials (boot-up) for: ", epc), type = "message", duration = 5)
         }
         else {
           req(soil_parameters())
+
+        if(identical(soilValues$values, InitialDefaultsSoil$values)) {
+            myShowNotification(paste0("Sliders already at initial (boot-up) values for: ", soil_file()), type = "message", duration = 5)
+            return()
+        }
+
         soilValues$values <- InitialDefaultsSoil$values
         
         lapply(1:nrow(soil_parameters()), function(i) {
             updateSliderInput(session, paste0("soil_param_", i), 
                             value = InitialDefaultsSoil$values)
         })
-        myShowNotification(paste0("Sliders reset to initials for: ", soil_file()), type = "message", duration = 5)
+        myShowNotification(paste0("Sliders reset to initials (boot-up) for: ", soil_file()), type = "message", duration = 5)
        
         }
     })
 
 
     # original values for epc
-    defaultValues <- reactive({
-    req(input$selected_epc)
-    musoGetValues(input$selected_epc, parameters[, 2])
-  })
+  #  defaultValues <- reactive({
+  #  req(input$selected_epc)
+  #  musoGetValues(input$selected_epc, parameters[, 2])
+  #})
 
 
     currentValues <- reactive({
@@ -1475,7 +1494,7 @@ tuneMusoServer <- function(input, output, session){
         if (!is.null(epcValues[[epc]])) {
         epcValues[[epc]]
         } else {
-        defaultValues()
+        InitialDefaults[[epc]]
         }
     })
 
@@ -1642,11 +1661,11 @@ tuneMusoServer <- function(input, output, session){
         output$param_sliders <- renderUI({
             if(currentMode() == "epc"){
             req(input$selected_epc)
-        
+            epc <- input$selected_epc
             vals <- currentValues()
 
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
-                vals <- defaultValues()
+                vals <- InitialDefaults[[epc]]
             }
             
             dep_indices <- which(!is.na(parameters$group))
@@ -1755,18 +1774,48 @@ tuneMusoServer <- function(input, output, session){
 
     
     
-
+        # saving the slider values as we move them for the soilValues
         observe({
-        req(soil_parameters())
-        lapply(seq_len(nrow(soil_parameters())), function(i) {
-            observeEvent(input[[paste0("soil_param_", i)]], {
-            isolate({
-                current <- soilValues$values
-                current[i] <- input[[paste0("soil_param_", i)]]
-                soilValues$values <- current
+            req(soil_parameters())
+            lapply(seq_len(nrow(soil_parameters())), function(i) {
+                observeEvent(input[[paste0("soil_param_", i)]], {
+                isolate({
+                    current <- soilValues$values
+                    current[i] <- input[[paste0("soil_param_", i)]]
+                    soilValues$values <- current
+                })
+                }, ignoreInit = TRUE)
             })
-            }, ignoreInit = TRUE)
         })
+
+        # same as the above but for epcValues
+        observe({
+            req(input$selected_epc, parameters)
+            
+            lapply(seq_len(nrow(parameters)), function(i) {
+                # Non-dependent sliders
+                 if (is.na(parameters$group[i])) {
+                observeEvent(input[[paste0("param_", i)]], {
+                    isolate({
+                    
+                    current <- epcValues[[input$selected_epc]]
+                   
+                    current[i] <- input[[paste0("param_", i)]]
+                   
+                    epcValues[[input$selected_epc]] <- current
+                    })
+                }, ignoreInit = TRUE)
+                } else {
+                # dependent sliders
+                observeEvent(input[[paste0("dep_", parameters$INDEX[i])]], {
+                    isolate({
+                    current <- epcValues[[input$selected_epc]]
+                    current[i] <- input[[paste0("dep_", parameters$INDEX[i])]]
+                    epcValues[[input$selected_epc]] <- current
+                    })
+                }, ignoreInit = TRUE)
+               }
+            })
         })
 
 
@@ -2012,6 +2061,7 @@ tuneMusoServer <- function(input, output, session){
     # creating tracker that will avoid auto-update from running the model upon epc switching (not yet used later)
     updatingEPC <- reactiveVal(FALSE)
     
+        # THIS IS OBSOLETE SINCE WE UPDATE epcValues() REAL-TIME AS THE SLIDERS MOVE SO WE DON'T NEED TO SAVE THE VALUES UPON SWITCHING
         # saving epc values upon epc change, updating sliders
         observeEvent(input$selected_epc, {
             req(input$selected_epc)
@@ -2024,7 +2074,7 @@ tuneMusoServer <- function(input, output, session){
 
                 old_values <- epcValues[[old_epc]]
                 if (is.null(old_values) || length(old_values) < nrow(parameters)) 
-                old_values <- defaultValues()
+                old_values <- InitialDefaults[[new_epc]]
                 
 
                 # Retrieving the stored values for the old EPC, if not available, use defaultValues
@@ -2068,7 +2118,7 @@ tuneMusoServer <- function(input, output, session){
             
             # Initializing the new EPC's values if needed
             if (is.null(epcValues[[new_epc]]) || length(epcValues[[new_epc]]) < nrow(parameters)) {
-                epcValues[[new_epc]] <- defaultValues()
+                epcValues[[new_epc]] <- InitialDefaults[[new_epc]]
             }
             newVals <- epcValues[[new_epc]]
             
@@ -2419,7 +2469,7 @@ tuneMusoServer <- function(input, output, session){
         # Retrieving the current vector, if missing, fall back to defaultValues
         updated <- epcValues[[epc]]
         if (is.null(updated) || length(updated) < nrow(parameters))
-            updated <- defaultValues()
+            updated <- InitialDefaults[[epc]]
         
         # Updating standard (non-dependent) slider values
         non_dep_indices <- which(is.na(parameters$group))
@@ -2504,11 +2554,7 @@ tuneMusoServer <- function(input, output, session){
     }
 
 
-        # if model crashes, we'll store the last good values here to reset later
-        lastGoodValues <- reactiveValues(
-            epc = list(),  
-            soil = NULL    
-        )
+      
         
         updateLastGoodValues <- function() {
             # Cycle through all epc files and store their current slider values
@@ -2533,39 +2579,49 @@ tuneMusoServer <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
         #print("Writing parameter values to file before model run:...")
-        myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "message", duration = 7)
+        myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
         for (epc in rv$epc_files) {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
             }
-            if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
+            if (isTRUE(all.equal(paramVal, lastGoodValues$epc[[epc]]))) next # Skip writing if no changes
             settings$epcInput[["normal"]] <- epc
             changeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
                     fixAlloc = FALSE)
             #print(paste0("Written for: ", epc))
-            myShowNotification(paste0(epc), type = "message", duration = 5)
+            myShowNotification(paste0(epc), type = "message", duration = 7)
             modifiedEpcList <- modifiedEpcList + 1
         }
         if (modifiedEpcList == 0) {
-            myShowNotification("No changes in EPC values detected, no files were written", type = "message", duration = 7)
+            myShowNotification("No changes in EPC values detected, no files were written", type = "warning", duration = 7)
         }
         
+        soilChanged <- FALSE
         if (!is.null(soil_parameters())){
             updateCurrentSoilValues()
             paramVal <- soilValues$values
-            if (!identical(paramVal, InitialDefaultsSoil$values)) {
+            soilChanged <- !isTRUE(all.equal(paramVal, lastGoodValues$soil))
+
+            #if (!identical(paramVal, lastGoodValues$soil)) {
+            if(soilChanged){
                 req(soil_file(), soil_parameters())
                 changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                         fileToChange = "soil", fixAlloc = FALSE)
                 myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
             }
             else {
-                myShowNotification("No changes in soil parameters detected, soil file wasn't written", type = "message", duration = 7)
+                myShowNotification("No changes in SOIL parameters detected, soil file wasn't written", type = "warning", duration = 8)
             }
         }
+
+            if (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged)) {
+                myShowNotification("No changes in EPC and/or SOIL parameters detected. Not running the model", 
+                                type = "message", duration = 9)
+                return()  
+            }
         myShowNotification("Running the model...", type = "message", duration = 5)
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
             model_future <- future({
@@ -3460,34 +3516,117 @@ tuneMusoServer <- function(input, output, session){
             on.exit(isRunning(FALSE))
 
         isolate({
-            epc <- input$selected_epc
-
-           paramVal <- epcValues[[input$selected_epc]]
-
-
+            updateCurrentEPCValues()
+            #epc <- input$selected_epc
+            
+            for (epc in rv$epc_files) {
+                paramVal <- epcValues[[epc]]
+            if (is.null(paramVal)) {
+                paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
+            }
+            if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
             settings$epcInput[["normal"]] <- epc
-
-            #print(paste("Updating EPC file", epc, "with new parameters before running model"))
             changeMuso(settings, paramVal, 
-                 calibrationPar = parameters[, 2],
-                 fileToChange = "epc", 
-                 fixAlloc = FALSE)
+                    calibrationPar = parameters[, 2], 
+                    fileToChange = "epc", 
+                    fixAlloc = FALSE)
+            #print(paste0("Written for: ", epc))
+            myShowNotification(paste0(epc), type = "message", duration = 5)
+            
+        }
+
+        if (!is.null(soil_parameters())){
+            updateCurrentSoilValues()
+            paramVal <- soilValues$values
+            if (!identical(paramVal, InitialDefaultsSoil$values)) {
+                req(soil_file(), soil_parameters())
+                changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                        fileToChange = "soil", fixAlloc = FALSE)
+                #myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
+            }
+        }
+
         })
              
 
         isolate({
             if(input$destination == "auto") {
                 outputList$prev <- outputList$nextVal
-                outputList$nextVal <- calibMuso(
-                    settings = settings,
-                    calibrationPar = parameters[, 2],
-                    parameters = paramVal
-                )
-            } else {
+                   model_future <- future({
+                calibMuso(settings = settings, silent = TRUE)
+            })
+
+            result <- tryCatch({
+                value(model_future)
+                }, error = function(e) {
+                    modelCrashed(TRUE)
+                # If there's an error (model crash), trigger a non-intrusive toast confirmation
+                if(isTRUE(exportSettings$auto_reset)){
+                    resetToLastGoodValues()
+                    #showNotification(paste("Model error:", e$message, "\nResetting to last good values..."), type = "error")
+                }
+                else {
+                    confirmSweetAlert(
+                        session = session,
+                        inputId = "resetConfirm",
+                        title = "Model Crash!",
+                        text = "The model crashed. Would you like to reset parameters to the last good values?",
+                        type = "warning",
+                        btn_labels = c("No", "Yes"),
+                        closeOnClickOutside = TRUE,
+                        timer = 0,         # No auto-dismiss
+                        toast = TRUE,      # Makes it a non-blocking toast-style popup
+                        position = "top-right"
+                    )
+                }
+                    return(NULL)
+                })
+
+        if (length(result) == 0) {
+            myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
+             if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
+        } else {
+        modelCrashed(FALSE)
+        print("Model ran successfully")
+        #showNotification("Model ran successfully", type = "message")
+        
+        updateLastGoodValues()
+
+        dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
+    
+
+        if (length(newVars$defs) > 0) {
+          
+                for (var_name in names(newVars$defs)) {
+                    def <- newVars$defs[[var_name]]
+                    pattern <- paste0("^", def$base_variable, "\\[")
+                    base_cols <- grep(pattern, names(dfs_orig), value = TRUE)
+                     
+                    if (length(base_cols) == 0) {
+                        showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
+                        next
+                    }
+                    pattern_ind <- paste0(def$base_variable, "\\[|\\]")
+                    base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
+                    current_layers <- layers[base_indices + 1]  
+                    
+                    new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
+                    swc_vals <- as.numeric(r)
+                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    })
+                    dfs_orig[[var_name]] <- new_val
+                }
+            result <- as.matrix(dfs_orig)
+        }
+        outputList$nextVal <- result
+
+            }}
+            
+            
+             else {
                 outputList[[input$destination]] <- calibMuso(
                     settings = settings,
-                    calibrationPar = parameters[, 2],
-                    parameters = paramVal
+                    silent = TRUE
                 )
             }
         })
@@ -3599,7 +3738,7 @@ tuneMusoServer <- function(input, output, session){
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
-                        <li>Automatic update may not always work as intended, use hotkeys for running the model</li>
+                        <li>Automatic update may not work as intended (it's two times better compared to version 13.5 but still buggy), use hotkeys for running the model</li>
                         <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
                     </ul>
                     "))),
