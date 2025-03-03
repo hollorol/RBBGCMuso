@@ -2059,83 +2059,8 @@ tuneMusoServer <- function(input, output, session){
 
 
     # creating tracker that will avoid auto-update from running the model upon epc switching (not yet used later)
-    updatingEPC <- reactiveVal(FALSE)
+    #updatingEPC <- reactiveVal(FALSE)
     
-        # THIS IS OBSOLETE SINCE WE UPDATE epcValues() REAL-TIME AS THE SLIDERS MOVE SO WE DON'T NEED TO SAVE THE VALUES UPON SWITCHING
-        # saving epc values upon epc change, updating sliders
-        observeEvent(input$selected_epc, {
-            req(input$selected_epc)
-            new_epc <- input$selected_epc
-
-            # Saving the previous EPC's slider values 
-            old_epc <- prevEPC()
-            if (!is.null(old_epc) && old_epc != new_epc) {
-
-
-                old_values <- epcValues[[old_epc]]
-                if (is.null(old_values) || length(old_values) < nrow(parameters)) 
-                old_values <- InitialDefaults[[new_epc]]
-                
-
-                # Retrieving the stored values for the old EPC, if not available, use defaultValues
-                #updated_old <- epcValues[[old_epc]]
-                updated_old <- old_values
-
-                #if (is.null(updated_old) || length(updated_old) < nrow(parameters))
-                #updated_old <- defaultValues()
-                
-                # Updating standard sliders (those with group == NA)
-                non_dep_indices <- which(is.na(parameters$group))
-                for (i in non_dep_indices) {
-                    slider_val <- input[[paste0("param_", i)]]
-                    if (!is.null(slider_val) && length(slider_val) > 0) {
-                        updated_old[i] <- slider_val
-                    }
-                }
-                
-                # Updating dependent sliders (those with a group)
-                dep_indices <- which(!is.na(parameters$group))
-                for (i in dep_indices) {
-                    inputId <- paste0("dep_", parameters$INDEX[i])
-                    slider_val <- input[[inputId]]
-                    if (!is.null(slider_val) && length(slider_val) > 0) {
-                        updated_old[i] <- slider_val
-                    }
-                }
-                epcValues[[old_epc]] <- updated_old
-
-                if (!identical(updated_old, old_values)) {
-                    myShowNotification(paste0("Updating slider values for: ", old_epc), type = "message",duration = 5)
-                }
-    
-                #print(paste("Updated values for", old_epc, "in memory"))
-                # Saving the previous EPC's values to file
-           #     settings$epcInput[["normal"]] <- old_epc
-           #     changeMuso(settings, updated_old, calibrationPar = parameters[, 2],
-           #             fileToChange = "epc", fixAlloc = FALSE)
-           #     print(paste("Saved changes for", old_epc))
-            }
-            
-            # Initializing the new EPC's values if needed
-            if (is.null(epcValues[[new_epc]]) || length(epcValues[[new_epc]]) < nrow(parameters)) {
-                epcValues[[new_epc]] <- InitialDefaults[[new_epc]]
-            }
-            newVals <- epcValues[[new_epc]]
-            
-            # Updating all slider inputs for the new EPC
-            for (i in seq_len(nrow(parameters))) {
-                if (is.na(parameters$group[i])) {
-                # Standard slider
-                    updateSliderInput(session, paste0("param_", i), value = newVals[i])
-                } else {
-                # Dependent slider (using its INDEX-based input ID)
-                    updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = newVals[i])
-                }
-            }
-            
-            # Updating the tracker for the previous EPC
-            prevEPC(new_epc)
-        })
         last_year <- reactiveVal(NULL)
 
         debounced_yearRange2 <- reactive({ input$yearRange }) %>% debounce(500)
@@ -3737,7 +3662,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.6</strong></p>
+                    <p><strong>Version 2.13.7</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
