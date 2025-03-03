@@ -649,7 +649,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                 div(style = "display: block; margin-top: 5px;",
                                     checkboxInput("appendSimSuffix", "Append '_sim' to column names upon export/append", value = FALSE)),
                                 div(style = "display: block; margin-top: 5px;",
-                                    checkboxInput("autoMulti", "Multiply GPP, TR, NEE by 1000 to get gC", value = TRUE))
+                                    checkboxInput("autoMulti", "Multiply GPP, TR, NEE, NEP, NBP, MR, GR, HR, SR by 1000 to get gC", value = TRUE))
 
                                 
                             
@@ -2580,7 +2580,7 @@ tuneMusoServer <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
         #print("Writing parameter values to file before model run:...")
-        myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
+        #myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
         for (epc in rv$epc_files) {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
@@ -2593,7 +2593,7 @@ tuneMusoServer <- function(input, output, session){
                     fileToChange = "epc", 
                     fixAlloc = FALSE)
             #print(paste0("Written for: ", epc))
-            myShowNotification(paste0(epc), type = "message", duration = 7)
+            myShowNotification(paste0(epc), " written", type = "message", duration = 7)
             modifiedEpcList <- modifiedEpcList + 1
         }
         if (modifiedEpcList == 0 && !firstRun()) {
@@ -2611,7 +2611,7 @@ tuneMusoServer <- function(input, output, session){
                 req(soil_file(), soil_parameters())
                 changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                         fileToChange = "soil", fixAlloc = FALSE)
-                myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
+                myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
                 myShowNotification("No changes in SOIL parameters detected, soil file wasn't written", type = "warning", duration = 8)
@@ -2660,7 +2660,7 @@ tuneMusoServer <- function(input, output, session){
              if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
         modelCrashed(FALSE)
-        print("Model ran successfully")
+        #print("Model ran successfully")
         #showNotification("Model ran successfully", type = "message")
         
         updateLastGoodValues()
@@ -3172,7 +3172,7 @@ tuneMusoServer <- function(input, output, session){
         })
 
         auto_multi_transform <- function(data) {
-            target_cols <- c("GPP", "TR", "NEE")
+            target_cols <- c("GPP", "TR", "NEE", "NEP", "NPP", "NBP", "MR", "GR", "HR","SR")
             data %>% 
                 mutate(across(any_of(target_cols), ~ . * 1000))
         }
