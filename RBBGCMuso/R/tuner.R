@@ -2071,7 +2071,7 @@ tuneMusoServer <- function(input, output, session){
             req(!is.null(input$auto_epc_selection),
                 !is.null(input$singleYear),
                 rv$epc_dates,
-                currentMode() == "epc",
+                currentMode() == "epc"
                 )
             
             if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
