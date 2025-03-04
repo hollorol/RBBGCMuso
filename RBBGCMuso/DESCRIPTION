@@ -47,6 +47,7 @@ Imports:
 	sortable,
 	shinyjqui,
 	DT,
+	waiter,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,

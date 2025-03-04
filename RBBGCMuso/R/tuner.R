@@ -10,13 +10,14 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr POST
+#' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter
 #' @importFrom future plan future multisession value
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput confirmSweetAlert
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput onFlushed
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -191,9 +192,19 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         });
     "
 
+    waiting <- "
+        $(document).on('shiny:busy', function() {
+        $('#loader-message').text('Processing calculations...');
+        });
+        $(document).on('shiny:idle', function() {
+        $('#loader-message').text('Finalizing...');
+        });
+    "
 
  fluidPage(
   useShinyjs(),
+  use_waiter(),
+  use_hostess(),
   tags$head(tags$style(HTML("
       /* Prevent global scrolling */
       html, body {
@@ -434,7 +445,30 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #switch_mode.switched .brown-down {
       transform: translateX(-20px) rotate(180deg);
     }
+         .waiter-overlay .waiter-spinner svg circle {
+      stroke: green !important;
+      fill: green !important;
+    }
   "))),
+
+     waiterShowOnLoad(
+      html = tagList(
+        hostess_loader(
+          "loader",
+          preset = "fan",
+          text_color = "#f2f2f2",
+          class = "label-center",
+          center_page = TRUE
+        ),
+        br(),
+        div(id = "loader-message",
+            style = "margin-left:-50px; color:#f2f2f2;",
+            "Initializing the app..."
+        )
+      ),
+      color = "#343a40"
+    ),
+      #br()),
     
     # year slider for the hover area
     #div(
@@ -442,7 +476,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, waiting,sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -686,6 +720,16 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 
 tuneMusoServer <- function(input, output, session){
     
+    # startup animation, waiting for observers to stop calculating before allowing actions
+    hostess_instance <- Hostess$new("loader")
+    #hostess_instance$start()  # Start the spinner
+      session$onFlushed(function() {
+            #hostess_instance$close()
+            waiter_hide()  # Hide loading screen
+         
+        }, once = TRUE)  # Run this only once
+        
+        
     # running the model (calibMuso) in a separate process so if it crashes the shiny app won't
     plan(multisession)
     #for some reason it can't find this function from setupMuso even though it's exported and within namespace, will check later why
@@ -1442,7 +1486,7 @@ tuneMusoServer <- function(input, output, session){
             req(input$selected_epc)
             epc <- input$selected_epc
 
-            if(identical(epcValues[[epc]], InitialDefaults[[epc]])) {
+            if(isTRUE(all.equal(epcValues[[epc]], InitialDefaults[[epc]]))) {
                 myShowNotification(paste0("Sliders already at initial (boot-up) values for: ", epc), type = "message", duration = 5)
                 return()
             }
@@ -1464,7 +1508,7 @@ tuneMusoServer <- function(input, output, session){
         else {
           req(soil_parameters())
 
-        if(identical(soilValues$values, InitialDefaultsSoil$values)) {
+        if(isTRUE(all.equal(soilValues$values, InitialDefaultsSoil$values))) {
             myShowNotification(paste0("Sliders already at initial (boot-up) values for: ", soil_file()), type = "message", duration = 5)
             return()
         }
@@ -1488,15 +1532,15 @@ tuneMusoServer <- function(input, output, session){
   #})
 
 
-    currentValues <- reactive({
-        req(input$selected_epc)
-        epc <- input$selected_epc
-        if (!is.null(epcValues[[epc]])) {
-        epcValues[[epc]]
-        } else {
-        InitialDefaults[[epc]]
-        }
-    })
+    #currentValues <- reactive({
+    #    req(input$selected_epc)
+    #    epc <- input$selected_epc
+    #    if (!is.null(epcValues[[epc]])) {
+    #    epcValues[[epc]]
+    #    } else {
+    #    InitialDefaults[[epc]]
+    #    }
+    #})
 
 
 
@@ -1662,8 +1706,8 @@ tuneMusoServer <- function(input, output, session){
             if(currentMode() == "epc"){
             req(input$selected_epc)
             epc <- input$selected_epc
-            vals <- currentValues()
-
+            #vals <- currentValues()
+            vals <- epcValues[[epc]]
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
                 vals <- InitialDefaults[[epc]]
             }
@@ -1980,6 +2024,7 @@ tuneMusoServer <- function(input, output, session){
         })
         })
 
+        # immediately recalculate when user presses the auto-calc button
         observe({
         req(input$selected_epc)
         
@@ -2071,7 +2116,7 @@ tuneMusoServer <- function(input, output, session){
             req(!is.null(input$auto_epc_selection),
                 !is.null(input$singleYear),
                 rv$epc_dates,
-                currentMode() == "epc",
+                currentMode() == "epc"
                 )
             
             if (isTRUE(input$auto_epc_selection) && isTRUE(input$singleYear)) {
@@ -2386,7 +2431,7 @@ tuneMusoServer <- function(input, output, session){
 
 
 
-    # desperate try to save epc values on model run with this overkill of a function since the solution is probably something easy but my head can't get around it as of 14:08 CET, 2025.02.11. but at least it works, alright? Wait, maybe it is not so bad after all (sent, 2025.02.19.)
+    # a function that will update the current epc values in case we need to eplxicitly call this
     updateCurrentEPCValues <- function() {
         if(currentMode() == "epc"){
         req(input$selected_epc)
@@ -2492,14 +2537,29 @@ tuneMusoServer <- function(input, output, session){
             
         }
 
+
+        screen <- div(
+            style="color:green;",
+            spin_3(),
+            h3("Calculating model results...")
+        )
+
+        w <- Waiter$new(
+            html = screen,
+            color = "transparent"
+        )
+
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
         #epc <- input$selected_epc
-        # updating current epc values
-        updateCurrentEPCValues()
+        
+        # starting waiter animation
+        w$show()
+        # updating current epc values MIGHT BE OBSOLETE since we update epcValues on slider change anyway
+        #updateCurrentEPCValues()
 
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
@@ -2527,7 +2587,7 @@ tuneMusoServer <- function(input, output, session){
         
         soilChanged <- FALSE
         if (!is.null(soil_parameters())){
-            updateCurrentSoilValues()
+            #updateCurrentSoilValues()
             paramVal <- soilValues$values
             soilChanged <- !isTRUE(all.equal(paramVal, lastGoodValues$soil))
 
@@ -2546,6 +2606,7 @@ tuneMusoServer <- function(input, output, session){
             if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged))) {
                 myShowNotification("No changes in EPC and/or SOIL parameters detected. Not running the model", 
                                 type = "message", duration = 9)
+                w$hide()
                 return()  
             }
         myShowNotification("Running the model...", type = "message", duration = 5)
@@ -2623,8 +2684,8 @@ tuneMusoServer <- function(input, output, session){
             result <- as.matrix(dfs_orig)
         }
         outputList$nextVal <- result
-        
-        if (firstRun()) firstRun(FALSE) #after successful model run, we se the actual first model run to false
+        w$hide()
+        if (firstRun()) firstRun(FALSE) #after successful model run, we set the actual first model run to false
 
     }
     })
@@ -3662,7 +3723,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.7</strong></p>
+                    <p><strong>Version 2.13.9</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
