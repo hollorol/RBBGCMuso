@@ -1699,7 +1699,7 @@ tuneMusoServer <- function(input, output, session){
             
         })
 
-       
+       autoCalcStates <- reactiveValues()
 
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
@@ -1761,7 +1761,7 @@ tuneMusoServer <- function(input, output, session){
                     } else {
                         groupLabel <- paste("Allocation group", g)
                     }
-    
+                 autoCalcVal <- if (is.null(autoCalcStates[[g]])) TRUE else autoCalcStates[[g]]
                 # condition whether hide plot area is active or not (so upon epc switching the sliders will retain their aligments)
                 containerClass <- if (!is.null(input$plotHidden) && input$plotHidden) "dependentSliderContainer expanded" else "dependentSliderContainer"
                 
@@ -1769,7 +1769,7 @@ tuneMusoServer <- function(input, output, session){
                 h4(groupLabel),
                     div(style = "margin-bottom: 10px;",
                         div(style = "display: inline-block; vertical-align: middle;",
-                            checkboxInput(inputId = paste0("autoCalc_", g), label = "Auto‑calc", value = TRUE)
+                            checkboxInput(inputId = paste0("autoCalc_", g), label = "Auto‑calc", value = autoCalcVal)
                         ),
                         div(style = "display: inline-block; vertical-align: middle; margin-left: 0px;",
                             textOutput(paste0("sumCounter_", g), container = span)
@@ -1816,6 +1816,11 @@ tuneMusoServer <- function(input, output, session){
         }
         }) 
 
+        lapply(unique(parameters$group[!is.na(parameters$group)]), function(g) {
+            observeEvent(input[[paste0("autoCalc_", g)]], {
+                autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
+            }, ignoreInit = TRUE)
+        })
     
     
         # saving the slider values as we move them for the soilValues
@@ -1945,6 +1950,7 @@ tuneMusoServer <- function(input, output, session){
             }, ignoreInit = TRUE)
         })
 
+        
 
         ##### sum to 1 counter for allocation ######
         observe({
@@ -1956,6 +1962,7 @@ tuneMusoServer <- function(input, output, session){
         dep_groups <- unique(parameters$group[!is.na(parameters$group)])
         
         lapply(dep_groups, function(g) {
+
             # For group g, get the rows and slider IDs
             group_rows <- which(!is.na(parameters$group) &
                                 parameters$group == g &
@@ -1963,6 +1970,9 @@ tuneMusoServer <- function(input, output, session){
             group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
             ids <- paste0("dep_", parameters$INDEX[group_rows])
             
+            observeEvent(input[[paste0("autoCalc_", g)]], {
+                autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
+            })
             # A flag to prevent recursive updates
             groupUpdating <- reactiveVal(FALSE)
             
@@ -1977,7 +1987,7 @@ tuneMusoServer <- function(input, output, session){
                     groupUpdating(TRUE)
                     
                     # Only auto-calc if the auto-calc checkbox is checked for this group
-                    if (isTRUE(input[[paste0("autoCalc_", g)]])) {
+                    if (isTRUE(isolate(autoCalcStates[[g]]))) {
                         # Compute total locked for the whole group
                         locked_vals <- unlist(lapply(ids, function(x) {
                         if (isTRUE(lockStates[[x]])) {
@@ -2025,50 +2035,49 @@ tuneMusoServer <- function(input, output, session){
         })
 
         # immediately recalculate when user presses the auto-calc button
-        observe({
-        req(input$selected_epc)
-        
-        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-        
-        lapply(dep_groups, function(g) {
-            observeEvent(input[[paste0("autoCalc_", g)]], {
-            # When autoCalc is toggled on, INSTANTLY perform a recalculation for group g 
-            if (isTRUE(input[[paste0("autoCalc_", g)]])) {
-                group_rows <- which(!is.na(parameters$group) &
-                                    parameters$group == g &
-                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
-                group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+   observe({
+    req(input$selected_epc)
+
+    dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+
+    lapply(dep_groups, function(g) {
+        observeEvent(input[[paste0("autoCalc_", g)]], {
+            # When autoCalc is toggled ON, INSTANTLY perform a recalculation for group g 
+            if (isTRUE(isolate(autoCalcStates[[g]]))) {
+                group_rows <- which(!is.na(parameters$group) & parameters$group == g)
                 ids <- paste0("dep_", parameters$INDEX[group_rows])
-                
-                # Calculate total locked and available for unlocked
+
+                # Calculate total locked and available for unlocked sliders
                 locked_vals <- unlist(lapply(ids, function(x) {
-                if (isTRUE(lockStates[[x]])) {
-                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                    if (isTRUE(lockStates[[x]])) {
+                        if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
                 } else 0
                 }))
                 L <- sum(locked_vals)
                 available_total <- 1 - L
-                
-                # For unlocked sliders, recalculate their values proportionally
-                unlocked_ids <- ids[ !sapply(ids, function(x) isTRUE(lockStates[[x]])) ]
+
+                # Identify unlocked sliders
+                unlocked_ids <- ids[!sapply(ids, function(x) isTRUE(lockStates[[x]]))]
                 current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
-                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
                 }))
                 total_unlocked <- sum(current_unlocked)
+
                 if (length(unlocked_ids) > 0) {
-                if (total_unlocked == 0) {
-                    new_unlocked <- rep(available_total / length(unlocked_ids), length(unlocked_ids))
-                } else {
-                    new_unlocked <- unname(available_total * (current_unlocked / total_unlocked))
-                }
-                for (x in seq_along(unlocked_ids)) {
-                    updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
-                }
+                    new_unlocked <- if (total_unlocked == 0) {
+                        rep(available_total / length(unlocked_ids), length(unlocked_ids))
+                    } else {
+                        unname(available_total * (current_unlocked / total_unlocked))
+                    }
+                    
+                    for (x in seq_along(unlocked_ids)) {
+                        updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
+                    }
                 }
             }
-            }, ignoreInit = TRUE)
-        })
-        })
+        }, ignoreInit = TRUE)
+    })
+})
 
         # sum counter viusalization
         observe({
