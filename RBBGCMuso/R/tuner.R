@@ -2619,6 +2619,7 @@ tuneMusoServer <- function(input, output, session){
                 value(model_future)
                 }, error = function(e) {
                     modelCrashed(TRUE)
+                    w$hide()
                 # If there's an error (model crash), trigger a non-intrusive toast confirmation
                 if(isTRUE(exportSettings$auto_reset)){
                     resetToLastGoodValues()
