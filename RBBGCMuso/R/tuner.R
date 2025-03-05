@@ -460,7 +460,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
           class = "label-center",
           center_page = TRUE
         ),
-        br(),
+        #br(),
         div(id = "loader-message",
             style = "margin-left:-50px; color:#f2f2f2;",
             "Initializing the app..."
