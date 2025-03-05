@@ -10,7 +10,7 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr POST
-#' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter
+#' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter waiter_show_on_load hostess_loader spin_3
 #' @importFrom future plan future multisession value
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput confirmSweetAlert
@@ -1844,7 +1844,11 @@ tuneMusoServer <- function(input, output, session){
             lapply(seq_len(nrow(parameters)), function(i) {
                 # Non-dependent sliders
                  if (is.na(parameters$group[i])) {
-                observeEvent(input[[paste0("param_", i)]], {
+                    sliderValsDebounced <- reactive({ 
+                            input[[paste0("param_", i)]]
+                        }) %>% debounce(500)
+
+                observeEvent(sliderValsDebounced(), {
                     isolate({
                     
                     current <- epcValues[[input$selected_epc]]
@@ -1867,11 +1871,15 @@ tuneMusoServer <- function(input, output, session){
             })
         })
 
-
+        lastSelectedEPC <- reactiveVal(NULL)
         observeEvent(input$switch_mode, {
             #print(currentMode())
         # Save current state before switching
            if (currentMode() == "epc") {
+
+            #if (!is.null(input$selected_epc)) {
+            #    lastSelectedEPC(input$selected_epc)
+            #}
                if (is.null(soil_parameters())) {
                     if (file.exists("parameters_soil.csv")) {
                         sp <- tryCatch(
@@ -1887,9 +1895,10 @@ tuneMusoServer <- function(input, output, session){
                         return(NULL)
                     }
                 }
-                updateCurrentEPCValues()
+                #updateCurrentEPCValues()
             } else {
                 updateCurrentSoilValues()
+                  
             }
             
         # Toggle mode
@@ -1908,7 +1917,15 @@ tuneMusoServer <- function(input, output, session){
         })
 
 
-
+        #observeEvent(currentMode(), {
+        #    if (currentMode() == "epc") {
+        #        if (!is.null(lastSelectedEPC()) && lastSelectedEPC() %in% rv$epc_files) {
+                # Add a slight delay to ensure the UI has re-rendered, if needed
+        #        invalidateLater(100, session)
+        #        updateSelectInput(session, "selected_epc", selected = lastSelectedEPC())
+        #        }
+        #    }
+        #})
 
         # reactive value that will track the locked or unlock state of the allocation locking button
         lockStates <- reactiveValues()
