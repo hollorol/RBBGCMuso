@@ -462,7 +462,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         ),
         #br(),
         div(id = "loader-message",
-            style = "margin-left:-50px; color:#f2f2f2;",
+            style = "margin-left:0px; color:#f2f2f2;",
             "Initializing the app..."
         )
       ),
@@ -1700,14 +1700,13 @@ tuneMusoServer <- function(input, output, session){
         })
 
        autoCalcStates <- reactiveValues()
-
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
             if(currentMode() == "epc"){
             req(input$selected_epc)
             epc <- input$selected_epc
             #vals <- currentValues()
-            vals <- epcValues[[epc]]
+            vals <-  isolate(epcValues[[epc]])
             if(length(vals) < nrow(parameters) || any(is.na(vals))) {
                 vals <- InitialDefaults[[epc]]
             }
@@ -1822,6 +1821,69 @@ tuneMusoServer <- function(input, output, session){
             }, ignoreInit = TRUE)
         })
     
+     sliderHistory <- reactiveValues()
+
+# Set time threshold for oscillation detection
+oscillationThreshold <- 3  # Seconds
+debounceTime <- 300         # Reduce debounce time
+
+observe({
+    req(input$selected_epc, parameters)
+    
+    lapply(seq_len(nrow(parameters)), function(i) {
+        sliderId <- if (is.na(parameters$group[i])) {
+            paste0("param_", i)
+        } else {
+            paste0("dep_", parameters$INDEX[i])
+        }
+
+        debouncedSliderVal <- reactive({ input[[sliderId]] }) %>% debounce(debounceTime)
+        
+        observeEvent(debouncedSliderVal(), {
+            isolate({
+                epc <- input$selected_epc
+                currentVal <- debouncedSliderVal()
+                
+                # Initialize history tracking
+                if (is.null(sliderHistory[[sliderId]])) {
+                    sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
+                }
+                
+                # Store last 10 values with timestamps
+                sliderHistory[[sliderId]]$values <- c(sliderHistory[[sliderId]]$values, currentVal)
+                sliderHistory[[sliderId]]$timestamps <- c(sliderHistory[[sliderId]]$timestamps, Sys.time())
+                
+                # Keep only last 10 values for performance
+                if (length(sliderHistory[[sliderId]]$values) > 10) {
+                    sliderHistory[[sliderId]]$values <- tail(sliderHistory[[sliderId]]$values, 10)
+                    sliderHistory[[sliderId]]$timestamps <- tail(sliderHistory[[sliderId]]$timestamps, 10)
+                }
+                
+                # Detect oscillation
+                if (length(sliderHistory[[sliderId]]$values) > 5) {
+                    recentValues <- sliderHistory[[sliderId]]$values
+                    recentTimes <- sliderHistory[[sliderId]]$timestamps
+                    timeDiffs <- diff(recentTimes) # Check time intervals between updates
+                    
+                    # Check if values are switching between two numbers
+                    uniqueVals <- unique(recentValues)
+                    if (length(uniqueVals) == 2 && all(timeDiffs < oscillationThreshold / length(timeDiffs))) {
+                        myShowNotification(paste0("Oscillation detected in ", sliderId, ". Resetting to last good values."), 
+                                           type = "warning", duration = 5)
+
+                        updateSliderInput(session, sliderId, value = lastGoodValues$epc[[epc]][i])
+                        
+                        # Reset history for this slider
+                        sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
+                    }
+                }
+            })
+        }, ignoreInit = TRUE)
+    })
+})
+
+
+
     
         # saving the slider values as we move them for the soilValues
         observe({
@@ -2531,27 +2593,50 @@ tuneMusoServer <- function(input, output, session){
             c(200, 400),# Layer 9: VWC[8]
             c(400, 1000)# Layer 10: VWC[9]
         ) 
+        # for the linear approximation. We assumre
+        #midpoints <- list(
+        #    1.5, 6.5, 20, 45, 75, 105, 135, 175, 300, 700
+        #)
         
-    calc_weighted_swc <- function(swc_values, min_depth, max_depth, layers) {
-        # Use only as many layers as are available in swc_values:
-        n <- length(swc_values)
-        total_weight <- 0
-        weighted_sum <- 0
-        for (i in seq_len(n)) {
-            layer_min <- layers[[i]][1]
-            layer_max <- layers[[i]][2]
-            overlap <- max(0, min(max_depth, layer_max) - max(min_depth, layer_min))
-            if (overlap > 0) {
-                weighted_sum <- weighted_sum + swc_values[i] * overlap
-                total_weight <- total_weight + overlap
-            }
+        # we will check the available layers and for them we'll calc the midpoints
+        get_midpoints <- function(layers) {
+            sapply(layers, function(x) mean(x))
         }
-        if (total_weight > 0) return(weighted_sum / total_weight) else return(NA)
-    }
+
+        calc_midpoint_swc <- function(swc_values, min_depth, max_depth, layers) {
+            midpoints <- get_midpoints(layers)
+            
+            # Create a linear interpolation function of SWC vs. depth (using midpoints)
+            swc_profile <- approxfun(midpoints, swc_values, rule = 2)
+            
+            # Integrate the interpolated function over the desired depth range
+            integrated_value <- integrate(swc_profile, lower = min_depth, upper = max_depth)$value
+            
+            # Compute the average SWC over that depth range
+            average_swc <- integrated_value / (max_depth - min_depth)
+            return(average_swc)
+        }
 
 
-      
-        
+
+
+    #calc_weighted_swc <- function(swc_values, min_depth, max_depth, layers) {
+        # Use only as many layers as are available in swc_values:
+    #    n <- length(swc_values)
+    #    total_weight <- 0
+    #    weighted_sum <- 0
+    #    for (i in seq_len(n)) {
+    #        layer_min <- layers[[i]][1]
+    #        layer_max <- layers[[i]][2]
+    #        overlap <- max(0, min(max_depth, layer_max) - max(min_depth, layer_min))
+    #        if (overlap > 0) {
+    #            weighted_sum <- weighted_sum + swc_values[i] * overlap
+    #            total_weight <- total_weight + overlap
+    #        }
+    #    }
+    #    if (total_weight > 0) return(weighted_sum / total_weight) else return(NA)
+    #}
+
         updateLastGoodValues <- function() {
             # Cycle through all epc files and store their current slider values
             for(epc in rv$epc_files) {
@@ -2704,7 +2789,7 @@ tuneMusoServer <- function(input, output, session){
                     
                     new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
-                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
                     })
                     dfs_orig[[var_name]] <- new_val
                 }
@@ -3452,7 +3537,7 @@ tuneMusoServer <- function(input, output, session){
 
                 new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
-                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
                 })
                 dfs[[var_name]] <- new_val
             }
@@ -3628,7 +3713,7 @@ tuneMusoServer <- function(input, output, session){
                     
                     new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
-                    calc_weighted_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
                     })
                     dfs_orig[[var_name]] <- new_val
                 }
@@ -3750,7 +3835,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.13.9</strong></p>
+                    <p><strong>Version 2.14.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
