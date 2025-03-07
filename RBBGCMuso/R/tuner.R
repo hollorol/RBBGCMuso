@@ -10,14 +10,14 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr POST
-#' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter waiter_show_on_load hostess_loader spin_3
+#' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter waiter_show_on_load hostess_loader spin_3 waiterShowOnLoad
 #' @importFrom future plan future multisession value
 #' @importFrom DT dataTableOutput datatable renderDataTable
 #' @importFrom shinyWidgets pickerInput updatePickerInput confirmSweetAlert
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput onFlushed
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput onFlushed stopApp
 #' @usage ...
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
@@ -131,7 +131,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         toggleFullscreen();
       });
     "
-    # bugs
+    # bugs, actully this wasn't a bug
     #ApplyGreenColUponPressingApplyTrans <- "
     #    $(document).on('click', '#apply_na_output, #apply_arith_output, #apply_interaction_output', function() {
     #        var btn = $(this);
@@ -449,6 +449,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       stroke: green !important;
       fill: green !important;
     }
+    .swal2-container {
+      z-index: 99999 !important;
+    }
   "))),
 
      waiterShowOnLoad(
@@ -490,12 +493,18 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       id = "toggleUIButton",
       actionButton("toggleUI", label = "Toggle UI", icon = icon("bars"))
     ),
+    
     # toggle legend button for... toggling the legend. And also toggle plot field for expanded ui
     div(
         style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
+        
         actionButton("settings_btn", label = NULL, icon = icon("cog")),
         actionButton("toggle_plot_field", "Hide Plot Area"),
         actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash")),
+        actionButton("exit", "Exit", 
+               style = "background-color: red; color: white; border-color: darkred; 
+                        font-weight: bold; font-size: 16px; 
+                        border-radius: 5px;"),
          actionButton("show_notification", label=NULL, icon = icon("bell"))#, style = "display: none;")
     ),
 
@@ -553,7 +562,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                        ),
                                        # Right column: checkboxes, single year, year range.
                                        div(class = "colRight",
-                                           checkboxInput("autoupdate", "Automatic update"),
+                                           #checkboxInput("autoupdate", "Automatic update"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                             checkboxInput("singleYear", "Single year mode", value = FALSE),
                                             checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
@@ -1458,7 +1467,7 @@ tuneMusoServer <- function(input, output, session){
             if (is.null(InitialDefaults[[epc]])) {
             # Call musoGetValues to get the default parameters for this EPC
             #This is done only once per EPC
-            InitialDefaults[[epc]] <- musoGetValues(epc, parameters[, 2])
+            InitialDefaults[[epc]] <- as.numeric(musoGetValues(epc, parameters[, 2]))
             lastGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
             epcValues[[epc]] <<- InitialDefaults[[epc]]
             }
@@ -1700,8 +1709,20 @@ tuneMusoServer <- function(input, output, session){
         })
 
        autoCalcStates <- reactiveValues()
+
+         screenUI <- div(
+            style="color:green;",
+            spin_3(),
+            h3("Rendering UI, please wait...")
+        )
+
+        wSlider <- Waiter$new(
+            html = screenUI,
+            color = "transparent"
+        )
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
+            #wSlider$show()
             if(currentMode() == "epc"){
             req(input$selected_epc)
             epc <- input$selected_epc
@@ -1786,7 +1807,7 @@ tuneMusoServer <- function(input, output, session){
                 div(id = "standardSliders", class = if (!is.null(input$plotHidden) && input$plotHidden) "expanded" else "", standard_sliders),
                 dependent_sliders
             )
-           
+                #wSlider$hide()
             }
             else {
             req(currentMode() == "soil")
@@ -1812,7 +1833,11 @@ tuneMusoServer <- function(input, output, session){
 
                 })
             )
+           
+            
         }
+         #wSlider$hide()
+         #ui
         }) 
 
         lapply(unique(parameters$group[!is.na(parameters$group)]), function(g) {
@@ -1824,63 +1849,63 @@ tuneMusoServer <- function(input, output, session){
      sliderHistory <- reactiveValues()
 
 # Set time threshold for oscillation detection
-oscillationThreshold <- 3  # Seconds
-debounceTime <- 300         # Reduce debounce time
+# oscillationThreshold <- 3  # Seconds
+# debounceTime <- 300         # Reduce debounce time
 
-observe({
-    req(input$selected_epc, parameters)
+# observe({
+#     req(input$selected_epc, parameters)
     
-    lapply(seq_len(nrow(parameters)), function(i) {
-        sliderId <- if (is.na(parameters$group[i])) {
-            paste0("param_", i)
-        } else {
-            paste0("dep_", parameters$INDEX[i])
-        }
+#     lapply(seq_len(nrow(parameters)), function(i) {
+#         sliderId <- if (is.na(parameters$group[i])) {
+#             paste0("param_", i)
+#         } else {
+#             paste0("dep_", parameters$INDEX[i])
+#         }
 
-        debouncedSliderVal <- reactive({ input[[sliderId]] }) %>% debounce(debounceTime)
+#         debouncedSliderVal <- reactive({ input[[sliderId]] }) %>% debounce(debounceTime)
         
-        observeEvent(debouncedSliderVal(), {
-            isolate({
-                epc <- input$selected_epc
-                currentVal <- debouncedSliderVal()
+#         observeEvent(debouncedSliderVal(), {
+#             isolate({
+#                 epc <- input$selected_epc
+#                 currentVal <- debouncedSliderVal()
                 
-                # Initialize history tracking
-                if (is.null(sliderHistory[[sliderId]])) {
-                    sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
-                }
+#                 # Initialize history tracking
+#                 if (is.null(sliderHistory[[sliderId]])) {
+#                     sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
+#                 }
                 
-                # Store last 10 values with timestamps
-                sliderHistory[[sliderId]]$values <- c(sliderHistory[[sliderId]]$values, currentVal)
-                sliderHistory[[sliderId]]$timestamps <- c(sliderHistory[[sliderId]]$timestamps, Sys.time())
+#                 # Store last 10 values with timestamps
+#                 sliderHistory[[sliderId]]$values <- c(sliderHistory[[sliderId]]$values, currentVal)
+#                 sliderHistory[[sliderId]]$timestamps <- c(sliderHistory[[sliderId]]$timestamps, Sys.time())
                 
-                # Keep only last 10 values for performance
-                if (length(sliderHistory[[sliderId]]$values) > 10) {
-                    sliderHistory[[sliderId]]$values <- tail(sliderHistory[[sliderId]]$values, 10)
-                    sliderHistory[[sliderId]]$timestamps <- tail(sliderHistory[[sliderId]]$timestamps, 10)
-                }
+#                 # Keep only last 10 values for performance
+#                 if (length(sliderHistory[[sliderId]]$values) > 10) {
+#                     sliderHistory[[sliderId]]$values <- tail(sliderHistory[[sliderId]]$values, 10)
+#                     sliderHistory[[sliderId]]$timestamps <- tail(sliderHistory[[sliderId]]$timestamps, 10)
+#                 }
                 
-                # Detect oscillation
-                if (length(sliderHistory[[sliderId]]$values) > 5) {
-                    recentValues <- sliderHistory[[sliderId]]$values
-                    recentTimes <- sliderHistory[[sliderId]]$timestamps
-                    timeDiffs <- diff(recentTimes) # Check time intervals between updates
+#                 # Detect oscillation
+#                 if (length(sliderHistory[[sliderId]]$values) > 5) {
+#                     recentValues <- sliderHistory[[sliderId]]$values
+#                     recentTimes <- sliderHistory[[sliderId]]$timestamps
+#                     timeDiffs <- diff(recentTimes) # Check time intervals between updates
                     
-                    # Check if values are switching between two numbers
-                    uniqueVals <- unique(recentValues)
-                    if (length(uniqueVals) == 2 && all(timeDiffs < oscillationThreshold / length(timeDiffs))) {
-                        myShowNotification(paste0("Oscillation detected in ", sliderId, ". Resetting to last good values."), 
-                                           type = "warning", duration = 5)
+#                     # Check if values are switching between two numbers
+#                     uniqueVals <- unique(recentValues)
+#                     if (length(uniqueVals) == 2 && all(timeDiffs < oscillationThreshold / length(timeDiffs))) {
+#                         myShowNotification(paste0("Oscillation detected in ", sliderId, ". Resetting to last good values."), 
+#                                            type = "warning", duration = 5)
 
-                        updateSliderInput(session, sliderId, value = lastGoodValues$epc[[epc]][i])
+#                         updateSliderInput(session, sliderId, value = lastGoodValues$epc[[epc]][i])
                         
-                        # Reset history for this slider
-                        sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
-                    }
-                }
-            })
-        }, ignoreInit = TRUE)
-    })
-})
+#                         # Reset history for this slider
+#                         sliderHistory[[sliderId]] <- list(values = numeric(), timestamps = numeric())
+#                     }
+#                 }
+#             })
+#         }, ignoreInit = TRUE)
+#     })
+# })
 
 
 
@@ -1908,7 +1933,7 @@ observe({
                  if (is.na(parameters$group[i])) {
                     sliderValsDebounced <- reactive({ 
                             input[[paste0("param_", i)]]
-                        }) %>% debounce(500)
+                        }) %>% debounce(250)
 
                 observeEvent(sliderValsDebounced(), {
                     isolate({
@@ -2032,134 +2057,140 @@ observe({
         
 
         ##### sum to 1 counter for allocation ######
+        
         observe({
-        req(input$selected_epc)
-        
-        tol <- 1e-6  # small tolerance to avoid oscillation
-        
-        # Get the unique groups
-        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-        
-        lapply(dep_groups, function(g) {
+             #wSlider$show()
+            req(input$selected_epc)
+            
+            tol <- 1e-6  # small tolerance to avoid oscillation
+            
+            # Get the unique groups
+            dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+            
+            lapply(dep_groups, function(g) {
 
-            # For group g, get the rows and slider IDs
-            group_rows <- which(!is.na(parameters$group) &
-                                parameters$group == g &
-                                as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
-            group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
-            ids <- paste0("dep_", parameters$INDEX[group_rows])
-            
-            observeEvent(input[[paste0("autoCalc_", g)]], {
-                autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
-            })
-            # A flag to prevent recursive updates
-            groupUpdating <- reactiveVal(FALSE)
-            
-            for(i in seq_along(ids)) {
-            local({
-                j <- i
-                slider_id <- ids[j]
-                debouncedSliderVal <- reactive({ input[[slider_id]] }) %>% debounce(500)
+                # For group g, get the rows and slider IDs
+                group_rows <- which(!is.na(parameters$group) &
+                                    parameters$group == g &
+                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
+                group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+                ids <- paste0("dep_", parameters$INDEX[group_rows])
                 
-                observeEvent(debouncedSliderVal(), {
-                    if (groupUpdating()) return()
-                    groupUpdating(TRUE)
+                observeEvent(input[[paste0("autoCalc_", g)]], {
+                    autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
+                })
+                # A flag to prevent recursive updates
+                groupUpdating <- reactiveVal(FALSE)
+                
+                for(i in seq_along(ids)) {
+                local({
+                    j <- i
+                    slider_id <- ids[j]
+                    debouncedSliderVal <- reactive({ input[[slider_id]] }) %>% debounce(500)
                     
-                    # Only auto-calc if the auto-calc checkbox is checked for this group
-                    if (isTRUE(isolate(autoCalcStates[[g]]))) {
-                        # Compute total locked for the whole group
-                        locked_vals <- unlist(lapply(ids, function(x) {
+                    observeEvent(debouncedSliderVal(), {
+                        if (groupUpdating()) return()
+                        groupUpdating(TRUE)
+                        
+                        # Only auto-calc if the auto-calc checkbox is checked for this group
+                        if (isTRUE(isolate(autoCalcStates[[g]]))) {
+                            # Compute total locked for the whole group
+                            locked_vals <- unlist(lapply(ids, function(x) {
+                            if (isTRUE(lockStates[[x]])) {
+                                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                            } else 0
+                            }))
+                            L <- sum(locked_vals)
+                            available_total <- 1 - L
+                            
+                            new_val <- as.numeric(debouncedSliderVal())
+                            # Clamp if new_val exceeds available_total
+                            if (new_val >= available_total - tol) {
+                            new_val <- available_total
+                            updateSliderInput(session, slider_id, value = new_val)
+                            # Set all other unlocked sliders to 0
+                            for (other in ids[-j]) {
+                                if (!isTRUE(lockStates[[other]]))
+                                updateSliderInput(session, other, value = 0)
+                            }
+                            } else {
+                            # Distribute the remaining available among the other unlocked sliders
+                            remaining_available <- available_total - new_val
+                            other_ids <- ids[-j][ !sapply(ids[-j], function(x) isTRUE(lockStates[[x]])) ]
+                            current_unlocked <- unlist(lapply(other_ids, function(x) {
+                                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                            }))
+                            total_unlocked <- sum(current_unlocked)
+                            if (length(other_ids) > 0) {
+                                if (total_unlocked == 0) {
+                                new_unlocked <- rep(remaining_available / length(other_ids), length(other_ids))
+                                } else {
+                                new_unlocked <- unname(remaining_available * (current_unlocked / total_unlocked))
+                                }
+                                for (k in seq_along(other_ids)) {
+                                updateSliderInput(session, other_ids[k], value = new_unlocked[k])
+                                }
+                        }
+                        }
+                    }
+                    groupUpdating(FALSE)
+                    }, ignoreInit = TRUE)
+                })
+                }
+            })
+            #wSlider$hide()
+        })
+        
+        
+
+    # immediately recalculate when user presses the auto-calc button
+   observe({
+        req(input$selected_epc)
+
+        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+
+        lapply(dep_groups, function(g) {
+            observeEvent(input[[paste0("autoCalc_", g)]], {
+                # When autoCalc is toggled ON, INSTANTLY perform a recalculation for group g 
+                if (isTRUE(isolate(autoCalcStates[[g]]))) {
+                    group_rows <- which(!is.na(parameters$group) & parameters$group == g)
+                    ids <- paste0("dep_", parameters$INDEX[group_rows])
+
+                    # Calculate total locked and available for unlocked sliders
+                    locked_vals <- unlist(lapply(ids, function(x) {
                         if (isTRUE(lockStates[[x]])) {
                             if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                        } else 0
-                        }))
-                        L <- sum(locked_vals)
-                        available_total <- 1 - L
-                        
-                        new_val <- as.numeric(debouncedSliderVal())
-                        # Clamp if new_val exceeds available_total
-                        if (new_val >= available_total - tol) {
-                        new_val <- available_total
-                        updateSliderInput(session, slider_id, value = new_val)
-                        # Set all other unlocked sliders to 0
-                        for (other in ids[-j]) {
-                            if (!isTRUE(lockStates[[other]]))
-                            updateSliderInput(session, other, value = 0)
-                        }
-                        } else {
-                        # Distribute the remaining available among the other unlocked sliders
-                        remaining_available <- available_total - new_val
-                        other_ids <- ids[-j][ !sapply(ids[-j], function(x) isTRUE(lockStates[[x]])) ]
-                        current_unlocked <- unlist(lapply(other_ids, function(x) {
-                            if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                        }))
-                        total_unlocked <- sum(current_unlocked)
-                        if (length(other_ids) > 0) {
-                            if (total_unlocked == 0) {
-                            new_unlocked <- rep(remaining_available / length(other_ids), length(other_ids))
-                            } else {
-                            new_unlocked <- unname(remaining_available * (current_unlocked / total_unlocked))
-                            }
-                            for (k in seq_along(other_ids)) {
-                            updateSliderInput(session, other_ids[k], value = new_unlocked[k])
-                            }
-                    }
-                    }
-                }
-                groupUpdating(FALSE)
-                }, ignoreInit = TRUE)
-            })
-            }
-        })
-        })
+                    } else 0
+                    }))
+                    L <- sum(locked_vals)
+                    available_total <- 1 - L
 
-        # immediately recalculate when user presses the auto-calc button
-   observe({
-    req(input$selected_epc)
-
-    dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-
-    lapply(dep_groups, function(g) {
-        observeEvent(input[[paste0("autoCalc_", g)]], {
-            # When autoCalc is toggled ON, INSTANTLY perform a recalculation for group g 
-            if (isTRUE(isolate(autoCalcStates[[g]]))) {
-                group_rows <- which(!is.na(parameters$group) & parameters$group == g)
-                ids <- paste0("dep_", parameters$INDEX[group_rows])
-
-                # Calculate total locked and available for unlocked sliders
-                locked_vals <- unlist(lapply(ids, function(x) {
-                    if (isTRUE(lockStates[[x]])) {
+                    # Identify unlocked sliders
+                    unlocked_ids <- ids[!sapply(ids, function(x) isTRUE(lockStates[[x]]))]
+                    current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
                         if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                } else 0
-                }))
-                L <- sum(locked_vals)
-                available_total <- 1 - L
+                    }))
+                    total_unlocked <- sum(current_unlocked)
 
-                # Identify unlocked sliders
-                unlocked_ids <- ids[!sapply(ids, function(x) isTRUE(lockStates[[x]]))]
-                current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
-                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                }))
-                total_unlocked <- sum(current_unlocked)
-
-                if (length(unlocked_ids) > 0) {
-                    new_unlocked <- if (total_unlocked == 0) {
-                        rep(available_total / length(unlocked_ids), length(unlocked_ids))
-                    } else {
-                        unname(available_total * (current_unlocked / total_unlocked))
-                    }
-                    
-                    for (x in seq_along(unlocked_ids)) {
-                        updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
+                    if (length(unlocked_ids) > 0) {
+                        new_unlocked <- if (total_unlocked == 0) {
+                            rep(available_total / length(unlocked_ids), length(unlocked_ids))
+                        } else {
+                            unname(available_total * (current_unlocked / total_unlocked))
+                        }
+                        
+                        for (x in seq_along(unlocked_ids)) {
+                            updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
+                        }
                     }
                 }
-            }
-        }, ignoreInit = TRUE)
+            }, ignoreInit = TRUE)
+        })
     })
-})
 
         # sum counter viusalization
-        observe({
+    observe({
+           
         req(input$selected_epc)
         dep_groups <- unique(parameters$group[!is.na(parameters$group)])
         lapply(dep_groups, function(g) {
@@ -2185,8 +2216,9 @@ observe({
             }
             })
         })
-        })
-
+        
+    })
+    
 
 
 
@@ -2255,9 +2287,10 @@ observe({
             }
             
             } else {
+            current_selection <- isolate(input$selected_epc)
             # When auto-selection is disabled, update to show the full list with labels.
             full_choices <- setNames(rv$epc_files, rv$epc_labels)
-            updateSelectInput(session, "selected_epc", choices = full_choices)
+            updateSelectInput(session, "selected_epc", choices = full_choices, selected = current_selection)
             }
         })
 
@@ -2324,7 +2357,7 @@ observe({
             ),
 
                 
-                # Tab for column interaction
+            # Tab for column interaction
             tabPanel("Column Interaction",
             fluidRow(
                 column(4,
@@ -2603,19 +2636,50 @@ observe({
             sapply(layers, function(x) mean(x))
         }
 
-        calc_midpoint_swc <- function(swc_values, min_depth, max_depth, layers) {
+        midpoint_trend_swc <- function(swc_values, depth, layers) {
             midpoints <- get_midpoints(layers)
-            
-            # Create a linear interpolation function of SWC vs. depth (using midpoints)
-            swc_profile <- approxfun(midpoints, swc_values, rule = 2)
-            
-            # Integrate the interpolated function over the desired depth range
-            integrated_value <- integrate(swc_profile, lower = min_depth, upper = max_depth)$value
-            
-            # Compute the average SWC over that depth range
-            average_swc <- integrated_value / (max_depth - min_depth)
-            return(average_swc)
+
+            # Find the closest midpoints below and above the given depth
+            below_index <- max(which(midpoints <= depth))
+            above_index <- min(which(midpoints >= depth))
+
+            # Ensure valid indices
+            if (is.na(below_index) || is.na(above_index) || below_index == above_index) {
+                return(NA)  # Return NA if no valid interpolation can be performed
+            }
+
+            # Get SWC values at the two midpoints
+            SWC_below <- swc_values[below_index]
+            SWC_above <- swc_values[above_index]
+
+            # Get the actual depths of the midpoints
+            depth_below <- midpoints[below_index]
+            depth_above <- midpoints[above_index]
+
+            # Compute the weights based on distance
+            weight_above <- (depth - depth_below) / (depth_above - depth_below)
+            weight_below <- 1 - weight_above
+
+            # Compute interpolated SWC
+            interpolated_swc <- weight_below * SWC_below + weight_above * SWC_above
+
+            return(interpolated_swc)
         }
+
+
+        # calc_midpoint_swc <- function(swc_values, min_depth, max_depth, layers) {
+        #     midpoints <- get_midpoints(layers)
+            
+        #     # Create a linear interpolation function of SWC vs. depth (using midpoints)
+        #     swc_profile <- approxfun(midpoints, swc_values, rule = 2)
+            
+        #     # Integrate the interpolated function over the desired depth range
+        #     integrated_value <- integrate(swc_profile, lower = min_depth, upper = max_depth)$value
+            
+        #     # Compute the average SWC over that depth range
+        #     average_swc <- integrated_value / (max_depth - min_depth)
+        #     return(average_swc)
+        # }
 
 
 
@@ -2639,8 +2703,8 @@ observe({
 
         updateLastGoodValues <- function() {
             # Cycle through all epc files and store their current slider values
-            for(epc in rv$epc_files) {
-                lastGoodValues$epc[[epc]] <<- epcValues[[epc]]
+            for(epc in names(lastGoodValues$epc)) {
+                lastGoodValues$epc[[epc]] <<- as.numeric(epcValues[[epc]])
             }
             if(!is.null(soil_parameters())) {
                 lastGoodValues$soil <<- soilValues$values
@@ -2693,7 +2757,7 @@ observe({
             modifiedEpcList <- modifiedEpcList + 1
         }
         if (modifiedEpcList == 0 && !firstRun()) {
-            myShowNotification("No changes in EPC values detected, no files were written", type = "warning", duration = 7)
+            myShowNotification("No changes in EPC values detected since last good run, no files were written", type = "warning", duration = 7)
         }
         
         soilChanged <- FALSE
@@ -2710,12 +2774,12 @@ observe({
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
-                myShowNotification("No changes in SOIL parameters detected, soil file wasn't written", type = "warning", duration = 8)
+                myShowNotification("No changes in SOIL parameters detected since last good run, soil file wasn't written", type = "warning", duration = 8)
             }
         }
 
             if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged))) {
-                myShowNotification("No changes in EPC and/or SOIL parameters detected. Not running the model", 
+                myShowNotification("No changes in EPC and/or SOIL parameters detected since last good run. Not running the model", 
                                 type = "message", duration = 9)
                 w$hide()
                 return()  
@@ -2770,7 +2834,7 @@ observe({
         #print(vwc_cols)
 
         if (length(newVars$defs) > 0) {
-            #dfs_orig <- as.data.frame(result)
+            # #dfs_orig <- as.data.frame(result)
             #vwc_cols <- grep("^VWC\\[", names(dfs_orig), value = TRUE)
             #vwc_indices <- as.numeric(gsub("VWC\\[|\\]", "", vwc_cols))
             #current_layers <- layers[vwc_indices + 1]  # Adjust indexing
@@ -2787,10 +2851,11 @@ observe({
                     base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
                     current_layers <- layers[base_indices + 1]  
                     
-                    new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
-                    swc_vals <- as.numeric(r)
-                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                   new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
+                        swc_vals <- as.numeric(r)
+                        midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
                     })
+
                     dfs_orig[[var_name]] <- new_val
                 }
             result <- as.matrix(dfs_orig)
@@ -2814,9 +2879,12 @@ observe({
                 if(length(lastGoodValues$epc) > 0) {
                     for(epc in names(lastGoodValues$epc)) {
                     # Restore reactive storage for this epc file
+                    #browser()
                     epcValues[[epc]] <<- lastGoodValues$epc[[epc]]
-                    
-                        epc_vals <- lastGoodValues$epc[[epc]]
+                    }
+                    # updating the visible sliders
+                    selected_epc <- input$selected_epc
+                        epc_vals <- lastGoodValues$epc[[selected_epc]]
                         for(i in seq_len(nrow(parameters))) {
                             if (is.na(parameters$group[i])) {
                                 updateSliderInput(session,
@@ -2827,8 +2895,8 @@ observe({
                                                 inputId = paste0("dep_", parameters$INDEX[i]),
                                                 value = epc_vals[i])
                             }
-                        }
-                    }
+                       }
+                    
                 }
                 else {
                     showNotification("No last good values found for EPC files.", type = "warning")
@@ -3537,7 +3605,7 @@ observe({
 
                 new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
-                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
                 })
                 dfs[[var_name]] <- new_val
             }
@@ -3713,7 +3781,7 @@ observe({
                     
                     new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
                     swc_vals <- as.numeric(r)
-                    calc_midpoint_swc(swc_vals, def$min_depth, def$max_depth, current_layers)
+                    midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
                     })
                     dfs_orig[[var_name]] <- new_val
                 }
@@ -3835,7 +3903,7 @@ observe({
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.14.0</strong></p>
+                    <p><strong>Version 2.14.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4188,6 +4256,26 @@ observe({
             }
         })
 
+
+         observeEvent(input$exit, {
+            confirmSweetAlert(
+            session = session,
+            inputId = "confirm_exit",
+            title = "Are you sure?",
+            text = "Do you really want to exit tuneMuso? Your plants will miss you...",
+            type = "warning",
+            btn_labels = c("No", "Yes"),
+            danger_mode = TRUE
+            )
+        })
+        
+        observeEvent(input$confirm_exit, {
+            if (input$confirm_exit) {
+                stopApp()
+                runjs("window.close();")  
+            }
+        })
+    
 }
 
 
@@ -4205,6 +4293,6 @@ tuneMuso <- function(directory = NULL, ...){
     } else {
         shinyOptions(musoRoot = normalizePath(directory))
     }
-    #shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = c(list(launch.browser = TRUE), list(...)))
-    shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...))
+    shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = c(list(launch.browser = TRUE), list(...)))
+    #shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...))
 }
