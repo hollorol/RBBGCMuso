@@ -654,7 +654,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                     actionButton("editColNames", "Edit Column Names"),
                                     downloadButton("exportData", "Export Data"),
                                     actionButton("editMeasurementTransforms", "Edit Measurement Data"),
-                                    actionButton("make_output", "Make Output Variable"),
+                                    
                                     checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
                                 ),
                                 # Now wrap the delete and reset checkboxes side by side in their own fluidRow:
@@ -686,6 +686,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                      actionButton("AppendSim", "Append To Measurement", width = "auto")),
                                 div(style = "display: inline-block; margin-right: 5px;",
                                      actionButton("resetOutputMods", "Reset Edits", width = "auto")),
+                                div(style = "display: inline-block; margin-right: 5px;",
+                                     actionButton("make_output", "Make Output Variable", width = "auto")),
                                 div(style = "display: inline-block; margin-right: 5px;",
                                     pickerInput("exportCols", "Select columns for export/reset/append",
                                                 choices = NULL, multiple = TRUE, width = "250px",options = list(`actions-box` = TRUE))),
@@ -762,19 +764,19 @@ tuneMusoServer <- function(input, output, session){
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
 
 
-     observe({
-        req(settings$iniInput[2])
-        iniContent <- readLines(settings$iniInput[2])
-        sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
-        if(!is.null(sf) && file.exists(sf)) {
-            soil_file(sf)
-            # message("Shiny is actually using soil_file() = '", soil_file(), "'")
-              lines <- readLines(soil_file())
-            #message("It has ", length(lines), " lines. For line #4: ", lines[4])
-        } else {
-            showNotification("Soil file not found in INI or file missing", type="error")
-        }
-    })
+    #  observe({
+    #     req(settings$iniInput[2])
+    #     iniContent <- readLines(settings$iniInput[2])
+    #     sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
+    #     if(!is.null(sf) && file.exists(sf)) {
+    #         soil_file(sf)
+    #         # message("Shiny is actually using soil_file() = '", soil_file(), "'")
+    #           lines <- readLines(soil_file())
+    #         #message("It has ", length(lines), " lines. For line #4: ", lines[4])
+    #     } else {
+    #         showNotification("Soil file not found in INI or file missing", type="error")
+    #     }
+    # })
 
 
 
@@ -1409,7 +1411,7 @@ tuneMusoServer <- function(input, output, session){
 
 
 
-        #ui for epc selection
+        #ui for epc&soil selection
         output$selectEPC <- renderUI({
         if(currentMode() == "epc") {
         req(length(rv$epc_files) > 0)  
@@ -1460,19 +1462,21 @@ tuneMusoServer <- function(input, output, session){
     # Get the "boot up" values for each EPC file for resetting
     InitialDefaults <- reactiveValues()
 
-    observe({
-        req(rv$epc_files)
-        for (epc in rv$epc_files) {
-            # Only initialize if not already present
-            if (is.null(InitialDefaults[[epc]])) {
-            # Call musoGetValues to get the default parameters for this EPC
-            #This is done only once per EPC
-            InitialDefaults[[epc]] <- as.numeric(musoGetValues(epc, parameters[, 2]))
-            lastGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
-            epcValues[[epc]] <<- InitialDefaults[[epc]]
-            }
-        }
+    observeEvent(rv$epc_files, {
+        isolate({
+            req(rv$epc_files)
+                for (epc in rv$epc_files) {
+                    # Only initialize if not already present
+                    #if (is.null(InitialDefaults[[epc]])) {
+                        # Call musoGetValues to get the default parameters for this EPC
+                        #This is done only once per EPC
+                        InitialDefaults[[epc]] <- as.numeric(musoGetValues(epc, parameters[, 2]))
+                        lastGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
+                        epcValues[[epc]] <<- InitialDefaults[[epc]]
+                    #}
+                }
         })
+        }, once = TRUE)
 
     InitialDefaultsSoil <- reactiveValues(values = NULL)
     observe({
@@ -3903,7 +3907,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.14.2</strong></p>
+                    <p><strong>Version 2.14.3</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
