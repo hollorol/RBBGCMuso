@@ -22,6 +22,7 @@
 #' @export 
 tuneMusoUI <- function(parameterFile = NULL, ...) {
     setwd(getShinyOption("musoRoot"))
+    workdir <- getwd()
     dir.create("bck", showWarnings = FALSE)
     file.copy("n.ini", "bck/n.ini", overwrite = FALSE)
     
@@ -486,8 +487,14 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 
 
     # moving the title to the right so the toggleui button has space
-    titlePanel(div(style = "margin-left: 100px;", "Biome-BGCMuSo Parameter Tuner")),
-  
+    #titlePanel(div(style = "margin-left: 100px;", "B-BGCMuSo Parameter Tuner")),
+    titlePanel(
+        div(
+            style = "display: flex; align-items: center; margin-left: 100px;",
+            tags$span("B-BGCMuSo Parameter Tuner", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
+            tags$span(paste0(workdir), style = "font-size: 14px; color: #666;")
+        )
+    ),
     # Floating toggle button to collapse/restore the control panel
     div(
       id = "toggleUIButton",
@@ -620,12 +627,12 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                            )
                                        )
                                    ),
-                                   radioButtons(
-                                       inputId = "destination",
-                                       label = "Reference or Modified",
-                                       choiceValues = c("auto", "prev", "nextVal"),
-                                       choiceNames = c("automatic", "reference", "modified")
+                                   checkboxInput(
+                                      "lastRun", "Show Previous Model Run", value = FALSE
                                    ),
+                                #    checkboxInput(
+                                #     "lastMetrics", "Show Metrics of The Last Run", value = FALSE
+                                #    ),
                                     textAreaInput("feedback_message", "Feedback", placeholder = "Report a bug or request a feature."),
                                     actionButton("submit_feedback", "Send Feedback"),
                                     verbatimTextOutput("feedback_status")
@@ -687,7 +694,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                 div(style = "display: inline-block; margin-right: 5px;",
                                      actionButton("resetOutputMods", "Reset Edits", width = "auto")),
                                 div(style = "display: inline-block; margin-right: 5px;",
-                                     actionButton("make_output", "Make Output Variable", width = "auto")),
+                                     actionButton("make_output", "Create Output Variable", width = "auto")),
                                 div(style = "display: inline-block; margin-right: 5px;",
                                     pickerInput("exportCols", "Select columns for export/reset/append",
                                                 choices = NULL, multiple = TRUE, width = "250px",options = list(`actions-box` = TRUE))),
@@ -730,7 +737,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 #' @export 
 
 tuneMusoServer <- function(input, output, session){
-    
+    workdir <- getwd()
     # startup animation, waiting for observers to stop calculating before allowing actions
     hostess_instance <- Hostess$new("loader")
     #hostess_instance$start()  # Start the spinner
@@ -1218,57 +1225,57 @@ tuneMusoServer <- function(input, output, session){
 
             # When the user clicks the delete button, remove the selected columns
             observeEvent(input$deleteCols, {
-            req(measurementData())
-            colsToRemove <- input$colsToDelete
-            if(length(colsToRemove) > 0){
-                # Remove the selected columns from the data frame
-                df <- measurementData()
-                df <- df[, !(colnames(df) %in% colsToRemove), drop = FALSE]
-                measurementData(df)
-                
-                # Update the checkbox group input to reflect the new column names
-                updateCheckboxGroupInput(session, "colsToDelete", choices = setdiff(colnames(df), "Date"), selected = character(0))
-            }
+                req(measurementData())
+                colsToRemove <- input$colsToDelete
+                if(length(colsToRemove) > 0){
+                    # Remove the selected columns from the data frame
+                    df <- measurementData()
+                    df <- df[, !(colnames(df) %in% colsToRemove), drop = FALSE]
+                    measurementData(df)
+                    
+                    # Update the checkbox group input to reflect the new column names
+                    updateCheckboxGroupInput(session, "colsToDelete", choices = setdiff(colnames(df), "Date"), selected = character(0))
+                }
             })
 
         # Mapping ui
         mappingRV <- reactiveVal(NULL)
             observeEvent(input$outputMapping, {
-            req(measurementData())
-            
-            # Get measurement columns (all except "Date")
-            measCols <- setdiff(colnames(measurementData()), "Date")
-            
-            # Get available output variables from your settings
-            #availableOutputVars <- reactive({ settings$dailyOutputTable$name })
-            
-            # Create the modal's content:
+                req(measurementData())
+                
+                # Get measurement columns (all except "Date")
+                measCols <- setdiff(colnames(measurementData()), "Date")
+                
+                # Get available output variables from your settings
+                #availableOutputVars <- reactive({ settings$dailyOutputTable$name })
+                
+                # Create the modal's content:
             modalContent <- tagList(
-                h3("Map Measurement Columns to Output Variables"),
-                # Header row:
-                fluidRow(
-                column(6, strong("Measurement Column")),
-                column(6, strong("Mapped Output Variable"))
-                ),
-                # For each measurement column, create a row with the column name and a dropdown
-                lapply(measCols, function(col) {
-                fluidRow(
-                    column(6, div(style = "padding: 5px;", col)),
-                    column(6, 
-                    selectInput(
-                        inputId = paste0("mapping_", col),
-                        label = NULL,
-                        choices = c("None", dailyOutputNames()),
-                        # Use the saved mapping if it exists, otherwise default to "None"
-                        selected = if (!is.null(mappingRV()) && !is.null(mappingRV()[[col]])) {
-                        mappingRV()[[col]]
-                        } else {
-                        character(0)
-                        },
-                        width = "100%"
+                    h3("Map Measurement Columns to Output Variables"),
+                    # Header row:
+                    fluidRow(
+                    column(6, strong("Measurement Column")),
+                    column(6, strong("Mapped Output Variable"))
+                    ),
+                    # For each measurement column, create a row with the column name and a dropdown
+                    lapply(measCols, function(col) {
+                    fluidRow(
+                        column(6, div(style = "padding: 5px;", col)),
+                        column(6, 
+                        selectInput(
+                            inputId = paste0("mapping_", col),
+                            label = NULL,
+                            choices = c("None", dailyOutputNames()),
+                            # Use the saved mapping if it exists, otherwise default to "None"
+                            selected = if (!is.null(mappingRV()) && !is.null(mappingRV()[[col]])) {
+                            mappingRV()[[col]]
+                            } else {
+                            character(0)
+                            },
+                            width = "100%"
+                        )
+                        )
                     )
-                    )
-                )
                 })
             )
 
@@ -1576,7 +1583,7 @@ tuneMusoServer <- function(input, output, session){
                         paramVal <- InitialDefaults[[epc]]  
                         #if(identical(paramVal, epcValues[[epc]])) next
                         settings$epcInput[["normal"]] <- epc
-                        changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
+                        prettyChangeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
                                 fileToChange = "epc", fixAlloc = FALSE)
 
                            cat(paste0("Restored ", epc, " to original values.\n"))
@@ -1589,7 +1596,7 @@ tuneMusoServer <- function(input, output, session){
                 #if(currentMode() == "soil") {
                     paramVal <- InitialDefaultsSoil$values
                     #if(!identical(paramVal, soilValues$values)) {
-                    changeMuso(settings, paramVal, 
+                    prettyChangeMuso(settings, paramVal, 
                      calibrationPar = soil_parameters()[,2],
                      fileToChange = "soil", fixAlloc = FALSE)
                 #}  
@@ -1609,7 +1616,7 @@ tuneMusoServer <- function(input, output, session){
                         # Restore reactive storage for this epc file
                         paramVal <- lastGoodValues$epc[[epc]]
                         settings$epcInput[["normal"]] <- epc
-                            changeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
+                            prettyChangeMuso(settings, paramVal, calibrationPar = parameters[, 2], 
                                     fileToChange = "epc", fixAlloc = FALSE)
                     }
                 })
@@ -1619,7 +1626,7 @@ tuneMusoServer <- function(input, output, session){
                     if(!is.null(isolate(soil_parameters()))){ # checking whether we should check for soil file
                         isolate({
                             paramVal <- lastGoodValues$soil
-                                changeMuso(settings, paramVal, 
+                                prettyChangeMuso(settings, paramVal, 
                                 calibrationPar = soil_parameters()[,2],
                                 fileToChange = "soil", fixAlloc = FALSE)
                         })
@@ -2728,6 +2735,9 @@ tuneMusoServer <- function(input, output, session){
             color = "transparent"
         )
 
+        
+       
+
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
         #### MODEL RUN ####
@@ -2739,7 +2749,7 @@ tuneMusoServer <- function(input, output, session){
         w$show()
         # updating current epc values MIGHT BE OBSOLETE since we update epcValues on slider change anyway
         #updateCurrentEPCValues()
-
+        
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
@@ -2752,7 +2762,7 @@ tuneMusoServer <- function(input, output, session){
             }
             if (isTRUE(all.equal(paramVal, lastGoodValues$epc[[epc]]))) next # Skip writing if no changes
             settings$epcInput[["normal"]] <- epc
-            changeMuso(settings, paramVal, 
+            prettyChangeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
                     fixAlloc = FALSE)
@@ -2773,7 +2783,7 @@ tuneMusoServer <- function(input, output, session){
             #if (!identical(paramVal, lastGoodValues$soil)) {
             if(soilChanged){
                 req(soil_file(), soil_parameters())
-                changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                         fileToChange = "soil", fixAlloc = FALSE)
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
@@ -2826,6 +2836,10 @@ tuneMusoServer <- function(input, output, session){
              if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
         modelCrashed(FALSE)
+        if(!firstRun()) {
+            outputList$prev <- isolate(outputData())
+            #prevMetricsData(NULL)
+        }
         #print("Model ran successfully")
         #showNotification("Model ran successfully", type = "message")
         
@@ -3530,6 +3544,116 @@ tuneMusoServer <- function(input, output, session){
         }
         metrics
     })
+        
+    #     prevMetricsData <- reactive({
+    #     if (firstRun()) return(NULL)
+    #     if (!input$lastMetrics) return(data.frame(Measurement = character(),OutputVariable = character(), RMSE = numeric(), BIAS = numeric(), Correlation = numeric(),stringsAsFactors = FALSE)) 
+    #     #req(input$lastMetrics)
+    #     req(outputList$prev, input$yearRange)  
+        
+    #     # Get measurement data (if any) and mapping
+    #     meas_df <- measurementData()
+    #     mapping <- mappingRV()
+        
+    #     # If no measurement data or no mapping is provided, return an empty data frame (so plots are still generated)
+    #     if (is.null(meas_df) || nrow(meas_df) == 0 || is.null(mapping) || length(mapping) == 0) {
+    #         return(data.frame(
+    #         Measurement = character(),
+    #         OutputVariable = character(),
+    #         RMSE = numeric(),
+    #         BIAS = numeric(),
+    #         Correlation = numeric(),
+    #         stringsAsFactors = FALSE
+    #         ))
+    #     }
+        
+    #     # Determine selected years
+    #     selectedYears <- if (input$singleYear) {
+    #         input$yearRange
+    #     } else {
+    #         seq(input$yearRange[1], input$yearRange[2])
+    #     }
+        
+    #     # Filter measurement and simulation data to the selected years
+    #     meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
+        
+    #     sim_df <- outputList$prev
+    #     sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
+        
+    #     # for the good rmse calc
+    #     cols_to_modify <- c("GPP", "TR", "NEE")  
+    #     existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
+
+    #     #sim_df[existing_cols] <- sim_df[existing_cols] * 1000 # COMMENTED OUT BECAUSE OF THE NEW OUTPUT VARIABLE MANAGER
+
+    #     # Merge the two datasets on Date (columns get suffixes to avoid stinky bugs)
+    #     merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_simi"))
+        
+    #     # For each mapped measurement, calculate RMSE and correlation
+    #     metrics_list <- lapply(names(mapping), function(meas_col) {
+    #         output_var <- mapping[[meas_col]]
+    #         if (output_var == "None") return(NULL)
+            
+    #         # Find the correct columns in merged_df
+    #         x_col <- if (meas_col %in% colnames(merged_df)) {
+    #         meas_col
+    #         } else if (paste0(meas_col, "_meas") %in% colnames(merged_df)) {
+    #         paste0(meas_col, "_meas")
+    #         } else {
+    #         NULL
+    #         }
+            
+    #         y_col <- if (output_var %in% colnames(merged_df)) {
+    #         output_var
+    #         } else if (paste0(output_var, "_simi") %in% colnames(merged_df)) {
+    #         paste0(output_var, "_simi")
+    #         } else {
+    #         NULL
+    #         }
+            
+    #         # Skip if we can’t find the necessary columns
+    #         if (is.null(x_col) || is.null(y_col)) return(NULL)
+            
+    #         x <- merged_df[[x_col]]
+    #         y <- merged_df[[y_col]]
+            
+    #         # Remove pairs where either value is NA
+    #         valid <- complete.cases(x, y)
+    #         if (sum(valid) == 0) {
+    #         rmse_val <- NA
+    #         bias_val <- NA
+    #         corr_val <- NA
+    #         } else {
+    #         rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
+    #         bias_val <- mean(y[valid] - x[valid])
+    #         corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid])^2 else NA  #R2
+    #         }
+            
+    #         data.frame(
+    #         Measurement = meas_col,
+    #         OutputVariable = output_var,
+    #         RMSE = rmse_val,
+    #         BIAS = bias_val,
+    #         Correlation = corr_val,
+    #         stringsAsFactors = FALSE
+    #         )
+    #     })
+        
+    #     metrics <- do.call(rbind, metrics_list)
+    #     if (is.null(metrics)) {
+    #         metrics <- data.frame(
+    #         Measurement = character(),
+    #         OutputVariable = character(),
+    #         RMSE = numeric(),
+    #         BIAS = numeric(),
+    #         Correlation = numeric(),
+    #         stringsAsFactors = FALSE
+    #         )
+    #     }
+    #     metrics
+        
+    # })
+
 
 
 
@@ -3699,7 +3823,7 @@ tuneMusoServer <- function(input, output, session){
             }
             if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
             settings$epcInput[["normal"]] <- epc
-            changeMuso(settings, paramVal, 
+            prettyChangeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
                     fixAlloc = FALSE)
@@ -3713,7 +3837,7 @@ tuneMusoServer <- function(input, output, session){
             paramVal <- soilValues$values
             if (!identical(paramVal, InitialDefaultsSoil$values)) {
                 req(soil_file(), soil_parameters())
-                changeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
                         fileToChange = "soil", fixAlloc = FALSE)
                 #myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
             }
@@ -3882,6 +4006,9 @@ tuneMusoServer <- function(input, output, session){
           observeEvent(input$settings_btn, {
             showModal(modalDialog(
             title = "Settings",
+            div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
+                    paste("Current Working Directory:", workdir)
+            ),
             # Inputs for resolution settings
             numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
             numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
@@ -3907,12 +4034,11 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.14.3</strong></p>
+                    <p><strong>Version 2.14.5</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
-                        <li>Automatic update may not work as intended (it's two times better compared to version 13.5 but still buggy), use hotkeys for running the model</li>
-                        <li>'Reference', 'Modified', 'Automatic' options lost functionality (and their places in the code... trying to find where they've gone)</li>
+                        <li>Sometimes there will be a notification for an epc modification even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
                     </ul>
                     "))),
                 #actionButton("close_info_overlay", "Close")
@@ -3966,8 +4092,9 @@ tuneMusoServer <- function(input, output, session){
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
-                
+                session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
                 plot_outputs <- lapply(input$selected_vars, function(var) {
+				
                     plotlyOutput(paste0("plot_", var), height = "100%")
                 })
                 do.call(tagList, plot_outputs)
@@ -4013,7 +4140,7 @@ tuneMusoServer <- function(input, output, session){
                     
                     p <- plot_ly()
 
-                    if (!is.null(filteredPrev)) {
+                    if (!is.null(filteredPrev) && input$lastRun) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
                                     type = 'scatter', mode = 'lines', name = "Previous Simulation")
                     }
@@ -4091,8 +4218,8 @@ tuneMusoServer <- function(input, output, session){
                     df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
 
                     metrics_df <- metricsData()
-                    
-
+                    #prevMetrics_df <- prevMetricsData()
+                    #metric_labels_list <- list()
                     if (!is.null(mapping)) {
                         # Find measurement columns mapped to the current var
                         mappedCols <- names(mapping)[mapping == var]
@@ -4129,7 +4256,7 @@ tuneMusoServer <- function(input, output, session){
                                 }
 
                                 metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-
+                                #metric_labels_list[[col]] <- metric_label
                                 p <- add_trace(p,
                                             x = df_filtered$Date,
                                             y = yData,
@@ -4138,13 +4265,44 @@ tuneMusoServer <- function(input, output, session){
                                             #name = paste0(col, " Measurement<br>", metric_label),
                                             name = paste0(col, " Measurement\n", metric_label),
                                             marker = list(symbol = "circle", size = 7, color =meas_colors[i]))
-                                            
+                                
+                                        # if (input$lastMetrics && !is.null(prevMetrics_df[[col]])) {
+
+                                        #      prev_row <- prevMetrics_df[prevMetrics_df$Measurement == col, ]
+
+                                        #     prev_rmse_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$RMSE)) {
+                                        #         sprintf("RMSE: %.2f", prev_row$RMSE)
+                                        #     } else {
+                                        #         "RMSE: NA"
+                                        #     }
+                                        #     prev_bias_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$BIAS)) {
+                                        #         sprintf("Bias: %.2f", prev_row$BIAS)
+                                        #     } else {
+                                        #         "Bias: NA"
+                                        #     }
+                                        #     prev_corr_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$Correlation)) {
+                                        #         sprintf("R<sup>2</sup>: %.2f", prev_row$Correlation)
+                                        #     } else {
+                                        #         "R<sup>2</sup>: NA"
+                                        #     }
+
+                                        #     prev_metric_label <- paste(prev_rmse_str, prev_bias_str, prev_corr_str, sep = " | ")
+
+                                        #     p <- add_trace(p,
+                                        #                 x = df_filtered$Date,
+                                        #                 y = 0,  
+                                        #                 type = 'scatter',
+                                        #                 mode = 'lines',
+                                        #                 name = paste0(col, " Prev Simulation\n", prev_metric_label),
+                                        #                 visible = "legendonly"
+                                        #     )
+                                        # }
                             }
                         }
                     }
                     # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
                     common_x_range <- range(filteredDates, na.rm = TRUE)
-
+                    #currentMetricLabels(metric_labels_list)
                 #p <- p %>% plotly::layout(
                         #title = list(text = paste("Plot of", var),
                         #    font = list(size = 16, color = "black")),
