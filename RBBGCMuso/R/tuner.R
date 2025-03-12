@@ -4339,7 +4339,7 @@ tuneMusoServer <- function(input, output, session){
                                     xaxis = list(
                                         automargin = TRUE,
                                         title = list( 
-                                            text = paste(col, "Measurement"),
+                                            text = paste0("Measured ", col),
                                             standoff = 0),
                                         range =  c(min_tick, max_tick),
                                         showline = TRUE,
@@ -4354,7 +4354,7 @@ tuneMusoServer <- function(input, output, session){
                                         
                                     ),
                                     yaxis = list(
-                                        title = paste("Simulated", var),
+                                        title = paste0("Simulated ", var),
                                         range =  c(min_tick, max_tick),
                                         showline = TRUE,
                                         linecolor = "black",
