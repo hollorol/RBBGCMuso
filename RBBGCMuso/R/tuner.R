@@ -225,7 +225,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       .row-container {
           display: flex;
           width: 100%;
-          height: calc(100vh - 30px);
+          height: calc(100vh - 35px);
       }
       
       /* Control panel styling */
@@ -627,6 +627,9 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                            )
                                        )
                                    ),
+                                   radioButtons("plotType", "Plot Type:",
+                                        choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
+                                        selected = "line"),
                                    checkboxInput(
                                       "lastRun", "Show Previous Model Run", value = FALSE
                                    ),
@@ -4034,7 +4037,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.14.5</strong></p>
+                    <p><strong>Version 2.15.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4139,14 +4142,38 @@ tuneMusoServer <- function(input, output, session){
                     
                     
                     p <- plot_ly()
+                 
+                 # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
+                    common_x_range <- range(filteredDates, na.rm = TRUE)
+            #}
+              
+                    # adding measurements for the current variable (var)
+                    mapping <- mappingRV()
+                    df <- measurementData()
+                    # Filter data by selected years
+                    df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
 
-                    if (!is.null(filteredPrev) && input$lastRun) {
+                    metrics_df <- metricsData()
+                    mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == var] else character(0)
+                    #prevMetrics_df <- prevMetricsData()
+                    #metric_labels_list <- list()
+
+                if (length(mappedCols) > 0) {
+                    if (input$plotType == "line") {
+                           if (!is.null(filteredPrev) && input$lastRun) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
                                     type = 'scatter', mode = 'lines', name = "Previous Simulation")
                     }
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
                                     type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
                     
+                      p <- p %>% plotly::layout(
+                        xaxis = list(range = common_x_range),
+                        yaxis = list(title = var),
+                        showlegend = legendVisible()  # Conditionally show/hide legend
+                    )
+
+                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
                 # Adding the epc labels on the x axis
             #if (file.exists(planting_file)) {
                 planting_dates <- rv$epc_dates
@@ -4209,22 +4236,9 @@ tuneMusoServer <- function(input, output, session){
                         
                          } 
                 }}
-            #}
-
-                    # adding measurements for the current variable (var)
-                    mapping <- mappingRV()
-                    df <- measurementData()
-                    # Filter data by selected years
-                    df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
-
-                    metrics_df <- metricsData()
-                    #prevMetrics_df <- prevMetricsData()
-                    #metric_labels_list <- list()
-                    if (!is.null(mapping)) {
-                        # Find measurement columns mapped to the current var
-                        mappedCols <- names(mapping)[mapping == var]
                        
-                        if (length(mappedCols) > 0) {
+                        
+
                         n_meas <- length(mappedCols)
                         meas_colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Greens")[4:9]))(n_meas)
 
@@ -4266,42 +4280,123 @@ tuneMusoServer <- function(input, output, session){
                                             name = paste0(col, " Measurement\n", metric_label),
                                             marker = list(symbol = "circle", size = 7, color =meas_colors[i]))
                                 
-                                        # if (input$lastMetrics && !is.null(prevMetrics_df[[col]])) {
-
-                                        #      prev_row <- prevMetrics_df[prevMetrics_df$Measurement == col, ]
-
-                                        #     prev_rmse_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$RMSE)) {
-                                        #         sprintf("RMSE: %.2f", prev_row$RMSE)
-                                        #     } else {
-                                        #         "RMSE: NA"
-                                        #     }
-                                        #     prev_bias_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$BIAS)) {
-                                        #         sprintf("Bias: %.2f", prev_row$BIAS)
-                                        #     } else {
-                                        #         "Bias: NA"
-                                        #     }
-                                        #     prev_corr_str <- if (nrow(prev_row) > 0 && !is.na(prev_row$Correlation)) {
-                                        #         sprintf("R<sup>2</sup>: %.2f", prev_row$Correlation)
-                                        #     } else {
-                                        #         "R<sup>2</sup>: NA"
-                                        #     }
-
-                                        #     prev_metric_label <- paste(prev_rmse_str, prev_bias_str, prev_corr_str, sep = " | ")
-
-                                        #     p <- add_trace(p,
-                                        #                 x = df_filtered$Date,
-                                        #                 y = 0,  
-                                        #                 type = 'scatter',
-                                        #                 mode = 'lines',
-                                        #                 name = paste0(col, " Prev Simulation\n", prev_metric_label),
-                                        #                 visible = "legendonly"
-                                        #     )
-                                        # }
+                                    
                             }
                         }
-                    }
-                    # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
-                    common_x_range <- range(filteredDates, na.rm = TRUE)
+                   
+                 
+                    else {
+ 
+  
+                            if (!is.null(mapping)) {
+                                mappedCols <- names(mapping)[mapping == var]
+                                
+                                n_meas <- length(mappedCols)
+                                    global_abs_min <- Inf
+                                    global_abs_max <- -Inf
+                            
+                                    # Loop over measurement columns to determine global limits
+                                    for (col in mappedCols) {
+                                        sim_data <- data.frame(Date = filteredDates, sim = filteredNext[, var])
+                                        meas_data <- df_filtered[, c("Date", col)]
+                                        common_data <- merge(sim_data, meas_data, by = "Date")
+                                        local_min <- min(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
+                                        local_max <- max(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
+                                        global_abs_min <- min(global_abs_min, local_min)
+                                        global_abs_max <- max(global_abs_max, local_max)
+                                    }
+                                    
+                                    
+                                    desired_ticks <- 8
+                                    #dtick_value <- (global_abs_max - global_abs_min) / (desired_ticks - 1)
+                                    
+                                    breaks <- pretty(c(global_abs_min, global_abs_max), n = desired_ticks)
+                                    min_tick <- min(breaks)
+                                    max_tick <- max(breaks)
+                                    dtick_value <- diff(breaks)[1] 
+                                    
+                                    for (i in seq_along(mappedCols)) {
+                                    col <- mappedCols[i]
+                                    m_row <- metrics_df[metrics_df$Measurement == col, ]
+                                    rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
+                                    bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
+                                    corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
+                                    metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
+                                    
+                                    
+                                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
+                                    # Add the scatter trace using measurement values on the x-axis and simulation on the y-axis
+                                    p <- add_trace(p,
+                                                x = common_data[[col]],   # measurement values
+                                                y = common_data$sim,        # simulation output values
+                                                type = 'scatter',
+                                                mode = 'markers',
+                                                name = paste0(col, " Metrics\n", metric_label),
+                                                marker = list(symbol = "circle", size = 7, color = "#ca8300"))
+                                    
+                                    # Update layout to enforce a square aspect and add the 1:1 diagonal line.
+                                    p <- p %>% layout(
+                                    xaxis = list(
+                                        automargin = TRUE,
+                                        title = list( 
+                                            text = paste(col, "Measurement"),
+                                            standoff = 0),
+                                        range =  c(min_tick, max_tick),
+                                        showline = TRUE,
+                                        linecolor = "black",
+                                        linewidth = 2,
+                                        mirror = FALSE,
+                                        zeroline = FALSE,
+                                        scaleanchor = "y",
+                                        constrain = "domain",
+                                        tickmode = "linear",
+                                        dtick = dtick_value
+                                        
+                                    ),
+                                    yaxis = list(
+                                        title = paste("Simulated", var),
+                                        range =  c(min_tick, max_tick),
+                                        showline = TRUE,
+                                        linecolor = "black",
+                                        linewidth = 2,
+                                        mirror = FALSE,
+                                        zeroline = FALSE,
+                                        constrain = "domain",
+                                        tickmode = "linear",
+                                        dtick = dtick_value
+                                    ),
+                                    shapes = list(
+                                        list(
+                                        type = "line",
+                                        x0 = min_tick, y0 = min_tick,
+                                        x1 = max_tick, y1 = max_tick,
+                                        line = list(color = "blue", dash = "dash", width = 2)
+                                        )
+                                    ), showlegend = legendVisible()
+                                    )
+                                }
+                                
+                            }
+                            }
+                            }
+
+                    else {
+                                if (!is.null(filteredPrev) && input$lastRun) {
+                                p <- add_trace(p, x = filteredDates, y = filteredPrev[, var],
+                                                type = 'scatter', mode = 'lines', name = "Previous Simulation")
+                                }
+                                p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
+                                            type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+
+                                                p <- p %>% plotly::layout(
+                                                    xaxis = list(range = common_x_range),
+                                                    yaxis = list(title = var),
+                                                    showlegend = legendVisible()  # Conditionally show/hide legend
+                                                )
+
+                        }
+               
+                           
                     #currentMetricLabels(metric_labels_list)
                 #p <- p %>% plotly::layout(
                         #title = list(text = paste("Plot of", var),
@@ -4310,12 +4405,7 @@ tuneMusoServer <- function(input, output, session){
                    #     yaxis = list(title = var)
                    #     )
 
-                    p <- p %>% plotly::layout(
-                        xaxis = list(range = common_x_range),
-                        yaxis = list(title = var),
-                        showlegend = legendVisible()  # Conditionally show/hide legend
-                    )
-
+                 
                     p <- p %>% plotly::config(toImageButtonOptions = list(
                     format = "png", 
                     width = exportSettings$width, 
