@@ -491,7 +491,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     titlePanel(
         div(
             style = "display: flex; align-items: center; margin-left: 100px;",
-            tags$span("B-BGCMuSo Parameter Tuner", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
+            tags$span("RBBGCMuso Parameter Tuner", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
             tags$span(paste0(workdir), style = "font-size: 14px; color: #666;")
         )
     ),
@@ -610,9 +610,19 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                    tags$div(id = "controlp",
                                             tags$div(id = "slider-container", uiOutput("param_sliders"))
                                    ),
+                                    div(style = "display: flex; gap: 10px;",
+                                        radioButtons("plotType", "Plot Type:",
+                                                    choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
+                                                    selected = "line",
+                                                    inline = TRUE)
+                                    ),
+                                     checkboxInput(
+                                      "lastRun", "Show Previous Model Run", value = FALSE
+                                   ),
                                    # Hotkey container placeholder & container
                                 div(id = "hotkeyOriginal",
                                        div(id = "hotkeyContainer",
+                                        
                                            # First row: hotkey input
                                            tags$div(
                                                textInput("hotkeyInput", "Set Hotkey for model run", 
@@ -627,12 +637,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                            )
                                        )
                                    ),
-                                   radioButtons("plotType", "Plot Type:",
-                                        choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
-                                        selected = "line"),
-                                   checkboxInput(
-                                      "lastRun", "Show Previous Model Run", value = FALSE
-                                   ),
+                                 
+                                  
                                 #    checkboxInput(
                                 #     "lastMetrics", "Show Metrics of The Last Run", value = FALSE
                                 #    ),
@@ -1947,7 +1953,7 @@ tuneMusoServer <- function(input, output, session){
                  if (is.na(parameters$group[i])) {
                     sliderValsDebounced <- reactive({ 
                             input[[paste0("param_", i)]]
-                        }) %>% debounce(250)
+                        }) %>% debounce(200)
 
                 observeEvent(sliderValsDebounced(), {
                     isolate({
@@ -4003,7 +4009,7 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE)
+        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14)
 
 
           observeEvent(input$settings_btn, {
@@ -4016,6 +4022,11 @@ tuneMusoServer <- function(input, output, session){
             numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
             numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
             numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
+            numericInput("tickfontx", "X-Axis Tick Font Size:", value = exportSettings$tickfontx, min = 1),
+            numericInput("tickfonty", "Y-Axis Tick Font Size:", value = exportSettings$tickfonty, min = 1),
+            numericInput("xtitlefont", "X-Axis Title Font Size:", value = exportSettings$xtitlefont, min = 1),
+            numericInput("ytitlefont", "Y-Axis Title Font Size:", value = exportSettings$ytitlefont, min = 1),
+            numericInput("legendfont", "Legend Font Size:", value = exportSettings$legendfont, min = 1),
             checkboxInput("auto_reset", "Auto Reset Sliders Upon Model Crash To Last Successful Values", value = exportSettings$auto_reset),
             checkboxInput("mute_notif", "Mute Common Notifications", value = exportSettings$muteNotif),
            div(
@@ -4037,7 +4048,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.15.0</strong></p>
+                    <p><strong>Version 2.15.1</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4078,6 +4089,11 @@ tuneMusoServer <- function(input, output, session){
             exportSettings$scale <- input$export_scale
             exportSettings$auto_reset <- input$auto_reset
             exportSettings$muteNotif <- input$mute_notif
+            exportSettings$tickfontx <- input$tickfontx
+            exportSettings$tickfonty <- input$tickfonty
+            exportSettings$xtitlefont <- input$xtitlefont
+            exportSettings$ytitlefont <- input$ytitlefont
+            exportSettings$legendfont <- input$legendfont
             removeModal()
         })
 
@@ -4163,15 +4179,32 @@ tuneMusoServer <- function(input, output, session){
                            if (!is.null(filteredPrev) && input$lastRun) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
                                     type = 'scatter', mode = 'lines', name = "Previous Simulation")
-                    }
-                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
+
+                        p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
                                     type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+                        } else {
+                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
+                                    type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
+                        }
                     
-                      p <- p %>% plotly::layout(
-                        xaxis = list(range = common_x_range),
-                        yaxis = list(title = var),
-                        showlegend = legendVisible()  # Conditionally show/hide legend
-                    )
+                                                p <- p %>% plotly::layout(
+                                                    xaxis = list(
+                                                        type = "date",
+                                                        range = common_x_range,
+                                                        tickfont = list(size = exportSettings$tickfontx),
+                                                        dtick = "M12",
+                                                        tickformat = "%Y"
+                                                    ),
+                                                    yaxis = list(
+                                                        title = list(text = var, font = list(size = exportSettings$ytitlefont)),
+                                                        tickfont = list(size = exportSettings$tickfonty)
+                                                    
+                                                    ),
+                                                    legend = list(font = list(size = exportSettings$legendfont)
+                                                    ),
+                                                    
+                                                    showlegend = legendVisible()  # Conditionally show/hide legend
+                                                )
 
                     session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
                 # Adding the epc labels on the x axis
@@ -4332,7 +4365,7 @@ tuneMusoServer <- function(input, output, session){
                                                 type = 'scatter',
                                                 mode = 'markers',
                                                 name = paste0(col, " Metrics\n", metric_label),
-                                                marker = list(symbol = "circle", size = 7, color = "#ca8300"))
+                                                marker = list(symbol = "circle", size = 7, color = "#d99820"))
                                     
                                     # Update layout to enforce a square aspect and add the 1:1 diagonal line.
                                     p <- p %>% layout(
@@ -4340,7 +4373,7 @@ tuneMusoServer <- function(input, output, session){
                                         automargin = TRUE,
                                         title = list( 
                                             text = paste0("Measured ", col),
-                                            standoff = 0),
+                                            standoff = 0, font = list(size = exportSettings$xtitlefont)),
                                         range =  c(min_tick, max_tick),
                                         showline = TRUE,
                                         linecolor = "black",
@@ -4350,11 +4383,13 @@ tuneMusoServer <- function(input, output, session){
                                         scaleanchor = "y",
                                         constrain = "domain",
                                         tickmode = "linear",
-                                        dtick = dtick_value
+                                        dtick = dtick_value,
+                                        tickfont = list(size = exportSettings$tickfontx)
                                         
                                     ),
                                     yaxis = list(
-                                        title = paste0("Simulated ", var),
+                                        title = list( text = paste0("Simulated ", var), 
+                                                      font = list(size = exportSettings$ytitlefont)),
                                         range =  c(min_tick, max_tick),
                                         showline = TRUE,
                                         linecolor = "black",
@@ -4363,8 +4398,10 @@ tuneMusoServer <- function(input, output, session){
                                         zeroline = FALSE,
                                         constrain = "domain",
                                         tickmode = "linear",
-                                        dtick = dtick_value
+                                        dtick = dtick_value,
+                                        tickfont = list(size = exportSettings$tickfonty)
                                     ),
+                                    legend = list(font = list(size = exportSettings$legendfont)),
                                     shapes = list(
                                         list(
                                         type = "line",
@@ -4384,13 +4421,31 @@ tuneMusoServer <- function(input, output, session){
                                 if (!is.null(filteredPrev) && input$lastRun) {
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, var],
                                                 type = 'scatter', mode = 'lines', name = "Previous Simulation")
-                                }
                                 p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
                                             type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+                                }
+                                else {
+                                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
+                                            type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
+                                }
+                                
 
                                                 p <- p %>% plotly::layout(
-                                                    xaxis = list(range = common_x_range),
-                                                    yaxis = list(title = var),
+                                                    xaxis = list(
+                                                        type = "date",
+                                                        range = common_x_range,
+                                                        tickfont = list(size = exportSettings$tickfontx),
+                                                        dtick = "M12",
+                                                        tickformat = "%Y"
+                                                    ),
+                                                    yaxis = list(
+                                                        title = list(text = var, font = list(size = exportSettings$ytitlefont)),
+                                                        tickfont = list(size = exportSettings$tickfonty)
+                                                    
+                                                    ),
+                                                    legend = list(font = list(size = exportSettings$legendfont)
+                                                    ),
+                                                    
                                                     showlegend = legendVisible()  # Conditionally show/hide legend
                                                 )
 
