@@ -569,6 +569,15 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                        ),
                                        # Right column: checkboxes, single year, year range.
                                        div(class = "colRight",
+                                            div(style = "display: flex; gap: 10px;",
+                                                    radioButtons("plotType", "Plot Type:",
+                                                                choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
+                                                                selected = "line",
+                                                                inline = TRUE)
+                                                ),
+                                                checkboxInput(
+                                                "lastRun", "Show Previous Model Run", value = FALSE
+                                            ),
                                            #checkboxInput("autoupdate", "Automatic update"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                             checkboxInput("singleYear", "Single year mode", value = FALSE),
@@ -610,15 +619,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                    tags$div(id = "controlp",
                                             tags$div(id = "slider-container", uiOutput("param_sliders"))
                                    ),
-                                    div(style = "display: flex; gap: 10px;",
-                                        radioButtons("plotType", "Plot Type:",
-                                                    choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
-                                                    selected = "line",
-                                                    inline = TRUE)
-                                    ),
-                                     checkboxInput(
-                                      "lastRun", "Show Previous Model Run", value = FALSE
-                                   ),
+                                
                                    # Hotkey container placeholder & container
                                 div(id = "hotkeyOriginal",
                                        div(id = "hotkeyContainer",
@@ -636,15 +637,13 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                                 style = "background-color: red; color: white; border-color: red;")
                                            )
                                        )
-                                   ),
+                                   )
                                  
                                   
                                 #    checkboxInput(
                                 #     "lastMetrics", "Show Metrics of The Last Run", value = FALSE
                                 #    ),
-                                    textAreaInput("feedback_message", "Feedback", placeholder = "Report a bug or request a feature."),
-                                    actionButton("submit_feedback", "Send Feedback"),
-                                    verbatimTextOutput("feedback_status")
+                                    
                           ),
                           tabPanel("INI File",
                                    tags$div(
@@ -4010,6 +4009,7 @@ tuneMusoServer <- function(input, output, session){
 
         # Settings (so far only for resolution)
         exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14)
+        defaultExportSettings <- list(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14)
 
 
           observeEvent(input$settings_btn, {
@@ -4019,16 +4019,85 @@ tuneMusoServer <- function(input, output, session){
                     paste("Current Working Directory:", workdir)
             ),
             # Inputs for resolution settings
-            numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
-            numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
-            numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
-            numericInput("tickfontx", "X-Axis Tick Font Size:", value = exportSettings$tickfontx, min = 1),
-            numericInput("tickfonty", "Y-Axis Tick Font Size:", value = exportSettings$tickfonty, min = 1),
-            numericInput("xtitlefont", "X-Axis Title Font Size:", value = exportSettings$xtitlefont, min = 1),
-            numericInput("ytitlefont", "Y-Axis Title Font Size:", value = exportSettings$ytitlefont, min = 1),
-            numericInput("legendfont", "Legend Font Size:", value = exportSettings$legendfont, min = 1),
+            div(style = "display: flex; align-items: center; gap: 5px;",
+                numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
+                    actionButton("reset_export_width", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",   
+                numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
+                  actionButton("reset_export_height", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
+                actionButton("reset_export_scale", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("tickfontx", "X-Axis Tick Font Size:", value = exportSettings$tickfontx, min = 1),
+                actionButton("reset_tickfontx", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("tickfonty", "Y-Axis Tick Font Size:", value = exportSettings$tickfonty, min = 1),
+                actionButton("reset_tickfonty", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("xtitlefont", "X-Axis Title Font Size:", value = exportSettings$xtitlefont, min = 1),
+                actionButton("reset_xtitlefont", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("ytitlefont", "Y-Axis Title Font Size:", value = exportSettings$ytitlefont, min = 1),
+                actionButton("reset_ytitlefont", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
+            div(style = "display: flex; align-items: center; gap: 5px;",  
+                numericInput("legendfont", "Legend Font Size:", value = exportSettings$legendfont, min = 1),
+                actionButton("reset_legendfont", 
+                    label = NULL, 
+                    icon = icon("undo"), 
+                    style = "margin-top: 10px;",
+                    title = "Reset to default"
+                    )
+            ),
             checkboxInput("auto_reset", "Auto Reset Sliders Upon Model Crash To Last Successful Values", value = exportSettings$auto_reset),
             checkboxInput("mute_notif", "Mute Common Notifications", value = exportSettings$muteNotif),
+            textAreaInput("feedback_message", "Feedback", placeholder = "Report a bug or request a feature."),
+                                    actionButton("submit_feedback", "Send Feedback"),
+                                    verbatimTextOutput("feedback_status"),
            div(
                 style = "position: absolute; top: 10px; right: 10px;",
                   tags$button(
@@ -4048,7 +4117,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.15.1</strong></p>
+                    <p><strong>Version 2.15.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4101,6 +4170,40 @@ tuneMusoServer <- function(input, output, session){
         observeEvent(input$mute_notif, {
             exportSettings$muteNotif <- input$mute_notif
         })
+
+        observeEvent(input$reset_export_width, {
+            updateNumericInput(session, "export_width", value = defaultExportSettings$width)
+        })
+
+        observeEvent(input$reset_export_height, {
+            updateNumericInput(session, "export_height", value = defaultExportSettings$height)
+        })
+
+        observeEvent(input$reset_export_scale, {
+            updateNumericInput(session, "export_scale", value = defaultExportSettings$scale)
+        })
+
+        observeEvent(input$reset_tickfontx, {
+            updateNumericInput(session, "tickfontx", value = defaultExportSettings$tickfontx)
+        })
+
+        observeEvent(input$reset_tickfonty, {
+            updateNumericInput(session, "tickfonty", value = defaultExportSettings$tickfonty)
+        })
+
+        observeEvent(input$reset_xtitlefont, {
+            updateNumericInput(session, "xtitlefont", value = defaultExportSettings$xtitlefont)
+        })
+
+        observeEvent(input$reset_ytitlefont, {
+            updateNumericInput(session, "ytitlefont", value = defaultExportSettings$ytitlefont)
+        })
+
+        observeEvent(input$reset_legendfont, {
+            updateNumericInput(session, "legendfont", value = defaultExportSettings$legendfont)
+        })
+
+
 
         myShowNotification <- function(message, type = "message", duration = NULL, ...) {
             if (!exportSettings$muteNotif) {
