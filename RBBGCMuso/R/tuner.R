@@ -4292,11 +4292,11 @@ tuneMusoServer <- function(input, output, session){
                     
                                                 p <- p %>% plotly::layout(
                                                     xaxis = list(
-                                                        type = "date",
+                                                        #type = "date",
                                                         range = common_x_range,
-                                                        tickfont = list(size = exportSettings$tickfontx),
-                                                        dtick = "M12",
-                                                        tickformat = "%Y"
+                                                        tickfont = list(size = exportSettings$tickfontx)#,
+                                                        #dtick = "M12",
+                                                        #tickformat = "%Y"
                                                     ),
                                                     yaxis = list(
                                                         title = list(text = var, font = list(size = exportSettings$ytitlefont)),
@@ -4531,15 +4531,76 @@ tuneMusoServer <- function(input, output, session){
                                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
                                             type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
                                 }
+
+                                   planting_dates <- rv$epc_dates
+                                    #print(planting_dates)
+                                    if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
+                                    selected_planting <- planting_dates %>%
+                                    dplyr::filter(lubridate::year(DATE) %in% selectedYears)
+
+                                #print(paste0("Selected planting dates: ", selected_planting))
+                                    if (nrow(selected_planting) > 0) {
+                                                # adding invisible markers for epc legend
+                                                p <- p %>% add_trace(
+                                                    x = selected_planting$DATE[1],  
+                                                    y = 0,  
+                                                    type = 'scatter',
+                                                    mode = 'markers',
+                                                    marker = list(symbol = "triangle-down", color = "green", size = 10),
+                                                    name = "Planting Dates",
+                                                    visible = "legendonly" 
+                                                )
+
+                                        for (i in 1:nrow(selected_planting)) {
+                                            current_date <- selected_planting$DATE[i]
+                                            current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
+                                            if (input$singleYear || length(selectedYears) <= 3) {
+                                                
+                                                    epc_labels <- sapply(current_epcs, function(epc) {
+                                                        idx <- which(rv$epc_files == epc)
+                                                        if (length(idx) > 0) rv$epc_labels[idx] else epc
+                                                    })
+                                                    label <- paste(unique(epc_labels), collapse = ", ")
+                                            }
+                                            else {
+                                            epc_numbers <- sapply(current_epcs, function(epc) {
+                                                idx <- which(rv$epc_files == epc)
+                                                if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                                            })
+                                            label <- paste(unique(epc_numbers), collapse = ", ")
+                                            }
+
+                                            p <- p %>% add_annotations(
+                                                x = current_date,
+                                                y = 0,                  
+                                                xref = "x",
+                                                yref = "paper",
+                                                text = "▼",          
+                                                showarrow = FALSE,
+                                                font = list(color = "green", size = 14)
+                                            ) %>% #epc labels
+                                            add_annotations(
+                                                    x = current_date,
+                                                    y = 0,               
+                                                    xref = "x",
+                                                    yref = "paper",
+                                                    text = label,
+                                                    showarrow = FALSE,
+                                                    yshift = -7,         # shift label down
+                                                    font = list(color = "green", size = 10)
+                                            )
+                                            
+                                            } 
+                                    }}
                                 
 
                                                 p <- p %>% plotly::layout(
                                                     xaxis = list(
-                                                        type = "date",
+                                                        #type = "date",
                                                         range = common_x_range,
-                                                        tickfont = list(size = exportSettings$tickfontx),
-                                                        dtick = "M12",
-                                                        tickformat = "%Y"
+                                                        tickfont = list(size = exportSettings$tickfontx)#,
+                                                        #dtick = "M12",
+                                                        #tickformat = "%Y"
                                                     ),
                                                     yaxis = list(
                                                         title = list(text = var, font = list(size = exportSettings$ytitlefont)),
