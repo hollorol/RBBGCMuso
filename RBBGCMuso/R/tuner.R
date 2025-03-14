@@ -4135,7 +4135,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.15.3</strong></p>
+                    <p><strong>Version 2.15.4</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4292,7 +4292,35 @@ tuneMusoServer <- function(input, output, session){
                  
                  # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
                     common_x_range <- range(filteredDates, na.rm = TRUE)
-            #}
+            #}          
+            xaxis_options <- if (input$singleYear || length(selectedYears) == 1) {
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M1",  
+                                        tickformat = "%b %Y"  
+                                    )
+                                } 
+                                else if (length(selectedYears) <= 3) {
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M2",  
+                                        tickformat = "%b %Y" 
+                                    )
+                                }
+
+                                else {
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M12", 
+                                        tickformat = "%Y"  
+                                    )
+                                }
               
                     # adding measurements for the current variable (var)
                     mapping <- mappingRV()
@@ -4318,14 +4346,12 @@ tuneMusoServer <- function(input, output, session){
                                     type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
                         }
                     
+
+
+                            
                                                 p <- p %>% plotly::layout(
-                                                    xaxis = list(
-                                                        #type = "date",
-                                                        range = common_x_range,
-                                                        tickfont = list(size = exportSettings$tickfontx)#,
-                                                        #dtick = "M12",
-                                                        #tickformat = "%Y"
-                                                    ),
+                                                     xaxis = xaxis_options,
+                                                            
                                                     yaxis = list(
                                                         title = list(text = var, font = list(size = exportSettings$ytitlefont)),
                                                         tickfont = list(size = exportSettings$tickfonty)
@@ -4629,13 +4655,7 @@ tuneMusoServer <- function(input, output, session){
                                 
 
                                                 p <- p %>% plotly::layout(
-                                                    xaxis = list(
-                                                        #type = "date",
-                                                        range = common_x_range,
-                                                        tickfont = list(size = exportSettings$tickfontx)#,
-                                                        #dtick = "M12",
-                                                        #tickformat = "%Y"
-                                                    ),
+                                                     xaxis = xaxis_options,
                                                     yaxis = list(
                                                         title = list(text = var, font = list(size = exportSettings$ytitlefont)),
                                                         tickfont = list(size = exportSettings$tickfonty)
