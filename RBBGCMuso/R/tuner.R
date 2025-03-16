@@ -4339,7 +4339,7 @@ tuneMusoServer <- function(input, output, session){
                             yanchor = "top")
                 }
                 else {
-                    font = list(size = exportSettings$legendfont)
+                    list(font = list(size = exportSettings$legendfont))
                 }
               
                     # adding measurements for the current variable (var)
@@ -4539,6 +4539,12 @@ tuneMusoServer <- function(input, output, session){
                                     p <- add_trace(p,
                                                 x = common_data[[col]],   # measurement values
                                                 y = common_data$sim,        # simulation output values
+                                                text = common_data$Date,   # to get the dates to show as well on hover
+                                                hovertemplate = paste(
+                                                " Date: %{text}<br>",
+                                                "Measured: %{x:.2f}<br>",       # .2f (show up to 2 decimal points)
+                                                "Simulated: %{y:.2f}<extra></extra>" 
+                                                ),
                                                 type = 'scatter',
                                                 mode = 'markers',
                                                 name = paste0(col, " Metrics\n", metric_label),
