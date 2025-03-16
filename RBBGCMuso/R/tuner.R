@@ -775,7 +775,8 @@ tuneMusoServer <- function(input, output, session){
    
 
     #epcIni <- settings$epcInput[2]
-    dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears),"%d.%m.%Y") 
+    #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
+    dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
 
 
@@ -4008,9 +4009,9 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
+        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
         defaultExportSettings <- list(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
-
+        
 
           observeEvent(input$settings_btn, {
             showModal(modalDialog(
@@ -4093,6 +4094,9 @@ tuneMusoServer <- function(input, output, session){
                     title = "Reset to default"
                     )
             ),
+            checkboxInput(
+                "allowLegendDisplacement", "Allow custom legend position", value = exportSettings$allowLegendMovement
+            ),
             div(style = "display: flex; align-items: center; gap: 5px;",
                 numericInput("legendxanchor", "Legend x position:", value = exportSettings$legendxanchor),
                 actionButton("reset_legendxanchor", 
@@ -4135,7 +4139,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.15.4</strong></p>
+                    <p><strong>Version 2.15.5</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4181,8 +4185,10 @@ tuneMusoServer <- function(input, output, session){
             exportSettings$xtitlefont <- input$xtitlefont
             exportSettings$ytitlefont <- input$ytitlefont
             exportSettings$legendfont <- input$legendfont
+            exportSettings$allowLegendMovement <- input$allowLegendDisplacement
             exportSettings$legendxanchor <- input$legendxanchor
             exportSettings$legendyanchor <- input$legendyanchor
+            
             removeModal()
         })
 
@@ -4299,7 +4305,8 @@ tuneMusoServer <- function(input, output, session){
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
                                         dtick = "M1",  
-                                        tickformat = "%b %Y"  
+                                        tickformat = "%b %Y",
+                                        hoverformat = "%Y-%m-%d"  
                                     )
                                 } 
                                 else if (length(selectedYears) <= 3) {
@@ -4308,7 +4315,8 @@ tuneMusoServer <- function(input, output, session){
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
                                         dtick = "M2",  
-                                        tickformat = "%b %Y" 
+                                        tickformat = "%b %Y",
+                                        hoverformat = "%Y-%m-%d" 
                                     )
                                 }
 
@@ -4318,9 +4326,21 @@ tuneMusoServer <- function(input, output, session){
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
                                         dtick = "M12", 
-                                        tickformat = "%Y"  
+                                        tickformat = "%Y",
+                                        hoverformat = "%Y-%m-%d"  
                                     )
                                 }
+
+                legend_options <- if (exportSettings$allowLegendMovement) {
+                    list( font = list(size = exportSettings$legendfont),
+                            x = exportSettings$legendxanchor,   
+                            y = exportSettings$legendyanchor,
+                            xanchor = "right",
+                            yanchor = "top")
+                }
+                else {
+                    font = list(size = exportSettings$legendfont)
+                }
               
                     # adding measurements for the current variable (var)
                     mapping <- mappingRV()
@@ -4357,13 +4377,8 @@ tuneMusoServer <- function(input, output, session){
                                                         tickfont = list(size = exportSettings$tickfonty)
                                                     
                                                     ),
-                                                     legend = list(
-                                                            font = list(size = exportSettings$legendfont),
-                                                            x = exportSettings$legendxanchor,   
-                                                            y = exportSettings$legendyanchor,
-                                                            xanchor = "right",
-                                                            yanchor = "top"
-                                                        ),
+                                                     legend = legend_options,
+                                                        
                                                     
                                                     showlegend = legendVisible()  # Conditionally show/hide legend
                                                 )
@@ -4563,8 +4578,7 @@ tuneMusoServer <- function(input, output, session){
                                         dtick = dtick_value,
                                         tickfont = list(size = exportSettings$tickfonty)
                                     ),
-                                    legend = list(font = list(size = exportSettings$legendfont), 
-                                            x = exportSettings$legendxanchor, y = exportSettings$legendyanchor, xanchor = "right", yanchor = "top"),
+                                    legend = legend_options,
                                     shapes = list(
                                         list(
                                         type = "line",
@@ -4661,13 +4675,7 @@ tuneMusoServer <- function(input, output, session){
                                                         tickfont = list(size = exportSettings$tickfonty)
                                                     
                                                     ),
-                                                     legend = list(
-                                                            font = list(size = exportSettings$legendfont),
-                                                            x = exportSettings$legendxanchor,   
-                                                            y = exportSettings$legendyanchor,
-                                                            xanchor = "right",
-                                                            yanchor = "top"
-                                                        ),
+                                                     legend = legend_options,
                                                     
                                                     
                                                     showlegend = legendVisible()  # Conditionally show/hide legend
