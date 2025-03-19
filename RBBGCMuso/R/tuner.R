@@ -33,7 +33,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     parameters <- read.csv(parameterFile, stringsAsFactors = FALSE)
     settings <- setupMuso(...)
     
-    # keeping the scrollbar at the same position after refresh upon model run
+    # keeping the scrollbar at the same position after refresh upon model run (or other processes)
     scrollbar_position_retainer <- "
         Shiny.addCustomMessageHandler('save_scroll', function(message) {
         var scrollDiv = document.getElementById(message.id);
@@ -578,6 +578,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                                 checkboxInput(
                                                 "lastRun", "Show Previous Model Run", value = FALSE
                                             ),
+                                            checkboxInput("showPheno", "Show Phenophases", value = FALSE),
                                            #checkboxInput("autoupdate", "Automatic update"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                             checkboxInput("singleYear", "Single year mode", value = FALSE),
@@ -780,22 +781,6 @@ tuneMusoServer <- function(input, output, session){
     rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
 
 
-    #  observe({
-    #     req(settings$iniInput[2])
-    #     iniContent <- readLines(settings$iniInput[2])
-    #     sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
-    #     if(!is.null(sf) && file.exists(sf)) {
-    #         soil_file(sf)
-    #         # message("Shiny is actually using soil_file() = '", soil_file(), "'")
-    #           lines <- readLines(soil_file())
-    #         #message("It has ", length(lines), " lines. For line #4: ", lines[4])
-    #     } else {
-    #         showNotification("Soil file not found in INI or file missing", type="error")
-    #     }
-    # })
-
-
-
 
     # This is going to be ugly but calculating the woody_flag within the observer below and making it reactive is actually hard to deal with when we process the parameters.csv
     if (file.exists(settings$iniInput[2])) {
@@ -832,7 +817,7 @@ tuneMusoServer <- function(input, output, session){
         if (file.exists(management_file)) {
             managementContent <- readLines(management_file)
             planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
-
+            harvest_file <- searchBellow(managementContent,"HARVESTING", stringP = TRUE, n = 2)
 
             if (file.exists(planting_file)) {
                 planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
@@ -844,7 +829,12 @@ tuneMusoServer <- function(input, output, session){
                 #planting_dates <- 
                 #print("EPC files found:")
                 #print(epc_files)
-
+                if (file.exists(harvest_file)){
+                    #browser()
+                    harvest_data <- read.table(harvest_file, sep="", header=FALSE, fill=TRUE, stringsAsFactors=FALSE)[,1]
+                    harvest_data <- as.Date(harvest_data[-1], format = "%Y.%m.%d")
+                    epc_dates$HarvestDates <- harvest_data
+                }
                 # Ensure that the update happens safely
                 isolate({
                     rv$epc_files <- epc_files
@@ -4139,7 +4129,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.15.5</strong></p>
+                    <p><strong>Version 2.16.1</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4445,7 +4435,132 @@ tuneMusoServer <- function(input, output, session){
                         )
                         
                          } 
-                }}
+
+                  
+                }
+
+                       if ("HarvestDates" %in% names(rv$epc_dates)) {
+                              selected_harvest <- planting_dates %>%
+                                    dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
+
+
+                        if (nrow(selected_harvest) > 0) {
+                             p <- p %>% add_trace(
+                                x = selected_harvest$HarvestDates[1],  
+                                y = 0,  
+                                type = 'scatter',
+                                mode = 'markers',
+                                marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
+                                name = "Harvest Dates",
+                                visible = "legendonly" 
+                            )
+                            
+
+                      for (i in 1:nrow(selected_harvest)) {
+                        current_date <- selected_harvest$HarvestDates[i]
+                        
+                        
+                        current_epcs <- unlist(strsplit(selected_harvest$CROP.file.[i], " +"))
+                       # if (input$singleYear || length(selectedYears) <= 3) {
+                       #     epc_labels <- sapply(current_epcs, function(epc) {
+                       #     idx <- which(rv$epc_files == epc)
+                       #     if (length(idx) > 0) rv$epc_labels[idx] else epc
+                       #     })
+                       #     label <- paste(unique(epc_labels), collapse = ", ")
+                       # } else {
+                            epc_numbers <- sapply(current_epcs, function(epc) {
+                            idx <- which(rv$epc_files == epc)
+                            if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                            })
+                            label <- paste(unique(epc_numbers), collapse = ", ")
+                        #}
+
+                         p <- p %>% add_annotations(
+                            x = current_date,
+                            y = 0,                  
+                            xref = "x",
+                            yref = "paper",
+                            text = "▲", 
+                            showarrow = FALSE,
+                            font = list(color = "#6c4a00", size = 14)
+                        ) %>%
+                        add_annotations(
+                            x = current_date,
+                            y = 0,               
+                            xref = "x",
+                            yref = "paper",
+                            text = label,
+                            showarrow = FALSE,
+                            yshift = -10,         # Shift label down
+                            font = list(color = "#6c4a00", size = 10)
+                        )
+                        
+                         } 
+
+                         }
+                    }
+                
+                                     if(input$showPheno) {
+                                            if("n_actphen" %in% colnames(outputData())){
+                                            sim_df <- outputData()
+                                            sim_df <- sim_df %>%
+                                                dplyr::arrange(Date) %>% 
+                                                dplyr::mutate(prev_phase = lag(n_actphen, default = first(n_actphen)),
+                                                        phase_change = n_actphen != prev_phase) %>%
+                                                dplyr::filter(phase_change) %>%
+                                                dplyr::select(Date, n_actphen)
+
+                                        transition_df <- sim_df %>%
+                                        dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
+
+                                                p <- p %>% layout(
+                                                    shapes = lapply(1:nrow(transition_df), function(i) {
+                                                        list(
+                                                        type = "line",
+                                                        x0 = transition_df$Date[i],
+                                                        x1 = transition_df$Date[i],
+                                                        y0 = 0.05,
+                                                        y1 = 1,
+                                                        xref = "x",
+                                                        yref = "paper",   # relative to the entire plot area
+                                                        line = list(color = "#047704", dash = "dot" , width = 0.5)
+                                                        )
+                                                    })
+                                                )
+                                                p <- p %>% layout(
+                                                    annotations = lapply(1:nrow(transition_df), function(i) {
+                                                        list(
+                                                        x = transition_df$Date[i],
+                                                        y = 1,  # top of the plot (yref = "paper")
+                                                        xref = "x",
+                                                        yref = "paper",
+                                                        text = paste0(transition_df$n_actphen[i]),
+                                                        showarrow = FALSE,
+                                                        xanchor = "center",
+                                                        yanchor = "bottom"
+                                                        )
+                                                    })
+                                                )
+
+                                                    # Add a dummy trace to show a legend entry for "Phenophases"
+                                                    p <- p %>% add_trace(
+                                                    x = c(NA), 
+                                                    y = c(NA), 
+                                                    type = "scatter",
+                                                    mode = "lines",
+                                                    line = list(color = "#047704", dash = "dot"),
+                                                    name = "Phenophases",
+                                                    showlegend = TRUE
+                                                    )
+                                        
+                                            }
+                                            else {
+                                                myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
+                                            }
+                                        }
+                
+                
+                                }
                        
                         
 
@@ -4612,67 +4727,186 @@ tuneMusoServer <- function(input, output, session){
                                             type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
                                 }
 
-                                   planting_dates <- rv$epc_dates
-                                    #print(planting_dates)
-                                    if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-                                    selected_planting <- planting_dates %>%
-                                    dplyr::filter(lubridate::year(DATE) %in% selectedYears)
+                                      # Adding the epc labels on the x axis
+                                    #if (file.exists(planting_file)) {
+                                        planting_dates <- rv$epc_dates
+                                        #print(planting_dates)
+                                        if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
+                                        selected_planting <- planting_dates %>%
+                                        dplyr::filter(lubridate::year(DATE) %in% selectedYears)
 
-                                #print(paste0("Selected planting dates: ", selected_planting))
-                                    if (nrow(selected_planting) > 0) {
-                                                # adding invisible markers for epc legend
-                                                p <- p %>% add_trace(
-                                                    x = selected_planting$DATE[1],  
-                                                    y = 0,  
-                                                    type = 'scatter',
-                                                    mode = 'markers',
-                                                    marker = list(symbol = "triangle-down", color = "green", size = 10),
-                                                    name = "Planting Dates",
-                                                    visible = "legendonly" 
+                                    #print(paste0("Selected planting dates: ", selected_planting))
+                                        if (nrow(selected_planting) > 0) {
+                                                    # adding invisible markers for epc legend
+                                                    p <- p %>% add_trace(
+                                                        x = selected_planting$DATE[1],  
+                                                        y = 0,  
+                                                        type = 'scatter',
+                                                        mode = 'markers',
+                                                        marker = list(symbol = "triangle-down", color = "green", size = 10),
+                                                        name = "Planting Dates",
+                                                        visible = "legendonly" 
+                                                    )
+
+                                            for (i in 1:nrow(selected_planting)) {
+                                                current_date <- selected_planting$DATE[i]
+                                                current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
+                                                if (input$singleYear || length(selectedYears) <= 3) {
+                                                    
+                                                        epc_labels <- sapply(current_epcs, function(epc) {
+                                                            idx <- which(rv$epc_files == epc)
+                                                            if (length(idx) > 0) rv$epc_labels[idx] else epc
+                                                        })
+                                                        label <- paste(unique(epc_labels), collapse = ", ")
+                                                }
+                                                else {
+                                                epc_numbers <- sapply(current_epcs, function(epc) {
+                                                    idx <- which(rv$epc_files == epc)
+                                                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                                                })
+                                                label <- paste(unique(epc_numbers), collapse = ", ")
+                                                }
+
+                                                p <- p %>% add_annotations(
+                                                    x = current_date,
+                                                    y = 0,                  
+                                                    xref = "x",
+                                                    yref = "paper",
+                                                    text = "▼",          
+                                                    showarrow = FALSE,
+                                                    font = list(color = "green", size = 14)
+                                                ) %>% #epc labels
+                                                add_annotations(
+                                                        x = current_date,
+                                                        y = 0,               
+                                                        xref = "x",
+                                                        yref = "paper",
+                                                        text = label,
+                                                        showarrow = FALSE,
+                                                        yshift = -7,         # shift label down
+                                                        font = list(color = "green", size = 10)
                                                 )
-
-                                        for (i in 1:nrow(selected_planting)) {
-                                            current_date <- selected_planting$DATE[i]
-                                            current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
-                                            if (input$singleYear || length(selectedYears) <= 3) {
                                                 
-                                                    epc_labels <- sapply(current_epcs, function(epc) {
-                                                        idx <- which(rv$epc_files == epc)
-                                                        if (length(idx) > 0) rv$epc_labels[idx] else epc
-                                                    })
-                                                    label <- paste(unique(epc_labels), collapse = ", ")
-                                            }
-                                            else {
-                                            epc_numbers <- sapply(current_epcs, function(epc) {
-                                                idx <- which(rv$epc_files == epc)
-                                                if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                                            })
-                                            label <- paste(unique(epc_numbers), collapse = ", ")
-                                            }
+                                                } 
 
-                                            p <- p %>% add_annotations(
-                                                x = current_date,
-                                                y = 0,                  
-                                                xref = "x",
-                                                yref = "paper",
-                                                text = "▼",          
-                                                showarrow = FALSE,
-                                                font = list(color = "green", size = 14)
-                                            ) %>% #epc labels
-                                            add_annotations(
+                                        }
+
+                                          if ("HarvestDates" %in% names(rv$epc_dates)) {
+                                                    selected_harvest <- planting_dates %>%
+                                                            dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
+                                                if (nrow(selected_harvest) > 0) {
+                                                    p <- p %>% add_trace(
+                                                        x = selected_harvest$HarvestDates[1],  
+                                                        y = 0,  
+                                                        type = 'scatter',
+                                                        mode = 'markers',
+                                                        marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
+                                                        name = "Harvest Dates",
+                                                        visible = "legendonly" 
+                                                    )
+
+                                            for (i in 1:nrow(selected_harvest)) {
+                                                current_date <- selected_harvest$HarvestDates[i]
+                                                
+                                                
+                                                current_epcs <- unlist(strsplit(selected_harvest$CROP.file.[i], " +"))
+                                                #if (input$singleYear || length(selectedYears) <= 3) {
+                                                #    epc_labels <- sapply(current_epcs, function(epc) {
+                                                #    idx <- which(rv$epc_files == epc)
+                                                #    if (length(idx) > 0) rv$epc_labels[idx] else epc
+                                                #    })
+                                               #     label <- paste(unique(epc_labels), collapse = ", ")
+                                                #} else {
+                                                    epc_numbers <- sapply(current_epcs, function(epc) {
+                                                    idx <- which(rv$epc_files == epc)
+                                                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                                                    })
+                                                    label <- paste(unique(epc_numbers), collapse = ", ")
+                                                #}
+
+                                                p <- p %>% add_annotations(
+                                                    x = current_date,
+                                                    y = 0,                  
+                                                    xref = "x",
+                                                    yref = "paper",
+                                                    text = "▲", 
+                                                    showarrow = FALSE,
+                                                    font = list(color = "#6c4a00", size = 14)
+                                                ) %>%
+                                                add_annotations(
                                                     x = current_date,
                                                     y = 0,               
                                                     xref = "x",
                                                     yref = "paper",
                                                     text = label,
                                                     showarrow = FALSE,
-                                                    yshift = -7,         # shift label down
-                                                    font = list(color = "green", size = 10)
-                                            )
-                                            
-                                            } 
-                                    }}
-                                
+                                                    yshift = -10,         # Shift label down
+                                                    font = list(color = "#6c4a00", size = 10)
+                                                )
+                                                
+                                                } 
+                                                }
+                                            }
+
+                                        if(input$showPheno) {
+                                            if("n_actphen" %in% colnames(outputData())){
+                                            sim_df <- outputData()
+                                            sim_df <- sim_df %>%
+                                                dplyr::arrange(Date) %>% 
+                                                dplyr::mutate(prev_phase = lag(n_actphen, default = first(n_actphen)),
+                                                        phase_change = n_actphen != prev_phase) %>%
+                                                dplyr::filter(phase_change) %>%
+                                                dplyr::select(Date, n_actphen)
+
+                                        transition_df <- sim_df %>%
+                                        dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
+
+                                                p <- p %>% layout(
+                                                    shapes = lapply(1:nrow(transition_df), function(i) {
+                                                        list(
+                                                        type = "line",
+                                                        x0 = transition_df$Date[i],
+                                                        x1 = transition_df$Date[i],
+                                                        y0 = 0.05,
+                                                        y1 = 1,
+                                                        xref = "x",
+                                                        yref = "paper",   # relative to the entire plot area
+                                                        line = list(color = "#047704", dash = "dot" , width = 0.5)
+                                                        )
+                                                    })
+                                                )
+                                                p <- p %>% layout(
+                                                    annotations = lapply(1:nrow(transition_df), function(i) {
+                                                        list(
+                                                        x = transition_df$Date[i],
+                                                        y = 1,  # top of the plot (yref = "paper")
+                                                        xref = "x",
+                                                        yref = "paper",
+                                                        text = paste0(transition_df$n_actphen[i]),
+                                                        showarrow = FALSE,
+                                                        xanchor = "center",
+                                                        yanchor = "bottom"
+                                                        )
+                                                    })
+                                                )
+
+                                                    # Add a dummy trace to show a legend entry for "Phenophases"
+                                                    p <- p %>% add_trace(
+                                                    x = c(NA), 
+                                                    y = c(NA), 
+                                                    type = "scatter",
+                                                    mode = "lines",
+                                                    line = list(color = "#047704", dash = "dot"),
+                                                    name = "Phenophases",
+                                                    showlegend = TRUE
+                                                    )
+                                        
+                                            }
+                                            else {
+                                                myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
+                                            }
+                                        }
+                                    }
 
                                                 p <- p %>% plotly::layout(
                                                      xaxis = xaxis_options,

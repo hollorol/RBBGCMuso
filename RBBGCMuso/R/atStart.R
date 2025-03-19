@@ -57,7 +57,7 @@ styledText <- function(text, style_code) {
                                          plainText("  "), # here too
                                          styledText(".soi", "1") 
                                          )))) # I'm pyhsically dying
-  cat(sprintf("%s\n", colorTextBg("It is advised to always maintain a backup of them!", red_bg)), file = stderr())
+  cat(sprintf("%s\n", colorTextBg("It is advised to always maintain backups!", red_bg)), file = stderr())
     
     # OLD DESIGN
     #cat(sprintf('This is RBBGCMuso version 1.0\nDefault Biome-BGCMuSo version: %d\n',
