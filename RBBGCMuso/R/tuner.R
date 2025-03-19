@@ -4,7 +4,7 @@
 #'
 #' @param parameterFile optional, the parameter csv file
 #' @importFrom shinyjs useShinyjs toggle show hide disable enable removeEvent runjs 
-#' @importFrom dplyr filter %>% select full_join left_join mutate across
+#' @importFrom dplyr filter %>% select full_join left_join mutate across arrange first
 #' @importFrom shinyjqui jqui_resizable 
 #' @importFrom lubridate year month day 
 #' @importFrom data.table fread fwrite
@@ -742,11 +742,14 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
 #' @param session dinamic session management for shiny
 #' @importFrom shiny reactiveValues isolate observeEvent
 #' @importFrom plotly renderPlotly plot_ly add_trace add_annotations layout
+#' @importFrom dplyr filter %>% select full_join left_join mutate across arrange first
 #' @usage ...
 #' @export 
 
 tuneMusoServer <- function(input, output, session){
     workdir <- getwd()
+    #im gonna kill myself for this
+    library(dplyr)
     # startup animation, waiting for observers to stop calculating before allowing actions
     hostess_instance <- Hostess$new("loader")
     #hostess_instance$start()  # Start the spinner
@@ -4505,7 +4508,7 @@ tuneMusoServer <- function(input, output, session){
                                             sim_df <- outputData()
                                             sim_df <- sim_df %>%
                                                 dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = lag(n_actphen, default = first(n_actphen)),
+                                                dplyr::mutate(prev_phase = lag(n_actphen, default = dplyr::first(n_actphen)),
                                                         phase_change = n_actphen != prev_phase) %>%
                                                 dplyr::filter(phase_change) %>%
                                                 dplyr::select(Date, n_actphen)
@@ -4850,10 +4853,11 @@ tuneMusoServer <- function(input, output, session){
 
                                         if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
+                                                #browser()
                                             sim_df <- outputData()
                                             sim_df <- sim_df %>%
                                                 dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = lag(n_actphen, default = first(n_actphen)),
+                                                dplyr::mutate(prev_phase = lag(n_actphen, default = dplyr::first(n_actphen)),
                                                         phase_change = n_actphen != prev_phase) %>%
                                                 dplyr::filter(phase_change) %>%
                                                 dplyr::select(Date, n_actphen)
