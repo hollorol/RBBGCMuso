@@ -10,6 +10,7 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr POST
+#' @importFrom colourpicker colourInput updateColourInput
 #' @importFrom waiter use_waiter use_hostess waiter_hide Hostess Waiter waiter_show_on_load hostess_loader spin_3 waiterShowOnLoad
 #' @importFrom future plan future multisession value
 #' @importFrom DT dataTableOutput datatable renderDataTable
@@ -578,11 +579,13 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                                 checkboxInput(
                                                 "lastRun", "Show Previous Model Run", value = FALSE
                                             ),
-                                            checkboxInput("showPheno", "Show Phenophases", value = FALSE),
-                                           #checkboxInput("autoupdate", "Automatic update"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
-                                            checkboxInput("singleYear", "Single year mode", value = FALSE),
-                                            checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
+                                                checkboxInput("showPheno", "Show Phenophases", value = FALSE),
+                                                checkboxInput("showHarvest", "Show Harvest Dates", value = TRUE)
+                                            ),
+                                            div(style = "display: flex; align-items: center; gap: 0px;",
+                                                checkboxInput("singleYear", "Single year mode", value = FALSE),
+                                                checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
                                             ),
                                            uiOutput("yearRangeUI")
                                        )
@@ -646,14 +649,17 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
                                 #    ),
                                     
                           ),
-                          tabPanel("INI File",
-                                   tags$div(
-                                       id = "iniContainer",
-                                       textAreaInput("inifile", "Normal Ini file",
-                                                     value = paste(readLines(settings$iniInput[2]), collapse = "\n"))
-                                   ),
-                                   actionButton(inputId = "getOriginalIni", "Load original"),
-                                   actionButton(inputId = "overwriteIni", "Overwrite")
+                          tabPanel("Plot Manager (Beta)",
+                               selectInput("customize_var", "Select Variable to Customize", choices = NULL),
+                                    # Customization inputs (no variable-specific IDs yet)
+                                    numericInput("y_min", "Y Min", value = NULL, step = 0.1),
+                                    numericInput("y_max", "Y Max", value = NULL, step = 0.1),
+                                    colourInput("line_color", "Line Color", value = "red"),
+                                    numericInput("line_width", "Line Width", value = 2, min = 1, max = 10, step = 1),
+                                    numericInput("title_size", "Title Size", value = 12, min = 8, max = 24, step = 1),
+                                    checkboxInput("show_legend", "Show Legend", value = TRUE),
+                                    actionButton("apply_custom", "Apply to Selected Variable"),
+                                    actionButton("reset_custom", "Reset Current Variable")
                           ),
                           tabPanel("Measurement Manager",
                            fluidRow(
@@ -3083,7 +3089,7 @@ tuneMusoServer <- function(input, output, session){
                 fluidRow(
                 column(4,
                     pickerInput("col_to_na_output", "Select column(s):", 
-                                choices = setdiff(colnames(simTableDat()), "Date"),
+                                choices = setdiff(colnames(outputData()), "Date"),
                                 multiple = TRUE,
                                 options = list(`actions-box` = TRUE))
                 ),
@@ -3112,7 +3118,7 @@ tuneMusoServer <- function(input, output, session){
                 fluidRow(
                 column(4,
                     pickerInput("col_arith_output", "Select column(s):", 
-                                choices = setdiff(colnames(simTableDat()), "Date"), 
+                                choices = setdiff(colnames(outputData()), "Date"), 
                                 multiple = TRUE,
                                 options = list(`actions-box` = TRUE))
                 ),
@@ -3126,7 +3132,9 @@ tuneMusoServer <- function(input, output, session){
                 ),
                 fluidRow(
                 column(4,
-                    checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE)
+                    checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE),
+                    checkboxInput("interaction_newcol_arith", "Create as new variable", value = FALSE),
+                   uiOutput("arithNewVarNames")
                 ),
                 column(8,
                         div(style = "text-align: right;", 
@@ -3140,12 +3148,14 @@ tuneMusoServer <- function(input, output, session){
             tabPanel("Column Interaction",
                 fluidRow(
                 column(4,
-                    selectInput("col1_output", "Column 1:", 
-                                choices = setdiff(colnames(simTableDat()), "Date"))
+                    selectInput("col1_output", "Target column:", 
+                                choices = setdiff(colnames(outputData()), "Date"))
                 ),
                 column(4,
-                    selectInput("col2_output", "Column 2:", 
-                                choices = setdiff(colnames(simTableDat()), "Date"))
+                            pickerInput("col2_output", "Interaction column(s):",  
+                                choices = setdiff(colnames(outputData()), "Date"), 
+                                multiple = TRUE,
+                                options = list(`actions-box` = TRUE))
                 ),
                 column(4,
                     selectInput("interaction_op_output", "Operation", 
@@ -3153,20 +3163,43 @@ tuneMusoServer <- function(input, output, session){
                 )
                 ),
                 fluidRow(
-                column(4,
-                    checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = FALSE)
-                ),
-                column(8,
-                    actionButton("apply_interaction_output", "Apply Transformation")
-                )
+                    column(4,
+                        checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = FALSE),
+                        checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
+                    
+                    conditionalPanel(
+                        condition = "input.interaction_newcol == true",
+                        textInput("interaction_newcol_name", "New Variable Name:")
+                    )
+                    ),
+                    column(8,
+                        div(style = "text-align: right;", 
+                        actionButton("apply_interaction_output", "Apply Transformation", style = "color: white; background-color: #007bff; border-color: #007bff;")
+                        )
+                    )
                 )
             )
             )
         ))
         })
 
+
+        output$arithNewVarNames <- renderUI({
+            req(input$interaction_newcol_arith, input$col_arith_output)
+            if (isTRUE(input$interaction_newcol_arith) && length(input$col_arith_output) > 0) {
+                # For each selected column, create a text input with an ID based on the column name
+                lapply(input$col_arith_output, function(col) {
+                textInput(inputId = paste0("newName_", col), label = paste("New name for", col, ":"), value = "")
+                })
+            }
+            })
+
+
+
         ## ---- Observers for Each Transformation ---- (I'm going to cry by the end of this)
         ##                                             update: I'm crying but ig it works kinda
+        ##                                             update 2: I'm going to cry again, 'add as new variable' options here we go
+        ##                                             update 3: I'm crying less cause it kinda works
 
         # NA Transformation
         observeEvent(input$apply_na_output, {
@@ -3219,60 +3252,100 @@ tuneMusoServer <- function(input, output, session){
 
         # Arithmetic Operation
         observeEvent(input$apply_arith_output, {
-            req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
-            df <- outputData()
-            cols <- input$col_arith_output
-            op <- input$arith_op_output
-            val <- input$arith_val_output
-            
-            # Define the transformation function
-            arith_transform <- function(data, col) {
-                    switch(op,
-                        "Add"      = data[[col]] + val,
-                        "Subtract" = data[[col]] - val,
-                        "Multiply" = data[[col]] * val,
-                        "Divide"   = {
-                            if (val == 0) {
-                                showNotification("Division by zero not allowed", type = "error")
-                                return(data[[col]])  # Return original values if division by zero
-                            } else {
-                                return(data[[col]] / val)
-                            }
-                        }
-                    )
-                }
-            
-            # Always update the original column
-            #df[[col]] <- arith_transform(df)
-
-                for (col in cols) {
-                    df[[col]] <- arith_transform(df, col)
-                }
-            
-                if (isTRUE(input$arith_keep_transformation)) {
-                    for (col in cols) {
-                        local({
-                        # Store function for persistence
-                        currentCol <- col
-                        outputTransforms$transforms[[currentCol]] <- function(data) arith_transform(data, currentCol)
-                        outputTransformsTracker$modifications[[currentCol]] <- 
-                            c(outputTransformsTracker$modifications[[currentCol]], 
-                            paste(op, "operation persistent on", currentCol, "with value", val))
-                        })
-                    }
-                } else {
-                    for (col in cols) {
-                        # Do not store function (one-time transformation)
-                        outputTransforms$transforms[[col]] <- NULL
-                        outputTransformsTracker$modifications[[col]] <- 
-                            c(outputTransformsTracker$modifications[[col]], 
-                            paste(op, "operation one-time on", col, "with value", val))
-                    }
-                }
-            
+        req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
+        df <- outputData()
+        cols <- input$col_arith_output
+        op <- input$arith_op_output
+        val <- input$arith_val_output
         
-            outputData(df)
-            showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
+        # Define the arithmetic transformation function for a given column.
+        arith_transform <- function(data, col) {
+            switch(op,
+            "Add"      = data[[col]] + val,
+            "Subtract" = data[[col]] - val,
+            "Multiply" = data[[col]] * val,
+            "Divide"   = {
+                if (val == 0) {
+                showNotification("Division by zero not allowed", type = "error")
+                data[[col]]  # Return original values if division by zero occurs.
+                } else {
+                data[[col]] / val
+                }
+            }
+            )
+        }
+        
+        # Flag to track whether any new variables have been created.
+        new_vars_created <- FALSE
+        
+        if (isTRUE(input$interaction_newcol_arith)) {
+            # Process each selected column: create new column only if a non-empty new name is provided.
+            for (col in cols) {
+            new_name <- input[[paste0("newName_", col)]]
+            
+            if (nzchar(new_name)) {  # if new_name is not an empty string
+                new_vars_created <- TRUE
+                
+                # Create the new column using the transformation.
+                df[[new_name]] <- arith_transform(df, col)
+                
+                # Store persistent transformation function if needed.
+                if (isTRUE(input$arith_keep_transformation)) {
+                outputTransforms$transforms[[new_name]] <- function(data) arith_transform(data, col)
+                outputTransformsTracker$modifications[[new_name]] <-
+                    c(outputTransformsTracker$modifications[[new_name]],
+                    paste(op, "operation persistent on new column", new_name, "with value", val))
+                } else {
+                outputTransforms$transforms[[new_name]] <- NULL
+                outputTransformsTracker$modifications[[new_name]] <-
+                    c(outputTransformsTracker$modifications[[new_name]],
+                    paste(op, "operation one-time on new column", new_name, "with value", val))
+                }
+                
+                # Update the dailyOutputTable with the new variable.
+                new_row <- data.frame(
+                index = max(rv$settings$dailyOutputTable$index) + 1,
+                code  = NA,  # Indicates a custom variable
+                name  = new_name,
+                stringsAsFactors = FALSE
+                )
+                rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+            } else {
+                # If no new name is provided, skip transformation for that column.
+                showNotification(paste("No new name provided for", col, "- original column remains unchanged."), 
+                                type = "warning")
+            }
+            }
+        } else {
+            # When new variable mode is off, modify the original columns.
+            for (col in cols) {
+            df[[col]] <- arith_transform(df, col)
+            
+            if (isTRUE(input$arith_keep_transformation)) {
+                outputTransforms$transforms[[col]] <- function(data) arith_transform(data, col)
+                outputTransformsTracker$modifications[[col]] <-
+                c(outputTransformsTracker$modifications[[col]],
+                    paste(op, "operation persistent on", col, "with value", val))
+            } else {
+                outputTransforms$transforms[[col]] <- NULL
+                outputTransformsTracker$modifications[[col]] <-
+                c(outputTransformsTracker$modifications[[col]],
+                    paste(op, "operation one-time on", col, "with value", val))
+            }
+            }
+        }
+        
+        # Update the reactive output data.
+        outputData(df)
+        
+        # If new variables were created, update the pickerInput for 'selected_vars' so they appear.
+        if (new_vars_created) {
+            updatePickerInput(session, "selected_vars",
+                            choices = rv$settings$dailyOutputTable$name,
+                            selected = intersect(input$selected_vars, rv$settings$dailyOutputTable$name))
+        }
+        
+        showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
         })
 
 
@@ -3281,41 +3354,92 @@ tuneMusoServer <- function(input, output, session){
             req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
             df <- outputData()
             col1 <- input$col1_output
-            col2 <- input$col2_output
+            cols2 <- input$col2_output
             op <- input$interaction_op_output
             
-            # Define the transformation function for interaction
-            interaction_transform <- function(data) {
-                switch(op,
-                "Multiply" = data[[col1]] * data[[col2]],
-                "Add"      = data[[col1]] + data[[col2]],
-                "Subtract" = data[[col1]] - data[[col2]],
-                "Divide"   = {
-                    res <- data[[col1]] / ifelse(data[[col2]] == 0, NA, data[[col2]])
-                    if(any(data[[col2]] == 0, na.rm = TRUE)) {
-                    showNotification("Division by zero encountered; resulting values set to NA", type = "warning")
-                    }
-                    res
-                }
-                )
-            }
-            
-            df[[col1]] <- interaction_transform(df)
-            
-            if (isTRUE(input$interaction_keep_transformation)) {
-                outputTransforms$transforms[[col1]] <- interaction_transform
-                outputTransformsTracker$modifications[[col1]] <-
-                c(outputTransformsTracker$modifications[[col1]],
-                    paste(op, "operation persistent on", col1, "with", col2))
+            new_col <- if (isTRUE(input$interaction_newcol)) {
+                req(input$interaction_newcol_name)  
+                input$interaction_newcol_name
             } else {
-                outputTransforms$transforms[[col1]] <- NULL
-                outputTransformsTracker$modifications[[col1]] <-
-                c(outputTransformsTracker$modifications[[col1]],
-                    paste(op, "operation one-time on", col1, "with", col2))
+                col1
             }
+
+    
+    interaction_transform <- function(data) {
+        base <- data[[col1]]
+        if (op == "Add") {
+            # Sum the selected columns and add to col1
+            combined <- rowSums(data[, cols2, drop = FALSE])
+            base + combined
+        } else if (op == "Subtract") {
+            # Subtract the sum of the selected columns from col1
+            combined <- rowSums(data[, cols2, drop = FALSE])
+            base - combined
+        } else if (op == "Multiply") {
+            # Multiply col1 by the product of the selected columns
+            combined <- apply(data[, cols2, drop = FALSE], 1, prod)
+            base * combined
+        } else if (op == "Divide") {
+            # Divide col1 by the product of the selected columns
+            combined <- apply(data[, cols2, drop = FALSE], 1, prod)
+            # Check for division by zero in the product
+            zero_idx <- combined == 0
+            if(any(zero_idx)) {
+                showNotification("Division by zero encountered in one or more rows; setting those to NA", type = "warning")
+                combined[zero_idx] <- NA
+            }
+            base / combined
+        }
+    }
+
             
+ 
+
+            #df[[col1]] <- interaction_transform(df)
+            if (isTRUE(input$interaction_newcol)) {
+                df[[new_col]] <- interaction_transform(df)
+                if (isTRUE(input$interaction_keep_transformation)) {
+                    outputTransforms$transforms[[new_col]] <- interaction_transform
+                    outputTransformsTracker$modifications[[new_col]] <-
+                        c(outputTransformsTracker$modifications[[new_col]],
+                        paste(op, "operation persistent on new column", new_col, "with", paste(cols2, collapse = ", ")))
+                } else {
+                    outputTransforms$transforms[[new_col]] <- NULL
+                    outputTransformsTracker$modifications[[new_col]] <-
+                        c(outputTransformsTracker$modifications[[new_col]],
+                        paste(op, "operation one-time on new column", new_col, "with", paste(cols2, collapse = ", ")))
+                }
+            } else {
+                df[[col1]] <- interaction_transform(df)
+                if (isTRUE(input$interaction_keep_transformation)) {
+                    outputTransforms$transforms[[col1]] <- interaction_transform
+                    outputTransformsTracker$modifications[[col1]] <-
+                        c(outputTransformsTracker$modifications[[col1]],
+                        paste(op, "operation persistent on", col1, "with", paste(cols2, collapse = ", ")))
+                } else {
+                    outputTransforms$transforms[[col1]] <- NULL
+                    outputTransformsTracker$modifications[[col1]] <-
+                        c(outputTransformsTracker$modifications[[col1]],
+                        paste(op, "operation one-time on", col1, "with", paste(cols2, collapse = ", ")))
+                }
+            }
+
             outputData(df)
-            showNotification(paste("Applied", op, "operation between", col1, "and", col2))
+                 showNotification(paste("Applied", op, "operation between", col1, "and", paste(cols2, collapse = ", "),
+                             if (isTRUE(input$interaction_newcol)) paste("as new column", new_col) else ""))
+            
+            if (isTRUE(input$interaction_newcol) && nzchar(input$interaction_newcol_name)) {
+            new_row <- data.frame(
+                index = max(rv$settings$dailyOutputTable$index) + 1,
+                code = NA,
+                name = input$interaction_newcol_name
+            )
+            rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+
+                updatePickerInput(session, "selected_vars",
+                                choices = rv$settings$dailyOutputTable$name,
+                                selected = input$selected_vars)
+            }
         })
 
 
@@ -3329,6 +3453,8 @@ tuneMusoServer <- function(input, output, session){
                                 inputId = "exportCols",
                                 choices = available_cols,
                                 selected = character(0))
+       
+            
         })
 
         # Observer to reset modifications: this reverts columns back to the original simTableDat values.
@@ -3351,6 +3477,20 @@ tuneMusoServer <- function(input, output, session){
                 }
                 }
                 outputData(df_current)
+
+                # Remove corresponding rows from dailyOutputTable
+               rv$settings$dailyOutputTable <- rv$settings$dailyOutputTable[
+                    !(rv$settings$dailyOutputTable$name %in% colsToReset & is.na(rv$settings$dailyOutputTable$code)),
+                ]
+
+
+                
+                existing_selection <- input$selected_vars
+                new_selection <- intersect(existing_selection, rv$settings$dailyOutputTable$name)
+                    updatePickerInput(session, "selected_vars",
+                  choices = rv$settings$dailyOutputTable$name,
+                  selected = new_selection)
+
                 showNotification("Selected modification(s) have been reset", type = "message")
             }
         })
@@ -3996,7 +4136,7 @@ tuneMusoServer <- function(input, output, session){
             observeEvent(input$toggle_legend, {
                 new_state <- !legendVisible()
                 legendVisible(new_state)
-                updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
+                updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend (redundant)", "Show Legend (redundant)"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
             })
 
         # Settings (so far only for resolution)
@@ -4130,10 +4270,11 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.16.1</strong></p>
+                    <p><strong>Version 2.16.5</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
+                        <li>When deleting a custom variable via reset, plotly will complain it cannot find it, but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
                         <li>Sometimes there will be a notification for an epc modification even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
                     </ul>
                     "))),
@@ -4236,21 +4377,101 @@ tuneMusoServer <- function(input, output, session){
             }
         }
 
+
+
+    # Main customizations that affect plots
+    plotCustomizations <- reactiveValues()
+    # Staging area for pending changes
+    pendingCustomizations <- reactiveValues()
+
+    # Update selectInput choices and initialize defaults
+    observeEvent(input$selected_vars, {
+        updateSelectInput(session, "customize_var", 
+                         choices = input$selected_vars,
+                         selected = input$selected_vars[1])
+        
+        for (var in input$selected_vars) {
+            if (is.null(plotCustomizations[[var]])) {
+                plotCustomizations[[var]] <- list(
+                    y_min = NULL,
+                    y_max = NULL,
+                    line_color = "red",
+                    line_width = 2,
+                    title_font_size = exportSettings$ytitlefont,
+                    show_legend = TRUE
+                )
+            }
+        }
+    })
+
+    # Update customization inputs when variable changes, using main customizations
+    observeEvent(input$customize_var, {
+        req(input$customize_var)
+        custom <- plotCustomizations[[input$customize_var]]
+        
+        updateNumericInput(session, "y_min", value = custom$y_min)
+        updateNumericInput(session, "y_max", value = custom$y_max)
+        updateColourInput(session, "line_color", value = custom$line_color)
+        updateNumericInput(session, "line_width", value = custom$line_width)
+        updateNumericInput(session, "title_size", value = custom$title_font_size)
+        updateCheckboxInput(session, "show_legend", value = custom$show_legend)
+    })
+
+    # Apply button: Move pending changes to main customizations
+    observeEvent(input$apply_custom, {
+        req(input$customize_var)
+        plotCustomizations[[input$customize_var]] <- list(
+            y_min = input$y_min,
+            y_max = input$y_max,
+            line_color = input$line_color,
+            line_width = input$line_width,
+            title_font_size = input$title_size,
+            show_legend = input$show_legend
+        )
+    })
+
+    # Reset button: Reset main customizations and update UI
+    observeEvent(input$reset_custom, {
+        req(input$customize_var)
+        plotCustomizations[[input$customize_var]] <- list(
+            y_min = NULL,
+            y_max = NULL,
+            line_color = "red",
+            line_width = 2,
+            title_font_size = exportSettings$ytitlefont,
+            show_legend = TRUE
+        )
+        custom <- plotCustomizations[[input$customize_var]]
+        updateNumericInput(session, "y_min", value = custom$y_min)
+        updateNumericInput(session, "y_max", value = custom$y_max)
+        updateColourInput(session, "line_color", value = custom$line_color)
+        updateNumericInput(session, "line_width", value = custom$line_width)
+        updateNumericInput(session, "title_size", value = custom$title_font_size)
+        updateCheckboxInput(session, "show_legend", value = custom$show_legend)
+    })
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
                 session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-                plot_outputs <- lapply(input$selected_vars, function(var) {
-				
-                    plotlyOutput(paste0("plot_", var), height = "100%")
-                })
-                do.call(tagList, plot_outputs)
+               plot_outputs <- lapply(input$selected_vars, function(var) {
+       
+                # Plot output
+               
+            plotlyOutput(paste0("plot_", var), height = "400px")
+        
+            
+        
+                    })
+                    do.call(tagList, plot_outputs)
                 })
 
                 
                 observe({
                 #req(input$selected_vars, length(outputList$nextVal) != 0)
                 req(input$selected_vars, outputData())
+                #vary <- outputData()
+                # intersect needed when a custom variable is deleted so plotly won't complain
+                #lapply(intersect(input$selected_vars, colnames(vary)), function(var) { STILL COMPLAINING
                 lapply(input$selected_vars, function(var) {
                     output[[paste0("plot_", var)]] <- renderPlotly({
                     # giving condition to check to avoid warning messages
@@ -4278,17 +4499,16 @@ tuneMusoServer <- function(input, output, session){
                     } else NULL
                     #filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
                     filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    # Apply scaling. COMMENTED OUT BECAUSE OF THE EDIT VARIABLES OPTION (for now)
-                    #if (var %in% c("GPP", "TR", "NEE")) {
-                    #    if (!is.null(filteredPrev)) filteredPrev[, var] <- filteredPrev[, var] * 1000
-                    #    filteredNext[, var] <- filteredNext[, var] * 1000
-                    #}
-                    
+           
                     
                     p <- plot_ly()
                  
                  # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
                     common_x_range <- range(filteredDates, na.rm = TRUE)
+
+                    custom <- plotCustomizations[[var]]
+
+          
             #}          
             xaxis_options <- if (input$singleYear || length(selectedYears) == 1) {
                                     list(
@@ -4351,28 +4571,30 @@ tuneMusoServer <- function(input, output, session){
                                     type = 'scatter', mode = 'lines', name = "Previous Simulation")
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+                                    type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = custom$line_color, width = custom$line_width))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
+                                    type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = custom$line_color, width = custom$line_width))
                         }
                     
 
 
                             
-                                                p <- p %>% plotly::layout(
-                                                     xaxis = xaxis_options,
-                                                            
-                                                    yaxis = list(
-                                                        title = list(text = var, font = list(size = exportSettings$ytitlefont)),
-                                                        tickfont = list(size = exportSettings$tickfonty)
-                                                    
-                                                    ),
-                                                     legend = legend_options,
-                                                        
-                                                    
-                                                    showlegend = legendVisible()  # Conditionally show/hide legend
-                                                )
+                            p <- p %>% plotly::layout(
+                            xaxis = xaxis_options,
+                            yaxis = list(
+                                title = list(text = var, font = list(size = custom$title_font_size)),
+                                tickfont = list(size = exportSettings$tickfonty),
+                                range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
+                                        c(custom$y_min, custom$y_max) 
+                                        else NULL,
+                                autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
+                                        TRUE 
+                                        else FALSE
+                            ),
+                            legend = legend_options,
+                            showlegend = custom$show_legend
+                        )
 
                     session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
                 # Adding the epc labels on the x axis
@@ -4440,6 +4662,7 @@ tuneMusoServer <- function(input, output, session){
                   
                 }
 
+                if(input$showHarvest) {
                        if ("HarvestDates" %in% names(rv$epc_dates)) {
                               selected_harvest <- planting_dates %>%
                                     dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
@@ -4492,7 +4715,7 @@ tuneMusoServer <- function(input, output, session){
                             yref = "paper",
                             text = label,
                             showarrow = FALSE,
-                            yshift = -10,         # Shift label down
+                            yshift = -7,         # Shift label down
                             font = list(color = "#6c4a00", size = 10)
                         )
                         
@@ -4500,6 +4723,7 @@ tuneMusoServer <- function(input, output, session){
 
                          }
                     }
+                }
                 
                                      if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
@@ -4721,11 +4945,11 @@ tuneMusoServer <- function(input, output, session){
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, var],
                                                 type = 'scatter', mode = 'lines', name = "Previous Simulation")
                                 p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
-                                            type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = "red"))
+                                            type = 'scatter', mode = 'lines', name = "New Simulation",  line = list(color = custom$line_color, width = custom$line_width))
                                 }
                                 else {
                                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
-                                            type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = "red"))
+                                            type = 'scatter', mode = 'lines', name = "Simulation",  line = list(color = custom$line_color, width = custom$line_width))
                                 }
 
                                       # Adding the epc labels on the x axis
@@ -4791,7 +5015,7 @@ tuneMusoServer <- function(input, output, session){
                                                 } 
 
                                         }
-
+                                     if(input$showHarvest) {
                                           if ("HarvestDates" %in% names(rv$epc_dates)) {
                                                     selected_harvest <- planting_dates %>%
                                                             dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
@@ -4841,14 +5065,14 @@ tuneMusoServer <- function(input, output, session){
                                                     yref = "paper",
                                                     text = label,
                                                     showarrow = FALSE,
-                                                    yshift = -10,         # Shift label down
+                                                    yshift = -7,         # Shift label down
                                                     font = list(color = "#6c4a00", size = 10)
                                                 )
                                                 
                                                 } 
                                                 }
                                             }
-
+                                        }
                                         if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
                                                 #browser()
@@ -4910,18 +5134,22 @@ tuneMusoServer <- function(input, output, session){
                                         }
                                     }
 
-                                                p <- p %>% plotly::layout(
-                                                     xaxis = xaxis_options,
-                                                    yaxis = list(
-                                                        title = list(text = var, font = list(size = exportSettings$ytitlefont)),
-                                                        tickfont = list(size = exportSettings$tickfonty)
-                                                    
-                                                    ),
-                                                     legend = legend_options,
-                                                    
-                                                    
-                                                    showlegend = legendVisible()  # Conditionally show/hide legend
-                                                )
+                                               p <- p %>% plotly::layout(
+                            xaxis = xaxis_options,
+                            yaxis = list(
+                                title = list(text = var, font = list(size = custom$title_font_size)),
+                                tickfont = list(size = exportSettings$tickfonty),
+                                range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
+                                        c(custom$y_min, custom$y_max) 
+                                        else NULL,
+                                autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
+                                        TRUE 
+                                        else FALSE
+                            ),
+                            legend = legend_options,
+                            showlegend = custom$show_legend
+                        )
+
 
                         }
                
@@ -4943,6 +5171,7 @@ tuneMusoServer <- function(input, output, session){
                     
                     p
                     })
+                  
                 })
                 })
 
