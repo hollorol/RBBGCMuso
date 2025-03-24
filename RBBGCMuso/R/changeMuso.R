@@ -28,7 +28,7 @@ prettyChangemulline <- function(filePaths, calibrationPar, contents, src=NULL, o
     }
     
     #fileStringVector <- readLines(src)
-    fileStringVector <- readLines(src,warn=FALSE,encoding="UTF-8")
+    fileStringVector <- readLines(src,warn=FALSE,encoding="UTF-8-BOM")
     Map(function(index, content){
            fileStringVector <<- prettyChangeByIndex(index, content, fileStringVector)
 
@@ -42,45 +42,39 @@ prettyChangemulline <- function(filePaths, calibrationPar, contents, src=NULL, o
             which="right")
  }
 
-prettyChangeNth <- function(string, place, replacement) { 
-    # Find all fields (non-whitespace plus following spaces)
-    m <- gregexpr("\\S+\\s*", string, perl = TRUE)
-    fields <- regmatches(string, m)[[1]]
+prettyChangeNth <- function(string, place, replacement) {
+    # Split the string by any whitespace into fields
+    fields <- strsplit(string, "\\s+")[[1]]
     
-    # Check that the requested column exists 
-    if ((place + 1) > length(fields)) {
+    # Check if the requested position exists
+    if (place + 1 > length(fields)) {
         warning("Column not found.")
         return(string)
     }
     
-    # Extract the target field (which includes its trailing whitespace)
-    target_field <- fields[place + 1]
-    # Separate the field value and its trailing whitespace.
-    orig_val <- sub("^(\\S+)(\\s*)$", "\\1", target_field)
-    trailing_ws <- sub("^(\\S+)(\\s*)$", "\\2", target_field)
+    # Replace the target field
+    fields[place + 1] <- as.character(replacement)
     
-    # Convert the replacement to a character string.
-    new_val <- as.character(replacement)
+    # Identify which fields are numeric (including decimals)
+    is_numeric <- grepl("^-?[0-9]*\\.?[0-9]+$", fields)
     
-    # If the new value is shorter than the original field, pad it on the right.
-    if (nchar(new_val) < nchar(orig_val)) {
-        new_val <- sprintf("%-*s", nchar(orig_val), new_val)
+    # Build the new string manually
+    new_string <- ""
+    for (i in 1:length(fields)) {
+        # Add the field
+        new_string <- paste0(new_string, fields[i])
+        
+        # Add separator if not the last field
+        if (i < length(fields)) {
+            if (is_numeric[i]) {
+                # Two tabs after numeric fields
+                new_string <- paste0(new_string, "\t\t")
+            } else {
+                # Single space after text fields
+                new_string <- paste0(new_string, " ")
+            }
+        }
     }
-    
-    # Rebuild the new field by appending the preserved trailing whitespace.
-    new_field <- paste0(new_val, trailing_ws)
-    
-    # Use the match positions from gregexpr to rebuild the string.
-    starts <- as.integer(m[[1]])
-    lengths <- attr(m[[1]], "match.length")
-    target_start <- starts[place + 1]
-    target_end <- target_start + lengths[place + 1] - 1
-    
-    new_string <- paste0(
-        substring(string, 1, target_start - 1),
-        new_field,
-        substring(string, target_end + 1)
-    )
     
     return(new_string)
 }
