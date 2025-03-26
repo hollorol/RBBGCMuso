@@ -135,117 +135,95 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     "
 
 
-Titlemanagement <- '
-    function attachContextMenu() {
-        console.log("Attaching context menu");
+# Titlemanagement <- '
+#     // Define hideContextMenu in a higher scope to avoid duplicate listeners
+#     var hideContextMenu = function(e) {
+#         var contextMenu = document.getElementById("customContextMenu");
+#         if (contextMenu) {
+#             contextMenu.style.display = "none";
+#         }
+#     };
 
-        var contextMenu = document.getElementById("customContextMenu");
-        if (!contextMenu) {
-            contextMenu = document.createElement("div");
-            contextMenu.id = "customContextMenu";
-            contextMenu.style.position = "absolute";
-            contextMenu.style.background = "#f9f9f9";
-            contextMenu.style.border = "1px solid #ccc";
-            contextMenu.style.padding = "5px";
-            contextMenu.style.zIndex = "1000";
-            contextMenu.style.display = "none";
-            contextMenu.innerHTML = `
-                <div id="supOption" style="cursor:pointer;padding:2px;">Superscript</div>
-                <div id="subOption" style="cursor:pointer;padding:2px;">Subscript</div>
-                <div id="boldOption" style="cursor:pointer;padding:2px;">Bold</div>
-                <div id="italicOption" style="cursor:pointer;padding:2px;">Italic</div>
-                <div id="underlineOption" style="cursor:pointer;padding:2px;">Underline</div>
-                <div id="strikeOption" style="cursor:pointer;padding:2px;">Strikethrough</div>
-            `;
-            document.body.appendChild(contextMenu);
-        }
+#     function attachContextMenu() {
+#         console.log("Attaching context menu");
 
-        // Remove existing click listener to avoid stacking
-        document.removeEventListener("click", hideContextMenu);
-        function hideContextMenu(e) {
-            contextMenu.style.display = "none";
-        }
-        document.addEventListener("click", hideContextMenu);
+#         var contextMenu = document.getElementById("customContextMenu");
+#         if (!contextMenu) {
+#             contextMenu = document.createElement("div");
+#             contextMenu.id = "customContextMenu";
+#             contextMenu.style.position = "fixed"; // Changed to fixed
+#             contextMenu.style.background = "#f9f9f9";
+#             contextMenu.style.border = "1px solid #ccc";
+#             contextMenu.style.padding = "5px";
+#             contextMenu.style.zIndex = "1000";
+#             contextMenu.style.display = "none";
+#             contextMenu.innerHTML = `
+#                 <div id="supOption" style="cursor:pointer;padding:2px;">Superscript</div>
+#                 <div id="subOption" style="cursor:pointer;padding:2px;">Subscript</div>
+#                 <div id="boldOption" style="cursor:pointer;padding:2px;">Bold</div>
+#                 <div id="italicOption" style="cursor:pointer;padding:2px;">Italic</div>
+#                 <div id="underlineOption" style="cursor:pointer;padding:2px;">Underline</div>
+#                 <div id="strikeOption" style="cursor:pointer;padding:2px;">Strikethrough</div>
+#             `;
+#             document.body.appendChild(contextMenu);
+#         }
 
-        var yTitle = document.getElementById("y_title");
-        if (yTitle) {
-            console.log("y_title found");
-            // Remove any existing listener to prevent duplicates
-            yTitle.removeEventListener("contextmenu", contextMenuHandler);
-            function contextMenuHandler(e) {
-                console.log("Context menu triggered");
-                if (e.ctrlKey) {
-                    console.log("Ctrl + right-click detected");
-                    e.preventDefault();
-                    var start = this.selectionStart;
-                    var end = this.selectionEnd;
-                    console.log("Selection: " + start + " to " + end);
-                    if (start !== end) {
-                        console.log("Showing context menu at " + e.pageX + "," + e.pageY);
-                        contextMenu.style.left = e.pageX + "px";
-                        contextMenu.style.top = e.pageY + "px";
-                        contextMenu.style.display = "block";
+#         // Remove existing click listener before adding a new one
+#         document.removeEventListener("click", hideContextMenu);
+#         document.addEventListener("click", hideContextMenu);
 
-                        var input = this;
-                        var text = input.value;
-                        var selectedText = text.substring(start, end);
+#         var yTitle = document.getElementById("y_title");
+#         if (yTitle) {
+#             console.log("y_title found");
+#             // Remove previous listener to avoid duplicates
+#             yTitle.removeEventListener("contextmenu", contextMenuHandler);
+#             function contextMenuHandler(e) {
+#                 console.log("Context menu triggered");
+#                 if (e.ctrlKey) {
+#                     console.log("Ctrl + right-click detected");
+#                     e.preventDefault();
+#                     var start = this.selectionStart;
+#                     var end = this.selectionEnd;
+#                     console.log("Selection: " + start + " to " + end);
+#                     if (start !== end) {
+#                         console.log("Showing context menu at " + e.clientX + "," + e.clientY);
+#                         contextMenu.style.left = e.clientX + "px"; // Use clientX/Y
+#                         contextMenu.style.top = e.clientY + "px";
+#                         contextMenu.style.display = "block";
 
-                        document.getElementById("supOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<sup>" + selectedText + "</sup>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                        document.getElementById("subOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<sub>" + selectedText + "</sub>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                        document.getElementById("boldOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<b>" + selectedText + "</b>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                        document.getElementById("italicOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<i>" + selectedText + "</i>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                        document.getElementById("underlineOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<u>" + selectedText + "</u>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                        document.getElementById("strikeOption").onclick = function() {
-                            var newText = text.substring(0, start) + "<s>" + selectedText + "</s>" + text.substring(end);
-                            input.value = newText;
-                            Shiny.setInputValue("y_title", newText, {priority: "event"});
-                            contextMenu.style.display = "none";
-                        };
-                    } else {
-                        console.log("No text selected");
-                    }
-                }
-            }
-            yTitle.addEventListener("contextmenu", contextMenuHandler);
-        } else {
-            console.log("y_title not found yet");
-        }
-    }
+#                         var input = this;
+#                         var text = input.value;
+#                         var selectedText = text.substring(start, end);
 
-    Shiny.addCustomMessageHandler("attachContextMenu", function(message) {
-        attachContextMenu();
-    });
+#                         // Define option handlers
+#                         document.getElementById("supOption").onclick = function() {
+#                             var newText = text.substring(0, start) + "<sup>" + selectedText + "</sup>" + text.substring(end);
+#                             input.value = newText;
+#                             Shiny.setInputValue("y_title", newText, {priority: "event"});
+#                             contextMenu.style.display = "none";
+#                         };
+#                         // Similar handlers for other options...
+#                     } else {
+#                         console.log("No text selected");
+#                     }
+#                 }
+#             }
+#             yTitle.addEventListener("contextmenu", contextMenuHandler);
+#         } else {
+#             console.log("y_title not found yet");
+#         }
+#     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log("DOM fully loaded - initial attempt");
-        attachContextMenu();
-    });
-'
+#     Shiny.addCustomMessageHandler("attachContextMenu", function(message) {
+#         attachContextMenu();
+#     });
+
+#     // Initial attachment when DOM is ready
+#     document.addEventListener("DOMContentLoaded", function() {
+#         console.log("DOM fully loaded - initial attempt");
+#         attachContextMenu();
+#     });
+# '
     # bugs, actully this wasn't a bug
     #ApplyGreenColUponPressingApplyTrans <- "
     #    $(document).on('click', '#apply_na_output, #apply_arith_output, #apply_interaction_output', function() {
@@ -481,6 +459,7 @@ Titlemanagement <- '
             background-color: #44ff44 !important;
             border-color: #44ff44 !important;
         }
+        
         /* Make the tab headers sticky within the control panel */
         #controlPanel .nav-tabs {
             position: sticky;
@@ -594,7 +573,7 @@ Titlemanagement <- '
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, waiting, Titlemanagement ,sep = "\n"))),
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, waiting ,sep = "\n"))),
     
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
@@ -935,9 +914,12 @@ tuneMusoServer <- function(input, output, session){
             harvest_file <- searchBellow(managementContent,"HARVESTING", stringP = TRUE, n = 2)
 
             if (file.exists(planting_file)) {
-                planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
+                #planting_data <- read.table(planting_file, header = TRUE, sep = "", stringsAsFactors = FALSE)
+                planting_data <- read.table(planting_file, header = FALSE, sep = "", stringsAsFactors = FALSE, fill = TRUE)[,c(1,6)]
+                colnames(planting_data) <- as.character(unlist(planting_data[1, ]))
+                planting_data <- planting_data[-1, ]
 
-                epc_files <- unique(unlist(strsplit(paste(planting_data$CROP.file., collapse = " "), " +")))
+                epc_files <- unique(unlist(strsplit(paste(planting_data$`CROP(file)`, collapse = " "), " +")))
                 
                 planting_data$DATE <- as.Date(planting_data$DATE, format = "%Y.%m.%d")
                 epc_dates <- planting_data
@@ -2382,12 +2364,12 @@ tuneMusoServer <- function(input, output, session){
             # Filter EPC files for the selected year.
             filtered <- rv$epc_dates[
                 format(rv$epc_dates$DATE, "%Y") == selected_year &
-                rv$epc_dates[["CROP.file."]] %in% rv$epc_files, 
+                rv$epc_dates[["CROP(file)"]] %in% rv$epc_files, 
             ]
             
             if (nrow(filtered) > 0) {
                 # Get the available EPC file names for this year.
-                choices <- unique(filtered[["CROP.file."]])
+                choices <- unique(filtered[["CROP(file)"]])
                 # Get corresponding labels 
                 choices_labels <- rv$epc_labels[match(choices, rv$epc_files)]
                 # Build a named vector for the selectInput.
@@ -2403,7 +2385,7 @@ tuneMusoServer <- function(input, output, session){
                     last_year() != selected_year ||
                     !isolate(input$selected_epc) %in% choices) {
                 earliest_row <- filtered[which.min(filtered$DATE), ]
-                earliest_epc <- earliest_row[["CROP.file."]]
+                earliest_epc <- earliest_row[["CROP(file)"]]
                 updateSelectInput(session, "selected_epc", selected = earliest_epc)
                 }
                 
@@ -4378,7 +4360,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.17.5</strong></p>
+                    <p><strong>Version 2.17.6</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4550,10 +4532,10 @@ tuneMusoServer <- function(input, output, session){
     })
 
 
-    observeEvent(input$customize_var, {
-        req(input$customize_var)
-        session$sendCustomMessage("attachContextMenu", list())
-    })
+    # observeEvent(input$customize_var, {
+    #     req(input$customize_var)
+    #     session$sendCustomMessage("attachContextMenu", list())
+    # })
 
     # Apply button: Move pending changes to main customizations
     observeEvent(input$apply_custom, {
@@ -4799,7 +4781,7 @@ tuneMusoServer <- function(input, output, session){
 
                     for (i in 1:nrow(selected_planting)) {
                         current_date <- selected_planting$DATE[i]
-                        current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
+                        current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
                         if (input$singleYear || length(selectedYears) <= 3) {
                               
                                 epc_labels <- sapply(current_epcs, function(epc) {
@@ -4863,7 +4845,7 @@ tuneMusoServer <- function(input, output, session){
                         current_date <- selected_harvest$HarvestDates[i]
                         
                         
-                        current_epcs <- unlist(strsplit(selected_harvest$CROP.file.[i], " +"))
+                        current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
                        # if (input$singleYear || length(selectedYears) <= 3) {
                        #     epc_labels <- sapply(current_epcs, function(epc) {
                        #     idx <- which(rv$epc_files == epc)
@@ -5160,7 +5142,7 @@ tuneMusoServer <- function(input, output, session){
 
                                             for (i in 1:nrow(selected_planting)) {
                                                 current_date <- selected_planting$DATE[i]
-                                                current_epcs <- unlist(strsplit(selected_planting$CROP.file.[i], " +"))
+                                                current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
                                                 if (input$singleYear || length(selectedYears) <= 3) {
                                                     
                                                         epc_labels <- sapply(current_epcs, function(epc) {
@@ -5219,7 +5201,7 @@ tuneMusoServer <- function(input, output, session){
                                                 current_date <- selected_harvest$HarvestDates[i]
                                                 
                                                 
-                                                current_epcs <- unlist(strsplit(selected_harvest$CROP.file.[i], " +"))
+                                                current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
                                                 #if (input$singleYear || length(selectedYears) <= 3) {
                                                 #    epc_labels <- sapply(current_epcs, function(epc) {
                                                 #    idx <- which(rv$epc_files == epc)
