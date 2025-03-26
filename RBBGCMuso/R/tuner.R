@@ -294,6 +294,36 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         });
     "
 
+    Titlemanagement <- '
+function wrapText(elementId, openTag, closeTag) {
+        var input = document.getElementById(elementId);
+        var start = input.selectionStart;
+        var end = input.selectionEnd;
+        var text = input.value;
+        var selectedText = text.substring(start, end);
+        
+        if (start === end) {
+          input.value = text.substring(0, start) + openTag + closeTag + text.substring(end);
+          input.selectionStart = input.selectionEnd = start + openTag.length;
+        } else {
+          input.value = text.substring(0, start) + openTag + selectedText + closeTag + text.substring(end);
+          input.selectionStart = start;
+          input.selectionEnd = end + openTag.length + closeTag.length + selectedText.length;
+        }
+        // Trigger Shiny input update
+        Shiny.setInputValue(elementId, input.value);
+      }
+
+      // Use event delegation to handle dynamically created buttons
+      $(document).on("click", "#bold_btn", function() { wrapText("y_title", "<b>", "</b>"); });
+      $(document).on("click", "#italic_btn", function() { wrapText("y_title", "<i>", "</i>"); });
+      $(document).on("click", "#underline_btn", function() { wrapText("y_title", "<u>", "</u>"); });
+      $(document).on("click", "#sup_btn", function() { wrapText("y_title", "<sup>", "</sup>"); });
+      $(document).on("click", "#sub_btn", function() { wrapText("y_title", "<sub>", "</sub>"); });
+    '
+  
+
+
  fluidPage(
   useShinyjs(),
   use_waiter(),
@@ -546,6 +576,7 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     .swal2-container {
       z-index: 99999 !important;
     }
+    
   "))),
 
      waiterShowOnLoad(
@@ -573,8 +604,8 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
     #div(id = "yearSliderContent", uiOutput("yearRangeUI"))
     #),
 
-    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, waiting ,sep = "\n"))),
-    
+    tags$head(tags$script(HTML(paste(scrollbar_position_retainer, hide_plot_area, expandedWindow, fullscreen, Notifications, disableSpellCheck, ToggleEpcSoil, waiting ,Titlemanagement,sep = "\n"))),
+    #tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"),
     tags$title("Biome-BGCMuSo Parameter Tuner")
     ),
 
@@ -4230,8 +4261,8 @@ tuneMusoServer <- function(input, output, session){
             })
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
-        defaultExportSettings <- list(width = 1200, height = 900, scale = 5, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
+        exportSettings <- reactiveValues(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
+        defaultExportSettings <- list(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
         
 
           observeEvent(input$settings_btn, {
@@ -4360,7 +4391,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.17.6</strong></p>
+                    <p><strong>Version 2.17.6.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -4518,6 +4549,15 @@ tuneMusoServer <- function(input, output, session){
             colourInput("line_color", "Line Color", value = custom$line_color),
             numericInput("line_width", "Line Width", value = custom$line_width, min = 0.5, max = 10, step = 0.5),
             textInput("y_title", "Y Title", value = custom$y_title),
+            
+            tags$div(
+                style = "margin-bottom: 10px;",
+                tags$button(id = "bold_btn", title = "Bold", tags$i(class = "fas fa-bold")),
+                tags$button(id = "italic_btn", title = "Italic", tags$i(class = "fas fa-italic")),
+                #tags$button(id = "underline_btn", title = "Underline", tags$i(class = "fas fa-underline")),
+                tags$button(id = "sup_btn", title = "Superscript", tags$i(class = "fas fa-superscript")),
+                tags$button(id = "sub_btn", title = "Subscript", tags$i(class = "fas fa-subscript"))
+            ),
             numericInput("title_size", "Y Title Size", value = custom$title_font_size, min = 8, max = 24, step = 1),
             checkboxInput("show_legend", "Show Legend (not functional, use the top right button)", value = custom$show_legend),
             selectInput("meas_marker_type", "Measurement Marker Type", 
@@ -4603,10 +4643,11 @@ tuneMusoServer <- function(input, output, session){
                 #req(input$selected_vars, length(outputList$nextVal) != 0)
                 req(input$selected_vars, outputData())
                 #vary <- outputData()
+                
                 # intersect needed when a custom variable is deleted so plotly won't complain
                 #lapply(intersect(input$selected_vars, colnames(vary)), function(var) { STILL COMPLAINING
                 lapply(input$selected_vars, function(var) {
-                    output[[paste0("plot_", var)]] <- renderPlotly({
+                    output[[paste0("plot_", var)]] <- renderPlotly({    
                     # giving condition to check to avoid warning messages
                             if (isTRUE(input$singleYear)) {
                     validate(
@@ -5370,6 +5411,7 @@ tuneMusoServer <- function(input, output, session){
                     })
                   
                 })
+                
                 })
 
 
