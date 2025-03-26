@@ -36,26 +36,21 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                       doBackup=TRUE,
                       backupDir="bck",
                       fixAlloc=FALSE
-                      ){ #
+                      ){ 
 ########################################################################
 ###########################Set local variables and places###############
 ########################################################################
 
-    #print(parameters)
-    #print(fileToChange)
 
     if(doBackup){
         for(epc in settings$epcInput){
             file.copy(epc, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
         }
 
-    #print("0th checkpoint")
         for(soi in settings$soilFile){
             file.copy(soi, file.path(settings$inputLoc, backupDir), overwrite=FALSE)
         }
     }
-
-    #print("0.5th checkpoint")
 
     if(fileToChange == "soil"){
         bck <- file.path(settings$inputLoc, "bck",
@@ -68,13 +63,13 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     }
 
 
-    #print("0.75th checkpoint")
+ 
 
     if(!silent){
         cat("Biome-BGC simulation started\n") # ZOLI
     }
     
-    #print("First Checkpoint")
+    
 
     Linuxp <-(Sys.info()[1]=="Linux")
     ##Copy the variables from settings
@@ -91,7 +86,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
     binaryPlace <- normalizePath(binaryPlace)
     whereAmI<-getwd()
 
-    #print("Second checkpoint")
+    
     ## Set the working directory to the inputLoc temporarly.
     setwd(inputLoc)
 
@@ -110,7 +105,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
     
-    #print("Third checkpoint")
+    
     if(keepEpc) {
         epcdir <- dirname(epc[1])
         print(epcdir)

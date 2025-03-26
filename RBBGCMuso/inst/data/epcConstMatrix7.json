@@ -1156,7 +1156,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1167,7 +1167,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1178,7 +1178,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1189,7 +1189,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1200,7 +1200,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1211,7 +1211,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1222,7 +1222,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1233,7 +1233,7 @@
     "MIN": 0,
     "MAX": 1,
     "GROUP": 15,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
@@ -1267,7 +1267,7 @@
     "TYPE": 0
   },
   {
-    "X": 123,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-1",
     "INDEX": 131.61,
     "UNIT": "Celsius",
@@ -1277,95 +1277,95 @@
     "TYPE": 0
   },
   {
-    "X": 124,
+    "X": 112,
     "NAME": "leaf ALLOCATION -1",
     "INDEX": 132.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 125,
+    "X": 113,
     "NAME": "fine root ALLOCATION-1",
     "INDEX": 133.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 126,
+    "X": 114,
     "NAME": "fruit ALLOCATION -1",
     "INDEX": 134.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 127,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-1",
     "INDEX": 135.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 128,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -1",
     "INDEX": 136.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 129,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -1",
     "INDEX": 137.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 130,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-1",
     "INDEX": 138.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 131,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -1",
     "INDEX": 139.61,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 16,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 132,
+    "X": 120,
     "NAME": "canopy average specific leaf area-1",
     "INDEX": 140.61,
     "UNIT": "m2/kg",
@@ -1375,7 +1375,7 @@
     "TYPE": 0
   },
   {
-    "X": 133,
+    "X": 121,
     "NAME": "current growth proportion-1",
     "INDEX": 141.61,
     "UNIT": "prop",
@@ -1385,7 +1385,7 @@
     "TYPE": 0
   },
   {
-    "X": 134,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-1",
     "INDEX": 142.61,
     "UNIT": "Celsius",
@@ -1395,7 +1395,7 @@
     "TYPE": 0
   },
   {
-    "X": 135,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-2",
     "INDEX": 131.62,
     "UNIT": "Celsius",
@@ -1405,95 +1405,95 @@
     "TYPE": 0
   },
   {
-    "X": 136,
+    "X": 112,
     "NAME": "leaf ALLOCATION -2",
     "INDEX": 132.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 137,
+    "X": 113,
     "NAME": "fine root ALLOCATION-2",
     "INDEX": 133.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 138,
+    "X": 114,
     "NAME": "fruit ALLOCATION -2",
     "INDEX": 134.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 139,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-2",
     "INDEX": 135.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 140,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -2",
     "INDEX": 136.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 141,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -2",
     "INDEX": 137.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 142,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-2",
     "INDEX": 138.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 143,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -2",
     "INDEX": 139.62,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 17,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 144,
+    "X": 120,
     "NAME": "canopy average specific leaf area-2",
     "INDEX": 140.62,
     "UNIT": "m2/kg",
@@ -1503,7 +1503,7 @@
     "TYPE": 0
   },
   {
-    "X": 145,
+    "X": 121,
     "NAME": "current growth proportion-2",
     "INDEX": 141.62,
     "UNIT": "prop",
@@ -1513,7 +1513,7 @@
     "TYPE": 0
   },
   {
-    "X": 146,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-2",
     "INDEX": 142.62,
     "UNIT": "Celsius",
@@ -1523,7 +1523,7 @@
     "TYPE": 0
   },
   {
-    "X": 147,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-3",
     "INDEX": 131.63,
     "UNIT": "Celsius",
@@ -1533,95 +1533,95 @@
     "TYPE": 0
   },
   {
-    "X": 148,
+    "X": 112,
     "NAME": "leaf ALLOCATION -3",
     "INDEX": 132.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 149,
+    "X": 113,
     "NAME": "fine root ALLOCATION-3",
     "INDEX": 133.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 150,
+    "X": 114,
     "NAME": "fruit ALLOCATION -3",
     "INDEX": 134.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 151,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-3",
     "INDEX": 135.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 152,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -3",
     "INDEX": 136.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 153,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -3",
     "INDEX": 137.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 154,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-3",
     "INDEX": 138.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 155,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -3",
     "INDEX": 139.63,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 18,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 156,
+    "X": 120,
     "NAME": "canopy average specific leaf area-3",
     "INDEX": 140.63,
     "UNIT": "m2/kg",
@@ -1631,7 +1631,7 @@
     "TYPE": 0
   },
   {
-    "X": 157,
+    "X": 121,
     "NAME": "current growth proportion-3",
     "INDEX": 141.63,
     "UNIT": "prop",
@@ -1641,7 +1641,7 @@
     "TYPE": 0
   },
   {
-    "X": 158,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-3",
     "INDEX": 142.63,
     "UNIT": "Celsius",
@@ -1651,7 +1651,7 @@
     "TYPE": 0
   },
   {
-    "X": 159,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-4",
     "INDEX": 131.64,
     "UNIT": "Celsius",
@@ -1661,95 +1661,95 @@
     "TYPE": 0
   },
   {
-    "X": 160,
+    "X": 112,
     "NAME": "leaf ALLOCATION -4",
     "INDEX": 132.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 161,
+    "X": 113,
     "NAME": "fine root ALLOCATION-4",
     "INDEX": 133.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 162,
+    "X": 114,
     "NAME": "fruit ALLOCATION -4",
     "INDEX": 134.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 163,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-4",
     "INDEX": 135.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 164,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -4",
     "INDEX": 136.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 165,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -4",
     "INDEX": 137.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 166,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-4",
     "INDEX": 138.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 167,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -4",
     "INDEX": 139.64,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 19,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 168,
+    "X": 120,
     "NAME": "canopy average specific leaf area-4",
     "INDEX": 140.64,
     "UNIT": "m2/kg",
@@ -1759,7 +1759,7 @@
     "TYPE": 0
   },
   {
-    "X": 169,
+    "X": 121,
     "NAME": "current growth proportion-4",
     "INDEX": 141.64,
     "UNIT": "prop",
@@ -1769,7 +1769,7 @@
     "TYPE": 0
   },
   {
-    "X": 170,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-4",
     "INDEX": 142.64,
     "UNIT": "Celsius",
@@ -1779,7 +1779,7 @@
     "TYPE": 0
   },
   {
-    "X": 171,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-5",
     "INDEX": 131.65,
     "UNIT": "Celsius",
@@ -1789,95 +1789,95 @@
     "TYPE": 0
   },
   {
-    "X": 172,
+    "X": 112,
     "NAME": "leaf ALLOCATION -5",
     "INDEX": 132.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 173,
+    "X": 113,
     "NAME": "fine root ALLOCATION-5",
     "INDEX": 133.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 174,
+    "X": 114,
     "NAME": "fruit ALLOCATION -5",
     "INDEX": 134.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 175,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-5",
     "INDEX": 135.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 176,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -5",
     "INDEX": 136.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 177,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -5",
     "INDEX": 137.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 178,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-5",
     "INDEX": 138.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 179,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -5",
     "INDEX": 139.65,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 20,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 180,
+    "X": 120,
     "NAME": "canopy average specific leaf area-5",
     "INDEX": 140.65,
     "UNIT": "m2/kg",
@@ -1887,7 +1887,7 @@
     "TYPE": 0
   },
   {
-    "X": 181,
+    "X": 121,
     "NAME": "current growth proportion-5",
     "INDEX": 141.65,
     "UNIT": "prop",
@@ -1897,7 +1897,7 @@
     "TYPE": 0
   },
   {
-    "X": 182,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-5",
     "INDEX": 142.65,
     "UNIT": "Celsius",
@@ -1907,7 +1907,7 @@
     "TYPE": 0
   },
   {
-    "X": 183,
+    "X": 111,
     "NAME": "length of phenophase (GDD)-6",
     "INDEX": 131.66,
     "UNIT": "Celsius",
@@ -1917,95 +1917,95 @@
     "TYPE": 0
   },
   {
-    "X": 184,
+    "X": 112,
     "NAME": "leaf ALLOCATION -6",
     "INDEX": 132.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 185,
+    "X": 113,
     "NAME": "fine root ALLOCATION-6",
     "INDEX": 133.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 186,
+    "X": 114,
     "NAME": "fruit ALLOCATION -6",
     "INDEX": 134.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 187,
+    "X": 115,
     "NAME": "soft stem ALLOCATION-6",
     "INDEX": 135.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 188,
+    "X": 116,
     "NAME": "live woody stem ALLOCATION -6",
     "INDEX": 136.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 189,
+    "X": 117,
     "NAME": "dead woody stem ALLOCATION -6",
     "INDEX": 137.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 190,
+    "X": 118,
     "NAME": "live coarse root ALLOCATION-6",
     "INDEX": 138.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 191,
+    "X": 119,
     "NAME": "dead coarse root ALLOCATION -6",
     "INDEX": 139.66,
     "UNIT": "prop",
     "MIN": 0,
     "MAX": 1,
     "GROUP": 21,
-    "TYPE": 0,
+    "TYPE": -3,
     "DEPENDENCE": 1
   },
   {
-    "X": 192,
+    "X": 120,
     "NAME": "canopy average specific leaf area-6",
     "INDEX": 140.66,
     "UNIT": "m2/kg",
@@ -2015,7 +2015,7 @@
     "TYPE": 0
   },
   {
-    "X": 193,
+    "X": 121,
     "NAME": "current growth proportion-6",
     "INDEX": 141.66,
     "UNIT": "prop",
@@ -2025,7 +2025,7 @@
     "TYPE": 0
   },
   {
-    "X": 194,
+    "X": 122,
     "NAME": "maximal lifetime of plant tissue-6",
     "INDEX": 142.66,
     "UNIT": "Celsius",

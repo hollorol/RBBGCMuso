@@ -564,18 +564,8 @@
   },
   {
     "X": 57,
-    "NAME": "q_soilstress",
-    "INDEX": 66,
-    "UNIT": "dimless",
-    "MIN": 0.5,
-    "MAX": 1.5,
-    "GROUP": 0,
-    "TYPE": 0
-  },
-  {
-    "X": 58,
     "NAME": "RCN_mes",
-    "INDEX": 67,
+    "INDEX": 66,
     "UNIT": "m",
     "MIN": 0,
     "MAX": 1000,
@@ -583,8 +573,18 @@
     "TYPE": 0
   },
   {
-    "X": 59,
+    "X": 58,
     "NAME": "fD1",
+    "INDEX": 67,
+    "UNIT": "prop",
+    "MIN": 0.001,
+    "MAX": 0.003,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 59,
+    "NAME": "fD2",
     "INDEX": 68,
     "UNIT": "prop",
     "MIN": 0.001,
@@ -594,17 +594,17 @@
   },
   {
     "X": 60,
-    "NAME": "fD2",
+    "NAME": "fD3",
     "INDEX": 69,
     "UNIT": "prop",
-    "MIN": 0.001,
-    "MAX": 0.003,
+    "MIN": 0.0005,
+    "MAX": 0.0015,
     "GROUP": 0,
     "TYPE": 0
   },
   {
     "X": 61,
-    "NAME": "fD3",
+    "NAME": "fD4",
     "INDEX": 70,
     "UNIT": "prop",
     "MIN": 0.0005,
@@ -614,18 +614,8 @@
   },
   {
     "X": 62,
-    "NAME": "fD4",
-    "INDEX": 71,
-    "UNIT": "prop",
-    "MIN": 0.0005,
-    "MAX": 0.0015,
-    "GROUP": 0,
-    "TYPE": 0
-  },
-  {
-    "X": 63,
     "NAME": "pLayer_mulch",
-    "INDEX": 72,
+    "INDEX": 71,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -633,9 +623,9 @@
     "TYPE": 0
   },
   {
-    "X": 64,
+    "X": 63,
     "NAME": "CA_mulch",
-    "INDEX": 73,
+    "INDEX": 72,
     "UNIT": "kgC/m2",
     "MIN": 0.5,
     "MAX": 1.5,
@@ -643,9 +633,9 @@
     "TYPE": 0
   },
   {
-    "X": 65,
+    "X": 64,
     "NAME": "p1_mulch",
-    "INDEX": 74,
+    "INDEX": 73,
     "UNIT": "dimless",
     "MIN": 50,
     "MAX": 150,
@@ -653,8 +643,18 @@
     "TYPE": 0
   },
   {
-    "X": 66,
+    "X": 65,
     "NAME": "p2_mulch",
+    "INDEX": 74,
+    "UNIT": "dimless",
+    "MIN": 0.375,
+    "MAX": 1.125,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 66,
+    "NAME": "p3_mulch",
     "INDEX": 75,
     "UNIT": "dimless",
     "MIN": 0.375,
@@ -664,18 +664,8 @@
   },
   {
     "X": 67,
-    "NAME": "p3_mulch",
-    "INDEX": 76,
-    "UNIT": "dimless",
-    "MIN": 0.375,
-    "MAX": 1.125,
-    "GROUP": 0,
-    "TYPE": 0
-  },
-  {
-    "X": 68,
     "NAME": "ER_mulch",
-    "INDEX": 77,
+    "INDEX": 76,
     "UNIT": "dimless",
     "MIN": 0.25,
     "MAX": 0.75,
@@ -683,9 +673,9 @@
     "TYPE": 0
   },
   {
-    "X": 69,
+    "X": 68,
     "NAME": "pCNR1",
-    "INDEX": 80,
+    "INDEX": 79,
     "UNIT": "dimless",
     "MIN": 106.25,
     "MAX": 318.75,
@@ -693,9 +683,9 @@
     "TYPE": 0
   },
   {
-    "X": 70,
+    "X": 69,
     "NAME": "pCNR2",
-    "INDEX": 81,
+    "INDEX": 80,
     "UNIT": "dimless",
     "MIN": 0.905,
     "MAX": 2.715,
@@ -703,9 +693,9 @@
     "TYPE": 0
   },
   {
-    "X": 71,
+    "X": 70,
     "NAME": "pVWC1",
-    "INDEX": 82,
+    "INDEX": 81,
     "UNIT": "dimless",
     "MIN": -0.6765,
     "MAX": -2.0295,
@@ -713,9 +703,9 @@
     "TYPE": 0
   },
   {
-    "X": 72,
+    "X": 71,
     "NAME": "pVWC2",
-    "INDEX": 83,
+    "INDEX": 82,
     "UNIT": "dimless",
     "MIN": 0.1,
     "MAX": 0.3,
@@ -723,9 +713,9 @@
     "TYPE": 0
   },
   {
-    "X": 73,
+    "X": 72,
     "NAME": "pVWC3",
-    "INDEX": 84,
+    "INDEX": 83,
     "UNIT": "dimless",
     "MIN": 0.8905,
     "MAX": 2.6715,
@@ -733,9 +723,9 @@
     "TYPE": 0
   },
   {
-    "X": 74,
+    "X": 73,
     "NAME": "pVWC4",
-    "INDEX": 85,
+    "INDEX": 84,
     "UNIT": "dimless",
     "MIN": 3.393,
     "MAX": 10.179,
@@ -743,9 +733,9 @@
     "TYPE": 0
   },
   {
-    "X": 75,
+    "X": 74,
     "NAME": "pTS",
-    "INDEX": 86,
+    "INDEX": 85,
     "UNIT": "dimless",
     "MIN": 0.005,
     "MAX": 0.015,
@@ -753,8 +743,194 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.9,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 1,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
+    "INDEX": 89.9,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 1,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 77,
+    "NAME": "ph-1",
+    "INDEX": 90.9,
+    "UNIT": "dimless",
+    "MIN": 1,
+    "MAX": 14,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 78,
+    "NAME": "Clapp",
+    "INDEX": 91.9,
+    "MIN": 0,
+    "MAX": 50,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 79,
+    "NAME": "bulk density-1",
+    "INDEX": 92.9,
+    "UNIT": "g/cm3",
+    "MIN": 1.2,
+    "MAX": 1.6,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 80,
+    "NAME": "SWC at saturation-1",
+    "INDEX": 93.9,
+    "UNIT": "m3/m3",
+    "MIN": 0.4,
+    "MAX": 0.6,
+    "GROUP": 2,
+    "TYPE": 1,
+    "DEPENDENCE": 2
+  },
+  {
+    "X": 81,
+    "NAME": "SWC at field capacity-1",
+    "INDEX": 94.9,
+    "UNIT": "m3/m3",
+    "MIN": 0.1,
+    "MAX": 0.5,
+    "GROUP": 2,
+    "TYPE": 1,
+    "DEPENDENCE": 3
+  },
+  {
+    "X": 82,
+    "NAME": "SWC at wilting point-1",
+    "INDEX": 95.9,
+    "UNIT": "m3/m3",
+    "MIN": 0.02,
+    "MAX": 0.3,
+    "GROUP": 2,
+    "TYPE": 1,
+    "DEPENDENCE": 4
+  },
+  {
+    "X": 83,
+    "NAME": "SWC at hygroscopic water content-1",
+    "INDEX": 96.9,
+    "UNIT": "m3/m3",
+    "MIN": 0.01,
+    "MAX": 0.05,
+    "GROUP": 2,
+    "TYPE": 1,
+    "DEPENDENCE": 0
+  },
+  {
+    "X": 84,
+    "NAME": "drainage coefficient-1",
+    "INDEX": 97.9,
+    "UNIT": "dimless",
+    "MIN": 0,
+    "MAX": 10,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 85,
+    "NAME": "hydraulic condictivity at saturation-1",
+    "INDEX": 98.9,
+    "UNIT": "cm/day",
+    "MIN": 0,
+    "MAX": 10,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 86,
+    "NAME": "capillary fringe",
+    "INDEX": 99.9,
+    "UNIT": "cm",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 87,
+    "NAME": "param1 for diff",
+    "INDEX": 100.9,
+    "UNIT": "dimless",
+    "MIN": 0,
+    "MAX": 10,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 88,
+    "NAME": "param2 for diff",
+    "INDEX": 101.9,
+    "UNIT": "dimless",
+    "MIN": 0,
+    "MAX": 10,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 89,
+    "NAME": "limit of assumed diff",
+    "INDEX": 102.9,
+    "UNIT": "cm2/day",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.9,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.9,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
+    "NAME": "sand percentage-1",
+    "INDEX": 88.91,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 3,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.91,
     "UNIT": "%",
     "MIN": 0,
@@ -765,19 +941,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.91,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 3,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.91,
+    "INDEX": 90.91,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -785,9 +950,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.91,
+    "INDEX": 91.91,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -796,7 +961,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.91,
+    "INDEX": 92.91,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -806,7 +971,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.91,
+    "INDEX": 93.91,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -817,7 +982,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.91,
+    "INDEX": 94.91,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -828,7 +993,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.91,
+    "INDEX": 95.91,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -839,7 +1004,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.91,
+    "INDEX": 96.91,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -850,7 +1015,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.91,
+    "INDEX": 97.91,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -860,7 +1025,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.91,
+    "INDEX": 98.91,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -870,7 +1035,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.91,
+    "INDEX": 99.91,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -880,6 +1045,16 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
+    "INDEX": 100.91,
+    "UNIT": "dimless",
+    "MIN": 0,
+    "MAX": 10,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 88,
+    "NAME": "param2 for diff",
     "INDEX": 101.91,
     "UNIT": "dimless",
     "MIN": 0,
@@ -888,19 +1063,9 @@
     "TYPE": 0
   },
   {
-    "X": 88,
-    "NAME": "param2 for diff",
-    "INDEX": 102.91,
-    "UNIT": "dimless",
-    "MIN": 0,
-    "MAX": 10,
-    "GROUP": 0,
-    "TYPE": 0
-  },
-  {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.91,
+    "INDEX": 102.91,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -908,8 +1073,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.91,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.91,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.91,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 5,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.91,
     "UNIT": "%",
     "MIN": 0,
@@ -920,19 +1116,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.91,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 5,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.92,
+    "INDEX": 90.92,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -940,9 +1125,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.92,
+    "INDEX": 91.92,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -951,7 +1136,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.92,
+    "INDEX": 92.92,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -961,7 +1146,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.92,
+    "INDEX": 93.92,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -972,7 +1157,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.92,
+    "INDEX": 94.92,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -983,7 +1168,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.92,
+    "INDEX": 95.92,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -994,7 +1179,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.92,
+    "INDEX": 96.92,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1005,7 +1190,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.92,
+    "INDEX": 97.92,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1015,7 +1200,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.92,
+    "INDEX": 98.92,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1025,7 +1210,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.92,
+    "INDEX": 99.92,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1035,7 +1220,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.92,
+    "INDEX": 100.92,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1045,7 +1230,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.92,
+    "INDEX": 101.92,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1055,7 +1240,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.92,
+    "INDEX": 102.92,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1063,8 +1248,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.92,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.92,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.93,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 7,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.93,
     "UNIT": "%",
     "MIN": 0,
@@ -1075,19 +1291,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.93,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 7,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.93,
+    "INDEX": 90.93,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1095,9 +1300,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.93,
+    "INDEX": 91.93,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -1106,7 +1311,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.93,
+    "INDEX": 92.93,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1116,7 +1321,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.93,
+    "INDEX": 93.93,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -1127,7 +1332,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.93,
+    "INDEX": 94.93,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -1138,7 +1343,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.93,
+    "INDEX": 95.93,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -1149,7 +1354,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.93,
+    "INDEX": 96.93,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1160,7 +1365,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.93,
+    "INDEX": 97.93,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1170,7 +1375,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.93,
+    "INDEX": 98.93,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1180,7 +1385,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.93,
+    "INDEX": 99.93,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1190,7 +1395,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.93,
+    "INDEX": 100.93,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1200,7 +1405,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.93,
+    "INDEX": 101.93,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1210,7 +1415,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.93,
+    "INDEX": 102.93,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1218,8 +1423,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.93,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.93,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.94,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 9,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.94,
     "UNIT": "%",
     "MIN": 0,
@@ -1230,19 +1466,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.94,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 9,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.94,
+    "INDEX": 90.94,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1250,9 +1475,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.94,
+    "INDEX": 91.94,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -1261,7 +1486,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.94,
+    "INDEX": 92.94,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1271,7 +1496,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.94,
+    "INDEX": 93.94,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -1282,7 +1507,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.94,
+    "INDEX": 94.94,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -1293,7 +1518,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.94,
+    "INDEX": 95.94,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -1304,7 +1529,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.94,
+    "INDEX": 96.94,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1315,7 +1540,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.94,
+    "INDEX": 97.94,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1325,7 +1550,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.94,
+    "INDEX": 98.94,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1335,7 +1560,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.94,
+    "INDEX": 99.94,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1345,7 +1570,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.94,
+    "INDEX": 100.94,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1355,7 +1580,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.94,
+    "INDEX": 101.94,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1365,7 +1590,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.94,
+    "INDEX": 102.94,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1373,8 +1598,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.94,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.94,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.95,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 11,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.95,
     "UNIT": "%",
     "MIN": 0,
@@ -1385,19 +1641,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.95,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 11,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.95,
+    "INDEX": 90.95,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1405,9 +1650,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.95,
+    "INDEX": 91.95,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -1416,7 +1661,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.95,
+    "INDEX": 92.95,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1426,7 +1671,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.95,
+    "INDEX": 93.95,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -1437,7 +1682,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.95,
+    "INDEX": 94.95,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -1448,7 +1693,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.95,
+    "INDEX": 95.95,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -1459,7 +1704,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.95,
+    "INDEX": 96.95,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1470,7 +1715,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.95,
+    "INDEX": 97.95,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1480,7 +1725,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.95,
+    "INDEX": 98.95,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1490,7 +1735,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.95,
+    "INDEX": 99.95,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1500,7 +1745,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.95,
+    "INDEX": 100.95,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1510,7 +1755,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.95,
+    "INDEX": 101.95,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1520,7 +1765,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.95,
+    "INDEX": 102.95,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1528,8 +1773,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.95,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.95,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.96,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 13,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.96,
     "UNIT": "%",
     "MIN": 0,
@@ -1540,19 +1816,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.96,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 13,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.96,
+    "INDEX": 90.96,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1560,9 +1825,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.96,
+    "INDEX": 91.96,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -1571,7 +1836,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.96,
+    "INDEX": 92.96,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1581,7 +1846,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.96,
+    "INDEX": 93.96,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -1592,7 +1857,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.96,
+    "INDEX": 94.96,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -1603,7 +1868,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.96,
+    "INDEX": 95.96,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -1614,7 +1879,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.96,
+    "INDEX": 96.96,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1625,7 +1890,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.96,
+    "INDEX": 97.96,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1635,7 +1900,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.96,
+    "INDEX": 98.96,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1645,7 +1910,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.96,
+    "INDEX": 99.96,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1655,7 +1920,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.96,
+    "INDEX": 100.96,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1665,7 +1930,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.96,
+    "INDEX": 101.96,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1675,7 +1940,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.96,
+    "INDEX": 102.96,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1683,8 +1948,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.96,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.96,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.97,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 15,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.97,
     "UNIT": "%",
     "MIN": 0,
@@ -1695,19 +1991,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.97,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 15,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.97,
+    "INDEX": 90.97,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1715,72 +2000,72 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.97,
+    "INDEX": 91.97,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
-    "TYPE": 0
+    "TYPE": 0,
+    "DEPENDENCE": 2
   },
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.97,
+    "INDEX": 92.97,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
     "GROUP": 0,
-    "TYPE": 0
+    "TYPE": 0,
+    "DEPENDENCE": 3
   },
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.97,
+    "INDEX": 93.97,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
     "GROUP": 16,
     "TYPE": 1,
-    "DEPENDENCE": 2
+    "DEPENDENCE": 4
   },
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.97,
+    "INDEX": 94.97,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
     "GROUP": 16,
     "TYPE": 1,
-    "DEPENDENCE": 3
+    "DEPENDENCE": 0
   },
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.97,
+    "INDEX": 95.97,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
     "GROUP": 16,
-    "TYPE": 1,
-    "DEPENDENCE": 4
+    "TYPE": 1
   },
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.97,
+    "INDEX": 96.97,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
     "GROUP": 16,
-    "TYPE": 1,
-    "DEPENDENCE": 0
+    "TYPE": 1
   },
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.97,
+    "INDEX": 97.97,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1790,7 +2075,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.97,
+    "INDEX": 98.97,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1800,7 +2085,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.97,
+    "INDEX": 99.97,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1810,7 +2095,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.97,
+    "INDEX": 100.97,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1820,7 +2105,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.97,
+    "INDEX": 101.97,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1830,7 +2115,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.97,
+    "INDEX": 102.97,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1838,8 +2123,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.97,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.97,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.98,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 17,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.98,
     "UNIT": "%",
     "MIN": 0,
@@ -1850,19 +2166,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.98,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 17,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.98,
+    "INDEX": 90.98,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -1870,9 +2175,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.98,
+    "INDEX": 91.98,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -1881,7 +2186,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.98,
+    "INDEX": 92.98,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -1891,7 +2196,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.98,
+    "INDEX": 93.98,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -1902,7 +2207,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.98,
+    "INDEX": 94.98,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -1913,7 +2218,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.98,
+    "INDEX": 95.98,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -1924,7 +2229,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.98,
+    "INDEX": 96.98,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -1935,7 +2240,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.98,
+    "INDEX": 97.98,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1945,7 +2250,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.98,
+    "INDEX": 98.98,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -1955,7 +2260,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.98,
+    "INDEX": 99.98,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -1965,7 +2270,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.98,
+    "INDEX": 100.98,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1975,7 +2280,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.98,
+    "INDEX": 101.98,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -1985,7 +2290,7 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.98,
+    "INDEX": 102.98,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
@@ -1993,8 +2298,39 @@
     "TYPE": 0
   },
   {
-    "X": 76,
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.98,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.98,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 75,
     "NAME": "sand percentage-1",
+    "INDEX": 88.99,
+    "UNIT": "%",
+    "MIN": 0,
+    "MAX": 100,
+    "GROUP": 19,
+    "TYPE": 2,
+    "DEPENDENCE": 100
+  },
+  {
+    "X": 76,
+    "NAME": "silt percentage-1",
     "INDEX": 89.99,
     "UNIT": "%",
     "MIN": 0,
@@ -2005,19 +2341,8 @@
   },
   {
     "X": 77,
-    "NAME": "silt percentage-1",
-    "INDEX": 90.99,
-    "UNIT": "%",
-    "MIN": 0,
-    "MAX": 100,
-    "GROUP": 19,
-    "TYPE": 2,
-    "DEPENDENCE": 100
-  },
-  {
-    "X": 78,
     "NAME": "ph-1",
-    "INDEX": 91.99,
+    "INDEX": 90.99,
     "UNIT": "dimless",
     "MIN": 1,
     "MAX": 14,
@@ -2025,9 +2350,9 @@
     "TYPE": 0
   },
   {
-    "X": 79,
+    "X": 78,
     "NAME": "Clapp",
-    "INDEX": 92.99,
+    "INDEX": 91.99,
     "MIN": 0,
     "MAX": 50,
     "GROUP": 0,
@@ -2036,7 +2361,7 @@
   {
     "X": 79,
     "NAME": "bulk density-1",
-    "INDEX": 93.99,
+    "INDEX": 92.99,
     "UNIT": "g/cm3",
     "MIN": 1.2,
     "MAX": 1.6,
@@ -2046,7 +2371,7 @@
   {
     "X": 80,
     "NAME": "SWC at saturation-1",
-    "INDEX": 94.99,
+    "INDEX": 93.99,
     "UNIT": "m3/m3",
     "MIN": 0.4,
     "MAX": 0.6,
@@ -2057,7 +2382,7 @@
   {
     "X": 81,
     "NAME": "SWC at field capacity-1",
-    "INDEX": 95.99,
+    "INDEX": 94.99,
     "UNIT": "m3/m3",
     "MIN": 0.1,
     "MAX": 0.5,
@@ -2068,7 +2393,7 @@
   {
     "X": 82,
     "NAME": "SWC at wilting point-1",
-    "INDEX": 96.99,
+    "INDEX": 95.99,
     "UNIT": "m3/m3",
     "MIN": 0.02,
     "MAX": 0.3,
@@ -2079,7 +2404,7 @@
   {
     "X": 83,
     "NAME": "SWC at hygroscopic water content-1",
-    "INDEX": 97.99,
+    "INDEX": 96.99,
     "UNIT": "m3/m3",
     "MIN": 0.01,
     "MAX": 0.05,
@@ -2090,7 +2415,7 @@
   {
     "X": 84,
     "NAME": "drainage coefficient-1",
-    "INDEX": 98.99,
+    "INDEX": 97.99,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -2100,7 +2425,7 @@
   {
     "X": 85,
     "NAME": "hydraulic condictivity at saturation-1",
-    "INDEX": 99.99,
+    "INDEX": 98.99,
     "UNIT": "cm/day",
     "MIN": 0,
     "MAX": 10,
@@ -2110,7 +2435,7 @@
   {
     "X": 86,
     "NAME": "capillary fringe",
-    "INDEX": 100.99,
+    "INDEX": 99.99,
     "UNIT": "cm",
     "MIN": 0,
     "MAX": 100,
@@ -2120,7 +2445,7 @@
   {
     "X": 87,
     "NAME": "param1 for diff",
-    "INDEX": 101.99,
+    "INDEX": 100.99,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -2130,7 +2455,7 @@
   {
     "X": 88,
     "NAME": "param2 for diff",
-    "INDEX": 102.99,
+    "INDEX": 101.99,
     "UNIT": "dimless",
     "MIN": 0,
     "MAX": 10,
@@ -2140,10 +2465,30 @@
   {
     "X": 89,
     "NAME": "limit of assumed diff",
-    "INDEX": 103.99,
+    "INDEX": 102.99,
     "UNIT": "cm2/day",
     "MIN": 0,
     "MAX": 100,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 90,
+    "NAME": "curve of soilstress fun",
+    "INDEX": 103.99,
+    "UNIT": "dimless",
+    "MIN": -1000,
+    "MAX": 1000,
+    "GROUP": 0,
+    "TYPE": 0
+  },
+  {
+    "X": 91,
+    "NAME": "layer decomp role",
+    "INDEX": 104.99,
+    "UNIT": "prop",
+    "MIN": -1000,
+    "MAX": 1000,
     "GROUP": 0,
     "TYPE": 0
   }
