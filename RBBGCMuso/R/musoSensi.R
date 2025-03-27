@@ -10,7 +10,7 @@
 #' @param outputType This parameter can be "oneCsv", "moreCsv", and "netCDF". If "oneCsv" is choosen the function create 1 big csv file for all of the runs, if "moreCsv" is choosen, every modell output goes to separate files, if netCDF is selected the outputs will be put in a netCDF file. The default value of the outputTypes is "moreCsv". netCDF is not implemented yet. 
 #' @param fun If you select a variable from the possible outputs (with specify the varIndex parameter), you have to provide a function which maps to a subset of real numbers. The most frequent possibilities are: mean, min, max, var, but you can define any function for your need.
 #' @param varIndex This parameter specify which parameter of the output will be used. You can extract this information from the ini-files. At the output parameter specifications, the parameters order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926, you should address varIndex with 3.
-#' @param skipSpinup With this parameter, you can turn of the spinup phase after the first spinup. I will decrease the time significantly.
+#' @param skipSpinup With this parameter, you can turn of the spinup phase after the first spinup. It will decrease the time significantly.
 #' @importFrom ggplot2 geom_bar ggplot aes theme element_text xlab ylab ggtitle ggsave scale_y_continuous
 #' @importFrom scales percent
 #' @export
@@ -33,6 +33,7 @@ musoSensi <- function(monteCarloFile = NULL,
                      skipZero = TRUE,
                      sourceFile=NULL,
                      postProcString=NULL,
+                     constraints=NULL,
                      modifyOut=TRUE,
                      dpi=300){
 
@@ -100,6 +101,7 @@ musoSensi <- function(monteCarloFile = NULL,
                       skipSpinup = skipSpinup,
                       skipZero=skipZero,
                       postProcString=postProcString,
+                      constraints=NULL,
                       modifyOut=modifyOut
                       )
         M <- cbind(seq_along(M[,1]),M)
@@ -118,6 +120,3 @@ musoSensi <- function(monteCarloFile = NULL,
         return(doSensi(M))        
     }
 }
-
-
-
