@@ -134,107 +134,6 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
       });
     "
 
-
-# Titlemanagement <- '
-#     // Define hideContextMenu in a higher scope to avoid duplicate listeners
-#     var hideContextMenu = function(e) {
-#         var contextMenu = document.getElementById("customContextMenu");
-#         if (contextMenu) {
-#             contextMenu.style.display = "none";
-#         }
-#     };
-
-#     function attachContextMenu() {
-#         console.log("Attaching context menu");
-
-#         var contextMenu = document.getElementById("customContextMenu");
-#         if (!contextMenu) {
-#             contextMenu = document.createElement("div");
-#             contextMenu.id = "customContextMenu";
-#             contextMenu.style.position = "fixed"; // Changed to fixed
-#             contextMenu.style.background = "#f9f9f9";
-#             contextMenu.style.border = "1px solid #ccc";
-#             contextMenu.style.padding = "5px";
-#             contextMenu.style.zIndex = "1000";
-#             contextMenu.style.display = "none";
-#             contextMenu.innerHTML = `
-#                 <div id="supOption" style="cursor:pointer;padding:2px;">Superscript</div>
-#                 <div id="subOption" style="cursor:pointer;padding:2px;">Subscript</div>
-#                 <div id="boldOption" style="cursor:pointer;padding:2px;">Bold</div>
-#                 <div id="italicOption" style="cursor:pointer;padding:2px;">Italic</div>
-#                 <div id="underlineOption" style="cursor:pointer;padding:2px;">Underline</div>
-#                 <div id="strikeOption" style="cursor:pointer;padding:2px;">Strikethrough</div>
-#             `;
-#             document.body.appendChild(contextMenu);
-#         }
-
-#         // Remove existing click listener before adding a new one
-#         document.removeEventListener("click", hideContextMenu);
-#         document.addEventListener("click", hideContextMenu);
-
-#         var yTitle = document.getElementById("y_title");
-#         if (yTitle) {
-#             console.log("y_title found");
-#             // Remove previous listener to avoid duplicates
-#             yTitle.removeEventListener("contextmenu", contextMenuHandler);
-#             function contextMenuHandler(e) {
-#                 console.log("Context menu triggered");
-#                 if (e.ctrlKey) {
-#                     console.log("Ctrl + right-click detected");
-#                     e.preventDefault();
-#                     var start = this.selectionStart;
-#                     var end = this.selectionEnd;
-#                     console.log("Selection: " + start + " to " + end);
-#                     if (start !== end) {
-#                         console.log("Showing context menu at " + e.clientX + "," + e.clientY);
-#                         contextMenu.style.left = e.clientX + "px"; // Use clientX/Y
-#                         contextMenu.style.top = e.clientY + "px";
-#                         contextMenu.style.display = "block";
-
-#                         var input = this;
-#                         var text = input.value;
-#                         var selectedText = text.substring(start, end);
-
-#                         // Define option handlers
-#                         document.getElementById("supOption").onclick = function() {
-#                             var newText = text.substring(0, start) + "<sup>" + selectedText + "</sup>" + text.substring(end);
-#                             input.value = newText;
-#                             Shiny.setInputValue("y_title", newText, {priority: "event"});
-#                             contextMenu.style.display = "none";
-#                         };
-#                         // Similar handlers for other options...
-#                     } else {
-#                         console.log("No text selected");
-#                     }
-#                 }
-#             }
-#             yTitle.addEventListener("contextmenu", contextMenuHandler);
-#         } else {
-#             console.log("y_title not found yet");
-#         }
-#     }
-
-#     Shiny.addCustomMessageHandler("attachContextMenu", function(message) {
-#         attachContextMenu();
-#     });
-
-#     // Initial attachment when DOM is ready
-#     document.addEventListener("DOMContentLoaded", function() {
-#         console.log("DOM fully loaded - initial attempt");
-#         attachContextMenu();
-#     });
-# '
-    # bugs, actully this wasn't a bug
-    #ApplyGreenColUponPressingApplyTrans <- "
-    #    $(document).on('click', '#apply_na_output, #apply_arith_output, #apply_interaction_output', function() {
-    #        var btn = $(this);
-    #        btn.css('background-color', '#28a745');  // Green
-    #        setTimeout(function() {
-    #            btn.css('background-color', '#007bff');  // Back to Blue
-    #        }, 1000);
-    #    });
-    #"
-
     Notifications <- "
         Shiny.addCustomMessageHandler('checkNotification', function(notification_message) {
             var lastRead = localStorage.getItem('last_notification');
@@ -347,7 +246,7 @@ function wrapText(elementId, openTag, closeTag) {
       .row-container {
           display: flex;
           width: 100%;
-          height: calc(100vh - 35px);
+          height: calc(100vh - 40px);
       }
       
       /* Control panel styling */
@@ -628,7 +527,7 @@ function wrapText(elementId, openTag, closeTag) {
     # toggle legend button for... toggling the legend. And also toggle plot field for expanded ui
     div(
         style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
-        
+        actionButton("calib", label = "Calibrate"),
         actionButton("settings_btn", label = NULL, icon = icon("cog")),
         actionButton("toggle_plot_field", "Hide Plot Area"),
         actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash")),
@@ -772,7 +671,7 @@ function wrapText(elementId, openTag, closeTag) {
                                 #    ),
                                     
                           ),
-                          tabPanel("Plot Manager (Beta)",
+                          tabPanel("Plot Manager",
                           selectInput("customize_var", "Select Variable to Customize", 
                                     choices = NULL),
                          
@@ -794,7 +693,7 @@ function wrapText(elementId, openTag, closeTag) {
                                     actionButton("editColNames", "Edit Column Names"),
                                     downloadButton("exportData", "Export Data"),
                                     actionButton("editMeasurementTransforms", "Edit Measurement Data"),
-                                    
+                                    checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR",value = TRUE),
                                     checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
                                 ),
                                 # Now wrap the delete and reset checkboxes side by side in their own fluidRow:
@@ -1102,22 +1001,18 @@ tuneMusoServer <- function(input, output, session){
             epc = list(),  
             soil = NULL    
         )
-
+        InitialDefaultsSoil <- reactiveValues(values = NULL)
           observeEvent(soil_parameters(), {
             # Fetch defaults only once
             req(soil_file(), soil_parameters())
             defaults <- musoGetValues(soil_file(), soil_parameters()[, 2])
             soilValues$values <- defaults
             lastGoodValues$soil <- defaults
+            InitialDefaultsSoil$values <- defaults
         }, once = TRUE)  
         
 
-        #observe({
-        #    req(soil_parameters())
-        #    cat("soil_parameters() has", nrow(soil_parameters()), "rows and columns named:",
-        #        paste(colnames(soil_parameters()), collapse=", "), "\n\n")
-        #    print(soil_parameters())
-        #    })
+      
 
         currentMode <- reactiveVal("epc")
         #observeEvent(input$switch_mode, {
@@ -1612,15 +1507,15 @@ tuneMusoServer <- function(input, output, session){
         })
         }, once = TRUE)
 
-    InitialDefaultsSoil <- reactiveValues(values = NULL)
-    observe({
-    req(soil_file(), soil_parameters())
-    if(is.null(InitialDefaultsSoil$values)){
+    # InitialDefaultsSoil <- reactiveValues(values = NULL)
+    # observe({
+    # req(soil_file(), soil_parameters())
+    # if(is.null(InitialDefaultsSoil$values)){
 
-     InitialDefaultsSoil$values <- musoGetValues(soil_file(), soil_parameters()[, 2])
-    #message("testVals length: ", length(InitialDefaultsSoil$values))
-    }
-    })
+    #  InitialDefaultsSoil$values <- musoGetValues(soil_file(), soil_parameters()[, 2])
+    # ##message("testVals length: ", length(InitialDefaultsSoil$values))
+    # }
+    # })
 
 
     #soilDefaultValues <- reactive({
@@ -1664,7 +1559,7 @@ tuneMusoServer <- function(input, output, session){
         
         lapply(1:nrow(soil_parameters()), function(i) {
             updateSliderInput(session, paste0("soil_param_", i), 
-                            value = InitialDefaultsSoil$values)
+                            value = InitialDefaultsSoil$values[i])
         })
         myShowNotification(paste0("Sliders reset to initials (boot-up) for: ", soil_file()), type = "message", duration = 5)
        
@@ -3285,7 +3180,7 @@ tuneMusoServer <- function(input, output, session){
                 ),
                 fluidRow(
                     column(4,
-                        checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = FALSE),
+                        checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = TRUE),
                         checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
                     
                     conditionalPanel(
@@ -3734,8 +3629,8 @@ tuneMusoServer <- function(input, output, session){
         sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
         
         # for the good rmse calc
-        cols_to_modify <- c("GPP", "TR", "NEE")  
-        existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
+        #cols_to_modify <- c("GPP", "TR", "NEE")  
+        #existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
 
         #sim_df[existing_cols] <- sim_df[existing_cols] * 1000 # COMMENTED OUT BECAUSE OF THE NEW OUTPUT VARIABLE MANAGER
 
@@ -4260,6 +4155,24 @@ tuneMusoServer <- function(input, output, session){
                 updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
             })
 
+
+        observeEvent(input$calib, {
+            showModal(modalDialog(
+            title = "Calibration",
+                    
+                    
+            easyClose = TRUE,
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("startCalib", "Start Calibration")
+            )
+
+            ))
+
+        })
+
+
+
         # Settings (so far only for resolution)
         exportSettings <- reactiveValues(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
         defaultExportSettings <- list(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
@@ -4391,12 +4304,12 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.17.6.2</strong></p>
+                    <p><strong>Version 2.17.9</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
                         <li>When deleting a custom variable via reset, plotly will complain it cannot find it, but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
-                        <li>Sometimes there will be a notification for an epc modification even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
+                        <li>Sometimes there will be a notification for an epc modification (in crop rotation) even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
                     </ul>
                     "))),
                 #actionButton("close_info_overlay", "Close")
@@ -4511,16 +4424,13 @@ tuneMusoServer <- function(input, output, session){
                          choices = input$selected_vars,
                          selected = if (is.null(input$customize_var)) input$selected_vars[1] else input$customize_var)
 
-        #updatePickerInput(session, "additional_vars", 
-        #                choices = rv$settings$dailyOutputTable$name,
-        #                selected = if (is.null(input$additional_vars)) NULL else input$additional_vars)
-        
         for (var in input$selected_vars) {
             if (is.null(plotCustomizations[[var]])) {
                 plotCustomizations[[var]] <- list(
                     y_min = NULL,
                     y_max = NULL,
                     y_title = var,
+                    line_type = "solid",
                     line_color = "red",
                     line_width = 2,
                     title_font_size = exportSettings$ytitlefont,
@@ -4528,7 +4438,10 @@ tuneMusoServer <- function(input, output, session){
                     meas_marker_type = "circle",
                     meas_marker_color = "#047704",
                     meas_marker_size = 7,
-                    additional_vars = NULL
+                    additional_vars = NULL,
+                    additional_vars_settings = list(),
+                    selected_additional_var = "",
+                    show_measurements = TRUE
                 )
             }
         }
@@ -4537,16 +4450,23 @@ tuneMusoServer <- function(input, output, session){
      output$plot_manager <- renderUI({
         req(input$customize_var)
         custom <- plotCustomizations[[input$customize_var]]
-        
+        selected_var <- if (custom$selected_additional_var %in% custom$additional_vars) {
+                            custom$selected_additional_var
+                        } else {
+                            ""
+                        }
         tagList(
-            pickerInput("additional_vars", "Show Additional Outputs", 
+            pickerInput("additional_vars", "Show Additional Variable(s)", 
                        choices = rv$settings$dailyOutputTable$name,
                        selected = custom$additional_vars,  
                        multiple = TRUE, 
                        options = list(`actions-box` = TRUE)),
             numericInput("y_min", "Y Min", value = custom$y_min, step = 0.1),
             numericInput("y_max", "Y Max", value = custom$y_max, step = 0.1),
-            colourInput("line_color", "Line Color", value = custom$line_color),
+            selectInput(paste0("line_type"), "Line Type",
+                        choices = c("Solid" = "solid", "Dash" = "dash", "Dot" = "dot", "Dash-Dot" = "dashdot"),
+                        selected = custom$line_type),
+            colourInput("line_color", "Line Color", value = custom$line_color, allowTransparent = TRUE),
             numericInput("line_width", "Line Width", value = custom$line_width, min = 0.5, max = 10, step = 0.5),
             textInput("y_title", "Y Title", value = custom$y_title),
             
@@ -4560,17 +4480,70 @@ tuneMusoServer <- function(input, output, session){
             ),
             numericInput("title_size", "Y Title Size", value = custom$title_font_size, min = 8, max = 24, step = 1),
             checkboxInput("show_legend", "Show Legend (not functional, use the top right button)", value = custom$show_legend),
+            checkboxInput("show_measurements", "Show Measurements", value = custom$show_measurements),
             selectInput("meas_marker_type", "Measurement Marker Type", 
                        choices = c("Circle" = "circle", "Triangle" = "triangle-up", "X" = "x", 
                                   "Square" = "square", "Diamond" = "diamond"), 
                        selected = custom$meas_marker_type),
-            colourInput("meas_marker_color", "Measurement Marker Color", value = custom$meas_marker_color),
+            colourInput("meas_marker_color", "Measurement Marker Color", value = custom$meas_marker_color,allowTransparent = TRUE),
             numericInput("meas_marker_size", "Measurement Marker Size", value = custom$meas_marker_size, min = 1, max = 20, step = 1),
+            tags$hr(style = "border-top: 5px solid #ccc; margin-top: 30px; margin-bottom: 30px;"),
+            div(style = "margin-top: 0px;",
+                selectInput("customize_additional_var", "Customize Additional Variable(s)",
+                    choices = c("None" = "", custom$additional_vars),
+                    selected = selected_var)
+            ),
+            uiOutput("additional_var_customizations"),
+
+
             actionButton("apply_custom", "Apply to Selected Variable"),
             actionButton("reset_custom", "Reset Current Variable")
         )
     })
 
+    output$additional_var_customizations <- renderUI({
+        req(input$customize_additional_var, input$customize_additional_var != "")
+        add_var <- input$customize_additional_var
+        custom <- plotCustomizations[[input$customize_var]]
+        if (is.null(custom$additional_vars_settings[[add_var]])) {
+            custom$additional_vars_settings[[add_var]] <- list(
+            line_type = "solid",
+            line_color = "green",
+            line_width = 2,
+            meas_marker_type = "circle",  # Default marker settings
+            meas_marker_color = "#047704",
+            meas_marker_size = 7,
+            show_measurements = FALSE
+            )
+        }
+
+        add_custom <- custom$additional_vars_settings[[add_var]]
+        mapping <- mappingRV()
+        mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == add_var] else character(0)
+        has_measurements <- length(mappedCols) > 0
+        # INSERT THE SHOW MEASUREMENTS TRUE VALUE HERE
+        tagList(
+            selectInput(paste0("line_type_", add_var), "Line Type",
+                        choices = c("Solid" = "solid", "Dash" = "dash", "Dot" = "dot", "Dash-Dot" = "dashdot"),
+                        selected = add_custom$line_type),
+            colourInput(paste0("line_color_", add_var), "Line Color", value = add_custom$line_color,allowTransparent = TRUE),
+            numericInput(paste0("line_width_", add_var), "Line Width", value = add_custom$line_width, min = 0.5, max = 10, step = 0.5),
+            if (has_measurements) {
+                tagList(
+                    checkboxInput(paste0("show_measurements_", add_var), "Show Measurements", value = add_custom$show_measurements),
+                    selectInput(paste0("meas_marker_type_", add_var), "Measurement Marker Type",
+                                choices = c("Circle" = "circle", "Triangle" = "triangle-up", "X" = "x", 
+                                            "Square" = "square", "Diamond" = "diamond"),
+                                selected = add_custom$meas_marker_type),
+                    colourInput(paste0("meas_marker_color_", add_var), "Measurement Marker Color", 
+                                value = add_custom$meas_marker_color,allowTransparent = TRUE),
+                    numericInput(paste0("meas_marker_size_", add_var), "Measurement Marker Size", 
+                                value = add_custom$meas_marker_size, min = 1, max = 20, step = 1),
+
+                )
+            }
+        )
+    })
 
     # observeEvent(input$customize_var, {
     #     req(input$customize_var)
@@ -4580,10 +4553,12 @@ tuneMusoServer <- function(input, output, session){
     # Apply button: Move pending changes to main customizations
     observeEvent(input$apply_custom, {
         req(input$customize_var)
+        custom <- plotCustomizations[[input$customize_var]]
         plotCustomizations[[input$customize_var]] <- list(
             y_min = input$y_min,
             y_max = input$y_max,
             y_title = input$y_title,
+            line_type = input$line_type,
             line_color = input$line_color,
             line_width = input$line_width,
             title_font_size = input$title_size,
@@ -4591,8 +4566,25 @@ tuneMusoServer <- function(input, output, session){
             meas_marker_type = input$meas_marker_type,
             meas_marker_color = input$meas_marker_color,
             meas_marker_size = input$meas_marker_size,
-            additional_vars = input$additional_vars
+            additional_vars = input$additional_vars,
+            additional_vars_settings = custom$additional_vars_settings,
+            selected_additional_var = input$customize_additional_var,
+            show_measurements = input$show_measurements
+
         )
+
+        if (!is.null(input$customize_additional_var) && input$customize_additional_var != "") {
+            add_var <- input$customize_additional_var
+            plotCustomizations[[input$customize_var]]$additional_vars_settings[[add_var]] <- list(
+            line_type = input[[paste0("line_type_", add_var)]],
+            line_color = input[[paste0("line_color_", add_var)]],
+            line_width = input[[paste0("line_width_", add_var)]],
+            meas_marker_type = input[[paste0("meas_marker_type_", add_var)]],
+            meas_marker_color = input[[paste0("meas_marker_color_", add_var)]],
+            meas_marker_size = input[[paste0("meas_marker_size_", add_var)]],
+            show_measurements = input[[paste0("show_measurements_", add_var)]]
+            )
+        }
     })
 
     # Reset button: Reset main customizations and update UI
@@ -4602,18 +4594,25 @@ tuneMusoServer <- function(input, output, session){
             y_min = NULL,
             y_max = NULL,
             y_title = input$customize_var,
+            line_type = "solid",
             line_color = "red",
             line_width = 2,
             title_font_size = exportSettings$ytitlefont,
             show_legend = TRUE,
             meas_marker_type = "circle",
             meas_marker_color = "#047704",
-            meas_marker_size = 7
+            meas_marker_size = 7,
+            additional_vars = NULL,
+            additional_vars_settings = list(),
+            selected_additional_var = "",
+            show_measurements = TRUE
+
         )
         custom <- plotCustomizations[[input$customize_var]]
         updateTextInput(session, "y_title", value = custom$y_title)
         updateNumericInput(session, "y_min", value = custom$y_min)
         updateNumericInput(session, "y_max", value = custom$y_max)
+        updateSelectInput(session, "line_type", selected = custom$line_type)
         updateColourInput(session, "line_color", value = custom$line_color)
         updateNumericInput(session, "line_width", value = custom$line_width)
         updateNumericInput(session, "title_size", value = custom$title_font_size)
@@ -4621,6 +4620,8 @@ tuneMusoServer <- function(input, output, session){
         updateSelectInput(session, "meas_marker_type", selected = custom$meas_marker_type)
         updateColourInput(session, "meas_marker_color", value = custom$meas_marker_color)
         updateNumericInput(session, "meas_marker_size", value = custom$meas_marker_size)
+        updatePickerInput(session, "additional_vars", selected = NULL)
+        updateCheckboxInput(session, "show_measurements", value = TRUE)
     })
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
@@ -4742,40 +4743,71 @@ tuneMusoServer <- function(input, output, session){
                     if (input$plotType == "line") {
                            if (!is.null(filteredPrev) && input$lastRun) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scatter', mode = 'lines', name = "Previous Simulation")
+                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = "New Simulation", line = list(color = custom$line_color, width = custom$line_width))
+                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = "Simulation", line = list(color = custom$line_color, width = custom$line_width))
+                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
                     
-                if (!is.null(custom$additional_vars)) {
-                    color_palette <- c("#754803", "green", "purple", "orange", "pink")
-                    for (i in seq_along(custom$additional_vars)) {
-                        add_var <- custom$additional_vars[i]
+              if (!is.null(custom$additional_vars)) {
+                    #color_palette <- c("#754803", "green", "purple", "orange", "pink")
+                    #for (i in seq_along(custom$additional_vars)) {
+                    for (add_var in custom$additional_vars){
+                        #add_var <- custom$additional_vars[i]
                         if (add_var != var && add_var %in% colnames(filteredNext)) {
-                            add_custom <- plotCustomizations[[add_var]]
+                            #add_custom <- plotCustomizations[[add_var]]
+                            add_custom <- custom$additional_vars_settings[[add_var]]
                             if (is.null(add_custom)) {
                                 add_custom <- list(
-                                    line_color = color_palette[i %% length(color_palette) + 1],
-                                    line_width = 2
+                                    line_type = "solid",
+                                    line_color = "blue",
+                                    line_width = custom$line_width,
+                                    show_measurements = FALSE
                                 )
                             }
                             p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
                                           type = "scatter", mode = "lines", name = add_var,
                                           line = list(
                                               color = add_custom$line_color,
-                                              width = add_custom$line_width
+                                              width = add_custom$line_width,
+                                              dash = add_custom$line_type
                                           ))
                             if (!is.null(filteredPrev) && input$lastRun) {
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
                                               type = "scatter", mode = "lines", name = paste0(add_var, " (Prev)"),
                                               line = list(
                                                   color = scales::alpha(add_custom$line_color, 0.5),
-                                                  width = add_custom$line_width
+                                                  width = add_custom$line_width,
+                                                  dash = add_custom$line_type
                                               ))
+                            }
+                            #if (is.null(add_custom$show_measurements) || is.na(add_custom$show_measurements)) {
+                            #    add_custom$show_measurements <- FALSE
+                            #}
+                            if(isTRUE(add_custom$show_measurements)) {
+                                add_mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == add_var] else character(0)
+                                if (length(add_mappedCols) > 0) {
+                                    for (col in add_mappedCols) {
+                                        yData <- df_filtered[[col]]
+                                        
+                                        #if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
+                                           if(input$avoid_negative){
+                                                if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
+                                            }
+                                        m_row <- metrics_df[metrics_df$Measurement == col, ]
+                                        rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
+                                        bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
+                                        corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
+                                        metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
+                                        
+                                        p <- add_trace(p, x = df_filtered$Date, y = yData, type = 'scatter', mode = 'markers',
+                                                    name = paste0(col, " Measurement\n", metric_label),
+                                                    marker = list(symbol = add_custom$meas_marker_type, size = add_custom$meas_marker_size, color = add_custom$meas_marker_color))
+                                    }
+                                }
                             }
                         }
                     }
@@ -4789,10 +4821,10 @@ tuneMusoServer <- function(input, output, session){
                                 tickfont = list(size = exportSettings$tickfonty),
                                 range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
                                         c(custom$y_min, custom$y_max) 
-                                        else NULL,
-                                autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
-                                        TRUE 
-                                        else FALSE
+                                        else NULL
+                                #autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
+                                #        TRUE 
+                                #        else FALSE
                             ),
                             legend = legend_options,
                             showlegend = legendVisible()
@@ -4993,15 +5025,17 @@ tuneMusoServer <- function(input, output, session){
 
                         n_meas <- length(mappedCols)
                         meas_colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Greens")[4:9]))(n_meas)
-
+                        if(isTRUE(custom$show_measurements)){
                             # Add each mapped measurement column
                             for (i in seq_along(mappedCols)) {
                                 col <- mappedCols[i]
                                 yData <- df_filtered[[col]]
                                 
-                                # Convert negatives to NA for GPP and TR (might be obsolete if data frame manipulation is added)
-                                if (var %in% c("GPP", "TR")) {
-                                    yData[yData < 0] <- NA
+                                # Convert negatives to NA for GPP and TR for plotting if desired
+                                if(input$avoid_negative){
+                                    if (var %in% c("GPP", "TR")) {
+                                        yData[yData < 0] <- NA
+                                    }
                                 }
                                 
                               m_row <- metrics_df[metrics_df$Measurement == col, ]
@@ -5041,6 +5075,7 @@ tuneMusoServer <- function(input, output, session){
                                     
                             }
                         }
+                    }
                    
                 
                     else {
@@ -5064,7 +5099,7 @@ tuneMusoServer <- function(input, output, session){
                                         global_abs_max <- max(global_abs_max, local_max)
                                     }
                                     
-                                    
+                                     
                                     desired_ticks <- 8
                                     #dtick_value <- (global_abs_max - global_abs_min) / (desired_ticks - 1)
                                     
@@ -5150,15 +5185,15 @@ tuneMusoServer <- function(input, output, session){
 
                     else {
                             if (!is.null(filteredPrev) && input$lastRun) {
-                                p <- add_trace(p, x = filteredDates, y = filteredPrev[, var],
-                                                type = 'scatter', mode = 'lines', name = "Previous Simulation")
-                                p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
-                                            type = 'scatter', mode = 'lines', name = "New Simulation",  line = list(color = custom$line_color, width = custom$line_width))
-                                }
-                                else {
-                                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var],
-                                            type = 'scatter', mode = 'lines', name = "Simulation",  line = list(color = custom$line_color, width = custom$line_width))
-                                }
+                           p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
+                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+
+                        p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
+                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
+                        } else {
+                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
+                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                        }
 
                                       # Adding the epc labels on the x axis
                                     #if (file.exists(planting_file)) {
@@ -5343,35 +5378,42 @@ tuneMusoServer <- function(input, output, session){
                                     }
 
                 if (!is.null(custom$additional_vars)) {
-                    color_palette <- c("#754803", "green", "purple", "orange", "pink")
-                    for (i in seq_along(custom$additional_vars)) {
-                        add_var <- custom$additional_vars[i]
+                    #color_palette <- c("#754803", "green", "purple", "orange", "pink")
+                    #for (i in seq_along(custom$additional_vars)) {
+                    for (add_var in custom$additional_vars){
+                        #add_var <- custom$additional_vars[i]
                         if (add_var != var && add_var %in% colnames(filteredNext)) {
-                            add_custom <- plotCustomizations[[add_var]]
+                            #add_custom <- plotCustomizations[[add_var]]
+                            add_custom <- custom$additional_vars_settings[[add_var]]
                             if (is.null(add_custom)) {
                                 add_custom <- list(
-                                    line_color = color_palette[i %% length(color_palette) + 1],
-                                    line_width = 2
+                                    line_type = "solid",
+                                    line_color = "blue",
+                                    line_width = custom$line_width
                                 )
                             }
                             p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
                                           type = "scatter", mode = "lines", name = add_var,
                                           line = list(
                                               color = add_custom$line_color,
-                                              width = add_custom$line_width
+                                              width = add_custom$line_width,
+                                              dash = add_custom$line_type
                                           ))
                             if (!is.null(filteredPrev) && input$lastRun) {
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
                                               type = "scatter", mode = "lines", name = paste0(add_var, " (Prev)"),
                                               line = list(
                                                   color = scales::alpha(add_custom$line_color, 0.5),
-                                                  width = add_custom$line_width
+                                                  width = add_custom$line_width,
+                                                  dash = add_custom$line_type
                                               ))
                             }
                         }
                     }
                 }
-
+                    #range <- if(!is.null(custom$y_min) && !is.null(custom$y_max)){
+                    #    c(custom$y_min, custom$y_max)
+                    #}
                         p <- p %>% plotly::layout(
                             xaxis = xaxis_options,
                             yaxis = list(
@@ -5379,10 +5421,10 @@ tuneMusoServer <- function(input, output, session){
                                 tickfont = list(size = exportSettings$tickfonty),
                                 range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
                                         c(custom$y_min, custom$y_max) 
-                                        else NULL,
-                                autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
-                                        TRUE 
-                                        else FALSE
+                                        else NULL
+                               # autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
+                               #         TRUE 
+                               #         else FALSE
                             ),
                             legend = legend_options,
                             showlegend = legendVisible()
