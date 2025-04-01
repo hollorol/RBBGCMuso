@@ -44,8 +44,6 @@ Imports:
     shiny,
 	shinyWidgets,
 	shinyjs,
-	shinyjqui,
-	colourpicker,
 	DT,
 	waiter,
     rpart.plot
