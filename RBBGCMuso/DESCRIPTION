@@ -44,7 +44,6 @@ Imports:
     shiny,
 	shinyWidgets,
 	shinyjs,
-	sortable,
 	shinyjqui,
 	colourpicker,
 	DT,
