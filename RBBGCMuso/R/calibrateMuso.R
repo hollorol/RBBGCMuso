@@ -130,7 +130,11 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
     }
 
     switch(method,
-           "GLUE"={  
+           "GLUE"={
+                print("Writing the results to the output directory...")
+                write.csv(x=results, file=file.path(outputLoc,"calibResults.csv"), row.names=FALSE)
+                print("Writing the parameters to the output directory...")
+                write.csv(x=parameters, file=file.path(outputLoc,"sampled_parameters.csv"), row.names=FALSE)
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
                 epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
