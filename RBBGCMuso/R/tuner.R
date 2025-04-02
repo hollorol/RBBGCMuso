@@ -638,10 +638,11 @@ function wrapText(elementId, openTag, closeTag) {
                                        style = "display: flex; align-items: center; gap: 10px;", 
                                        actionButton("resetParams", "Reset to originals"),
                                        div(
-                                        style = "margin-top: 6px;",
-                                        checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                                        style = "margin-top: 0px;",
+                                        actionButton("restoreParams","Reset to Last Good Values")
                                        )
                                    ),
+                                   checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE),
                                    tags$div(id = "controlp",
                                             tags$div(id = "slider-container", uiOutput("param_sliders"))
                                    ),
@@ -1562,6 +1563,51 @@ tuneMusoServer <- function(input, output, session){
                             value = InitialDefaultsSoil$values[i])
         })
         myShowNotification(paste0("Sliders reset to initials (boot-up) for: ", soil_file()), type = "message", duration = 5)
+       
+        }
+    })
+
+
+
+  observeEvent(input$restoreParams, { 
+        if(currentMode() == "epc"){
+            req(input$selected_epc)
+            epc <- input$selected_epc
+
+            if(isTRUE(all.equal(epcValues[[epc]], lastGoodValues$epc[[epc]]))) {
+                myShowNotification(paste0("Sliders already at last good values values for: ", epc), type = "message", duration = 5)
+                return()
+            }
+            
+            defaults <- lastGoodValues$epc[[epc]]
+            epcValues[[epc]] <- defaults
+        
+            for (i in seq_len(nrow(parameters))) {
+                if (is.na(parameters$group[i])) {
+                # Standard (non-grouped) parameter: update slider with id "param_i"
+                updateSliderInput(session, paste0("param_", i), value = defaults[i])
+                } else {
+                # Dependent (grouped) parameter: update slider with id "dep_<INDEX>"
+                updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
+                }
+            }
+            myShowNotification(paste0("Sliders reset to last good values for: ", epc), type = "message", duration = 5)
+        }
+        else {
+          req(soil_parameters())
+
+        if(isTRUE(all.equal(soilValues$values, lastGoodValues$soil))) {
+            myShowNotification(paste0("Sliders already at last good values values for: ", soil_file()), type = "message", duration = 5)
+            return()
+        }
+
+        soilValues$values <- lastGoodValues$soil
+        
+        lapply(1:nrow(soil_parameters()), function(i) {
+            updateSliderInput(session, paste0("soil_param_", i), 
+                            value = lastGoodValues$soil[i])
+        })
+        myShowNotification(paste0("Sliders reset to last good values for: ", soil_file()), type = "message", duration = 5)
        
         }
     })
@@ -4652,7 +4698,7 @@ tuneMusoServer <- function(input, output, session){
 
             #future({    
                     # giving condition to check to avoid warning messages
-                            if (isTRUE(input$singleYear)) {
+                if (isTRUE(input$singleYear)) {
                     validate(
                         need(is.finite(input$yearRange), "Year not available yet")
                     )
