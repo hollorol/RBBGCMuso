@@ -636,13 +636,22 @@ function wrapText(elementId, openTag, closeTag) {
                                    # Reset buttons
                                    tags$div(
                                        style = "display: flex; align-items: center; gap: 10px;", 
-                                       actionButton("resetParams", "Reset to originals"),
+                                       actionButton("resetRun", "Reset to Previous Run"),
+                                      
                                        div(
                                         style = "margin-top: 0px;",
                                         actionButton("restoreParams","Reset to Last Good Values")
                                        )
                                    ),
-                                   checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE),
+                                    tags$div(
+                                       style = "display: flex; align-items: center; gap: 10px;", 
+                                        actionButton("resetParams", "Reset to originals"),
+                                       div(
+                                        style = "margin-top: 6px;",
+                                        checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                                       )
+                                   ),
+                                   
                                    tags$div(id = "controlp",
                                             tags$div(id = "slider-container", uiOutput("param_sliders"))
                                    ),
@@ -1002,6 +1011,11 @@ tuneMusoServer <- function(input, output, session){
             epc = list(),  
             soil = NULL    
         )
+
+        prevGoodValues <- reactiveValues(
+            epc = list(),  
+            soil = NULL    
+        )
         InitialDefaultsSoil <- reactiveValues(values = NULL)
           observeEvent(soil_parameters(), {
             # Fetch defaults only once
@@ -1009,6 +1023,7 @@ tuneMusoServer <- function(input, output, session){
             defaults <- musoGetValues(soil_file(), soil_parameters()[, 2])
             soilValues$values <- defaults
             lastGoodValues$soil <- defaults
+            prevGoodValues$soil <- defaults
             InitialDefaultsSoil$values <- defaults
         }, once = TRUE)  
         
@@ -1502,6 +1517,7 @@ tuneMusoServer <- function(input, output, session){
                         #This is done only once per EPC
                         InitialDefaults[[epc]] <- as.numeric(musoGetValues(epc, parameters[, 2]))
                         lastGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
+                        prevGoodValues$epc[[epc]] <<- InitialDefaults[[epc]]
                         epcValues[[epc]] <<- InitialDefaults[[epc]]
                     #}
                 }
@@ -1608,6 +1624,50 @@ tuneMusoServer <- function(input, output, session){
                             value = lastGoodValues$soil[i])
         })
         myShowNotification(paste0("Sliders reset to last good values for: ", soil_file()), type = "message", duration = 5)
+       
+        }
+    })
+
+
+    observeEvent(input$resetRun, { 
+        if(currentMode() == "epc"){
+            req(input$selected_epc)
+            epc <- input$selected_epc
+
+            if(isTRUE(all.equal(epcValues[[epc]], prevGoodValues$epc[[epc]]))) {
+                myShowNotification(paste0("Sliders already at previous run's good values values for: ", epc), type = "message", duration = 5)
+                return()
+            }
+            
+            defaults <- prevGoodValues$epc[[epc]]
+            epcValues[[epc]] <- defaults
+        
+            for (i in seq_len(nrow(parameters))) {
+                if (is.na(parameters$group[i])) {
+                # Standard (non-grouped) parameter: update slider with id "param_i"
+                updateSliderInput(session, paste0("param_", i), value = defaults[i])
+                } else {
+                # Dependent (grouped) parameter: update slider with id "dep_<INDEX>"
+                updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = defaults[i])
+                }
+            }
+            myShowNotification(paste0("Sliders reset to previous run's good values for: ", epc), type = "message", duration = 5)
+        }
+        else {
+          req(soil_parameters())
+
+        if(isTRUE(all.equal(soilValues$values, prevGoodValues$soil))) {
+            myShowNotification(paste0("Sliders already at previous run's good values values for: ", soil_file()), type = "message", duration = 5)
+            return()
+        }
+
+        soilValues$values <- prevGoodValues$soil
+        
+        lapply(1:nrow(soil_parameters()), function(i) {
+            updateSliderInput(session, paste0("soil_param_", i), 
+                            value = prevsGoodValues$soil[i])
+        })
+        myShowNotification(paste0("Sliders reset to previous run's values for: ", soil_file()), type = "message", duration = 5)
        
         }
     })
@@ -1814,13 +1874,15 @@ tuneMusoServer <- function(input, output, session){
             dep_indices <- which(!is.na(parameters$group))
             non_dep_indices <- setdiff(seq_len(nrow(parameters)), dep_indices)
             
+            # min <- if (is.null(min_custom)) parameters[i,3] else min_custom
+            # max <- if (is.null(max_custom)) parameters[i,4] else max_custom
             standard_sliders <- lapply(non_dep_indices, function(i) {
                 safe_value <- if (is.null(vals[i]) || is.na(vals[i])) parameters[i, 3] else vals[i]
                 sliderInput(
                 paste0("param_", i),
                 label = parameters$ABREVIATION[i],
-                min   = parameters[i, 3],
-                max   = parameters[i, 4],
+                min   = parameters[i, 3], #if (is.null(min_custom[i])) parameters[i,3] else min_custom[i]
+                max   = parameters[i, 4], #if (is.null(max_custom[i])) parameters[i,4] else max_custom[i]
                 value = safe_value,
                 step  = (parameters[i, 4] - parameters[i, 3]) / 100
                 )
@@ -2791,6 +2853,16 @@ tuneMusoServer <- function(input, output, session){
             
         }
 
+        updatePrevGoodValues <- function() {
+
+            for(epc in names(prevGoodValues$epc)) {
+                prevGoodValues$epc[[epc]] <<- as.numeric(lastGoodValues$epc[[epc]])
+            }
+            if(!is.null(soil_parameters())) {
+                prevGoodValues$soil <<- lastGoodValues$soil
+            }
+        }
+
 
         screen <- div(
             style="color:green;",
@@ -2910,7 +2982,7 @@ tuneMusoServer <- function(input, output, session){
         }
         #print("Model ran successfully")
         #showNotification("Model ran successfully", type = "message")
-        
+        updatePrevGoodValues()
         updateLastGoodValues()
 
         dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
