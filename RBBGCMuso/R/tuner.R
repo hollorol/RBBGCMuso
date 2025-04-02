@@ -4745,13 +4745,13 @@ tuneMusoServer <- function(input, output, session){
                     if (input$plotType == "line") {
                            if (!is.null(filteredPrev) && input$lastRun) {
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
                     
               if (!is.null(custom$additional_vars)) {
@@ -4771,7 +4771,7 @@ tuneMusoServer <- function(input, output, session){
                                 )
                             }
                             p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
-                                          type = "scattergl", mode = "lines", name = add_var,
+                                          type = "scatter", mode = "lines", name = add_var,
                                           line = list(
                                               color = add_custom$line_color,
                                               width = add_custom$line_width,
@@ -4779,7 +4779,7 @@ tuneMusoServer <- function(input, output, session){
                                           ))
                             if (!is.null(filteredPrev) && input$lastRun) {
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
-                                              type = "scattergl", mode = "lines", name = paste0(add_var, " (Prev)"),
+                                              type = "scatter", mode = "lines", name = paste0(add_var, " (Prev)"),
                                               line = list(
                                                   color = scales::alpha(add_custom$line_color, 0.5),
                                                   width = add_custom$line_width,
@@ -4805,7 +4805,7 @@ tuneMusoServer <- function(input, output, session){
                                         corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
                                         metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
                                         
-                                        p <- add_trace(p, x = df_filtered$Date, y = yData, type = 'scattergl', mode = 'markers',
+                                        p <- add_trace(p, x = df_filtered$Date, y = yData, type = 'scatter', mode = 'markers',
                                                     name = paste0(col, " Measurement\n", metric_label),
                                                     marker = list(symbol = add_custom$meas_marker_type, size = add_custom$meas_marker_size, color = add_custom$meas_marker_color))
                                     }
@@ -4845,7 +4845,7 @@ tuneMusoServer <- function(input, output, session){
                             p <- p %>% add_trace(
                                 x = selected_planting$DATE[1],  
                                 y = 0,  
-                                type = 'scattergl',
+                                type = 'scatter',
                                 mode = 'markers',
                                 marker = list(symbol = "triangle-down", color = "green", size = 10),
                                 name = "Planting Dates",
@@ -4906,7 +4906,7 @@ tuneMusoServer <- function(input, output, session){
                              p <- p %>% add_trace(
                                 x = selected_harvest$HarvestDates[1],  
                                 y = 0,  
-                                type = 'scattergl',
+                                type = 'scatter',
                                 mode = 'markers',
                                 marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
                                 name = "Harvest Dates",
@@ -5005,7 +5005,7 @@ tuneMusoServer <- function(input, output, session){
                                                     p <- p %>% add_trace(
                                                     x = c(NA), 
                                                     y = c(NA), 
-                                                    type = "scattergl",
+                                                    type = "scatter",
                                                     mode = "lines",
                                                     line = list(color = "#047704", dash = "dot"),
                                                     name = "Phenophases",
@@ -5060,7 +5060,7 @@ tuneMusoServer <- function(input, output, session){
                                 p <- add_trace(p,
                                             x = df_filtered$Date,
                                             y = yData,
-                                            type = 'scattergl',
+                                            type = 'scatter',
                                             mode = 'markers',
                                             #name = paste0(col, " Measurement<br>", metric_label),
                                             name = paste0(col, " Measurement\n", metric_label),
@@ -5128,7 +5128,7 @@ tuneMusoServer <- function(input, output, session){
                                                 "Measured: %{x:.2f}<br>",       # .2f (show up to 2 decimal points)
                                                 "Simulated: %{y:.2f}<extra></extra>" 
                                                 ),
-                                                type = 'scattergl',
+                                                type = 'scatter',
                                                 mode = 'markers',
                                                 name = paste0(col, " Metrics\n", metric_label),
                                                 marker = list(symbol = "circle", size = 7, color = "#d99820"))
@@ -5186,13 +5186,13 @@ tuneMusoServer <- function(input, output, session){
                     else {
                             if (!is.null(filteredPrev) && input$lastRun) {
                            p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
 
                                       # Adding the epc labels on the x axis
@@ -5209,7 +5209,7 @@ tuneMusoServer <- function(input, output, session){
                                                     p <- p %>% add_trace(
                                                         x = selected_planting$DATE[1],  
                                                         y = 0,  
-                                                        type = 'scattergl',
+                                                        type = 'scatter',
                                                         mode = 'markers',
                                                         marker = list(symbol = "triangle-down", color = "green", size = 10),
                                                         name = "Planting Dates",
@@ -5266,7 +5266,7 @@ tuneMusoServer <- function(input, output, session){
                                                     p <- p %>% add_trace(
                                                         x = selected_harvest$HarvestDates[1],  
                                                         y = 0,  
-                                                        type = 'scattergl',
+                                                        type = 'scatter',
                                                         mode = 'markers',
                                                         marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
                                                         name = "Harvest Dates",
@@ -5363,7 +5363,7 @@ tuneMusoServer <- function(input, output, session){
                                                     p <- p %>% add_trace(
                                                     x = c(NA), 
                                                     y = c(NA), 
-                                                    type = "scattergl",
+                                                    type = "scatter",
                                                     mode = "lines",
                                                     line = list(color = "#047704", dash = "dot"),
                                                     name = "Phenophases",
@@ -5393,7 +5393,7 @@ tuneMusoServer <- function(input, output, session){
                                 )
                             }
                             p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
-                                          type = "scattergl", mode = "lines", name = add_var,
+                                          type = "scatter", mode = "lines", name = add_var,
                                           line = list(
                                               color = add_custom$line_color,
                                               width = add_custom$line_width,
@@ -5401,7 +5401,7 @@ tuneMusoServer <- function(input, output, session){
                                           ))
                             if (!is.null(filteredPrev) && input$lastRun) {
                                 p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
-                                              type = "scattergl", mode = "lines", name = paste0(add_var, " (Prev)"),
+                                              type = "scatter", mode = "lines", name = paste0(add_var, " (Prev)"),
                                               line = list(
                                                   color = scales::alpha(add_custom$line_color, 0.5),
                                                   width = add_custom$line_width,
