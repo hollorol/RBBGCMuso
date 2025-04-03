@@ -524,7 +524,7 @@ function wrapText(elementId, openTag, closeTag) {
       actionButton("toggleUI", label = "Toggle UI", icon = icon("bars"))
     ),
     
-    # toggle legend button for... toggling the legend. And also toggle plot field for expanded ui
+    
     div(
         style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;",
         actionButton("calib", label = "Calibrate"),
@@ -915,6 +915,9 @@ tuneMusoServer <- function(input, output, session){
 
     parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
    
+    
+
+
     herbaceous_main <- c(132, 133, 134, 135)
     woody_main      <- c(136, 137, 138, 139)
     # Must be done, otherwise it can't access it since it's reactive
@@ -990,7 +993,8 @@ tuneMusoServer <- function(input, output, session){
         }
         }
 
-        
+        sliderRanges <- reactiveValues(epcmin = parameters[,3], epcmax = parameters[,4], soimin = NULL, soimax = NULL)
+
        
         soil_file <- reactiveVal(NULL)
         soil_parameters <- reactiveVal(NULL)
@@ -1025,6 +1029,8 @@ tuneMusoServer <- function(input, output, session){
             lastGoodValues$soil <- defaults
             prevGoodValues$soil <- defaults
             InitialDefaultsSoil$values <- defaults
+            sliderRanges$soimin <- soil_parameters()[, 3]
+            sliderRanges$soimax <- soil_parameters()[, 4]
         }, once = TRUE)  
         
 
@@ -1859,6 +1865,10 @@ tuneMusoServer <- function(input, output, session){
             html = screenUI,
             color = "transparent"
         )
+
+        #sliderRanges <- reactiveValues(epcmin = parameters[,3], epcmax = parameters[,4], soimin = soil_parameters()[,3], soimax = isolatesoil_parameters()[,4])
+        #sliderRanges <- reactiveValues(epcmin = parameters[,3], epcmax = parameters[,4])
+        
         # making the slider ui (both standard and dependent)
         output$param_sliders <- renderUI({
             #wSlider$show()
@@ -1874,6 +1884,8 @@ tuneMusoServer <- function(input, output, session){
             dep_indices <- which(!is.na(parameters$group))
             non_dep_indices <- setdiff(seq_len(nrow(parameters)), dep_indices)
             
+            #maxEpc <- sliderRanges$epcmax
+            #minEpc <- sliderRanges$epcmin
             # min <- if (is.null(min_custom)) parameters[i,3] else min_custom
             # max <- if (is.null(max_custom)) parameters[i,4] else max_custom
             standard_sliders <- lapply(non_dep_indices, function(i) {
@@ -1881,10 +1893,10 @@ tuneMusoServer <- function(input, output, session){
                 sliderInput(
                 paste0("param_", i),
                 label = parameters$ABREVIATION[i],
-                min   = parameters[i, 3], #if (is.null(min_custom[i])) parameters[i,3] else min_custom[i]
-                max   = parameters[i, 4], #if (is.null(max_custom[i])) parameters[i,4] else max_custom[i]
+                min   = sliderRanges$epcmin[i],                       #minEpc[i], 
+                max   = sliderRanges$epcmax[i],                       #maxEpc[i], 
                 value = safe_value,
-                step  = (parameters[i, 4] - parameters[i, 3]) / 100
+                step  = ( sliderRanges$epcmax[i] - sliderRanges$epcmin[i] ) / 100
                 )
             })
             
@@ -1954,6 +1966,9 @@ tuneMusoServer <- function(input, output, session){
             req(currentMode() == "soil")
             req(soil_parameters(), soilValues$values)
             df <- soil_parameters()
+            #df <- list(sliderRanges$soimin, sliderRanges$soimax)
+            #minSoil <- sliderRanges$soimin
+            #maxSoil <- sliderRanges$soimax
             vals <- soilValues$values
             div(
                 id = "standardSliders",
@@ -1965,10 +1980,10 @@ tuneMusoServer <- function(input, output, session){
                         sliderInput(
                         inputId = paste0("soil_param_", i),
                         label   = df$ABREVIATION[i],
-                        min     = df$min[i],
-                        max     = df$max[i],
+                        min     = sliderRanges$soimin[i],                      #minSoil[i],                      #df$min[i],
+                        max     = sliderRanges$soimax[i],                      #maxSoil[i],                      #df$max[i],
                         value   = vals[i],
-                        step    = (df$max[i] - df$min[i]) / 100
+                        step    = (sliderRanges$soimax[i] - sliderRanges$soimin[i]) / 100
                         )
                     )
 
@@ -4274,26 +4289,170 @@ tuneMusoServer <- function(input, output, session){
             })
 
 
-        observeEvent(input$calib, {
+    observeEvent(input$calib, {
             showModal(modalDialog(
             title = "Calibration",
-                    
+             # EPC Mode Section
+            div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
+                    paste("It looks ugly I know, there will be a more dynamic solution in the future")
+            ),
+        # div(
+        #     style = "display: flex; justify-content: flex-end; margin-bottom: 15px;",
+        #     actionButton(
+        #         "startCalib", 
+        #         "Apply", 
+        #         style = "background-color: #00cc00; color: white; font-size: 16px;"
+        #     )
+        # ),
+        h4("EPC Mode Parameters",style = "font-weight:bold;"),
+        div(
+            id = "epcCalibrationInputs",
+            lapply(seq_len(nrow(parameters)), function(i) {
+                # Skip dependent sliders cause they MUST REMAIN UNCHANGED, THEY SHALL NOT PASS THE CONTRAINTS OF THEIR OWN EXISTENCE
+                if (!is.na(parameters$group[i])) return(NULL)
+                
+                div(
+                    class = "calibration-row",
+                    style = "margin-bottom: 15px;",
+                    div(
+                        style = "display: flex; align-items: center; gap: 10px;",
+                        h5(parameters$ABREVIATION[i], style = "font-weight: bold; margin: 0;"),
+                        actionButton(
+                            inputId = paste0("reset_epc_", i),
+                            label = NULL,
+                            icon = icon("undo"),
+                            style = "background-color: #f0f0f0; border: none; padding: 5px;",
+                            title = "Reset to default"
+                        )
+                    ),
+                    div(
+                        style = "display: flex; gap: 10px;",
+                        numericInput(
+                            inputId = paste0("epc_min_", i),
+                            label = "Min",
+                            value = sliderRanges$epcmin[i],
+                            step = 1
+                        ),
+                        numericInput(
+                            inputId = paste0("epc_max_", i),
+                            label = "Max",
+                            value = sliderRanges$epcmax[i],
+                            step = 1
+                        )
+                    )
+                )
+            })
+        ),
+             div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
+                    paste("Currently allocation groups remain in the contraints of their own existence. Will free them in the future. Until then they cannot see beyond 1 or 0, but I think they are happy that way")
+            ),
+        tags$hr(style = "border-top: 5px solid #ccc; margin-top: 30px; margin-bottom: 30px;"),
+        # Soil Mode Section
+        h4("Soil Mode Parameters",style = "font-weight:bold;"),
+        div(
+            id = "soilCalibrationInputs",
+            lapply(seq_len(nrow(soil_parameters())), function(i) {
+                div(
+                    class = "calibration-row",
+                    style = "margin-bottom: 15px;",
+                    div(
+                        style = "display: flex; align-items: center; gap: 10px;",
+                        h5(soil_parameters()$ABREVIATION[i], style = "font-weight: bold; margin: 0;"),
+                        actionButton(
+                            inputId = paste0("reset_soil_", i),
+                            label = NULL,
+                            icon = icon("undo"),
+                            style = "background-color: #f0f0f0; border: none; padding: 5px;",
+                            title = "Reset to default"
+                        )
+                    ),
+                    div(
+                        style = "display: flex; gap: 10px;",
+                        numericInput(
+                            inputId = paste0("soil_min_", i),
+                            label = "Min",
+                            value = sliderRanges$soimin[i],  
+                            step = 1
+                        ),
+                        numericInput(
+                            inputId = paste0("soil_max_", i),
+                            label = "Max",
+                            value = sliderRanges$soimax[i],  
+                            step = 1
+                        )
+                    )
+                )
+            })
+        ),       
                     
             easyClose = TRUE,
             footer = tagList(
                 modalButton("Cancel"),
-                actionButton("startCalib", "Start Calibration")
+                actionButton("startCalib", "Apply", style = "background-color: #00cc00; color: white;")
             )
 
             ))
 
+            observeEvent(input$startCalib, {
+            # EPC mode updates
+            for (i in seq_len(nrow(parameters))) {
+                if (is.na(parameters$group[i])) {  # Only non-dependent sliders
+                    min_id <- paste0("epc_min_", i)
+                    max_id <- paste0("epc_max_", i)
+                    if (!is.null(input[[min_id]])) sliderRanges$epcmin[i] <- input[[min_id]]
+                    if (!is.null(input[[max_id]])) sliderRanges$epcmax[i] <- input[[max_id]]
+                }
+            }
+            
+            # Soil mode updates
+         for (i in seq_len(nrow(soil_parameters()))) {
+            min_id <- paste0("soil_min_", i)
+            max_id <- paste0("soil_max_", i)
+            if (!is.null(input[[min_id]])) sliderRanges$soimin[i] <- input[[min_id]]
+            if (!is.null(input[[max_id]])) sliderRanges$soimax[i] <- input[[max_id]]
+        }
+        
+            removeModal()
         })
+            lapply(seq_len(nrow(parameters)), function(i) {
+                    if (is.na(parameters$group[i])) {
+                        observeEvent(input[[paste0("reset_epc_", i)]], {
+                            updateNumericInput(
+                                session,
+                                inputId = paste0("epc_min_", i),
+                                value = parameters[i, 3]
+                            )
+                            updateNumericInput(
+                                session,
+                                inputId = paste0("epc_max_", i),
+                                value = parameters[i, 4]
+                            )
+                        })
+                    }
+                })
+                
+                # Reset button logic for Soil
+                lapply(seq_len(nrow(soil_parameters())), function(i) {
+                    observeEvent(input[[paste0("reset_soil_", i)]], {
+                        updateNumericInput(
+                            session,
+                            inputId = paste0("soil_min_", i),
+                            value = soil_parameters()[i, 3]
+                        )
+                        updateNumericInput(
+                            session,
+                            inputId = paste0("soil_max_", i),
+                            value = soil_parameters()[i, 4]
+                        )
+                    })
+                })
+    })
 
 
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
-        defaultExportSettings <- list(width = 900, height = 500, scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
+        exportSettings <- reactiveValues(width = 900, height = 500, format = "png",scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
+        defaultExportSettings <- list(width = 900, height = 500, format = "png",scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
         
 
           observeEvent(input$settings_btn, {
@@ -4302,9 +4461,10 @@ tuneMusoServer <- function(input, output, session){
             div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
                     paste("Current Working Directory:", workdir)
             ),
+            #selectInput("export_format", "")
             # Inputs for resolution settings
             div(style = "display: flex; align-items: center; gap: 5px;",
-                numericInput("export_width", "PNG Export Width (px):", value = exportSettings$width),
+                numericInput("export_width", "Image Export Width (px):", value = exportSettings$width),
                     actionButton("reset_export_width", 
                     label = NULL, 
                     icon = icon("undo"), 
@@ -4313,7 +4473,7 @@ tuneMusoServer <- function(input, output, session){
                     )
             ),
             div(style = "display: flex; align-items: center; gap: 5px;",   
-                numericInput("export_height", "PNG Export Height (px):", value = exportSettings$height),
+                numericInput("export_height", "Image Export Height (px):", value = exportSettings$height),
                   actionButton("reset_export_height", 
                     label = NULL, 
                     icon = icon("undo"), 
@@ -4322,7 +4482,7 @@ tuneMusoServer <- function(input, output, session){
                     )
             ),
             div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("export_scale", "PNG Export Scale:", value = exportSettings$scale, min = 1),
+                numericInput("export_scale", "Image Export Scale:", value = exportSettings$scale, min = 1),
                 actionButton("reset_export_scale", 
                     label = NULL, 
                     icon = icon("undo"), 
@@ -4422,7 +4582,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.17.10</strong></p>
+                    <p><strong>Version 2.18.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
