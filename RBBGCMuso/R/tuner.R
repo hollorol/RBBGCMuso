@@ -4288,8 +4288,10 @@ tuneMusoServer <- function(input, output, session){
                 updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
             })
 
-
+    #modalVisible <- reactiveVal(FALSE)
     observeEvent(input$calib, {
+        #if(!modalVisible()) {
+         #   modalVisible(TRUE)
             showModal(modalDialog(
             title = "Calibration",
              # EPC Mode Section
@@ -4392,8 +4394,8 @@ tuneMusoServer <- function(input, output, session){
             )
 
             ))
-
-            observeEvent(input$startCalib, {
+        #}
+        observeEvent(input$startCalib, {
             # EPC mode updates
             for (i in seq_len(nrow(parameters))) {
                 if (is.na(parameters$group[i])) {  # Only non-dependent sliders
@@ -4413,6 +4415,7 @@ tuneMusoServer <- function(input, output, session){
         }
         
             removeModal()
+            #modalVisible(FALSE)
         })
             lapply(seq_len(nrow(parameters)), function(i) {
                     if (is.na(parameters$group[i])) {
@@ -4461,7 +4464,10 @@ tuneMusoServer <- function(input, output, session){
             div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
                     paste("Current Working Directory:", workdir)
             ),
-            #selectInput("export_format", "")
+            selectInput("export_format", "Image Export Format",
+                        choices = c("png","jpeg","webp","svg"),
+                        selected = exportSettings$format
+            ),
             # Inputs for resolution settings
             div(style = "display: flex; align-items: center; gap: 5px;",
                 numericInput("export_width", "Image Export Width (px):", value = exportSettings$width),
@@ -4632,6 +4638,7 @@ tuneMusoServer <- function(input, output, session){
             exportSettings$allowLegendMovement <- input$allowLegendDisplacement
             exportSettings$legendxanchor <- input$legendxanchor
             exportSettings$legendyanchor <- input$legendyanchor
+            exportSettings$format <- input$export_format
             
             removeModal()
         })
@@ -5722,7 +5729,7 @@ tuneMusoServer <- function(input, output, session){
 
                  
                     p <- p %>% plotly::config(toImageButtonOptions = list(
-                    format = "png", 
+                    format = exportSettings$format, 
                     width = exportSettings$width, 
                     height = exportSettings$height, 
                     scale = exportSettings$scale))
