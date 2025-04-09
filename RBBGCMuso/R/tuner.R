@@ -475,7 +475,11 @@ function wrapText(elementId, openTag, closeTag) {
     .swal2-container {
       z-index: 99999 !important;
     }
-    
+    #logger_table {
+    width: 100%;
+    max-height: 500px;
+    overflow-y: auto;
+    }
   "))),
 
      waiterShowOnLoad(
@@ -748,9 +752,104 @@ function wrapText(elementId, openTag, closeTag) {
                                 
                             
                                 )
-                        )
+                        ),
 
 
+tabPanel("Run Logger",
+  fluidRow(
+    column(12,
+      div(style = "margin-bottom: 10px;",
+        pickerInput(
+          inputId = "selected_runs",
+          label = "Select Run(s)",
+          choices = NULL,
+          multiple = TRUE,
+          options = list(
+            `actions-box` = TRUE,
+            `selected-text-format` = "count > 2",
+            `count-selected-text` = "{0} runs selected",
+            `live-search` = TRUE,
+            `dropdown-align-right` = FALSE,
+            `multiple-separator` = ", "
+          ),
+          width = "300px"
+        )
+      ),
+      # Add selectInput for choosing a run to apply
+      div(style = "margin-bottom: 10px;",
+        selectInput(
+          inputId = "apply_run",
+          label = "Select Run to Apply",
+          choices = NULL,  # Will be updated dynamically
+          selectize = TRUE,
+          width = "300px"
+        )
+      ),
+      # Add Apply button
+      div(style = "margin-bottom: 10px;",
+        actionButton(
+          inputId = "applyRunParams",
+          label = "Apply Run Parameters",
+          style = "color: #fff; background-color: #28a745; border-color: #28a745;"  # Green button
+        )
+      ),
+      div(style = "margin-bottom: 10px;",
+        pickerInput(
+          inputId = "selected_params",
+          label = "Select Files to Display",
+          choices = NULL,
+          multiple = TRUE,
+          options = list(
+            `actions-box` = TRUE,
+            `selected-text-format` = "count > 3",
+            `count-selected-text` = "{0} files selected",
+            `live-search` = TRUE,
+            `dropdown-align-right` = FALSE,
+            `multiple-separator` = ", "
+          ),
+          width = "400px"
+        )
+      ),
+      div(style = "margin-bottom: 10px;",
+        pickerInput(
+          inputId = "selected_param_names",
+          label = "Select Parameters",
+          choices = NULL,
+          multiple = TRUE,
+          options = list(
+            `actions-box` = TRUE,
+            `selected-text-format` = "count > 3",
+            `count-selected-text` = "{0} parameters selected",
+            `live-search` = TRUE,
+            `dropdown-align-right` = FALSE,
+            `multiple-separator` = ", "
+          ),
+          width = "400px"
+        )
+      ),
+      div(style = "margin-bottom: 10px;",
+        shinyWidgets::switchInput(
+          inputId = "show_comparisons",
+          label = "Show Comparisons",
+          value = FALSE,
+          onLabel = "ON",
+          offLabel = "OFF",
+          size = "small"
+        ),
+        shinyWidgets::switchInput(
+          inputId = "show_changes_only",
+          label = "Show Changes Only",
+          value = FALSE,
+          onLabel = "ON",
+          offLabel = "OFF",
+          size = "small",
+          disabled = TRUE  # Disabled unless Show Comparisons is ON
+        )
+      ),
+      shiny::htmlOutput("run_summary")
+    )
+  )
+)
               )
           ),
           options = list(handles = "e")  # Allow resizing only on the right edge
@@ -2890,7 +2989,9 @@ tuneMusoServer <- function(input, output, session){
             color = "transparent"
         )
 
-        
+        runLogs <- reactiveVal(list())
+
+
        
 
         modelCrashed <- reactiveVal(FALSE)
@@ -2987,6 +3088,7 @@ tuneMusoServer <- function(input, output, session){
                 })
 
         if (length(result) == 0) {
+        #if(is.na(result) || is.null(result) || nrow(result) == 0) {
             myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
              if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
         } else {
@@ -3034,11 +3136,568 @@ tuneMusoServer <- function(input, output, session){
             result <- as.matrix(dfs_orig)
         }
         outputList$nextVal <- result
+
+        #logging
+current_logs <- runLogs()
+  run_number <- length(current_logs) + 1
+  
+  epc_vals <- isolate({
+    lapply(rv$epc_files, function(epc) {
+      vals <- epcValues[[epc]]
+      if (is.null(vals) || length(vals) != nrow(parameters)) {
+        vals <- parameters[, 3]
+      }
+      setNames(vals, parameters$ABREVIATION)
+    })
+  })
+  names(epc_vals) <- rv$epc_files
+  
+  soil_vals <- isolate({
+    if (!is.null(soil_parameters()) && !is.null(soilValues$values)) {
+      setNames(soilValues$values, soil_parameters()$ABREVIATION)
+    } else {
+      NULL
+    }
+  })
+  
+  year_range <- isolate({
+    if (input$singleYear) {
+      as.character(input$yearRange)
+    } else {
+      paste(input$yearRange[1], input$yearRange[2], sep = " - ")
+    }
+  })
+  
+  new_log <- list(
+    run_number = run_number,
+    timestamp = Sys.time(),
+    epc_values = epc_vals,
+    soil_values = soil_vals,
+    metrics = NULL,
+    year_range = year_range
+  )
+  
+  current_logs[[run_number]] <- new_log
+  runLogs(current_logs)
+  
+  run_choices <- sapply(current_logs, function(log) {
+    sprintf("Run %d - %s", log$run_number, format(log$timestamp, "%Y-%m-%d %H:%M:%S"))
+  })
+  
+  # Store current selections and update with new run
+  selected_runs <- isolate(input$selected_runs)
+  selected_params <- isolate(input$selected_params)
+  selected_param_names <- isolate(input$selected_param_names)
+  
+  selectedRunsStore(selected_runs)
+  selectedParamsStore(selected_params)
+  selectedParamNamesStore(selected_param_names)
+  
+  new_selected_runs <- c(selected_runs, run_choices[run_number])
+  updatePickerInput(session, "selected_runs",
+                    choices = run_choices,
+                    selected = new_selected_runs)
+  selectedRunsStore(new_selected_runs) # Update store with new run included
+
         w$hide()
         if (firstRun()) firstRun(FALSE) #after successful model run, we set the actual first model run to false
 
     }
     })
+
+
+
+
+selectedRunsStore <- reactiveVal(NULL)
+selectedParamsStore <- reactiveVal(NULL)
+selectedParamNamesStore <- reactiveVal(NULL)
+
+# Update stored selections when inputs change
+# observeEvent(input$selected_runs, {
+#   selectedRunsStore(input$selected_runs)
+# })
+
+# observeEvent(input$selected_params, {
+#   selectedParamsStore(input$selected_params)
+# })
+
+# observeEvent(input$selected_param_names, {
+#   selectedParamNamesStore(input$selected_param_names)
+# })
+observe({
+  shinyWidgets::updateSwitchInput(session, "show_changes_only",
+                    disabled = !input$show_comparisons)
+  if (!input$show_comparisons && input$show_changes_only) {
+    shinyWidgets::updateSwitchInput(session, "show_changes_only", value = FALSE)
+  }
+})
+
+
+"%||%" <- function(x, y) if (is.null(x)) y else x
+        # lOGGING TABLE
+# Render EPC parameter table
+observe({
+  logs <- runLogs()
+  if (length(logs) == 0) return()
+  
+  epc_files <- names(logs[[1]]$epc_values)
+  file_choices <- c(epc_files, if (!is.null(logs[[1]]$soil_values)) "Soil" else NULL)
+  updatePickerInput(session, "selected_params",
+                    choices = file_choices,
+                    selected = if (is.null(selectedParamsStore())) file_choices else selectedParamsStore())
+  
+  epc_param_names <- names(logs[[1]]$epc_values[[1]])
+  soil_param_names <- if (!is.null(logs[[1]]$soil_values)) names(logs[[1]]$soil_values) else character(0)
+  param_choices <- unique(c(epc_param_names, soil_param_names))
+  updatePickerInput(session, "selected_param_names",
+                    choices = param_choices,
+                    selected = if (is.null(selectedParamNamesStore())) param_choices[1:4] else selectedParamNamesStore())
+})
+
+observe({
+  logs <- runLogs()
+  if (length(logs) == 0) {
+    updateSelectInput(session, "apply_run",
+                      choices = c("No runs available" = ""),
+                      selected = "")
+    return()
+  }
+  
+  run_choices <- sapply(logs, function(log) {
+    sprintf("Run %d - %s", log$run_number, format(log$timestamp, "%Y-%m-%d %H:%M:%S"))
+  })
+  updateSelectInput(session, "apply_run",
+                    choices = run_choices,
+                    selected = if (length(run_choices) > 0) run_choices[length(run_choices)] else NULL)
+})
+
+observeEvent(input$applyRunParams, {
+  req(input$apply_run)
+  logs <- runLogs()
+  if (length(logs) == 0 || input$apply_run == "") {
+    myShowNotification("No valid run selected to apply.", type = "warning", duration = 5)
+    return()
+  }
+  
+  run_idx <- as.numeric(gsub("Run (\\d+) - .*", "\\1", input$apply_run))
+  run_data <- logs[[run_idx]]
+  if (is.null(run_data)) {
+    myShowNotification("Selected run data not found.", type = "error", duration = 5)
+    return()
+  }
+  
+  # Apply EPC parameters
+  epc_vals <- run_data$epc_values
+  req(epc_vals)
+  
+  selected_epc <- input$selected_epc
+  req(selected_epc)  # Ensure an EPC is selected
+  
+  param_vals <- epc_vals[[selected_epc]]
+  if (is.null(param_vals) || length(param_vals) != nrow(parameters)) {
+    myShowNotification(paste0("Invalid parameter values for ", selected_epc, "."), type = "warning", duration = 5)
+    return()
+  }
+  
+  # Update only the selected EPC
+  epcValues[[selected_epc]] <- as.numeric(param_vals)  # Ensure numeric type
+  
+  # Update sliders for the selected EPC
+  for (i in seq_len(nrow(parameters))) {
+    param_name <- parameters$ABREVIATION[i]
+    val <- param_vals[[param_name]]
+    if (is.null(val) || is.na(val)) {
+      myShowNotification(paste0("No value for parameter ", param_name, " in ", selected_epc), type = "warning", duration = 5)
+      next
+    }
+    if (is.na(parameters$group[i])) {
+      updateSliderInput(session, paste0("param_", i), value = val)
+    } else {
+      updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = val)
+    }
+  }
+  myShowNotification(paste0("Parameters applied for ", selected_epc, "."), type = "message", duration = 10)
+  
+  # Apply Soil parameters
+  soil_vals <- run_data$soil_values
+  if (!is.null(soil_vals) && !is.null(soil_parameters())) {
+    if (length(soil_vals) != nrow(soil_parameters())) {
+      myShowNotification("Soil parameter mismatch. Not applied.", type = "warning", duration = 5)
+      return()
+    }
+    soilValues$values <- as.numeric(soil_vals)  # Ensure numeric type
+    
+    lapply(1:nrow(soil_parameters()), function(i) {
+      param_name <- soil_parameters()$ABREVIATION[i]
+      val <- soil_vals[[param_name]]
+      if (!is.null(val) && !is.na(val)) {
+        updateSliderInput(session, paste0("soil_param_", i), value = val)
+      } else {
+        myShowNotification(paste0("No value for soil parameter ", param_name), type = "warning", duration = 5)
+      }
+    })
+    myShowNotification("Soil parameters applied from selected run.", type = "message", duration = 10)
+  }
+})
+
+format_table <- function(row_names, col_names, values) {
+  if (length(values) == 0 || length(col_names) == 0) return("No data to display")
+  
+  # Compute column widths: max of header length or longest *visible* formatted value
+  col_widths <- sapply(seq_along(col_names), function(j) {
+    header_len <- nchar(col_names[j])
+    value_lens <- sapply(values, function(row) {
+      val <- row[[j]]
+      if (is.null(val) || is.na(val)) 0 else nchar(strip_html(val))
+    })
+    max(header_len, max(value_lens, na.rm = TRUE), na.rm = TRUE)
+  })
+  
+  # Pad the first column (row names, e.g., "Metric", "RMSE")
+  row_name_width <- max(nchar(row_names))
+  row_name_format <- sprintf("%%-%ds", row_name_width)
+  
+  # Format the header
+  header_parts <- mapply(function(name, width) sprintf("%-*s", width, name), col_names, col_widths)
+  header <- sprintf("%s | %s", sprintf(row_name_format, " "), paste(header_parts, collapse = " | "))
+  
+  # Separator
+  separator <- paste(rep("-", nchar(header)), collapse = "")
+  
+  # Format each row
+  rows <- mapply(function(row_name, row_vals) {
+    formatted_vals <- mapply(function(val, width) {
+      if (is.null(val) || is.na(val)) sprintf("%-*s", width, "") else sprintf("%-*s", width, strip_html(val))
+    }, row_vals, col_widths)
+    # Reattach HTML tags to the padded string
+    final_vals <- mapply(function(val, formatted) {
+      if (is.null(val) || is.na(val)) formatted else gsub(strip_html(val), formatted, val, fixed = TRUE)
+    }, row_vals, formatted_vals)
+    sprintf("%s | %s", sprintf(row_name_format, row_name), paste(final_vals, collapse = " | "))
+  }, row_names, values)
+  
+  paste(header, "<br>", separator, "<br>", paste(rows, collapse = "<br>"), sep = "")
+}
+
+strip_html <- function(text) {
+  if (is.null(text) || is.na(text)) return("")
+  # Remove HTML tags, e.g., <span style='color:red'>...</span>
+  gsub("<[^>]+>", "", text)
+}
+
+# Render HTML summary
+output$run_summary <- renderUI({
+  req(input$selected_runs, input$selected_params)
+  logs <- runLogs()
+  if (length(logs) == 0) return(HTML("No runs logged yet."))
+  
+  run_indices <- as.numeric(gsub("Run (\\d+) - .*", "\\1", input$selected_runs))
+  selected_params <- input$selected_params
+  selected_param_names <- input$selected_param_names
+  latest_run <- length(logs)
+  
+  run_choices <- sapply(logs, function(log) {
+    sprintf("Run %d - %s", log$run_number, format(log$timestamp, "%Y-%m-%d %H:%M:%S"))
+  })
+  
+  live_year_range <- if (input$singleYear) {
+    as.character(input$yearRange)
+  } else {
+    paste(input$yearRange[1], input$yearRange[2], sep = " - ")
+  }
+  
+  color_value <- function(value, prev_value, metric) {
+    if (!input$show_comparisons || is.null(prev_value) || is.na(prev_value) || is.na(value)) {
+      return(ifelse(is.na(value), "NA", sprintf("%.3f", value)))
+    }
+    val_rounded <- round(value, 3)
+    prev_rounded <- round(prev_value, 3)
+    delta <- val_rounded - prev_rounded
+    
+    if (abs(delta) < 0.001) {
+      return(sprintf("%.3f", val_rounded))
+    }
+    
+    is_good_change <- switch(metric,
+      "RMSE" = delta < 0,
+      "Bias" = abs(val_rounded) < abs(prev_rounded),
+      "R²"   = delta > 0,
+      FALSE
+    )
+    
+    if (is_good_change) {
+      sprintf("<span style='color:green'>%.3f %+.3f</span>", val_rounded, delta)
+    } else {
+      sprintf("<span style='color:red'>%.3f %+.3f</span>", val_rounded, delta)
+    }
+  }
+  
+  strip_html <- function(text) {
+    if (is.null(text) || is.na(text)) return("")
+    gsub("<[^>]+>", "", text)
+  }
+  
+  format_table <- function(row_names, col_names, values) {
+    if (length(values) == 0 || length(col_names) == 0) return("No data to display")
+    
+    col_widths <- sapply(seq_along(col_names), function(j) {
+      header_len <- nchar(col_names[j])
+      value_lens <- sapply(values, function(row) {
+        val <- row[[j]]
+        if (is.null(val) || is.na(val)) 0 else nchar(strip_html(val))
+      })
+      max(header_len, max(value_lens, na.rm = TRUE), na.rm = TRUE)
+    })
+    
+    row_name_width <- max(nchar(row_names))
+    row_name_format <- sprintf("%%-%ds", row_name_width)
+    
+    header_parts <- mapply(function(name, width) sprintf("%-*s", width, name), col_names, col_widths)
+    header <- sprintf("%s | %s", sprintf(row_name_format, " "), paste(header_parts, collapse = " | "))
+    
+    separator <- paste(rep("-", nchar(header)), collapse = "")
+    
+    rows <- mapply(function(row_name, row_vals) {
+      formatted_vals <- mapply(function(val, width) {
+        if (is.null(val) || is.na(val)) sprintf("%-*s", width, "") else sprintf("%-*s", width, strip_html(val))
+      }, row_vals, col_widths)
+      final_vals <- mapply(function(val, formatted) {
+        if (is.null(val) || is.na(val)) formatted else gsub(strip_html(val), formatted, val, fixed = TRUE)
+      }, row_vals, formatted_vals)
+      sprintf("%s | %s", sprintf(row_name_format, row_name), paste(final_vals, collapse = " | "))
+    }, row_names, values)
+    
+    paste(header, "<br>", separator, "<br>", paste(rows, collapse = "<br>"), sep = "")
+  }
+  
+  summary_html <- lapply(run_indices, function(run_idx) {
+    run_data <- logs[[run_idx]]
+    if (is.null(run_data)) return(sprintf("<p>Run %d: Data not found</p>", run_idx))
+    
+    year_range <- if (run_idx == latest_run) live_year_range else run_data$year_range
+    meta <- sprintf("<b>Run %d - %s (Year Range: %s)</b>",
+                    run_data$run_number,
+                    format(run_data$timestamp, "%Y-%m-%d %H:%M:%S"),
+                    year_range)
+    
+    compare_input_id <- paste0("compare_run_", run_idx)
+    compare_choices <- run_choices[-run_idx]
+    default_compare <- if (run_idx > 1) run_choices[run_idx - 1] else (if (length(compare_choices) > 0) compare_choices[1] else NULL)
+    current_selection <- input[[compare_input_id]]
+    
+    compare_selector <- if (length(compare_choices) > 0) {
+      sprintf('<div style="float:right;"><select id="%s" onchange="Shiny.setInputValue(\'%s\', this.value)">%s</select></div>',
+              compare_input_id, compare_input_id,
+              paste0(c(sprintf('<option value="">None</option>'),
+                       sapply(compare_choices, function(ch) {
+                         current_selection <- input[[compare_input_id]] %||% ""
+                         default_compare <- if (run_idx > 1 && run_idx <= length(run_choices)) run_choices[run_idx - 1] else if (length(compare_choices) > 0) compare_choices[1] else ""
+                         is_selected <- !is.na(ch) && (ch == current_selection || (current_selection == "" && ch == default_compare))
+                         selected <- if (is_selected) ' selected' else ''
+                         sprintf('<option value="%s"%s>%s</option>', ch, selected, ch)
+                       })), collapse = ""))
+    } else {
+      ""
+    }
+    
+    compare_run <- if (!is.null(current_selection) && current_selection %in% c("", compare_choices)) current_selection else default_compare
+    prev_idx <- if (!is.null(compare_run) && compare_run != "") which(run_choices == compare_run) else NULL
+    prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
+    
+    # EPC Parameters
+    epc_vals <- run_data$epc_values
+    selected_epcs <- intersect(names(epc_vals), selected_params)
+    if (length(selected_epcs) == 0) {
+      epc_text <- "EPC Parameters: None selected"
+    } else {
+      epc_param_names <- intersect(names(epc_vals[[1]]), selected_param_names)
+      if (length(epc_param_names) == 0) {
+        epc_text <- "EPC Parameters: No parameters selected"
+      } else {
+        if (input$show_comparisons && input$show_changes_only && !is.null(prev_data)) {
+          changed_epcs <- sapply(selected_epcs, function(epc) {
+            current <- epc_vals[[epc]]
+            prev <- prev_data$epc_values[[epc]]
+            any(sapply(epc_param_names, function(p) {
+              abs(round(current[[p]], 3) - round(prev[[p]], 3)) >= 0.001
+            }))
+          })
+          selected_epcs <- selected_epcs[changed_epcs]
+          if (length(selected_epcs) == 0) {
+            epc_text <- "EPC Parameters: No changes detected"
+          } else {
+            formatted_vals <- lapply(epc_param_names, function(param) {
+              sapply(selected_epcs, function(epc) {
+                val <- epc_vals[[epc]][[param]]
+                prev_val <- prev_data$epc_values[[epc]][[param]]
+                delta <- round(val, 3) - round(prev_val, 3)
+                if (abs(delta) >= 0.001) color_value(val, prev_val, "EPC") else NULL
+              }, simplify = FALSE)
+            })
+            
+            has_significant_change <- sapply(seq_along(epc_param_names), function(i) {
+              any(sapply(formatted_vals[[i]], function(val) !is.null(val)))
+            })
+            epc_param_names <- epc_param_names[has_significant_change]
+            formatted_vals <- lapply(formatted_vals[has_significant_change], function(row) {
+              row[sapply(row, function(x) !is.null(x))]
+            })
+            selected_epcs <- selected_epcs[sapply(formatted_vals[[1]], function(x) !is.null(x))]
+            
+            if (length(epc_param_names) == 0 || length(selected_epcs) == 0) {
+              epc_text <- "EPC Parameters: No changes detected"
+            } else {
+              epc_text <- paste("EPC Parameters:<br>", format_table(epc_param_names, selected_epcs, formatted_vals), sep = "")
+            }
+          }
+        } else {
+          formatted_vals <- lapply(epc_param_names, function(param) {
+            sapply(selected_epcs, function(epc) {
+              val <- epc_vals[[epc]][[param]]
+              prev_val <- if (!is.null(prev_data)) prev_data$epc_values[[epc]][[param]] else NULL
+              color_value(val, prev_val, "EPC")
+            }, simplify = FALSE)
+          })
+          epc_text <- paste("EPC Parameters:<br>", format_table(epc_param_names, selected_epcs, formatted_vals), sep = "")
+        }
+      }
+    }
+    
+    # Soil Parameters
+    soil_vals <- run_data$soil_values
+    has_soil <- "Soil" %in% selected_params && !is.null(soil_vals)
+    if (!has_soil) {
+      soil_text <- "Soil Parameters: None selected or available"
+    } else {
+      soil_param_names <- intersect(names(soil_vals), selected_param_names)
+      if (length(soil_param_names) == 0) {
+        soil_text <- "Soil Parameters: No parameters selected"
+      } else {
+        if (input$show_comparisons && input$show_changes_only && !is.null(prev_data)) {
+          formatted_vals <- lapply(soil_param_names, function(param) {
+            val <- soil_vals[[param]]
+            prev_val <- prev_data$soil_values[[param]]
+            delta <- round(val, 3) - round(prev_val, 3)
+            if (abs(delta) >= 0.001) list(color_value(val, prev_val, "Soil")) else list(NULL)
+          })
+          
+          has_significant_change <- sapply(formatted_vals, function(val) !is.null(val[[1]]))
+          soil_param_names <- soil_param_names[has_significant_change]
+          formatted_vals <- formatted_vals[has_significant_change]
+          
+          if (length(soil_param_names) == 0) {
+            soil_text <- "Soil Parameters: No changes detected"
+          } else {
+            soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, "Soil", formatted_vals), sep = "")
+          }
+        } else {
+          formatted_vals <- lapply(soil_param_names, function(param) {
+            val <- soil_vals[[param]]
+            prev_val <- if (!is.null(prev_data)) prev_data$soil_values[[param]] else NULL
+            list(color_value(val, prev_val, "Soil"))
+          })
+          soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, "Soil", formatted_vals), sep = "")
+        }
+      }
+    }
+    
+    # Metrics
+    metrics <- if (run_idx == latest_run) metricsData() else run_data$metrics
+    if (is.null(metrics) || nrow(metrics) == 0) {
+      metrics_text <- "Metrics: Not available"
+    } else {
+      var_names <- sprintf("%s (%s)", metrics$Measurement, metrics$OutputVariable)
+      metric_types <- c("RMSE", "Bias", "R²")
+      prev_metrics <- if (!is.null(prev_data)) {
+        if (prev_idx == latest_run) metricsData() else prev_data$metrics
+      } else NULL
+      
+      if (!is.null(prev_metrics) && nrow(prev_metrics) > 0) {
+        prev_map <- list(
+          RMSE = setNames(prev_metrics$RMSE, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable)),
+          Bias = setNames(prev_metrics$BIAS, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable)),
+          "R²" = setNames(prev_metrics$Correlation, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable))
+        )
+        
+        if (input$show_comparisons && input$show_changes_only) {
+          formatted_vals_all <- lapply(metric_types, function(metric) {
+            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+            prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
+            mapply(function(v, pv) {
+              if (is.na(v) || is.na(pv)) return(NULL)
+              delta <- round(v, 3) - round(pv, 3)
+              if (abs(delta) >= 0.001) color_value(v, pv, metric) else NULL
+            }, values, prev_values, SIMPLIFY = FALSE)
+          })
+          
+          has_significant_change <- sapply(seq_along(var_names), function(i) {
+            any(sapply(formatted_vals_all, function(metric_vals) !is.null(metric_vals[[i]])))
+          })
+          
+          var_names <- var_names[has_significant_change]
+          if (length(var_names) == 0) {
+            metrics_text <- "Metrics: No changes detected"
+          } else {
+            formatted_vals <- lapply(metric_types, function(metric) {
+              values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+              prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
+              mapply(function(v, pv) {
+                if (is.na(v) || is.na(pv)) return(NULL)
+                delta <- round(v, 3) - round(pv, 3)
+                if (abs(delta) >= 0.001) color_value(v, pv, metric) else NULL
+              }, values[has_significant_change], prev_values, SIMPLIFY = FALSE)
+            })
+            
+            metrics_text <- paste("Metrics:<br>", format_table(metric_types, var_names, formatted_vals), sep = "")
+          }
+        } else {
+          formatted_vals <- lapply(metric_types, function(metric) {
+            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+            prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
+            mapply(function(v, pv) color_value(v, pv, metric), values, prev_values, SIMPLIFY = FALSE)
+          })
+          metrics_text <- paste("Metrics:<br>", format_table(metric_types, var_names, formatted_vals), sep = "")
+        }
+      } else {
+        formatted_vals <- lapply(metric_types, function(metric) {
+          values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+          lapply(values, function(v) sprintf("%.3f", v))
+        })
+        metrics_text <- paste("Metrics:<br>", format_table(metric_types, var_names, formatted_vals), sep = "")
+      }
+    }
+    
+    paste("<pre>", meta, compare_selector, "<br><br>", epc_text, "<br><br>", soil_text, "<br><br>", metrics_text, "</pre>", sep = "")
+  })
+  HTML(paste(summary_html, collapse = "<hr>"))
+})
+
+# Render metrics table
+observeEvent(metricsData(), {
+current_logs <- runLogs()
+  if (length(current_logs) == 0) return()
+  
+  run_number <- length(current_logs)
+  metrics <- metricsData()
+  year_range <- if (input$singleYear) {
+    as.character(input$yearRange)
+  } else {
+    paste(input$yearRange[1], input$yearRange[2], sep = " - ")
+  }
+  
+  if (!is.null(metrics) && nrow(metrics) > 0) {
+    current_logs[[run_number]]$metrics <- metrics
+    current_logs[[run_number]]$year_range <- year_range  # Update year_range here
+    runLogs(current_logs)
+    #print("Updated runLogs with metrics and year_range for run:", run_number)
+  } #else {
+    #print("No valid metrics to store")
+  #}
+  
+  #print("Finished observeEvent for metricsData")
+})
+
+
 
         # restoring scrollbar position
         observe({
