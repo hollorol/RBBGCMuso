@@ -480,6 +480,15 @@ function wrapText(elementId, openTag, closeTag) {
     max-height: 500px;
     overflow-y: auto;
     }
+
+    .apply-btn {
+        padding: 6px 12px; /* Default padding */
+        font-size: 14px;   /* Default font size */
+    }
+    .apply-btn:hover {
+        transform: scale(1.1); /* Increase size by 10% on hover */
+        background-color: #218838; /* Slightly darker green on hover */
+    }
   "))),
 
      waiterShowOnLoad(
@@ -755,101 +764,95 @@ function wrapText(elementId, openTag, closeTag) {
                         ),
 
 
-tabPanel("Run Logger",
-  fluidRow(
-    column(12,
-      div(style = "margin-bottom: 10px;",
-        pickerInput(
-          inputId = "selected_runs",
-          label = "Select Run(s)",
-          choices = NULL,
-          multiple = TRUE,
-          options = list(
-            `actions-box` = TRUE,
-            `selected-text-format` = "count > 2",
-            `count-selected-text` = "{0} runs selected",
-            `live-search` = TRUE,
-            `dropdown-align-right` = FALSE,
-            `multiple-separator` = ", "
-          ),
-          width = "300px"
-        )
-      ),
-      # Add selectInput for choosing a run to apply
-      div(style = "margin-bottom: 10px;",
-        selectInput(
-          inputId = "apply_run",
-          label = "Select Run to Apply",
-          choices = NULL,  # Will be updated dynamically
-          selectize = TRUE,
-          width = "300px"
-        )
-      ),
-      # Add Apply button
-      div(style = "margin-bottom: 10px;",
-        actionButton(
-          inputId = "applyRunParams",
-          label = "Apply Run Parameters",
-          style = "color: #fff; background-color: #28a745; border-color: #28a745;"  # Green button
-        )
-      ),
-      div(style = "margin-bottom: 10px;",
-        pickerInput(
-          inputId = "selected_params",
-          label = "Select Files to Display",
-          choices = NULL,
-          multiple = TRUE,
-          options = list(
-            `actions-box` = TRUE,
-            `selected-text-format` = "count > 3",
-            `count-selected-text` = "{0} files selected",
-            `live-search` = TRUE,
-            `dropdown-align-right` = FALSE,
-            `multiple-separator` = ", "
-          ),
-          width = "400px"
-        )
-      ),
-      div(style = "margin-bottom: 10px;",
-        pickerInput(
-          inputId = "selected_param_names",
-          label = "Select Parameters",
-          choices = NULL,
-          multiple = TRUE,
-          options = list(
-            `actions-box` = TRUE,
-            `selected-text-format` = "count > 3",
-            `count-selected-text` = "{0} parameters selected",
-            `live-search` = TRUE,
-            `dropdown-align-right` = FALSE,
-            `multiple-separator` = ", "
-          ),
-          width = "400px"
-        )
-      ),
-      div(style = "margin-bottom: 10px;",
-        shinyWidgets::switchInput(
-          inputId = "show_comparisons",
-          label = "Show Comparisons",
-          value = FALSE,
-          onLabel = "ON",
-          offLabel = "OFF",
-          size = "small"
-        ),
-        shinyWidgets::switchInput(
-          inputId = "show_changes_only",
-          label = "Show Changes Only",
-          value = FALSE,
-          onLabel = "ON",
-          offLabel = "OFF",
-          size = "small",
-          disabled = TRUE  # Disabled unless Show Comparisons is ON
-        )
-      ),
-      shiny::htmlOutput("run_summary")
-    )
-  )
-)
+                tabPanel("Run Logger",
+                    fluidRow(
+                        column(12,
+                        div(style = "margin-bottom: 10px;",
+                            pickerInput(
+                            inputId = "selected_runs",
+                            label = "Select Run(s)",
+                            choices = NULL,
+                            multiple = TRUE,
+                            options = list(
+                                `actions-box` = TRUE,
+                                `selected-text-format` = "count > 2",
+                                `count-selected-text` = "{0} runs selected",
+                                `live-search` = TRUE,
+                                `dropdown-align-right` = FALSE,
+                                `multiple-separator` = ", "
+                            ),
+                            width = "300px"
+                            )
+                        ),
+                        # Add selectInput for choosing a run to apply
+                       div(style = "margin-bottom: 10px; display: flex; align-items: center;",
+                            actionButton(
+                                inputId = "applyRunParams",
+                                label = "Apply",
+                                class = "apply-btn",
+                                style = "color: #fff; background-color: #28a745; border-color: #28a745; margin-right: 8px; transition: transform 0.2s;"
+                            ),
+                            shiny::span("parameters of run"),
+                            uiOutput("apply_run_ui", style = "margin: 0 8px;"),
+                            shiny::span("to current slider values")
+                        ),
+                        div(style = "margin-bottom: 10px;",
+                            pickerInput(
+                            inputId = "selected_params",
+                            label = "Select Files to Display",
+                            choices = NULL,
+                            multiple = TRUE,
+                            options = list(
+                                `actions-box` = TRUE,
+                                `selected-text-format` = "count > 3",
+                                `count-selected-text` = "{0} files selected",
+                                `live-search` = TRUE,
+                                `dropdown-align-right` = FALSE,
+                                `multiple-separator` = ", "
+                            ),
+                            width = "400px"
+                            )
+                        ),
+                        div(style = "margin-bottom: 10px;",
+                            pickerInput(
+                            inputId = "selected_param_names",
+                            label = "Select Parameters",
+                            choices = NULL,
+                            multiple = TRUE,
+                            options = list(
+                                `actions-box` = TRUE,
+                                `selected-text-format` = "count > 3",
+                                `count-selected-text` = "{0} parameters selected",
+                                `live-search` = TRUE,
+                                `dropdown-align-right` = FALSE,
+                                `multiple-separator` = ", "
+                            ),
+                            width = "400px"
+                            )
+                        ),
+                        div(style = "margin-bottom: 10px;",
+                            shinyWidgets::switchInput(
+                            inputId = "show_comparisons",
+                            label = "Show Comparisons",
+                            value = FALSE,
+                            onLabel = "ON",
+                            offLabel = "OFF",
+                            size = "small"
+                            ),
+                            shinyWidgets::switchInput(
+                            inputId = "show_changes_only",
+                            label = "Show Changes Only",
+                            value = FALSE,
+                            onLabel = "ON",
+                            offLabel = "OFF",
+                            size = "small",
+                            disabled = TRUE  # Disabled unless Show Comparisons is ON
+                            )
+                        ),
+                        shiny::htmlOutput("run_summary")
+                        )
+                    )
+                )
               )
           ),
           options = list(handles = "e")  # Allow resizing only on the right edge
@@ -3212,18 +3215,6 @@ selectedRunsStore <- reactiveVal(NULL)
 selectedParamsStore <- reactiveVal(NULL)
 selectedParamNamesStore <- reactiveVal(NULL)
 
-# Update stored selections when inputs change
-# observeEvent(input$selected_runs, {
-#   selectedRunsStore(input$selected_runs)
-# })
-
-# observeEvent(input$selected_params, {
-#   selectedParamsStore(input$selected_params)
-# })
-
-# observeEvent(input$selected_param_names, {
-#   selectedParamNamesStore(input$selected_param_names)
-# })
 observe({
   shinyWidgets::updateSwitchInput(session, "show_changes_only",
                     disabled = !input$show_comparisons)
@@ -3254,21 +3245,30 @@ observe({
                     selected = if (is.null(selectedParamNamesStore())) param_choices[1:4] else selectedParamNamesStore())
 })
 
-observe({
+output$apply_run_ui <- renderUI({
   logs <- runLogs()
   if (length(logs) == 0) {
-    updateSelectInput(session, "apply_run",
-                      choices = c("No runs available" = ""),
-                      selected = "")
-    return()
+    return(tags$select(
+      id = "apply_run",
+      style = "width: 50px; height: 30px; padding: 2px; font-size: 14px; border-radius: 4px;",
+      tags$option(value = "", "N/A")
+    ))
   }
   
-  run_choices <- sapply(logs, function(log) {
-    sprintf("Run %d - %s", log$run_number, format(log$timestamp, "%Y-%m-%d %H:%M:%S"))
-  })
-  updateSelectInput(session, "apply_run",
-                    choices = run_choices,
-                    selected = if (length(run_choices) > 0) run_choices[length(run_choices)] else NULL)
+  run_numbers <- sapply(logs, function(log) log$run_number)
+  selected_run <- if (length(run_numbers) > 0) run_numbers[length(run_numbers)] else NULL
+  
+  tags$select(
+    id = "apply_run",
+    style = "width: 50px; height: 30px; padding: 2px; font-size: 14px; border-radius: 4px;",
+    lapply(run_numbers, function(num) {
+      tags$option(
+        value = num,
+        selected = if (!is.null(selected_run) && num == selected_run) "selected" else NULL,
+        num
+      )
+    })
+  )
 })
 
 observeEvent(input$applyRunParams, {
@@ -3336,7 +3336,7 @@ observeEvent(input$applyRunParams, {
         myShowNotification(paste0("No value for soil parameter ", param_name), type = "warning", duration = 5)
       }
     })
-    myShowNotification("Soil parameters applied from selected run.", type = "message", duration = 10)
+    myShowNotification("Soil parameters applied from selected run if applicable", type = "message", duration = 10)
   }
 })
 
@@ -3485,24 +3485,32 @@ output$run_summary <- renderUI({
     default_compare <- if (run_idx > 1) run_choices[run_idx - 1] else (if (length(compare_choices) > 0) compare_choices[1] else NULL)
     current_selection <- input[[compare_input_id]]
     
-    compare_selector <- if (length(compare_choices) > 0) {
-      sprintf('<div style="float:right;"><select id="%s" onchange="Shiny.setInputValue(\'%s\', this.value)">%s</select></div>',
-              compare_input_id, compare_input_id,
-              paste0(c(sprintf('<option value="">None</option>'),
-                       sapply(compare_choices, function(ch) {
-                         current_selection <- input[[compare_input_id]] %||% ""
-                         default_compare <- if (run_idx > 1 && run_idx <= length(run_choices)) run_choices[run_idx - 1] else if (length(compare_choices) > 0) compare_choices[1] else ""
-                         is_selected <- !is.na(ch) && (ch == current_selection || (current_selection == "" && ch == default_compare))
-                         selected <- if (is_selected) ' selected' else ''
-                         sprintf('<option value="%s"%s>%s</option>', ch, selected, ch)
-                       })), collapse = ""))
-    } else {
-      ""
-    }
+compare_selector <- if (length(compare_choices) > 0) {
+sprintf('<div style="float:right;"><span style="margin-right: 10px;font-weight: bold;">This run will be compared with</span><select id="%s" onchange="Shiny.setInputValue(\'%s\', this.value)">%s</select></div>',          compare_input_id, compare_input_id,
+          paste0(c(sprintf('<option value="">None</option>'),
+                   sapply(compare_choices, function(ch) {
+                     # Use the current selection from input, default to "" if not set
+                     current_selection <- input[[compare_input_id]] %||% ""
+                     # Default comparison run (used only if no selection has been made yet)
+                     default_compare <- if (run_idx > 1 && run_idx <= length(run_choices)) run_choices[run_idx - 1] else if (length(compare_choices) > 0) compare_choices[1] else ""
+                     # Select the option if it matches the current selection
+                     # Only use default_compare if current_selection is not set (initial render)
+                     is_selected <- if (current_selection == "") {
+                       # If current_selection is "", select "None" unless this is the initial render
+                       if (is.null(input[[compare_input_id]])) (ch == default_compare) else (ch == "")
+                     } else {
+                       (ch == current_selection)
+                     }
+                     selected <- if (is_selected) ' selected' else ''
+                     sprintf('<option value="%s"%s>%s</option>', ch, selected, ch)
+                   })), collapse = ""))
+} else {
+  ""
+}
     
-    compare_run <- if (!is.null(current_selection) && current_selection %in% c("", compare_choices)) current_selection else default_compare
-    prev_idx <- if (!is.null(compare_run) && compare_run != "") which(run_choices == compare_run) else NULL
-    prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
+compare_run <- if (!is.null(current_selection) && current_selection %in% c("", compare_choices)) current_selection else default_compare
+prev_idx <- if (!is.null(compare_run) && compare_run != "") which(run_choices == compare_run) else NULL
+prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
     
     # EPC Parameters
     epc_vals <- run_data$epc_values
@@ -5247,7 +5255,7 @@ current_logs <- runLogs()
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.0</strong></p>
+                    <p><strong>Version 2.19.1</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
