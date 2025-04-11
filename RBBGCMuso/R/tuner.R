@@ -1801,7 +1801,7 @@ tuneMusoServer <- function(input, output, session){
     })
 
 
-    # original values for epc
+    # original values for pc
   #  defaultValues <- reactive({
   #  req(input$selected_epc)
   #  musoGetValues(input$selected_epc, parameters[, 2])
@@ -3027,7 +3027,7 @@ tuneMusoServer <- function(input, output, session){
         # starting waiter animation
         w$show()
         # updating current epc values MIGHT BE OBSOLETE since we update epcValues on slider change anyway
-        #updateCurrentEPCValues()
+        #updateCurrentEPCValues
         
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
@@ -3252,7 +3252,8 @@ observe({
   if (length(logs) == 0) return()
   
   epc_files <- names(logs[[1]]$epc_values)
-  file_choices <- c(epc_files, if (!is.null(logs[[1]]$soil_values)) "Soil" else NULL)
+  soil_name <- soil_file()
+  file_choices <- c(epc_files, if (!is.null(logs[[1]]$soil_values)) soil_name else NULL)
   updatePickerInput(session, "selected_params",
                     choices = file_choices,
                     selected = if (is.null(selectedParamsStore())) file_choices else selectedParamsStore())
@@ -3264,6 +3265,26 @@ observe({
                     choices = param_choices,
                     selected = if (is.null(selectedParamNamesStore())) param_choices[1:4] else selectedParamNamesStore())
 })
+
+observeEvent(input$yearRange, {
+  
+  selected_runs <- isolate(input$selected_runs)
+  selected_params <- isolate(input$selected_params)
+  selected_param_names <- isolate(input$selected_param_names)
+  
+  
+  selectedRunsStore(selected_runs)
+  selectedParamsStore(selected_params)
+  selectedParamNamesStore(selected_param_names)
+  
+  
+  updatePickerInput(
+    session,
+    inputId = "selected_runs",
+    selected = selected_runs
+  )
+})
+
 
 output$apply_run_ui <- renderUI({
   logs <- runLogs()
@@ -3593,7 +3614,8 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
     
     # Soil Parameters
     soil_vals <- run_data$soil_values
-    has_soil <- "Soil" %in% selected_params && !is.null(soil_vals)
+    soil_name <- soil_file()
+    has_soil <- soil_name %in% selected_params && !is.null(soil_vals)
     if (!has_soil) {
       soil_text <- "Soil Parameters: None selected or available"
     } else {
@@ -3606,7 +3628,7 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
             val <- soil_vals[[param]]
             prev_val <- prev_data$soil_values[[param]]
             delta <- round(val, 3) - round(prev_val, 3)
-            if (abs(delta) >= 0.001) list(color_value(val, prev_val, "Soil")) else list(NULL)
+            if (abs(delta) >= 0.001) list(color_value(val, prev_val, soil_name)) else list(NULL)
           })
           
           has_significant_change <- sapply(formatted_vals, function(val) !is.null(val[[1]]))
@@ -3616,15 +3638,15 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
           if (length(soil_param_names) == 0) {
             soil_text <- "Soil Parameters: No changes detected"
           } else {
-            soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, "Soil", formatted_vals), sep = "")
+            soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, soil_name, formatted_vals), sep = "")
           }
         } else {
           formatted_vals <- lapply(soil_param_names, function(param) {
             val <- soil_vals[[param]]
             prev_val <- if (!is.null(prev_data)) prev_data$soil_values[[param]] else NULL
-            list(color_value(val, prev_val, "Soil"))
+            list(color_value(val, prev_val, soil_name))
           })
-          soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, "Soil", formatted_vals), sep = "")
+          soil_text <- paste("Soil Parameters:<br>", format_table(soil_param_names, soil_name, formatted_vals), sep = "")
         }
       }
     }
@@ -5275,7 +5297,7 @@ current_logs <- runLogs()
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.2</strong></p>
+                    <p><strong>Version 2.19.3</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
