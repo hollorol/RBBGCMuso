@@ -52,41 +52,44 @@ tuneMusoUI <- function(parameterFile = NULL, ...) {
         "
 
         hide_plot_area <- "
-            $(document).ready(function() {
-                Shiny.addCustomMessageHandler('toggle_plot_visibility', function(message) {
-                    let plotPanel = $('#plotPanel');
-                    let controlPanel = $('#controlPanel');
-                    let button = $('#toggle_plot_field');
-                    let standardSliders = $('#standardSliders'); // for non-grouped sliders
-                    let dependentContainers = $('.dependentSliderContainer'); // for grouped sliders
-                    let parametersLayout = $('#parametersLayout'); // container for controls
-                    let hotkeyContainer = $('#hotkeyContainer');
-                    
-                    plotPanel.toggle();
-                    if (plotPanel.is(':visible')) {
-                        button.text('Hide Plot Area');
-                        button.find('i').removeClass('eye').addClass('eye-slash');
-                        controlPanel.css({'flex': '0 1 auto', 'max-width': '450px'});
-                        standardSliders.removeClass('expanded');
-                        dependentContainers.removeClass('expanded');
-                        parametersLayout.removeClass('expanded');
-                        $('#hotkeyOriginal').append(hotkeyContainer);
-                        hotkeyContainer.find('#runMusoExtra').show();
-                        Shiny.setInputValue('plotHidden', false);
-                    } else {
-                        button.text('Show Plot Area');
-                        button.find('i').removeClass('eye-slash').addClass('eye');
-                        controlPanel.css({'flex': '1 1 100%', 'max-width': 'none'});
-                        standardSliders.addClass('expanded');
-                        dependentContainers.addClass('expanded');
-                        parametersLayout.addClass('expanded');
-                        $('.colRight').append(hotkeyContainer);
-                        hotkeyContainer.find('#runMusoExtra').hide();
-                        Shiny.setInputValue('plotHidden', true);
-                    }
-                    $(window).trigger('resize');
-                });
-            });
+        $(document).ready(function() {
+        Shiny.addCustomMessageHandler('toggle_plot_visibility', function(message) {
+            let plotPanel = $('#plotPanel');
+            let controlPanel = $('#controlPanel');
+            let button = $('#toggle_plot_field');
+            let standardSliders = $('#standardSliders');
+            let dependentContainers = $('.dependentSliderContainer');
+            let parametersLayout = $('#parametersLayout');
+            let runLoggerLayout = $('#runLoggerLayout');
+            let hotkeyContainer = $('#hotkeyContainer');
+            
+            plotPanel.toggle();
+            if (plotPanel.is(':visible')) {
+                button.text('Hide Plot Area');
+                button.find('i').removeClass('eye').addClass('eye-slash');
+                controlPanel.css({'flex': '0 1 auto', 'max-width': '450px'});
+                standardSliders.removeClass('expanded');
+                dependentContainers.removeClass('expanded');
+                parametersLayout.removeClass('expanded');
+                runLoggerLayout.removeClass('expanded');
+                $('#hotkeyOriginal').append(hotkeyContainer); // Move back to original spot
+                hotkeyContainer.find('#runMusoExtra').show();
+                Shiny.setInputValue('plotHidden', false);
+            } else {
+                button.text('Show Plot Area');
+                button.find('i').removeClass('eye-slash').addClass('eye');
+                controlPanel.css({'flex': '1 1 100%', 'max-width': 'none'});
+                standardSliders.addClass('expanded');
+                dependentContainers.addClass('expanded');
+                parametersLayout.addClass('expanded');
+                runLoggerLayout.addClass('expanded');
+                $('#parametersLayout .colRight').append(hotkeyContainer); // Scope to Parameters' colRight
+                hotkeyContainer.find('#runMusoExtra').hide();
+                Shiny.setInputValue('plotHidden', true);
+            }
+            $(window).trigger('resize');
+        });
+    });
         "
 
     # expanded window, yes
@@ -489,6 +492,34 @@ function wrapText(elementId, openTag, closeTag) {
         transform: scale(1.1); /* Increase size by 10% on hover */
         background-color: #218838; /* Slightly darker green on hover */
     }
+    #runLoggerLayout.expanded {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
+
+    #runLoggerLayout.expanded .colLeft,
+    #runLoggerLayout.expanded .colRight {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    #runLoggerLayout .colLeft .form-group.shiny-input-container {
+    margin-right: 5px; /* Reduce the margin between switches */
+    margin-left: 0; /* Ensure no extra left margin */
+    display: inline-block; /* Ensure they stay inline */
+    }
+
+    /* Optional: Reduce space between label and switch */
+    #runLoggerLayout .colLeft .control-label {
+        margin-right: 5px; /* Reduce space between label and switch */
+    }
+
+    /* Ensure the flex container has no extra gap */
+    #runLoggerLayout .colLeft .switch-container-flex {
+        gap: 0px; /* Already set, but ensure it’s applied */
+    }
+
   "))),
 
      waiterShowOnLoad(
@@ -575,43 +606,43 @@ function wrapText(elementId, openTag, closeTag) {
 
 
   # Main container with both panels
-  div(class = "row-container",
-      # Resizable control panel using jqui
-      jqui_resizable(
-          div(
-              id = "controlPanel",
-              tabsetPanel(type = "tabs",
-                          tabPanel("Parameters",
-                                   # Container for two columns when UI is expanded
-                                   div(id = "parametersLayout",
-                                       # Left column: top Run Muso button, variable picker, and file input
-                                       div(class = "colLeft",
-                                           div(style = "margin-top: 10px;",
-                                               actionButton("runModel", "Run Muso",
-                                                style = "background-color: red; color: white; border-color: red;")
-                                           ),
-                                           tags$div(
-                                               id = "controlp",
-                                               pickerInput(
-                                                   inputId = "selected_vars",
-                                                   label = "Select output variables (multiple can be chosen)",
-                                                   choices = settings$dailyOutputTable$name, 
-                                                   multiple = TRUE,
-                                                   options = list(`actions-box` = TRUE)
-                                               )
-                                           ),
-                                           fileInput("measurementFile", "Upload Measurement Files", 
-                                                     accept = c(".txt",".csv"), multiple = TRUE)
-                                       ),
-                                       # Right column: checkboxes, single year, year range.
-                                       div(class = "colRight",
+    div(class = "row-container",
+        # Resizable control panel using jqui
+        jqui_resizable(
+            div(
+                id = "controlPanel",
+                tabsetPanel(type = "tabs",
+                            tabPanel("Parameters",
+                                    # Container for two columns when UI is expanded
+                                    div(id = "parametersLayout",
+                                        # Left column: top Run Muso button, variable picker, and file input
+                                        div(class = "colLeft",
+                                            div(style = "margin-top: 10px;",
+                                                actionButton("runModel", "Run Muso",
+                                                            style = "background-color: red; color: white; border-color: red;")
+                                            ),
+                                            tags$div(
+                                                id = "controlp",
+                                                pickerInput(
+                                                    inputId = "selected_vars",
+                                                    label = "Select output variables (multiple can be chosen)",
+                                                    choices = settings$dailyOutputTable$name,
+                                                    multiple = TRUE,
+                                                    options = list(`actions-box` = TRUE)
+                                                )
+                                            ),
+                                            fileInput("measurementFile", "Upload Measurement Files",
+                                                    accept = c(".txt",".csv"), multiple = TRUE)
+                                        ),
+                                        # Right column: checkboxes, single year, year range.
+                                        div(class = "colRight",
                                             div(style = "display: flex; gap: 10px;",
-                                                    radioButtons("plotType", "Plot Type:",
-                                                                choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
-                                                                selected = "line",
-                                                                inline = TRUE)
-                                                ),
-                                                checkboxInput(
+                                                radioButtons("plotType", "Plot Type:",
+                                                            choices = c("Line Plot" = "line", "Scatter Plot" = "scatter"),
+                                                            selected = "line",
+                                                            inline = TRUE)
+                                            ),
+                                            checkboxInput(
                                                 "lastRun", "Show Previous Model Run", value = FALSE
                                             ),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
@@ -622,249 +653,238 @@ function wrapText(elementId, openTag, closeTag) {
                                                 checkboxInput("singleYear", "Single year mode", value = FALSE),
                                                 checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
                                             ),
-                                           uiOutput("yearRangeUI")
-                                       )
-                                   ),
+                                            uiOutput("yearRangeUI")
+                                        )
+                                    ),
                                     div(
                                         style = "display: flex; align-items: center; gap: 10px;",
-                                            div(
-                                                style = "width: 300px;",  
-                                                uiOutput("selectEPC")
-                                            ),
-                                            div(
-                                                style = "margin-top: 9.5px;",
-                                                title = "Switch between EPC and Soil Sliders",
-                                                actionButton(
-                                                    "switch_mode",
-                                                    label = tags$span(
+                                        div(
+                                            style = "width: 300px;",
+                                            uiOutput("selectEPC")
+                                        ),
+                                        div(
+                                            style = "margin-top: 9.5px;",
+                                            title = "Switch between EPC and Soil Sliders",
+                                            actionButton(
+                                                "switch_mode",
+                                                label = tags$span(
                                                     class = "switch-container",
-                                                    icon("arrow-up",   class = "switch-icon green-up"),
+                                                    icon("arrow-up", class = "switch-icon green-up"),
                                                     icon("arrow-down", class = "switch-icon brown-down")
-                                                    ),
-                                                    style = "border: none; background: none; padding: 0;"
-                                                )
-
+                                                ),
+                                                style = "border: none; background: none; padding: 0;"
                                             )
+                                        )
                                     ),
-                                   # Reset buttons
-                                   tags$div(
-                                       style = "display: flex; align-items: center; gap: 10px;", 
-                                       actionButton("resetRun", "Reset to Previous Run"),
-                                      
-                                       div(
-                                        style = "margin-top: 0px;",
-                                        actionButton("restoreParams","Reset to Last Good Values")
-                                       )
-                                   ),
+                                    # Reset buttons
                                     tags$div(
-                                       style = "display: flex; align-items: center; gap: 10px;", 
-                                        actionButton("resetParams", "Reset to originals"),
-                                       div(
-                                        style = "margin-top: 6px;",
-                                        checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
-                                       )
-                                   ),
-                                   
-                                   tags$div(id = "controlp",
-                                            tags$div(id = "slider-container", uiOutput("param_sliders"))
-                                   ),
-                                
-                                   # Hotkey container placeholder & container
-                                div(id = "hotkeyOriginal",
-                                       div(id = "hotkeyContainer",
-                                        
-                                           # First row: hotkey input
-                                           tags$div(
-                                               textInput("hotkeyInput", "Set Hotkey for model run", 
-                                                         value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter")
-                                           ),
-                                           # Second row: Apply Hotkey and extra Run Muso button side-by-side
-                                           tags$div(
-                                               style = "display: flex; gap: 10px; align-items: center;",
-                                               actionButton("setHotkey", "Apply Hotkey"),
-                                               actionButton("runMusoExtra", "Run Muso",
-                                                style = "background-color: red; color: white; border-color: red;")
-                                           )
-                                       )
-                                   )
-                                 
-                                  
-                                #    checkboxInput(
-                                #     "lastMetrics", "Show Metrics of The Last Run", value = FALSE
-                                #    ),
-                                    
-                          ),
-                          tabPanel("Plot Manager",
-                          selectInput("customize_var", "Select Variable to Customize", 
-                                    choices = NULL),
-                         
-                          uiOutput("plot_manager")
-                               
-                          ),
-                          tabPanel("Measurement Manager",
-                           fluidRow(
-                                column(12,
-                                    DT::dataTableOutput("measurementTable")
-                                ),
-                                column(12,
-                                    fileInput("measurementFile2", "Upload Measurement Files", 
-                                            accept = c(".txt", ".csv"), multiple = TRUE)
-                                ),
-                                column(12,
-                                    actionButton("outputMapping", "Output Mapping", 
-                                                style = "background-color: blue; color: white; border-color: black;"),
-                                    actionButton("editColNames", "Edit Column Names"),
-                                    downloadButton("exportData", "Export Data"),
-                                    actionButton("editMeasurementTransforms", "Edit Measurement Data"),
-                                    checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR",value = TRUE),
-                                    checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
-                                ),
-                                # Now wrap the delete and reset checkboxes side by side in their own fluidRow:
-                                fluidRow(
-                                    column(6,
-                                    h4("Delete Columns"),
-                                    checkboxGroupInput("colsToDelete", "Select columns to delete:", choices = NULL),
-                                    actionButton("deleteCols", "Delete Selected Columns")
+                                        style = "display: flex; align-items: center; gap: 10px;",
+                                        actionButton("resetRun", "Reset to Previous Run"),
+                                        div(
+                                            style = "margin-top: 0px;",
+                                            actionButton("restoreParams","Reset to Last Good Values")
+                                        )
                                     ),
-                                    column(6,
-                                    h4("Reset Columns From Edited Values"),
-                                    checkboxGroupInput("colsToReset", "Select columns to reset:", choices = NULL),
-                                    actionButton("resetCols", "Reset Selected Columns")
+                                    tags$div(
+                                        style = "display: flex; align-items: center; gap: 10px;",
+                                        actionButton("resetParams", "Reset to originals"),
+                                        div(
+                                            style = "margin-top: 6px;",
+                                            checkboxInput("restoreOnExit", "Restore originals on exit", value = FALSE)
+                                        )
+                                    ),
+                                    tags$div(id = "controlp",
+                                            tags$div(id = "slider-container", uiOutput("param_sliders"))
+                                    ),
+                                    # Hotkey container placeholder & container
+                                    div(id = "hotkeyOriginal",
+                                        div(id = "hotkeyContainer",
+                                            # First row: hotkey input
+                                            tags$div(
+                                                textInput("hotkeyInput", "Set Hotkey for model run",
+                                                        value = "Ctrl+Enter", placeholder = "e.g. Ctrl+Enter")
+                                            ),
+                                            # Second row: Apply Hotkey and extra Run Muso button side-by-side
+                                            tags$div(
+                                                style = "display: flex; gap: 10px; align-items: center;",
+                                                actionButton("setHotkey", "Apply Hotkey"),
+                                                actionButton("runMusoExtra", "Run Muso",
+                                                            style = "background-color: red; color: white; border-color: red;")
+                                            )
+                                        )
                                     )
-                                )
-                                )
-                        ),
-                       tabPanel("Output Manager",
-                                fluidRow(
-                                column(12, DT::dataTableOutput("outputTable"))
-                                ),
-                                fluidRow(
-                               
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                    downloadButton("exportDataSim", "Export Data", width = "auto")),
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                    actionButton("editOutputTransforms", "Edit Simulation Data", width = "auto")),
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                     actionButton("AppendSim", "Append To Measurement", width = "auto")),
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                     actionButton("resetOutputMods", "Reset Edits", width = "auto")),
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                     actionButton("make_output", "Create Output Variable", width = "auto")),
-                                div(style = "display: inline-block; margin-right: 5px;",
-                                    pickerInput("exportCols", "Select columns for export/reset/append",
-                                                choices = NULL, multiple = TRUE, width = "250px",options = list(`actions-box` = TRUE))),
-                                div(style = "display: block; margin-top: 5px;",
-                                    checkboxInput("appendSimSuffix", "Append '_sim' to column names upon export/append", value = FALSE)),
-                                div(style = "display: block; margin-top: 5px;",
-                                    checkboxInput("autoMulti", "Multiply GPP, TR, NEE, NEP, NBP, MR, GR, HR, SR by 1000 to get gC", value = TRUE))
+                            ),
+                            tabPanel("Plot Manager",
+                                    selectInput("customize_var", "Select Variable to Customize",
+                                                choices = NULL),
+                                    uiOutput("plot_manager")
+                            ),
+                            tabPanel("Measurement Manager",
+                                    fluidRow(
+                                        column(12,
+                                                DT::dataTableOutput("measurementTable")
+                                        ),
+                                        column(12,
+                                                fileInput("measurementFile2", "Upload Measurement Files",
+                                                        accept = c(".txt", ".csv"), multiple = TRUE)
+                                        ),
+                                        column(12,
+                                                actionButton("outputMapping", "Output Mapping",
+                                                            style = "background-color: blue; color: white; border-color: black;"),
+                                                actionButton("editColNames", "Edit Column Names"),
+                                                downloadButton("exportData", "Export Data"),
+                                                actionButton("editMeasurementTransforms", "Edit Measurement Data"),
+                                                checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
+                                                checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
+                                        ),
+                                        fluidRow(
+                                            column(6,
+                                                    h4("Delete Columns"),
+                                                    checkboxGroupInput("colsToDelete", "Select columns to delete:", choices = NULL),
+                                                    actionButton("deleteCols", "Delete Selected Columns")
+                                            ),
+                                            column(6,
+                                                    h4("Reset Columns From Edited Values"),
+                                                    checkboxGroupInput("colsToReset", "Select columns to reset:", choices = NULL),
+                                                    actionButton("resetCols", "Reset Selected Columns")
+                                            )
+                                        )
+                                    )
+                            ),
+                            tabPanel("Output Manager",
+                                    fluidRow(
+                                        column(12, DT::dataTableOutput("outputTable"))
+                                    ),
+                                    fluidRow(
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            downloadButton("exportDataSim", "Export Data", width = "auto")),
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            actionButton("editOutputTransforms", "Edit Simulation Data", width = "auto")),
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            actionButton("AppendSim", "Append To Measurement", width = "auto")),
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            actionButton("resetOutputMods", "Reset Edits", width = "auto")),
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            actionButton("make_output", "Create Output Variable", width = "auto")),
+                                        div(style = "display: inline-block; margin-right: 5px;",
+                                            pickerInput("exportCols", "Select columns for export/reset/append",
+                                                        choices = NULL, multiple = TRUE, width = "250px", options = list(`actions-box` = TRUE))),
+                                        div(style = "display: block; margin-top: 5px;",
+                                            checkboxInput("appendSimSuffix", "Append '_sim' to column names upon export/append", value = FALSE)),
+                                        div(style = "display: block; margin-top: 5px;",
+                                            checkboxInput("autoMulti", "Multiply GPP, TR, NEE, NEP, NBP, MR, GR, HR, SR by 1000 to get gC", value = TRUE))
+                                    )
+                            ),
+                            tabPanel("Run Logger",
+                                    fluidRow(
+                                        column(12,
+                                                div(id = "runLoggerLayout",
+                                                    div(class = "colLeft",
+                                                        div(style = "margin-bottom: 10px;",
+                                                            pickerInput(
+                                                                inputId = "selected_runs",
+                                                                label = "Select Run(s)",
+                                                                choices = NULL,
+                                                                multiple = TRUE,
+                                                                options = list(
+                                                                    `actions-box` = TRUE,
+                                                                    `selected-text-format` = "count > 2",
+                                                                    `count-selected-text` = "{0} runs selected",
+                                                                    `live-search` = TRUE,
+                                                                    `dropdown-align-right` = FALSE,
+                                                                    `multiple-separator` = ", "
+                                                                ),
+                                                                width = "300px"
+                                                            )
+                                                        ),
+                                                        div(style = "margin-bottom: 10px; display: flex; align-items: center;",
+                                                            actionButton(
+                                                                inputId = "applyRunParams",
+                                                                label = "Apply",
+                                                                class = "apply-btn",
+                                                                style = "color: #fff; background-color: #28a745; border-color: #28a745; margin-right: 8px; transition: transform 0.2s;"
+                                                            ),
+                                                            shiny::span("parameters of run"),
+                                                            uiOutput("apply_run_ui", style = "margin: 0 8px;"),
+                                                            shiny::span("to current slider values")
+                                                        ),
+                                                        div(class = "switch-container-flex", 
+                                                            style = "margin-bottom: 10px; display: flex; align-items: center; gap: 0px;",
+                                                            shinyWidgets::switchInput(
+                                                                inputId = "show_comparisons",
+                                                                label = "Show Comparisons",
+                                                                value = FALSE,
+                                                                onLabel = "ON",
+                                                                offLabel = "OFF",
+                                                                size = "small"
+                                                            ),
+                                                            shinyWidgets::switchInput(
+                                                                inputId = "show_changes_only",
+                                                                label = "Changes Only",
+                                                                value = FALSE,
+                                                                onLabel = "ON",
+                                                                offLabel = "OFF",
+                                                                size = "small",
+                                                                disabled = TRUE
+                                                            )
+                                                        )
+                                                    
+                                                    ),
+                                                    div(class = "colRight",
+                                                        div(style = "margin-bottom: 10px;",
+                                                            pickerInput(
+                                                                inputId = "selected_params",
+                                                                label = "Select Files to Display",
+                                                                choices = NULL,
+                                                                multiple = TRUE,
+                                                                options = list(
+                                                                    `actions-box` = TRUE,
+                                                                    `selected-text-format` = "count > 3",
+                                                                    `count-selected-text` = "{0} files selected",
+                                                                    `live-search` = TRUE,
+                                                                    `dropdown-align-right` = FALSE,
+                                                                    `multiple-separator` = ", "
+                                                                ),
+                                                                width = "400px"
+                                                            )
+                                                        ),
+                                                        div(style = "margin-bottom: 10px;",
+                                                            pickerInput(
+                                                                inputId = "selected_param_names",
+                                                                label = "Select Parameters",
+                                                                choices = NULL,
+                                                                multiple = TRUE,
+                                                                options = list(
+                                                                    `actions-box` = TRUE,
+                                                                    `selected-text-format` = "count > 3",
+                                                                    `count-selected-text` = "{0} parameters selected",
+                                                                    `live-search` = TRUE,
+                                                                    `dropdown-align-right` = FALSE,
+                                                                    `multiple-separator` = ", "
+                                                                ),
+                                                                width = "400px"
+                                                            )
+                                                        )
 
-                                
-                            
-                                )
-                        ),
-
-
-                tabPanel("Run Logger",
-                    fluidRow(
-                        column(12,
-                        div(style = "margin-bottom: 10px;",
-                            pickerInput(
-                            inputId = "selected_runs",
-                            label = "Select Run(s)",
-                            choices = NULL,
-                            multiple = TRUE,
-                            options = list(
-                                `actions-box` = TRUE,
-                                `selected-text-format` = "count > 2",
-                                `count-selected-text` = "{0} runs selected",
-                                `live-search` = TRUE,
-                                `dropdown-align-right` = FALSE,
-                                `multiple-separator` = ", "
-                            ),
-                            width = "300px"
+                                                    )
+                                                ),
+                                                div(style = "margin-bottom: 10px;",
+                                                    shiny::htmlOutput("run_summary")
+                                                )
+                                        )
+                                    )
                             )
-                        ),
-                        # Add selectInput for choosing a run to apply
-                       div(style = "margin-bottom: 10px; display: flex; align-items: center;",
-                            actionButton(
-                                inputId = "applyRunParams",
-                                label = "Apply",
-                                class = "apply-btn",
-                                style = "color: #fff; background-color: #28a745; border-color: #28a745; margin-right: 8px; transition: transform 0.2s;"
-                            ),
-                            shiny::span("parameters of run"),
-                            uiOutput("apply_run_ui", style = "margin: 0 8px;"),
-                            shiny::span("to current slider values")
-                        ),
-                        div(style = "margin-bottom: 10px;",
-                            pickerInput(
-                            inputId = "selected_params",
-                            label = "Select Files to Display",
-                            choices = NULL,
-                            multiple = TRUE,
-                            options = list(
-                                `actions-box` = TRUE,
-                                `selected-text-format` = "count > 3",
-                                `count-selected-text` = "{0} files selected",
-                                `live-search` = TRUE,
-                                `dropdown-align-right` = FALSE,
-                                `multiple-separator` = ", "
-                            ),
-                            width = "400px"
-                            )
-                        ),
-                        div(style = "margin-bottom: 10px;",
-                            pickerInput(
-                            inputId = "selected_param_names",
-                            label = "Select Parameters",
-                            choices = NULL,
-                            multiple = TRUE,
-                            options = list(
-                                `actions-box` = TRUE,
-                                `selected-text-format` = "count > 3",
-                                `count-selected-text` = "{0} parameters selected",
-                                `live-search` = TRUE,
-                                `dropdown-align-right` = FALSE,
-                                `multiple-separator` = ", "
-                            ),
-                            width = "400px"
-                            )
-                        ),
-                        div(style = "margin-bottom: 10px;",
-                            shinyWidgets::switchInput(
-                            inputId = "show_comparisons",
-                            label = "Show Comparisons",
-                            value = FALSE,
-                            onLabel = "ON",
-                            offLabel = "OFF",
-                            size = "small"
-                            ),
-                            shinyWidgets::switchInput(
-                            inputId = "show_changes_only",
-                            label = "Show Changes Only",
-                            value = FALSE,
-                            onLabel = "ON",
-                            offLabel = "OFF",
-                            size = "small",
-                            disabled = TRUE  # Disabled unless Show Comparisons is ON
-                            )
-                        ),
-                        shiny::htmlOutput("run_summary")
-                        )
-                    )
                 )
-              )
-          ),
-          options = list(handles = "e")  # Allow resizing only on the right edge
-      ),
-      
-      # Plot panel: scrollable and fills remaining space
-      div(
-          id = "plotPanel", 
-          uiOutput("dynamicPlots")
-      )
-  )
-)
+            ),
+            options = list(handles = "e")  # Allow resizing only on the right edge
+        ),
+        # Plot panel: scrollable and fills remaining space
+        div(
+            id = "plotPanel",
+            uiOutput("dynamicPlots")
+        )
+    )
+    )
 }
 
 
@@ -3421,7 +3441,7 @@ output$run_summary <- renderUI({
     is_good_change <- switch(metric,
       "RMSE" = delta < 0,
       "Bias" = abs(val_rounded) < abs(prev_rounded),
-      "R²"   = delta > 0,
+      "R2"   = delta > 0,
       FALSE
     )
     
@@ -3615,7 +3635,7 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
       metrics_text <- "Metrics: Not available"
     } else {
       var_names <- sprintf("%s (%s)", metrics$Measurement, metrics$OutputVariable)
-      metric_types <- c("RMSE", "Bias", "R²")
+      metric_types <- c("RMSE", "Bias", "R2")
       prev_metrics <- if (!is.null(prev_data)) {
         if (prev_idx == latest_run) metricsData() else prev_data$metrics
       } else NULL
@@ -3624,12 +3644,12 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
         prev_map <- list(
           RMSE = setNames(prev_metrics$RMSE, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable)),
           Bias = setNames(prev_metrics$BIAS, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable)),
-          "R²" = setNames(prev_metrics$Correlation, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable))
+          "R2" = setNames(prev_metrics$Correlation, sprintf("%s (%s)", prev_metrics$Measurement, prev_metrics$OutputVariable))
         )
         
         if (input$show_comparisons && input$show_changes_only) {
           formatted_vals_all <- lapply(metric_types, function(metric) {
-            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R2" = metrics$Correlation)
             prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
             mapply(function(v, pv) {
               if (is.na(v) || is.na(pv)) return(NULL)
@@ -3647,7 +3667,7 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
             metrics_text <- "Metrics: No changes detected"
           } else {
             formatted_vals <- lapply(metric_types, function(metric) {
-              values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+              values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R2" = metrics$Correlation)
               prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
               mapply(function(v, pv) {
                 if (is.na(v) || is.na(pv)) return(NULL)
@@ -3660,7 +3680,7 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
           }
         } else {
           formatted_vals <- lapply(metric_types, function(metric) {
-            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+            values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R2" = metrics$Correlation)
             prev_values <- sapply(var_names, function(vn) prev_map[[metric]][vn])
             mapply(function(v, pv) color_value(v, pv, metric), values, prev_values, SIMPLIFY = FALSE)
           })
@@ -3668,7 +3688,7 @@ prev_data <- if (!is.null(prev_idx)) logs[[prev_idx]] else NULL
         }
       } else {
         formatted_vals <- lapply(metric_types, function(metric) {
-          values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R²" = metrics$Correlation)
+          values <- switch(metric, "RMSE" = metrics$RMSE, "Bias" = metrics$BIAS, "R2" = metrics$Correlation)
           lapply(values, function(v) sprintf("%.3f", v))
         })
         metrics_text <- paste("Metrics:<br>", format_table(metric_types, var_names, formatted_vals), sep = "")
@@ -5255,7 +5275,7 @@ current_logs <- runLogs()
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.1</strong></p>
+                    <p><strong>Version 2.19.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
