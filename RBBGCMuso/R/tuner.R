@@ -1793,7 +1793,7 @@ tuneMusoServer <- function(input, output, session){
         
         lapply(1:nrow(soil_parameters()), function(i) {
             updateSliderInput(session, paste0("soil_param_", i), 
-                            value = prevsGoodValues$soil[i])
+                            value = prevGoodValues$soil[i])
         })
         myShowNotification(paste0("Sliders reset to previous run's values for: ", soil_file()), type = "message", duration = 5)
        
