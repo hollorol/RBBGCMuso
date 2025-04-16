@@ -5953,6 +5953,7 @@ current_logs <- runLogs()
                     }
                 }
                 
+            }
                                      if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
                                             sim_df <- outputData()
@@ -6013,7 +6014,7 @@ current_logs <- runLogs()
                                         }
                 
                 
-                                }
+                                
                        
                         
 
@@ -6193,7 +6194,7 @@ current_logs <- runLogs()
                                     #if (file.exists(planting_file)) {
                                         planting_dates <- rv$epc_dates
                                         #print(planting_dates)
-                                        if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
+                                if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
                                         selected_planting <- planting_dates %>%
                                         dplyr::filter(lubridate::year(DATE) %in% selectedYears)
 
@@ -6310,6 +6311,7 @@ current_logs <- runLogs()
                                                 }
                                             }
                                         }
+                                 }
                                         if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
                                                 #browser()
@@ -6369,7 +6371,7 @@ current_logs <- runLogs()
                                                 myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
                                             }
                                         }
-                                    }
+                                   
 
                 if (!is.null(custom$additional_vars)) {
                     #color_palette <- c("#754803", "green", "purple", "orange", "pink")
