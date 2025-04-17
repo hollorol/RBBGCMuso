@@ -3729,9 +3729,19 @@ current_logs <- runLogs()
   
   run_number <- length(current_logs)
   metrics <- metricsData()
-  year_range <- if (input$singleYear) {
+
+  year_range <- if (isTRUE(input$singleYear)) {
+    validate(
+      need(is.finite(input$yearRange), "Year not available yet")
+    )
     as.character(input$yearRange)
   } else {
+    validate(
+      need(length(input$yearRange) == 2 &&
+           is.finite(input$yearRange[1]) &&
+           is.finite(input$yearRange[2]),
+           "Year range not available yet")
+    )
     paste(input$yearRange[1], input$yearRange[2], sep = " - ")
   }
   
@@ -4458,11 +4468,20 @@ current_logs <- runLogs()
         }
         
         # Determine selected years
-        selectedYears <- if (input$singleYear) {
-            input$yearRange
-        } else {
-            seq(input$yearRange[1], input$yearRange[2])
-        }
+                if (isTRUE(input$singleYear)) {
+                    validate(
+                        need(is.finite(input$yearRange), "Year not available yet")
+                    )
+                    selectedYears <- input$yearRange  # single value
+                } else {
+                    validate(
+                        need(length(input$yearRange) == 2 &&
+                            is.finite(input$yearRange[1]) &&
+                            is.finite(input$yearRange[2]),
+                            "Year range not available yet")
+                    )
+                    selectedYears <- seq(input$yearRange[1], input$yearRange[2])
+                }
         
         # Filter measurement and simulation data to the selected years
         meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
@@ -5297,7 +5316,7 @@ current_logs <- runLogs()
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.3</strong></p>
+                    <p><strong>Version 2.19.4</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -5952,8 +5971,8 @@ current_logs <- runLogs()
                          }
                     }
                 }
-                
-            }
+        }
+            
                                      if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
                                             sim_df <- outputData()
@@ -6311,7 +6330,7 @@ current_logs <- runLogs()
                                                 }
                                             }
                                         }
-                                 }
+                                }
                                         if(input$showPheno) {
                                             if("n_actphen" %in% colnames(outputData())){
                                                 #browser()
@@ -6371,7 +6390,7 @@ current_logs <- runLogs()
                                                 myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
                                             }
                                         }
-                                   
+                                
 
                 if (!is.null(custom$additional_vars)) {
                     #color_palette <- c("#754803", "green", "purple", "orange", "pink")
