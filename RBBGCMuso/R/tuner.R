@@ -728,15 +728,20 @@ function wrapText(elementId, openTag, closeTag) {
                                                 fileInput("measurementFile2", "Upload Measurement Files",
                                                         accept = c(".txt", ".csv"), multiple = TRUE)
                                         ),
+                                        
                                         column(12,
                                                 actionButton("outputMapping", "Output Mapping",
                                                             style = "background-color: blue; color: white; border-color: black;"),
                                                 actionButton("editColNames", "Edit Column Names"),
-                                                downloadButton("exportData", "Export Data"),
                                                 actionButton("editMeasurementTransforms", "Edit Measurement Data"),
+                                                downloadButton("exportData", "Export Data"),
+                                                uiOutput("yearRangeMeas"),
                                                 checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
-                                                checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE)
+                                                checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE),
+
                                         ),
+                                            
+                                        
                                         fluidRow(
                                             column(6,
                                                     h4("Delete Columns"),
@@ -1517,9 +1522,22 @@ tuneMusoServer <- function(input, output, session){
             removeModal()
         })
 
+    output$yearRangeMeas <- renderUI({
+        req(settings)
+        min_year <- as.numeric(format(min(dates), "%Y"))
+        max_year <- as.numeric(format(max(dates), "%Y"))
 
-
-
+        sliderInput(
+            "yearRangeMeasurement",
+            label = "Select Year Range for Export",
+            min = min_year,
+            max = max_year,
+            value = c(min_year, max_year),
+            step = 1,
+            sep = ""
+        )
+        
+    })
 
         # exporting our data frame
         output$exportData <- downloadHandler(
@@ -1530,7 +1548,17 @@ tuneMusoServer <- function(input, output, session){
                 # Make a copy for export
                 export_df <- measurementData()
                 
-                # Create Year, Month, and Day columns from the Date column (so we have the same file format required for our measurement inputs)
+                # Filter data based on selected year range
+                req(input$yearRangeMeasurement)
+                min_year <- input$yearRangeMeasurement[1]
+                max_year <- input$yearRangeMeasurement[2]
+                # export_df <- export_df[format(export_df$Date, "%Y") >= min_year & 
+                #                     format(export_df$Date, "%Y") <= max_year, ]
+
+                # using lubridate's year instead of format (for performance)
+                export_df <- export_df[lubridate::year(export_df$Date) >= min_year & lubridate::year(export_df$Date) <= max_year, ]
+                
+                # Create Year, Month, and Day columns from the Date column
                 export_df$Year  <- format(export_df$Date, "%Y")
                 export_df$Month <- format(export_df$Date, "%m")
                 export_df$Day   <- format(export_df$Date, "%d")
@@ -1544,23 +1572,24 @@ tuneMusoServer <- function(input, output, session){
                     for (meas_col in names(mapping)) {
                         output_var <- mapping[[meas_col]]
                         if (output_var != "None") {
-                        var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
+                            var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
                         }
                     }
                     
                     for (output_var in names(var_mapping)) {
                         export_df[[paste0(output_var, "_MAPPING")]] <- 
-                        paste(var_mapping[[output_var]], collapse = ",")
+                            paste(var_mapping[[output_var]], collapse = ",")
                     }
                 }
-               
+                
+                # Reorder columns to match required format
                 other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
                 export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
                 
-                # Replace NA values with -9999 (for export only), currently if we leave NAs they will show up as empty cells in the CSV (bad)
+                # Replace NA values with -9999 for export
                 export_df[is.na(export_df)] <- -9999
                 
-              
+                # Write to file
                 fwrite(export_df, file, row.names = FALSE, sep = " ")
             }
         )
