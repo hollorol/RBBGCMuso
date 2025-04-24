@@ -5372,9 +5372,10 @@ tuneMusoServer <- function(input, output, session){
                     <p><strong>Version 2.19.4</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
-                        <li>Auto-calculation for allocation can make the sliders oscillate between two values due to accuracy contraint (if it wants to calulate using 3 or more sliders). If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
-                        <li>When deleting a custom variable via reset, plotly will complain it cannot find it, but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
+                        <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
+                        <li>When deleting a custom variable via reset, plotly will complain it cannot find it (if it was previously plotted), but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
                         <li>Sometimes there will be a notification for an epc modification (in crop rotation) even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
+                        <li>In the logger the visible decimals are limited to 3. So when viewing differences anything below 0.001 change will not be visible. It's only a visual issue, the exact values of the run can still be applied. Will make a dynamic function to show the decimals beyond for such cases</li>
                     </ul>
                     "))),
                 #actionButton("close_info_overlay", "Close")
