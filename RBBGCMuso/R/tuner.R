@@ -5131,7 +5131,9 @@ tuneMusoServer <- function(input, output, session){
             ),
         tags$hr(style = "border-top: 5px solid #ccc; margin-top: 30px; margin-bottom: 30px;"),
         # Soil Mode Section
+        
         h4("Soil Mode Parameters",style = "font-weight:bold;"),
+        if(!is.null(soil_parameters())) {
         div(
             id = "soilCalibrationInputs",
             lapply(seq_len(nrow(soil_parameters())), function(i) {
@@ -5166,7 +5168,11 @@ tuneMusoServer <- function(input, output, session){
                     )
                 )
             })
-        ),       
+        )}
+        else{
+            h4("No parameters_soil.csv found",style = "font-weight:bold;")
+        }
+        ,       
                     
             easyClose = TRUE,
             footer = tagList(
@@ -5188,13 +5194,14 @@ tuneMusoServer <- function(input, output, session){
             }
             
             # Soil mode updates
-         for (i in seq_len(nrow(soil_parameters()))) {
-            min_id <- paste0("soil_min_", i)
-            max_id <- paste0("soil_max_", i)
-            if (!is.null(input[[min_id]])) sliderRanges$soimin[i] <- input[[min_id]]
-            if (!is.null(input[[max_id]])) sliderRanges$soimax[i] <- input[[max_id]]
+        if(!is.null(soil_parameters())) {
+            for (i in seq_len(nrow(soil_parameters()))) {
+                min_id <- paste0("soil_min_", i)
+                max_id <- paste0("soil_max_", i)
+                if (!is.null(input[[min_id]])) sliderRanges$soimin[i] <- input[[min_id]]
+                if (!is.null(input[[max_id]])) sliderRanges$soimax[i] <- input[[max_id]]
+            }
         }
-        
             removeModal()
             #modalVisible(FALSE)
         })
@@ -5216,6 +5223,7 @@ tuneMusoServer <- function(input, output, session){
                 })
                 
                 # Reset button logic for Soil
+            if(!is.null(soil_parameters())) {
                 lapply(seq_len(nrow(soil_parameters())), function(i) {
                     observeEvent(input[[paste0("reset_soil_", i)]], {
                         updateNumericInput(
@@ -5230,6 +5238,7 @@ tuneMusoServer <- function(input, output, session){
                         )
                     })
                 })
+            }
     })
 
 
@@ -5369,7 +5378,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.4</strong></p>
+                    <p><strong>Version 2.19.5</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
