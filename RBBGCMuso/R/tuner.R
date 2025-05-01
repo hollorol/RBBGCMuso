@@ -1880,6 +1880,7 @@ tuneMusoServer <- function(input, output, session){
                cat("Restoring SOIL file to original...\n")
                 #if(currentMode() == "soil") {
                     paramVal <- InitialDefaultsSoil$values
+                    paramVal <- format(paramVal, scientific = FALSE, trim = TRUE)
                     #if(!identical(paramVal, soilValues$values)) {
                     prettyChangeMuso(settings, paramVal, 
                      calibrationPar = soil_parameters()[,2],
@@ -1911,6 +1912,7 @@ tuneMusoServer <- function(input, output, session){
                     if(!is.null(isolate(soil_parameters()))){ # checking whether we should check for soil file
                         isolate({
                             paramVal <- lastGoodValues$soil
+                            paramVal <- format(paramVal, scientific = FALSE, trim = TRUE)
                                 prettyChangeMuso(settings, paramVal, 
                                 calibrationPar = soil_parameters()[,2],
                                 fileToChange = "soil", fixAlloc = FALSE)
@@ -2120,23 +2122,87 @@ tuneMusoServer <- function(input, output, session){
             #df <- list(sliderRanges$soimin, sliderRanges$soimax)
             #minSoil <- sliderRanges$soimin
             #maxSoil <- sliderRanges$soimax
+
+            step_threshold <- 1e-5 
             vals <- soilValues$values
             div(
                 id = "standardSliders",
                 class = if (!is.null(input$plotHidden) && input$plotHidden) "expanded" else "",
                 lapply(seq_len(nrow(df)), function(i) {
-                    div(
-                        class = "slider-col",
-                        #style = "width: 300px;",
-                        sliderInput(
-                        inputId = paste0("soil_param_", i),
-                        label   = df$ABREVIATION[i],
-                        min     = sliderRanges$soimin[i],                      #minSoil[i],                      #df$min[i],
-                        max     = sliderRanges$soimax[i],                      #maxSoil[i],                      #df$max[i],
-                        value   = vals[i],
-                        step    = (sliderRanges$soimax[i] - sliderRanges$soimin[i]) / 100
-                        )
-                    )
+
+
+                    param_min <- sliderRanges$soimin[i]
+                    param_max <- sliderRanges$soimax[i]
+                    param_val <- vals[i] # The current value
+                    param_name <- df$ABREVIATION[i]
+                    input_id <- paste0("soil_param_", i)
+
+                    potential_step <- if (param_max > param_min) {
+                        (param_max - param_min) / 100
+                    } else {
+                        0 # Or some other default if min >= max
+                    }
+
+                ui_element <- if (potential_step > 0 && potential_step < step_threshold) {
+                
+                # --- Step is too small: Use sliderTextInput ---
+                
+                # Generate choices (Example: Logarithmic scale, good for small positive ranges)
+                if (param_min > 0 && param_max > param_min) {
+                     num_steps <- 10 # Adjust number of steps
+                     log_steps <- seq(log10(param_min), log10(param_max), length.out = num_steps)
+                     choices_vec <- signif(10^log_steps, digits = 2) # Use signif for cleaner steps
+                } else {
+                     # Fallback: Linear scale if min <= 0 or max <= min
+                     num_steps <- 10
+                     choices_vec <- round(seq(param_min, param_max, length.out = num_steps), 8) # Round appropriately
+                }
+
+
+                choices_vec <- unique(sort(c(param_min, choices_vec, param_max)))
+
+                # Specific choices for known problematic parameters 
+                #  if (param_name == "RateScalarRSOC") {
+                #      choices_vec <- c(1e-6, 2e-6, 5e-6, 1e-5, 2e-5, 5e-5, 1e-4) 
+                #  }
+
+
+                selected_val <- if (param_val %in% choices_vec) {
+                    param_val
+                } else {
+                    # If not exact match, pick the closest choice
+                    choices_vec[which.min(abs(choices_vec - param_val))] 
+                }
+
+
+                 shinyWidgets::sliderTextInput(
+                    inputId = input_id,
+                    label   = param_name,
+                    choices = choices_vec,
+                    selected = selected_val, 
+                    grid = TRUE # Show grid marks
+                    # force_edges = TRUE # Optional: Ensures slider snaps to min/max easily
+                )
+                
+            } else {
+                
+                # --- Step is large enough: Use standard sliderInput ---
+                sliderInput(
+                    inputId = input_id,
+                    label   = param_name,
+                    min     = param_min,
+                    max     = param_max,
+                    value   = param_val,
+                    step    = potential_step # Use the calculated step
+                )
+            }
+                    
+            div(
+                class = "slider-col",
+                # style = "width: 300px;", # Optional styling
+                ui_element # This will be either the sliderInput or sliderTextInput
+            )
+
 
                 })
             )
@@ -3091,7 +3157,8 @@ tuneMusoServer <- function(input, output, session){
             #if (!identical(paramVal, lastGoodValues$soil)) {
             if(soilChanged){
                 req(soil_file(), soil_parameters())
-                prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+                paramValChanged <- format(paramVal, scientific = FALSE, trim = TRUE)
+                prettyChangeMuso(settings, paramValChanged, calibrationPar = soil_parameters()[,2],
                         fileToChange = "soil", fixAlloc = FALSE)
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
