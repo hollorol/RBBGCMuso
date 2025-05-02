@@ -2175,13 +2175,22 @@ tuneMusoServer <- function(input, output, session){
                 }
 
 
-                 shinyWidgets::sliderTextInput(
+                #  shinyWidgets::sliderTextInput(
+                #     inputId = input_id,
+                #     label   = param_name,
+                #     choices = choices_vec,
+                #     selected = selected_val, 
+                #     grid = TRUE # Show grid marks
+                #     # force_edges = TRUE # Optional: Ensures slider snaps to min/max easily
+                # )
+
+                numericInput(
                     inputId = input_id,
                     label   = param_name,
-                    choices = choices_vec,
-                    selected = selected_val, 
-                    grid = TRUE # Show grid marks
-                    # force_edges = TRUE # Optional: Ensures slider snaps to min/max easily
+                    value   = param_val, # Use the closest choice
+                    min     = param_min,
+                    max     = param_max,
+                    step    = potential_step # Use the calculated step
                 )
                 
             } else {
@@ -5445,7 +5454,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.5</strong></p>
+                    <p><strong>Version 2.19.5.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
