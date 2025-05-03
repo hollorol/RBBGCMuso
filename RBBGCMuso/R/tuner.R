@@ -1436,7 +1436,8 @@ tuneMusoServer <- function(input, output, session){
                         selectInput(
                             inputId = paste0("mapping_", col),
                             label = NULL,
-                            choices = c("None", dailyOutputNames()),
+                            #choices = c("None", dailyOutputNames()),
+                            choices = c("None", rv$settings$dailyOutputTable$name),
                             # Use the saved mapping if it exists, otherwise default to "None"
                             selected = if (!is.null(mappingRV()) && !is.null(mappingRV()[[col]])) {
                             mappingRV()[[col]]
@@ -5454,7 +5455,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.5.2</strong></p>
+                    <p><strong>Version 2.19.5.3</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
