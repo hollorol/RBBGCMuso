@@ -770,7 +770,7 @@ function wrapText(elementId, openTag, closeTag) {
                                         div(style = "display: inline-block; margin-right: 5px;",
                                             actionButton("resetOutputMods", "Reset Edits", width = "auto")),
                                         div(style = "display: inline-block; margin-right: 5px;",
-                                            actionButton("make_output", "Create Output Variable", width = "auto")),
+                                            actionButton("make_output", "Create Special Output Variable", width = "auto")),
                                         div(style = "display: inline-block; margin-right: 5px;",
                                             pickerInput("exportCols", "Select columns for export/reset/append",
                                                         choices = NULL, multiple = TRUE, width = "250px", options = list(`actions-box` = TRUE))),
@@ -4065,112 +4065,139 @@ tuneMusoServer <- function(input, output, session){
 
         ## ---- Output Transformation Modal ----
         observeEvent(input$editOutputTransforms, {
-        req(simTableDat())
-        showModal(modalDialog(
-            title = "Output Data Transformations",
-            size = "l",
-            easyClose = TRUE,
-            footer = modalButton("Close"),
-            tabsetPanel(
-            # Tab for replacing values with NA
-            tabPanel("Set Values to NA",
-                fluidRow(
-                column(4,
-                    pickerInput("col_to_na_output", "Select column(s):", 
-                                choices = setdiff(colnames(outputData()), "Date"),
-                                multiple = TRUE,
-                                options = list(`actions-box` = TRUE))
-                ),
-                column(4,
-                    numericInput("na_lower_output", "Lower bound:", value = NA)
-                ),
-                column(4,
-                    numericInput("na_upper_output", "Upper bound:", value = NA)
-                )
-                ),
-                fluidRow(
-                column(4,
-                    # Label changed from "Add as new column" to the new functionality.
-                    checkboxInput("na_keep_transformation", "Keep transformation upon model run", value = TRUE)
-                ),
-                column(8,
-                        div(style = "text-align: right;", # Align to the right
-                            actionButton("apply_na_output", "Apply Transformation", 
-                                         style = "color: white; background-color: #007bff; border-color: #007bff;")
+            req(simTableDat())
+            showModal(modalDialog(
+                title = "Output Data Transformations",
+                size = "l",
+                easyClose = TRUE,
+                footer = modalButton("Close"),
+                tabsetPanel(
+                    # Tab for replacing values with NA
+                    tabPanel("Set Values to NA",
+                        fluidRow(
+                            column(4,
+                                pickerInput("col_to_na_output", "Select column(s):", 
+                                            choices = setdiff(colnames(outputData()), "Date"),
+                                            multiple = TRUE,
+                                            options = list(`actions-box` = TRUE))
+                            ),
+                            column(4,
+                                numericInput("na_lower_output", "Lower bound:", value = NA)
+                            ),
+                            column(4,
+                                numericInput("na_upper_output", "Upper bound:", value = NA)
+                            )
+                        ),
+                        fluidRow(
+                            column(4,
+                                checkboxInput("na_keep_transformation", "Keep transformation upon model run", value = TRUE)
+                            ),
+                            column(8,
+                                div(style = "text-align: right;",
+                                    actionButton("apply_na_output", "Apply Transformation", 
+                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
+                                )
+                            )
                         )
-                )
-                )
-            ),
-            # Tab for arithmetic operations
-            tabPanel("Arithmetic Operation",
-                fluidRow(
-                column(4,
-                    pickerInput("col_arith_output", "Select column(s):", 
-                                choices = setdiff(colnames(outputData()), "Date"), 
-                                multiple = TRUE,
-                                options = list(`actions-box` = TRUE))
-                ),
-                column(4,
-                    selectInput("arith_op_output", "Operation", 
-                                choices = c("Add", "Subtract", "Multiply", "Divide"))
-                ),
-                column(4,
-                    numericInput("arith_val_output", "Value:", value = 0)
-                )
-                ),
-                fluidRow(
-                column(4,
-                    checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE),
-                    checkboxInput("interaction_newcol_arith", "Create as new variable", value = FALSE),
-                   uiOutput("arithNewVarNames")
-                ),
-                column(8,
-                        div(style = "text-align: right;", 
-                            actionButton("apply_arith_output", "Apply Transformation", 
-                                         style = "color: white; background-color: #007bff; border-color: #007bff;")
-                        )
-                )
-                )
-            ),
-            # Tab for interactions between columns
-            tabPanel("Column Interaction",
-                fluidRow(
-                column(4,
-                    selectInput("col1_output", "Target column:", 
-                                choices = setdiff(colnames(outputData()), "Date"))
-                ),
-                column(4,
-                            pickerInput("col2_output", "Interaction column(s):",  
-                                choices = setdiff(colnames(outputData()), "Date"), 
-                                multiple = TRUE,
-                                options = list(`actions-box` = TRUE))
-                ),
-                column(4,
-                    selectInput("interaction_op_output", "Operation", 
-                                choices = c("Multiply", "Add", "Subtract", "Divide"))
-                )
-                ),
-                fluidRow(
-                    column(4,
-                        checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = TRUE),
-                        checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
-                    
-                    conditionalPanel(
-                        condition = "input.interaction_newcol == true",
-                        textInput("interaction_newcol_name", "New Variable Name:")
-                    )
                     ),
-                    column(8,
-                        div(style = "text-align: right;", 
-                        actionButton("apply_interaction_output", "Apply Transformation", style = "color: white; background-color: #007bff; border-color: #007bff;")
+                    # Tab for arithmetic operations
+                    tabPanel("Arithmetic Operation",
+                        fluidRow(
+                            column(4,
+                                pickerInput("col_arith_output", "Select column(s):", 
+                                            choices = setdiff(colnames(outputData()), "Date"), 
+                                            multiple = TRUE,
+                                            options = list(`actions-box` = TRUE))
+                            ),
+                            column(4,
+                                selectInput("arith_op_output", "Operation", 
+                                            choices = c("Add", "Subtract", "Multiply", "Divide"))
+                            ),
+                            column(4,
+                                numericInput("arith_val_output", "Value:", value = 0)
+                            )
+                        ),
+                        fluidRow(
+                            column(4,
+                                checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE),
+                                checkboxInput("interaction_newcol_arith", "Create as new variable", value = FALSE),
+                                uiOutput("arithNewVarNames")
+                            ),
+                            column(8,
+                                div(style = "text-align: right;", 
+                                    actionButton("apply_arith_output", "Apply Transformation", 
+                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
+                                )
+                            )
+                        )
+                    ),
+                    # Tab for interactions between columns
+                    tabPanel("Column Interaction",
+                        # Adding info button at top-right
+                        div(
+                            style = "position: absolute; top: 10px; right: 10px;",
+                            tags$button(
+                                id = "interaction_info_btn",
+                                class = "btn btn-default action-button",
+                                tags$i(class = "fa fa-info-circle"),
+                                title = "Column Interaction Information"
+                            )
+                        ),
+                        # Adding info overlay
+                        div(
+                            id = "interaction_info_overlay",
+                            style = "display:none; position:absolute; top:44px; right:10px; width:98%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
+                            tags$p(div(HTML("
+                                <p><strong>Column Interaction Information</strong></p>
+                                <p>This panel allows you to perform operations between variables (referred to as columns).</p>
+                                <ul>
+                                    <li><strong>Target column</strong>: Select a single column to apply the operation to.</li>
+                                    <li><strong>Interaction column(s)</strong>: Choose one or more columns to interact with the target column. The interaction columns won't be affected during the operations.</li>
+                                    <li><strong>Create as new variable</strong>: If checked, the result is stored as a new column (variable) with a custom name. <strong>In this case the target column remains unchanged.</strong></li>
+                                </ul>
+                                
+                            ")))
+                        ),
+                        fluidRow(
+                            column(4,
+                                selectInput("col1_output", "Target column:", 
+                                            choices = setdiff(colnames(outputData()), "Date"))
+                            ),
+                            column(4,
+                                pickerInput("col2_output", "Interaction column(s):",  
+                                            choices = setdiff(colnames(outputData()), "Date"), 
+                                            multiple = TRUE,
+                                            options = list(`actions-box` = TRUE))
+                            ),
+                            column(4,
+                                selectInput("interaction_op_output", "Operation", 
+                                            choices = c("Multiply", "Add", "Subtract", "Divide"))
+                            )
+                        ),
+                        fluidRow(
+                            column(4,
+                                checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = TRUE),
+                                checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
+                                conditionalPanel(
+                                    condition = "input.interaction_newcol == true",
+                                    textInput("interaction_newcol_name", "New Variable Name:")
+                                )
+                            ),
+                            column(8,
+                                div(style = "text-align: right;", 
+                                    actionButton("apply_interaction_output", "Apply Transformation", 
+                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
+                                )
+                            )
                         )
                     )
                 )
-            )
-            )
-        ))
+            ))
         })
 
+        observeEvent(input$interaction_info_btn, {
+            shinyjs::toggle("interaction_info_overlay", anim = TRUE)
+        })
 
         output$arithNewVarNames <- renderUI({
             req(input$interaction_newcol_arith, input$col_arith_output)
@@ -4805,22 +4832,84 @@ tuneMusoServer <- function(input, output, session){
 
 
         ########## SOIL WATER CONTENT CALCULATION ############
-        observeEvent(input$make_output, {
-            showModal(modalDialog(
-            title = "Create New Output Variable",
-            numericInput("min_depth", "Min Depth (cm)", value = 0, min = 0),
-            numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0),
-            textInput("variable_name", "Variable Name", value = "SWC_0_50"),
-            selectInput("base_variable","Base Variable",
-                choices = c("VWC","tsoil"),
-                selected = "VWC"),
-            footer = tagList(
-                modalButton("Cancel"),
-                actionButton("create_variable", "Create variable")
+observeEvent(input$make_output, {
+    showModal(modalDialog(
+        title = "Create New Output Variable",
+        # Adding info button at top-right
+        div(
+            style = "position: absolute; top: 10px; right: 10px;",
+            tags$button(
+                id = "variable_info_btn",
+                class = "btn btn-default action-button",
+                tags$i(class = "fa fa-info-circle"),
+                title = "Variable Creation Information"
             )
-            ))
-        })
-  
+        ),
+        # Adding info overlay
+        div(
+            id = "variable_info_overlay",
+            style = "display:none; position:absolute; top:44px; right:10px; width:98%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
+            tags$p(div(HTML("
+                <p><strong>Variable Creation Information</strong></p>
+                <p>This panel creates a new variable (currently for Soil Water Content or Soil Temperature) at a specified depth by interpolating values from model layers. It is useful if we want to quickly create a model variable that is comparable with measurements taken at a specific depth.</p>
+                <p><strong>Model Layers:</strong></p>
+                <ul>
+                    <li>Layer 1 [0]: 0-3 cm (midpoint: 1.5 cm)</li>
+                    <li>Layer 2 [1]: 3-10 cm (midpoint: 6.5 cm)</li>
+                    <li>Layer 3 [2]: 10-30 cm (midpoint: 20 cm)</li>
+                    <li>Layer 4 [3]: 30-60 cm (midpoint: 45 cm)</li>
+                    <li>Layer 5 [4]: 60-90 cm (midpoint: 75 cm)</li>
+                    <li>Layer 6 [5]: 90-120 cm (midpoint: 105 cm)</li>
+                    <li>Layer 7 [6]: 120-150 cm (midpoint: 135 cm)</li>
+                    <li>Layer 8 [7]: 150-200 cm (midpoint: 175 cm)</li>
+                    <li>Layer 9 [8]: 200-400 cm (midpoint: 300 cm)</li>
+                    <li>Layer 10 [9]: 400-1000 cm (midpoint: 700 cm)</li>
+
+                </ul>
+                <p><strong>Interpolation Formula:</strong></p>
+                <p>The value at a given depth is calculated using linear interpolation between the two closest layer midpoints (the assumption is that the model values represent the values at the midpoint of each layer). The formula is:</p>
+                <p>Value = (Weight_below * Value_below) + (Weight_above * Value_above)</p>
+                <p>Where:</p>
+                <ul>
+                    <li>Weight_above = (Depth - Depth_below) / (Depth_above - Depth_below)</li>
+                    <li>Weight_below = 1 - Weight_above</li>
+                    <li>Value_below and Value_above are the values at the midpoints below and above the target depth.</li>
+                </ul>
+                <p><strong>Example for 50 cm Depth:</strong></p>
+                <p>For a depth of 50 cm, the closest midpoints are 45 cm (Layer 3) and 20 cm (Layer 2). Suppose the soil water content (<strong>called VWC in the model: 'Volumetric Water Content'</strong>) model values are:</p>
+                <ul>
+                    <li>VWC at 45 cm = 0.25</li>
+                    <li>VWC at 20 cm = 0.30</li>
+                </ul>
+                <p>Calculate weights:</p>
+                <ul>
+                    <li>Weight_above = (50 - 45) / (45 - 20) = 5 / 25 = 0.2</li>
+                    <li>Weight_below = 1 - 0.2 = 0.8</li>
+                </ul>
+                <p>Interpolated VWC = (0.8 * 0.25) + (0.2 * 0.30) = 0.2 + 0.06 = 0.26</p>
+                <p>Thus, the VWC at 50 cm is 0.26.</p>
+                <li>Note that currently 'Min Depth' is not used in the calculation. It will be needed for datas that measured the average values of multiple layers but that quick calculation option is not yet present. However you can manually make it in the <strong>'Edit Simulation Data'</strong> panel.</li>
+            ")))
+        ),
+        numericInput("min_depth", "Min Depth (cm)", value = 0, min = 0),
+        numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0),
+        textInput("variable_name", "Variable Name", value = "SWC_0_50"),
+        selectInput("base_variable", "Base Variable",
+                    choices = c("VWC", "tsoil"),
+                    selected = "VWC"),
+        easyClose = TRUE,
+        footer = tagList(
+            modalButton("Cancel"),
+            actionButton("create_variable", "Create variable")
+        )
+    ))
+})
+
+# Toggle variable info overlay
+observeEvent(input$variable_info_btn, {
+    shinyjs::toggle("variable_info_overlay", anim = TRUE)
+})
+
         # to change the textinput if we switch to tsoil
         observeEvent(input$base_variable, {
             if(input$base_variable == "VWC" && input$variable_name %in% c("Tsoil_0_50", "tsoil_0_50")) {
@@ -5455,7 +5544,7 @@ tuneMusoServer <- function(input, output, session){
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.5.3</strong></p>
+                    <p><strong>Version 2.19.5.4</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
