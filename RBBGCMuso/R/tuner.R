@@ -4876,7 +4876,7 @@ observeEvent(input$make_output, {
                     <li>Value_below and Value_above are the values at the midpoints below and above the target depth.</li>
                 </ul>
                 <p><strong>Example for 50 cm Depth:</strong></p>
-                <p>For a depth of 50 cm, the closest midpoints are 45 cm (Layer 3) and 20 cm (Layer 2). Suppose the soil water content (<strong>called VWC in the model: 'Volumetric Water Content'</strong>) model values are:</p>
+                <p>For a depth of 50 cm, the closest midpoints are 45 cm (Layer 4 [3]) and 20 cm (Layer 3 [2]). Suppose the soil water content (<strong>called VWC in the model: 'Volumetric Water Content'</strong>) model values are:</p>
                 <ul>
                     <li>VWC at 45 cm = 0.25</li>
                     <li>VWC at 20 cm = 0.30</li>
