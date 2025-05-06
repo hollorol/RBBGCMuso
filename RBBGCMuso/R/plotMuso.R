@@ -260,60 +260,114 @@ plotMuso <- function(settings = NULL, variable = "all",
 #' leapYear=FALSE, export=FALSE)
 #' @importFrom ggplot2 ggplot geom_line geom_point aes aes_string labs theme element_blank 
 #' @export
-plotMusoWithData <- function(mdata, plotName=NULL,
-                             startDate = NULL, endDate = NULL,
-                             colour=c("black","blue"), dataVar, modelVar, settings = setupMuso(), silent = TRUE, continious = FALSE, leapYearHandling = FALSE){
+plotMusoWithData <- function(mdata, plotName = NULL,
+                                     startDate = NULL, endDate = NULL,
+                                     colour = c("black", "blue"),
+                                     dataVar,  # Name of the variable in mdata to plot
+                                     modelVar, # Name of the variable in model output (can be custom)
+                                     settings = setupMuso(),
+                                     silent = TRUE,
+                                     continious = FALSE,
+                                     leapYearHandling = FALSE, 
+                                     postProcString = NULL
 
-    if(continious  & (is.null(startDate) | is.null(endDate))){
-        stop("If your date is continuous, you have to provide both startDate and endDate. ")
+                                     ) {
+
+    if (continious & (is.null(startDate) | is.null(endDate))) {
+        stop("If your date is continuous, you have to provide both startDate and endDate.")
     }
 
-    dataCol<- grep(paste0("^",dataVar,"$"), colnames(mdata))
-    selVar <- grep(modelVar,(settings$dailyVarCodes))+4
-
-    list2env(alignData(mdata, dataCol = dataCol,
-                       modellSettings = settings,
-                       startDate = startDate,
-                       endDate = endDate, leapYear = leapYearHandling, continious = continious),envir=environment())
-    # mesData <- numeric(settings$numYears*365)
-    # k <- 1
-    # for(i in seq(mesData)){
-    #     if(i %in% modIndex){
-    #         mesData[i] <- measuredData[k]
-    #         k <- k + 1
-    #     } else {
-    #         mesData[i] <- NA
-    #     }
-    # }
-    # rm(k)
-    # modIndex and measuredData are created.
-    ## measuredData is created
-    ## baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
-    baseData <- calibMuso(settings = settings, silent = silent, prettyOut = TRUE)[modIndex,]
-    baseData[,1] <- as.Date(baseData[,1],format = "%d.%m.%Y")
-    selVarName <- colnames(baseData)[selVar]
-    if(!all.equal(colnames(baseData),unique(colnames(baseData)))){
-        notUnique <- setdiff((unlist(settings$dailyVarCodes)),unique(unlist(settings$dailyVarCodes)))
-        stop(paste0("Error: daily output variable list in the ini file must contain unique numbers. Check your ini files! Not unique codes: ",notUnique))
+    dataCol_indices <- grep(paste0("^", dataVar, "$"), colnames(mdata)) # Exact match
+    if (length(dataCol_indices) == 0) {
+        stop(paste("Measured variable '", dataVar, "' not found in mdata. Available: ", paste(colnames(mdata), collapse=", "), sep = ""))
     }
-    # mesData<-cbind.data.frame(baseData[,1],mesData)
-    mesData<-cbind.data.frame(baseData[,1],measuredData)
-    colnames(mesData) <- c("date", "measured")
-    p <- baseData  %>%
-        ggplot(aes_string("date",selVarName)) +
-        geom_line(colour=colour[1]) +
-        geom_point(data = mesData, colour=colour[2], aes(date,measured)) +
-        labs(y = paste0(selVarName,"_measured"))+
-        theme(axis.title.x = element_blank())
-    if(!is.null(plotName)){ 
-        ggsave(plotName,p)
-        return(p)
+    if (length(dataCol_indices) > 1) {
+        warning(paste("Multiple columns found for dataVar '", dataVar, "'. Using the first: ", colnames(mdata)[dataCol_indices[1]], sep = ""))
+    }
+    dataCol <- dataCol_indices[1]
+
+    alignment_result <- alignData(mdata, dataCol = dataCol,
+                                  modellSettings = settings,
+                                  startDate = startDate,
+                                  endDate = endDate, leapYear = leapYearHandling, continious = continious)
+    list2env(alignment_result, envir = environment())
+
+   
+    baseData_full <- calibMuso(settings = settings,
+                               silent = silent,
+                               prettyOut = FALSE, 
+                               postProcString = postProcString,
+ 
+                               leapYearHandling = leapYearHandling # Pass for musoDate in calibMuso
+                               )
+    
+    if (is.null(baseData_full) || nrow(baseData_full) == 0) stop("calibMuso returned no data.")
+
+    # Subset to aligned indices AFTER potential post-processing
+    baseData <- baseData_full[modIndex, , drop = FALSE] # drop=FALSE ensures it stays a data.frame
+
+    if (nrow(baseData) == 0) stop("No model data remains after aligning with measurement dates.")
+
+  
+    if (length(rownames(baseData)) == nrow(baseData)) {
+        date_formats_to_try <- c("%d.%m.%Y", "%Y.%m.%d", "%Y-%m-%d")
+        parsed_dates <- NULL
+        for (fmt in date_formats_to_try) {
+            parsed_dates <- tryCatch({
+                as.Date(rownames(baseData), format = fmt)
+            }, warning = function(w) NULL, error = function(e) NULL)
+            if (!is.null(parsed_dates) && !all(is.na(parsed_dates))) break
+        }
+        if (is.null(parsed_dates) || all(is.na(parsed_dates))) {
+             # Final attempt with R's default parsing if specific formats fail
+             parsed_dates <- tryCatch({ as.Date(rownames(baseData)) },
+                                   error = function(e) {
+                                       stop(paste("Could not parse date from rownames. Example rowname:", rownames(baseData)[1]), call. = FALSE)
+                                   })
+        }
+        if (any(is.na(parsed_dates))) {
+             warning("Some dates could not be parsed from rownames. Plot may be incomplete.", call. = FALSE)
+        }
+        baseData$plot_date <- parsed_dates # Add as a new column
     } else {
-        return(p)
+        stop("Rownames for date conversion are missing or have incorrect length.")
+    }
+
+
+    
+    selVarName <- NULL
+    if (modelVar %in% colnames(baseData)) {
+        selVarName <- modelVar
+    } else {
+        match_in_codes <- grep(paste0("^",modelVar,"$"), (settings$dailyVarCodes)) # Exact match for code/name
+
+        if (length(match_in_codes) == 1) {
+            actual_col_index <- match_in_codes[1]
+            if (actual_col_index > 0 && actual_col_index <= ncol(baseData)) {
+                selVarName <- colnames(baseData)[actual_col_index]
+            }
+        }
+    }
+
+    if (is.null(selVarName)) {
+        stop(paste("Model variable '", modelVar,
+                   "' could not be identified in the model output columns. Available columns are: ",
+                   paste(colnames(baseData), collapse = ", "), ". Check if 'modelVar' is a name or a code listed in settings$dailyVarCodes.", sep = ""))
     }
     
-}
+    plot_mesData <- data.frame(plot_date = baseData$plot_date, measured = measuredData)
 
+    p <- ggplot(baseData, aes_string(x = "plot_date", y = selVarName)) +
+        geom_line(colour = colour[1], na.rm = TRUE) +
+        geom_point(data = plot_mesData, aes(x = plot_date, y = measured), colour = colour[2], na.rm = TRUE) +
+        labs(y = paste0("Model: ", selVarName, " / Measured: ", dataVar), x = "Date") +
+        theme(axis.title.x = element_text()) # Changed from element_blank() to show "Date"
+
+    if (!is.null(plotName)) {
+        ggsave(plotName, p)
+    }
+    return(p)
+}
 #' compareMuso 
 #'
 #' This function runs the model, then changes one of its input data, runs it again, and plots both results in one graph. 
