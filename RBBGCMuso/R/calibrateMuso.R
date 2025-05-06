@@ -4,7 +4,7 @@
 #' @author Roland HOLLOS
 #' @importFrom future future
 #' @export
-calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", stringsAsFactor=FALSE), startDate = NULL,
+calibrateMuso <- function(measuredData, parameters = "parameters.csv", startDate = NULL,
                      endDate = NULL, formatString = "%Y-%m-%d",
                      dataVar, outLoc = "./calib",
                      preTag = "cal-", settings =  setupMuso(),
@@ -16,13 +16,24 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                      thread_prefix="thread", numCores = max(c(parallel::detectCores()-1,1)), pb = txtProgressBar(min=0, max=iterations, style=3),
                      constraints=NULL,
                      maxLikelihoodEpc=TRUE,
+                     fileToChange = "epc",
                      pbUpdate = setTxtProgressBar, outputLoc="./", method="GLUE",lg = FALSE, w=NULL, ...){
     
+    parameters <- read.csv(parameters, stringsAsFactor=FALSE)
     future::plan(future::multisession, workers = numCores)
     file.remove(list.files(path = settings$inputLoc, pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     file.remove(list.files(path = settings$inputLoc, pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
     unlink(file.path(settings$inputLoc,"thread"),recursive=TRUE)
 
+
+    if(fileToChange == "soil"){
+        #targetFile <- settings$soilFile[2]
+        sourceFilePath <- settings$soilFile[2]
+    }
+    else if (fileToChange == "epc"){
+        #targetFile <- settings$epc[2]
+        sourceFilePath <- settings$epc[2]
+    }
     #   ____                _         _   _                        _     
     #  / ___|_ __ ___  __ _| |_ ___  | |_| |__  _ __ ___  __ _  __| |___ 
     # | |   | '__/ _ \/ _` | __/ _ \ | __| '_ \| '__/ _ \/ _` |/ _` / __|
@@ -46,14 +57,14 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
          future({
                       tryCatch(
                                musoSingleThread(measuredData, parameters, startDate,
-                                        sourceFile=settings$epc[2], # EPC SPECIFIC
+                                        sourceFile=sourceFilePath, 
                                         endDate, formatString,
                                         dataVar, outLoc,
                                         preTag, settings,
                                         outVars, iterations = threadCount[i],
                                         skipSpinup, plotName,
                                         modifyOriginal, likelihood, uncertainity,
-                                        naVal, postProcString, constraints=constraints, threadNumber = i)
+                                        naVal, postProcString, constraints=constraints, threadNumber = i, fileToChange = fileToChange)
                       , error = function(e){
                            #browser()
                                             writeLines(as.character(e),"error.txt")
@@ -71,12 +82,12 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
          })
     })
 
-    # __        ___           _       _                                         
-    # \ \      / / |__   __ _| |_ ___| |__    _ __  _ __ ___   ___ ___  ___ ___ 
-    #  \ \ /\ / /| '_ \ / _` | __/ __| '_ \  | '_ \| '__/ _ \ / __/ _ \/ __/ __|
-    #   \ V  V / | | | | (_| | || (__| | | | | |_) | | | (_) | (_|  __/\__ \__ \
-    #    \_/\_/  |_| |_|\__,_|\__\___|_| |_| | .__/|_|  \___/ \___\___||___/___/
-    #                                        |_|                                
+    # __        ___     _       _                                         
+    # \ \      / / __ _| |_ ___| |__    _ __  _ __ ___   ___ ___  ___ ___ 
+    #  \ \ /\ / / / _` | __/ __| '_ \  | '_ \| '__/ _ \ / __/ _ \/ __/ __|
+    #   \ V  V / | (_| | || (__| | | | | |_) | | | (_) | (_|  __/\__ \__ \
+    #    \_/\_/   \__,_|\__\___|_| |_| | .__/|_|  \___/ \___\___||___/___/
+    #                                  |_|                                
 
     getProgress <- function(){
         # threadfiles <- list.files(settings$inputLoc, pattern="progress.txt", recursive = TRUE)
@@ -134,7 +145,7 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                 print("Writing the results to the output directory...")
                 write.csv(x=results, file=file.path(outputLoc,"calibResults.csv"), row.names=FALSE)
                 print("Writing the parameters to the output directory...")
-                write.csv(x=parameters, file=file.path(outputLoc,"sampled_parameters.csv"), row.names=FALSE)
+                write.csv(x=parameters, file=file.path(outputLoc,"sampledParameters.csv"), row.names=FALSE)
                 musoGlue(results, parameters=parameters,settings=settings, w=w, lg=lg)
                 liks <- results[,sprintf("%s_likelihood",names(likelihood))]    
                 epcIndexes <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)
@@ -144,10 +155,17 @@ calibrateMuso <- function(measuredData, parameters =read.csv("parameters.csv", s
                     ml_place <- which.max(as.matrix(liks) %*% as.matrix(w))
                 }
                 epcVals <- results[ml_place,1:length(epcIndexes)]
-                epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
+                if(fileToChange == "soil"){
+                    epcPlace <- file.path(dirname(settings$inputFiles),settings$soil)[2]
+                    outFile <- "maxLikelihood_soil.soi"
+                } else {
+                    epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
+                    outFile <- "maxLikelihood_epc.epc"
+                }
+                #epcPlace <- file.path(dirname(settings$inputFiles),settings$epc)[2]
                 changemulline(filePaths= epcPlace, epcIndexes,
                               epcVals, src =epcPlace,# settings$epcInput[2],
-                              outFiles = file.path(outputLoc, "maxLikelihood_epc.epc"))
+                              outFiles = file.path(outputLoc, outFile))
                 names(epcVals) <- epcIndexes
            },
            "agromo"={
@@ -203,10 +221,17 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      outVars = NULL, iterations = 300,
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL, 
-                     naVal = NULL, postProcString = NULL, constraints=NULL, threadNumber) {
+                     naVal = NULL, postProcString = NULL, constraints=NULL, threadNumber, fileToChange = fileToChange) {
 
     setwd(paste0(settings$inputLoc, "/thread/thread_", threadNumber))
-
+    if(fileToChange == "soil"){
+        targetFile <- settings$soilFile[2]
+        sourceFilePath <- settings$soilFile[2]
+    }
+    else if (fileToChange == "epc"){
+        targetFile <- settings$epc[2]
+        sourceFilePath <- settings$epc[2]
+    }
     iniFiles <- file.path(settings$iniInput) 
     # iniFiles <- list.files(pattern=".*ini")
     # if(length(iniFiles)==1){
@@ -256,15 +281,17 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
     ##reading the original epc file at the specified
     ## row numbers
     # browser()
+
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     if(iterations < 3000){
-        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = 3000,sourceFile=sourceFile)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = 3000,sourceFile=sourceFile, fileType = fileToChange)
         randVals[[2]]<- randVals[[2]][sample(1:3000,iterations),] # TODO: last not random
     } else {
-        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = iterations,sourceFile=sourceFile)
+        randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = iterations,sourceFile=sourceFile, fileType = fileToChange)
     }
 
-    origEpc <- readValuesFromFile(settings$epc[2],randVals[[1]])
+
+    origEpc <- readValuesFromFile(targetFile,randVals[[1]])
     partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar))
     colN <- randVals[[1]]
     colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
@@ -337,7 +364,7 @@ musoSingleThread <- function(measuredData, parameters = NULL, startDate = NULL,
         tmp <- tryCatch(calibMuso(settings = settings,
                                   parameters = parameters,
                                   silent= TRUE,
-                                  skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString), error = function (e) NULL)
+                                  skipSpinup = skipSpinup, modifyOriginal=modifyOriginal, postProcString = postProcString, fileToChange = fileToChange), error = function (e) NULL)
         if(is.null(tmp)){
            partialResult[,resultRange] <- NA
         } else {
@@ -378,40 +405,155 @@ prepareFromAgroMo <- function(fName){
     cbind.data.frame(dateCols, obs)
 }
 
-
 calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
 
+     # Ensure 'mes' is a data frame
      mes <- as.data.frame(mes)
-    # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
-    likelihoodRMSE <- sapply(names(dataVar),function(key){
-               modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
-               selected <- grep(sprintf("%s$", key), colnames(mes))
-               # browser()
 
-               measured <- mes[alignIndexes$meas,selected]
+     # Iterate through the *names* provided in the dataVar argument
+     likelihoodRMSE_list <- sapply(names(dataVar), function(key){
 
-               if(is.null(dim(measured))){
-                   notNA <- !is.na(measured)             
-                   m <- measured <- measured[notNA]
-                    
-               } else {
-                   notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
-                   measured <- measured[notNA,]
-                   m <- measured[,grep("^mean", colnames(measured))]
-               }
-                   modelled <- modelled[notNA] 
+        # --- Find Modelled Column ---
+        modelColIndex <- NA # Default to invalid index
 
-               # uncert   <-   uncert[!is.na(measured)]
+        # 1. Try using the pre-calculated index (derived from code in dataVar)
+        #    Check if the key exists in the names derived from dataVar codes
+        #    and if the corresponding index is valid for the 'mod' data frame
+        if (key %in% names(musoCodeToIndex)) {
+             idx_from_code <- musoCodeToIndex[[key]]
+             if (length(idx_from_code) == 1 && !is.na(idx_from_code) &&
+                 idx_from_code > 0 && idx_from_code <= ncol(mod)) {
+                 modelColIndex <- idx_from_code
+             }
+        }
 
-               # measured <- measured[!is.na(measured)] 
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-m)^2))
-               )
-               # browser()
-               res
-        })
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
-    return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+        # 2. If index from code wasn't found or valid, try matching column by name
+        if (is.na(modelColIndex)) {
+            idx_from_name <- match(key, colnames(mod))
+            # Check if match found a valid index
+            if (length(idx_from_name) == 1 && !is.na(idx_from_name) && idx_from_name > 0) {
+                 modelColIndex <- idx_from_name
+                 # Optional: Print a message indicating name matching was used
+                 # print(paste("Info: Found model column for '", key, "' by name match.", sep=""))
+            }
+        }
+
+        # 3. Check if we successfully found a column index for the model output
+        if (is.na(modelColIndex)) {
+            warning(paste("Could not find model output column for key:", key,
+                          "(tried code lookup and name matching). Skipping likelihood calculation for this variable."),
+                    call. = FALSE) # Avoid printing the call stack for clarity
+            # Return NA for both likelihood and RMSE for this variable
+            return(c(likelihood = NA, rmse = NA))
+        }
+
+        # Extract modelled data using the determined index
+        # Ensure we handle potential errors if alignIndexes$mod is out of bounds
+        modelled <- tryCatch({
+             mod[alignIndexes$mod, modelColIndex]
+             }, error = function(e) {
+                  warning(paste("Error accessing modelled data for key:", key, "at index", modelColIndex, "-", e$message), call. = FALSE)
+                  rep(NA, length(alignIndexes$mod)) # Return NA vector of correct expected length
+             })
+        # --- End Find Modelled Column ---
+
+
+        # --- Find Measured Column(s) ---
+        # Search for columns in 'mes' ending with the key
+        selected_indices <- grep(sprintf("%s$", key), colnames(mes))
+
+        if (length(selected_indices) == 0) {
+             warning(paste("Could not find measurement column ending with key:", key,
+                           "in measuredData. Skipping likelihood calculation for this variable."),
+                     call. = FALSE)
+             return(c(likelihood = NA, rmse = NA))
+        }
+
+        # Select the actual column(s) based on index/indices
+        # Handle case where multiple columns match (e.g., _mean, _sd) - prefer single exact/mean match
+        measured_col_data <- mes[alignIndexes$meas, selected_indices, drop = FALSE] # Use drop=FALSE to keep data frame structure
+
+        # Determine the primary measurement column for RMSE ('m') and the data for likelihood ('measured_for_like')
+        # Prioritize exact match, then mean, then first match
+        measured_for_like <- measured_col_data # By default, use all matched columns for likelihood func
+        m_col_index <- NULL
+        exact_match_idx <- which(colnames(measured_col_data) == key)
+        mean_match_idx <- grep(sprintf("^mean\\.%s$|^%s_mean$", key, key), colnames(measured_col_data))
+
+        if(length(exact_match_idx) == 1) {
+            m_col_index <- exact_match_idx
+        } else if (length(mean_match_idx) == 1) {
+            m_col_index <- mean_match_idx
+        } else {
+             # If no exact or mean match, use the first selected column for 'm'
+             m_col_index <- 1
+             if(ncol(measured_col_data) > 1) {
+                  warning(paste("Multiple measurement columns found for key:", key,
+                                "- using '", colnames(measured_col_data)[m_col_index], "' for RMSE calculation."),
+                          call. = FALSE)
+             }
+        }
+         m <- measured_col_data[, m_col_index]
+        # --- End Find Measured Column(s) ---
+
+
+        # --- Alignment and NA Handling ---
+        # Align modelled and measured data, removing rows where *either* is NA
+        valid_indices <- !is.na(modelled) & !is.na(m)
+        modelled_aligned <- modelled[valid_indices]
+        m_aligned <- m[valid_indices]
+        measured_for_like_aligned <- measured_for_like[valid_indices, , drop = FALSE] # Keep aligned subset
+
+        # Check if any comparable data remains
+        if (length(modelled_aligned) == 0) {
+           warning(paste("No valid overlapping non-NA data points found for key:", key, "after alignment."),
+                   call. = FALSE)
+           return(c(likelihood = NA, rmse = NA))
+        }
+        # --- End Alignment and NA Handling ---
+
+
+        # --- Calculate Likelihood and RMSE ---
+        # Get the appropriate likelihood function for this key
+        currentLikelihoodFunc <- likelihoods[[key]]
+        if (is.null(currentLikelihoodFunc) || !is.function(currentLikelihoodFunc)) {
+             warning(paste("Likelihood function not found or invalid for key:", key), call. = FALSE)
+             # Decide default behavior: NA or default likelihood? Returning NA for now.
+             likelihood_val <- NA
+        } else {
+             # Calculate likelihood - pass the potentially multi-column aligned measurement data
+             likelihood_val <- tryCatch({
+                  currentLikelihoodFunc(modelled_aligned, m_aligned)
+             }, error = function(e) {
+                  warning(paste("Error calculating likelihood for key:", key, "-", e$message), call. = FALSE)
+                  NA
+             })
+        }
+
+        # Calculate RMSE using the primary measurement column ('m_aligned')
+        rmse_val <- sqrt(mean((modelled_aligned - m_aligned)^2, na.rm = TRUE)) # na.rm is fallback
+
+        res <- c(likelihood = likelihood_val, rmse = rmse_val)
+        # --- End Calculate Likelihood and RMSE ---
+
+        return(res) # Return named vector for this key
+
+    }, simplify = FALSE) # Use simplify=FALSE initially to handle potential errors gracefully
+
+    # Combine results into the final matrix/vector format expected
+    # Handle cases where some variables failed (returned NA)
+    final_likelihoods <- sapply(likelihoodRMSE_list, function(x) x['likelihood'])
+    final_rmses <- sapply(likelihoodRMSE_list, function(x) x['rmse'])
+
+    # Construct the final named vector/matrix as expected by the calling function
+    likelihood_names <- sprintf("%s_likelihood", names(dataVar))
+    rmse_names <- sprintf("%s_rmse", names(dataVar))
+    final_results_vector <- c(final_likelihoods, final_rmses)
+    names(final_results_vector) <- c(likelihood_names, rmse_names)
+
+    # Return results in the format that musoSingleThread expects for partialResult[, resultRange]
+    # Ensure the order matches: likelihoods first, then RMSEs
+    return(final_results_vector)
 }
 
 agroLikelihood <- function(modVector,measured){
