@@ -268,106 +268,120 @@ plotMusoWithData <- function(mdata, plotName = NULL,
                                      settings = setupMuso(),
                                      silent = TRUE,
                                      continious = FALSE,
-                                     leapYearHandling = FALSE, 
+                                     leapYearHandling = FALSE,
                                      postProcString = NULL
-
                                      ) {
 
     if (continious & (is.null(startDate) | is.null(endDate))) {
         stop("If your date is continuous, you have to provide both startDate and endDate.")
     }
 
+   
     dataCol_indices <- grep(paste0("^", dataVar, "$"), colnames(mdata)) # Exact match
     if (length(dataCol_indices) == 0) {
         stop(paste("Measured variable '", dataVar, "' not found in mdata. Available: ", paste(colnames(mdata), collapse=", "), sep = ""))
     }
-    if (length(dataCol_indices) > 1) {
-        warning(paste("Multiple columns found for dataVar '", dataVar, "'. Using the first: ", colnames(mdata)[dataCol_indices[1]], sep = ""))
-    }
     dataCol <- dataCol_indices[1]
 
-    alignment_result <- alignData(mdata, dataCol = dataCol,
-                                  modellSettings = settings,
-                                  startDate = startDate,
-                                  endDate = endDate, leapYear = leapYearHandling, continious = continious)
-    list2env(alignment_result, envir = environment())
+    alignment_result <- alignData(mdata, dataCol = dataCol, modellSettings = settings,
+                                  startDate = startDate, endDate = endDate,
+                                  leapYear = leapYearHandling, continious = continious)
+    aligned_measured_values <- alignment_result$measuredData
+    model_indices_for_measurements <- alignment_result$modIndex
+
+
+    
+    baseData_from_calibMuso <- calibMuso(settings = settings, silent = silent, prettyOut = FALSE,
+                                         postProcString = postProcString,
+                                         leapYearHandling = leapYearHandling)
+
+    if (is.null(baseData_from_calibMuso) || nrow(baseData_from_calibMuso) == 0) stop("calibMuso returned no data.")
 
    
-    baseData_full <- calibMuso(settings = settings,
-                               silent = silent,
-                               prettyOut = FALSE, 
-                               postProcString = postProcString,
- 
-                               leapYearHandling = leapYearHandling # Pass for musoDate in calibMuso
-                               )
-    
-    if (is.null(baseData_full) || nrow(baseData_full) == 0) stop("calibMuso returned no data.")
+    model_data_for_lineplot <- as.data.frame(baseData_from_calibMuso)
 
-    # Subset to aligned indices AFTER potential post-processing
-    baseData <- baseData_full[modIndex, , drop = FALSE] # drop=FALSE ensures it stays a data.frame
 
-    if (nrow(baseData) == 0) stop("No model data remains after aligning with measurement dates.")
-
-  
-    if (length(rownames(baseData)) == nrow(baseData)) {
-        date_formats_to_try <- c("%d.%m.%Y", "%Y.%m.%d", "%Y-%m-%d")
-        parsed_dates <- NULL
+    if (length(rownames(model_data_for_lineplot)) == nrow(model_data_for_lineplot)) {
+        date_formats_to_try <- c("%d.%m.%Y", "%Y.%m.%d", "%Y-%m-%d") # Common formats
+        parsed_dates_full <- NULL
         for (fmt in date_formats_to_try) {
-            parsed_dates <- tryCatch({
-                as.Date(rownames(baseData), format = fmt)
-            }, warning = function(w) NULL, error = function(e) NULL)
-            if (!is.null(parsed_dates) && !all(is.na(parsed_dates))) break
+            parsed_dates_full <- tryCatch({ as.Date(rownames(model_data_for_lineplot), format = fmt) }, warning = function(w) NULL, error = function(e) NULL)
+            if (!is.null(parsed_dates_full) && !all(is.na(parsed_dates_full))) break
         }
-        if (is.null(parsed_dates) || all(is.na(parsed_dates))) {
-             # Final attempt with R's default parsing if specific formats fail
-             parsed_dates <- tryCatch({ as.Date(rownames(baseData)) },
-                                   error = function(e) {
-                                       stop(paste("Could not parse date from rownames. Example rowname:", rownames(baseData)[1]), call. = FALSE)
-                                   })
+        if (is.null(parsed_dates_full) || all(is.na(parsed_dates_full))) {
+             parsed_dates_full <- tryCatch({ as.Date(rownames(model_data_for_lineplot)) }, error = function(e) { stop(paste("Could not parse date from rownames. Example:", rownames(model_data_for_lineplot)[1]), call. = FALSE) })
         }
-        if (any(is.na(parsed_dates))) {
-             warning("Some dates could not be parsed from rownames. Plot may be incomplete.", call. = FALSE)
-        }
-        baseData$plot_date <- parsed_dates # Add as a new column
+        if (any(is.na(parsed_dates_full))) warning("Some dates for model_data_for_lineplot could not be parsed.", call. = FALSE)
+        model_data_for_lineplot$plot_date <- parsed_dates_full # Assign to the data frame
     } else {
-        stop("Rownames for date conversion are missing or have incorrect length.")
+        stop("Rownames for date conversion are missing or have incorrect length in model_data_for_lineplot.")
     }
-
 
     
     selVarName <- NULL
-    if (modelVar %in% colnames(baseData)) {
+    if (modelVar %in% colnames(model_data_for_lineplot)) {
         selVarName <- modelVar
     } else {
-        match_in_codes <- grep(paste0("^",modelVar,"$"), (settings$dailyVarCodes)) # Exact match for code/name
+        
+        var_names_from_settings <- unlist(settings$outputVars[[1]]) # For daily
+        
+        actual_col_index <- NA
+        # Try if modelVar is a code
+        modelVar_as_code <- suppressWarnings(as.numeric(modelVar))
+        if (!is.na(modelVar_as_code)) {
+            idx <- match(modelVar_as_code, settings$dailyVarCodes)
+            if(!is.na(idx) && idx > 0 && idx <= length(var_names_from_settings)) actual_col_index <- idx
+        }
+        # Try if modelVar is a name (if not already found as a direct colname)
+        if (is.na(actual_col_index) && is.character(modelVar)) {
+             idx <- match(modelVar, var_names_from_settings)
+             if(!is.na(idx) && idx > 0) actual_col_index <- idx
+        }
 
-        if (length(match_in_codes) == 1) {
-            actual_col_index <- match_in_codes[1]
-            if (actual_col_index > 0 && actual_col_index <= ncol(baseData)) {
-                selVarName <- colnames(baseData)[actual_col_index]
-            }
+        if (!is.na(actual_col_index) && actual_col_index <= ncol(model_data_for_lineplot)) {
+            selVarName <- colnames(model_data_for_lineplot)[actual_col_index]
         }
     }
 
     if (is.null(selVarName)) {
         stop(paste("Model variable '", modelVar,
-                   "' could not be identified in the model output columns. Available columns are: ",
-                   paste(colnames(baseData), collapse = ", "), ". Check if 'modelVar' is a name or a code listed in settings$dailyVarCodes.", sep = ""))
+                   "' could not be identified in model output. Available columns: '",
+                   paste(colnames(model_data_for_lineplot), collapse = "', '"), # Use the correct data frame here
+                   "'. Check name or settings$dailyVarCodes.", sep = ""))
+    }
+
+
+    plot_mesData <- data.frame(plot_date = as.Date(character(0)), measured = numeric(0)) 
+    if (length(model_indices_for_measurements) > 0 && length(model_indices_for_measurements) == length(aligned_measured_values)) {
+        # Ensure plot_date column exists in model_data_for_lineplot before subsetting
+        if("plot_date" %in% colnames(model_data_for_lineplot)) {
+             plot_mesData <- data.frame(
+                plot_date = model_data_for_lineplot$plot_date[model_indices_for_measurements],
+                measured = aligned_measured_values
+            )
+        } else {
+            warning("plot_date column missing from model_data_for_lineplot when preparing measured points.", call.=FALSE)
+        }
+    } else if (length(model_indices_for_measurements) > 0) {
+        warning("Mismatch between length of model_indices_for_measurements and aligned_measured_values.", call.=FALSE)
+    }
+
+
+   
+    p <- ggplot(model_data_for_lineplot, aes_string(x = "plot_date", y = selVarName)) +
+        geom_line(colour = colour[1], na.rm = TRUE)
+    
+    if(nrow(plot_mesData) > 0){ 
+        p <- p + geom_point(data = plot_mesData, aes(x = plot_date, y = measured), colour = colour[2], na.rm = TRUE)
     }
     
-    plot_mesData <- data.frame(plot_date = baseData$plot_date, measured = measuredData)
+    p <- p + labs(y = paste0("Model: ", selVarName, " / Measured: ", dataVar), x = "Date") +
+        theme(axis.title.x = element_text())
 
-    p <- ggplot(baseData, aes_string(x = "plot_date", y = selVarName)) +
-        geom_line(colour = colour[1], na.rm = TRUE) +
-        geom_point(data = plot_mesData, aes(x = plot_date, y = measured), colour = colour[2], na.rm = TRUE) +
-        labs(y = paste0("Model: ", selVarName, " / Measured: ", dataVar), x = "Date") +
-        theme(axis.title.x = element_text()) # Changed from element_blank() to show "Date"
-
-    if (!is.null(plotName)) {
-        ggsave(plotName, p)
-    }
+    if (!is.null(plotName)) ggsave(plotName, p)
     return(p)
 }
+
 #' compareMuso 
 #'
 #' This function runs the model, then changes one of its input data, runs it again, and plots both results in one graph. 
