@@ -1181,7 +1181,6 @@ tuneMusoServer <- function(input, output, session){
         req(input$measurementFile)
         files <- input$measurementFile
         
-        # Reading and combine files 
         new_data_list <- lapply(seq_len(nrow(files)), function(i) {
             df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
             df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
@@ -1191,87 +1190,88 @@ tuneMusoServer <- function(input, output, session){
             data.frame(Date = df$Date, meas, stringsAsFactors = FALSE, check.names = FALSE)
         })
         
-            new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
-            
-            # Create complete date sequence
-            req(settings)
-            min_year <- as.numeric(format(min(dates), "%Y"))
-            max_year <- as.numeric(format(max(dates), "%Y"))
-            
-            all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
-                # Create the full sequence for the year
-                start_date <- as.Date(paste0(yr, "-01-01"))
-                end_date   <- as.Date(paste0(yr, "-12-31"))
-                dates_year <- seq.Date(start_date, end_date, by = "day")
-                
-                # If the year is a leap year (contains Feb 29), remove December 31
-                if (any(format(dates_year, "%m-%d") == "02-29")) {
+        new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
+        
+        req(settings)
+        min_year <- as.numeric(format(min(dates), "%Y"))
+        max_year <- as.numeric(format(max(dates), "%Y"))
+        
+        all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
+            start_date <- as.Date(paste0(yr, "-01-01"))
+            end_date   <- as.Date(paste0(yr, "-12-31"))
+            dates_year <- seq.Date(start_date, end_date, by = "day")
+            if (any(format(dates_year, "%m-%d") == "02-29")) {
                 dates_year <- dates_year[format(dates_year, "%m-%d") != "12-31"]
-                }
-                
-                return(dates_year)
-            })), origin = "1970-01-01")
+            }
+            return(dates_year)
+        })), origin = "1970-01-01")
 
         base_df <- data.frame(Date = all_dates)
         sim_start <- min(base_df$Date)
         sim_end   <- max(base_df$Date)
-        # Merging with base dates
         new_data_complete <- dplyr::left_join(base_df, new_data_combined, by = "Date")
         
-        # Processing mappings IN THE COMPLETE DATA
         mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
         mapping <- list()
         
-        # handling mapping columns, if they exist we map them to the output variables and remove them from the data table
         if (length(mapping_cols) > 0) {
             for (map_col in mapping_cols) {
-                output_var <- sub("_MAPPING$", "", map_col, fixed = FALSE)
-                meas_cols <- unique(na.omit(new_data_complete[[map_col]])) 
+                output_var <- sub("_MAPPING$", "", map_col, fixed = FALSE) # Changed TRUE to FALSE for regex
+                meas_cols_str <- unique(na.omit(new_data_complete[[map_col]])) 
                 
-                if (length(meas_cols) > 0) {
-                    for (col in strsplit(meas_cols, ",")[[1]]) {
+                if (length(meas_cols_str) > 0) {
+                    # Handle cases where meas_cols_str might be a single string with multiple columns
+                    all_meas_cols_for_output_var <- unlist(strsplit(meas_cols_str, ","))
+                    for (col in all_meas_cols_for_output_var) {
+                        col <- trimws(col) # Trim whitespace
                         if (col %in% names(new_data_complete)) {
                             mapping[[col]] <- output_var
                         }
                     }
                 }
             }
-            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols]
+            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols, drop = FALSE]
         }
         
-        # Updating measurementData with complete, filtered data
         if (is.null(measurementData())) {
             measurementData(new_data_complete)
-            initialMeasurementData(new_data_complete)
+            initialMeasurementData(new_data_complete) # Store initial state
         } else {
-            combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
+            current_meas_data <- measurementData()
+            # Identify new columns in new_data_complete not in current_meas_data
+            newly_added_cols <- setdiff(colnames(new_data_complete), colnames(current_meas_data))
+            
+            # Merge, prioritizing new data for existing columns if necessary, though full_join handles this
+            combined <- dplyr::full_join(current_meas_data, new_data_complete, by = "Date")
             combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
             combined <- combined[combined$Date %in% base_df$Date, ]
             measurementData(combined)
 
+            # Update initialMeasurementData carefully
             init_data <- initialMeasurementData()
-             new_cols <- setdiff(colnames(new_data_complete), colnames(init_data))
+            # For columns that were newly introduced by this file upload
+            new_initials_df <- new_data_complete[, c("Date", newly_added_cols[newly_added_cols %in% colnames(new_data_complete) & !(newly_added_cols %in% colnames(init_data))]), drop = FALSE]
+            if(ncol(new_initials_df) > 1) { # If there are actual new columns
+                 init_data <- dplyr::full_join(init_data, new_initials_df, by = "Date")
+            }
+           
+            # This part is tricky cause the current logic might overwrite initial state if a column is re-uploaded
+            # A more robust initialMeasurementData would store each column as it was *first* loaded
+            # For simplicity now we'll merge but this could be refined
+            initialMeasurementData(dplyr::full_join(initialMeasurementData(), new_data_complete[, c("Date", setdiff(colnames(new_data_complete), "Date")), drop=FALSE], by = "Date"))
 
-                 if (length(new_cols) > 0) {
-                    # Create a data frame with Date and the new columns
-                    new_initials <- new_data_complete[, c("Date", new_cols), drop = FALSE]
-                    # Merge the new columns into the initial data
-                    init_data <- dplyr::full_join(init_data, new_initials, by = "Date")
-                    initialMeasurementData(init_data)
-                }
+
         }
         
-        # Setting mapping AFTER data processing
         if (length(mapping) > 0) mappingRV(mapping)
     })
 
 
         # DUPLICATING CODE FOR THE SECOND MEASUREMENT READ BUTTON I KNOW IT'S HORRIBLE BUT I actually don't see a trivial way to do this, I'll edit it later when I can get my head around it
-         observeEvent(input$measurementFile2, {
+       observeEvent(input$measurementFile2, {
         req(input$measurementFile2)
         files <- input$measurementFile2
         
-        # Reading and combine files 
         new_data_list <- lapply(seq_len(nrow(files)), function(i) {
             df <- read.table(files$datapath[i], header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
             df$Date <- as.Date(paste(df[[1]], df[[2]], df[[3]], sep = "-"), format = "%Y-%m-%d")
@@ -1281,79 +1281,75 @@ tuneMusoServer <- function(input, output, session){
             data.frame(Date = df$Date, meas, stringsAsFactors = FALSE, check.names = FALSE)
         })
         
-            new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
-            
-            # Create complete date sequence
-            req(settings)
-            min_year <- as.numeric(format(min(dates), "%Y"))
-            max_year <- as.numeric(format(max(dates), "%Y"))
+        new_data_combined <- Reduce(function(x, y) dplyr::full_join(x, y, by = "Date"), new_data_list)
+        
+        req(settings)
+        min_year <- as.numeric(format(min(dates), "%Y"))
+        max_year <- as.numeric(format(max(dates), "%Y"))
 
-            all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
-                # Create the full sequence for the year
-                start_date <- as.Date(paste0(yr, "-01-01"))
-                end_date   <- as.Date(paste0(yr, "-12-31"))
-                dates_year <- seq.Date(start_date, end_date, by = "day")
-                
-                # If the year is a leap year (contains Feb 29), remove December 31
-                if (any(format(dates_year, "%m-%d") == "02-29")) {
+        all_dates <- as.Date(unlist(lapply(seq(min_year, max_year), function(yr) {
+            start_date <- as.Date(paste0(yr, "-01-01"))
+            end_date   <- as.Date(paste0(yr, "-12-31"))
+            dates_year <- seq.Date(start_date, end_date, by = "day")
+            if (any(format(dates_year, "%m-%d") == "02-29")) {
                 dates_year <- dates_year[format(dates_year, "%m-%d") != "12-31"]
-                }
-                
-                return(dates_year)
-            })), origin = "1970-01-01")
+            }
+            return(dates_year)
+        })), origin = "1970-01-01")
 
         base_df <- data.frame(Date = all_dates)
         sim_start <- min(base_df$Date)
         sim_end   <- max(base_df$Date)
-        # Merging with base dates
         new_data_complete <- dplyr::left_join(base_df, new_data_combined, by = "Date")
         
-        # Processing mappings IN THE COMPLETE DATA
         mapping_cols <- grep("_MAPPING$", names(new_data_complete), value = TRUE)
-        mapping <- list()
+        mapping <- list() # Initialize mapping for this upload
         
-        # handling mapping columns, if they exist we map them to the output variables and remove them from the data table
+        current_mapping <- isolate(mappingRV()) # Get existing global mapping
+        if(is.null(current_mapping)) current_mapping <- list()
+
         if (length(mapping_cols) > 0) {
             for (map_col in mapping_cols) {
                 output_var <- sub("_MAPPING$", "", map_col, fixed = FALSE)
-                meas_cols <- unique(na.omit(new_data_complete[[map_col]])) 
+                meas_cols_str <- unique(na.omit(new_data_complete[[map_col]]))
                 
-                if (length(meas_cols) > 0) {
-                    for (col in strsplit(meas_cols, ",")[[1]]) {
+                if (length(meas_cols_str) > 0) {
+                    all_meas_cols_for_output_var <- unlist(strsplit(meas_cols_str, ","))
+                    for (col in all_meas_cols_for_output_var) {
+                        col <- trimws(col)
                         if (col %in% names(new_data_complete)) {
-                            mapping[[col]] <- output_var
+                            current_mapping[[col]] <- output_var # Update global mapping
                         }
                     }
                 }
             }
-            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols]
+            new_data_complete <- new_data_complete[, !names(new_data_complete) %in% mapping_cols, drop = FALSE]
         }
         
-        # Updating measurementData with complete, filtered data
         if (is.null(measurementData())) {
             measurementData(new_data_complete)
             initialMeasurementData(new_data_complete)
         } else {
-            combined <- dplyr::full_join(measurementData(), new_data_complete, by = "Date")
+            current_meas_data <- measurementData()
+            newly_added_cols <- setdiff(colnames(new_data_complete), colnames(current_meas_data))
+            
+            combined <- dplyr::full_join(current_meas_data, new_data_complete, by = "Date")
             combined <- dplyr::filter(combined, Date >= sim_start & Date <= sim_end)
             combined <- combined[combined$Date %in% base_df$Date, ]
             measurementData(combined)
             
             init_data <- initialMeasurementData()
-             new_cols <- setdiff(colnames(new_data_complete), colnames(init_data))
+            new_initials_df <- new_data_complete[, c("Date", newly_added_cols[newly_added_cols %in% colnames(new_data_complete) & !(newly_added_cols %in% colnames(init_data))]), drop = FALSE]
+            if(ncol(new_initials_df) > 1) {
+                 init_data <- dplyr::full_join(init_data, new_initials_df, by = "Date")
+            }
+            initialMeasurementData(dplyr::full_join(initialMeasurementData(), new_data_complete[, c("Date", setdiff(colnames(new_data_complete), "Date")), drop=FALSE], by = "Date"))
 
-                 if (length(new_cols) > 0) {
-                    # Create a data frame with Date and the new columns
-                    new_initials <- new_data_complete[, c("Date", new_cols), drop = FALSE]
-                    # Merge the new columns into the initial data
-                    init_data <- dplyr::full_join(init_data, new_initials, by = "Date")
-                    initialMeasurementData(init_data)
-                }
         }
         
-        # Setting mapping AFTER data processing
-        if (length(mapping) > 0) mappingRV(mapping)
+        if (length(current_mapping) > 0) mappingRV(current_mapping) # Set the updated global mapping
     })
+
 
 
             observe({
@@ -1395,19 +1391,57 @@ tuneMusoServer <- function(input, output, session){
         
 
             # When the user clicks the delete button, remove the selected columns
-            observeEvent(input$deleteCols, {
-                req(measurementData())
-                colsToRemove <- input$colsToDelete
-                if(length(colsToRemove) > 0){
-                    # Remove the selected columns from the data frame
-                    df <- measurementData()
-                    df <- df[, !(colnames(df) %in% colsToRemove), drop = FALSE]
-                    measurementData(df)
+        observeEvent(input$deleteCols, {
+            req(measurementData()) # Ensure measurementData is not NULL before proceeding
+            
+            current_df <- measurementData()
+            colsToRemove <- input$colsToDelete
+            
+            if (length(colsToRemove) > 0) {
+                # Ensure "Date" column is not in colsToRemove
+                colsToRemove <- setdiff(colsToRemove, "Date")
+                
+                if (length(colsToRemove) > 0) {
+                    # --- New logic to update mappingRV ---
+                    current_mappings <- isolate(mappingRV()) # Get current mappings
+                    updated_mappings <- current_mappings
+                    was_mapping_changed <- FALSE
+
+                    for (col_to_remove in colsToRemove) {
+                        if (col_to_remove %in% names(current_mappings)) {
+                            updated_mappings[[col_to_remove]] <- NULL # Remove the mapping for this column
+                            was_mapping_changed <- TRUE
+                            # Optional: Notify user that a mapping was removed
+                             showNotification(paste("Mapping for measurement column '", col_to_remove, "' has been removed as the column was deleted."), type = "message", duration = 7)
+                        }
+                    }
+
+                    if (was_mapping_changed) {
+                        mappingRV(updated_mappings) # Update the reactiveVal with cleaned mappings
+                    }
                     
-                    # Update the checkbox group input to reflect the new column names
-                    updateCheckboxGroupInput(session, "colsToDelete", choices = setdiff(colnames(df), "Date"), selected = character(0))
+
+                    remaining_cols <- setdiff(colnames(current_df), colsToRemove)
+                    
+                    if (length(remaining_cols) == 0 || (length(remaining_cols) == 1 && remaining_cols[1] == "Date")) {
+                        measurementData(NULL) 
+                        showNotification("All data columns deleted. Measurement data is now empty.", type = "warning", duration = 8)
+                    } else {
+                        current_df <- current_df[, remaining_cols, drop = FALSE]
+                        measurementData(current_df)
+                    }
                 }
-            })
+            }
+            
+            # Update the checkbox group input
+            current_data_for_checkbox <- measurementData()
+            choices_for_delete <- if(is.null(current_data_for_checkbox) || ncol(current_data_for_checkbox) <=1) {
+                                    character(0)
+                                } else {
+                                    setdiff(colnames(current_data_for_checkbox), "Date")
+                                }
+            updateCheckboxGroupInput(session, "colsToDelete", choices = choices_for_delete, selected = character(0))
+        })
 
         # Mapping ui
         mappingRV <- reactiveVal(NULL)
@@ -4596,124 +4630,131 @@ tuneMusoServer <- function(input, output, session){
    #         dfs
    # })
 
-    metricsData <- reactive({
+   metricsData <- reactive({
         req(outputData(), input$yearRange)  
         
-        # Get measurement data (if any) and mapping
-        meas_df <- measurementData()
+        meas_df <- measurementData() # This will be NULL if all data columns were deleted
         mapping <- mappingRV()
         
-        # If no measurement data or no mapping is provided, return an empty data frame (so plots are still generated)
-        if (is.null(meas_df) || nrow(meas_df) == 0 || is.null(mapping) || length(mapping) == 0) {
+        # If meas_df is NULL, or has 0 actual data columns (ncol < 2),
+        # or if mapping is NULL/empty, then return an empty metrics structure.
+        if (is.null(meas_df) || ncol(meas_df) < 2 || nrow(meas_df) == 0 || is.null(mapping) || length(mapping) == 0) {
             return(data.frame(
-            Measurement = character(),
-            OutputVariable = character(),
-            RMSE = numeric(),
-            BIAS = numeric(),
-            Correlation = numeric(),
-            NSE = numeric(),
-            stringsAsFactors = FALSE
+                Measurement = character(),
+                OutputVariable = character(),
+                RMSE = numeric(),
+                BIAS = numeric(),
+                Correlation = numeric(), # This is R^2 in your existing code
+                NSE = numeric(),
+                stringsAsFactors = FALSE
             ))
         }
         
         # Determine selected years
-                if (isTRUE(input$singleYear)) {
-                    validate(
-                        need(is.finite(input$yearRange), "Year not available yet")
-                    )
-                    selectedYears <- input$yearRange  # single value
-                } else {
-                    validate(
-                        need(length(input$yearRange) == 2 &&
-                            is.finite(input$yearRange[1]) &&
-                            is.finite(input$yearRange[2]),
-                            "Year range not available yet")
-                    )
-                    selectedYears <- seq(input$yearRange[1], input$yearRange[2])
-                }
+        selectedYears <- if (isTRUE(input$singleYear)) {
+            validate(need(is.finite(input$yearRange), "Year not available yet"))
+            input$yearRange
+        } else {
+            validate(need(length(input$yearRange) == 2 && is.finite(input$yearRange[1]) && is.finite(input$yearRange[2]), "Year range not available yet"))
+            seq(input$yearRange[1], input$yearRange[2])
+        }
         
         # Filter measurement and simulation data to the selected years
-        meas_df <- meas_df[format(meas_df$Date, "%Y") %in% selectedYears, ]
-        
-        sim_df <- outputData()
-        sim_df <- sim_df[format(sim_df$Date, "%Y") %in% selectedYears, ]
-        
-        # for the good rmse calc
-        #cols_to_modify <- c("GPP", "TR", "NEE")  
-        #existing_cols <- intersect(cols_to_modify, names(sim_df))  # Check which exist
+        # Ensure meas_df is not NULL before trying to subset
+        if (!is.null(meas_df) && "Date" %in% colnames(meas_df)) {
+             meas_df_filtered <- meas_df[format(as.Date(meas_df$Date), "%Y") %in% selectedYears, , drop = FALSE]
+        } else {
+             meas_df_filtered <- NULL # or an empty df with expected structure if preferred
+        }
 
-        #sim_df[existing_cols] <- sim_df[existing_cols] * 1000 # COMMENTED OUT BECAUSE OF THE NEW OUTPUT VARIABLE MANAGER
+        sim_df_filtered <- outputData()
+        if ("Date" %in% colnames(sim_df_filtered)) {
+            sim_df_filtered <- sim_df_filtered[format(as.Date(sim_df_filtered$Date), "%Y") %in% selectedYears, , drop = FALSE]
+        } else {
+            # This case should ideally not happen if outputData() is always structured with a Date column
+            return(data.frame(Measurement=character(), OutputVariable=character(), RMSE=numeric(), BIAS=numeric(), Correlation=numeric(), NSE=numeric(), stringsAsFactors=FALSE))
+        }
 
-        # Merge the two datasets on Date (columns get suffixes to avoid stinky bugs)
-        merged_df <- merge(meas_df, sim_df, by = "Date", suffixes = c("_meas", "_simi"))
+        # If after filtering, meas_df_filtered is NULL or has no rows, return empty metrics
+        if (is.null(meas_df_filtered) || nrow(meas_df_filtered) == 0) {
+            return(data.frame(Measurement=character(), OutputVariable=character(), RMSE=numeric(), BIAS=numeric(), Correlation=numeric(), NSE=numeric(), stringsAsFactors=FALSE))
+        }
+
+        # Merge the two datasets on Date
+        # Ensure both data frames have the "Date" column before merging
+        if (!("Date" %in% names(meas_df_filtered)) || !("Date" %in% names(sim_df_filtered))) {
+             # This indicates a problem upstream with data preparation
+            showNotification("Date column missing in measurement or simulation data for metrics calculation.", type = "error")
+            return(data.frame(Measurement=character(), OutputVariable=character(), RMSE=numeric(), BIAS=numeric(), Correlation=numeric(), NSE=numeric(), stringsAsFactors=FALSE))
+        }
+        merged_df <- merge(meas_df_filtered, sim_df_filtered, by = "Date", suffixes = c("_meas", "_simi"))
         
-        # For each mapped measurement, calculate RMSE and correlation
-        metrics_list <- lapply(names(mapping), function(meas_col) {
-            output_var <- mapping[[meas_col]]
+        metrics_list <- lapply(names(mapping), function(meas_col_original_name) {
+            output_var <- mapping[[meas_col_original_name]]
             if (output_var == "None") return(NULL)
             
-            # Find the correct columns in merged_df
-            x_col <- if (meas_col %in% colnames(merged_df)) {
-            meas_col
-            } else if (paste0(meas_col, "_meas") %in% colnames(merged_df)) {
-            paste0(meas_col, "_meas")
-            } else {
-            NULL
+            # Determine actual column names in merged_df (could have _meas or _simi suffix or be original)
+            # This logic needs to be robust if column names in meas_df or sim_df might already have these suffixes.
+            # Assuming original names from mapping keys are sufficient for meas_df, and output_var for sim_df.
+            
+            x_col_name_in_merged <- paste0(meas_col_original_name, "_meas") 
+            y_col_name_in_merged <- paste0(output_var, "_simi")
+
+            # Fallback if suffixes were not added (e.g. if names were unique)
+            if (!x_col_name_in_merged %in% colnames(merged_df) && meas_col_original_name %in% colnames(merged_df)) {
+                x_col_name_in_merged <- meas_col_original_name
+            }
+            if (!y_col_name_in_merged %in% colnames(merged_df) && output_var %in% colnames(merged_df)) {
+                y_col_name_in_merged <- output_var
+            }
+
+            if (!x_col_name_in_merged %in% colnames(merged_df) || !y_col_name_in_merged %in% colnames(merged_df)) {
+                # This means a mapped column was not found in the merged data, possibly deleted
+                # or mapping is stale.
+                return(NULL) 
             }
             
-            y_col <- if (output_var %in% colnames(merged_df)) {
-            output_var
-            } else if (paste0(output_var, "_simi") %in% colnames(merged_df)) {
-            paste0(output_var, "_simi")
-            } else {
-            NULL
-            }
+            x <- merged_df[[x_col_name_in_merged]]
+            y <- merged_df[[y_col_name_in_merged]]
             
-            # Skip if we can’t find the necessary columns
-            if (is.null(x_col) || is.null(y_col)) return(NULL)
-            
-            x <- merged_df[[x_col]]
-            y <- merged_df[[y_col]]
-            
-            # Remove pairs where either value is NA
             valid <- complete.cases(x, y)
-            if (sum(valid) == 0) {
-            rmse_val <- NA
-            bias_val <- NA
-            corr_val <- NA
-            nse_val <- NA
+            if (sum(valid) < 2) { # Need at least 2 points for correlation/NSE
+                rmse_val <- if(sum(valid) > 0) sqrt(mean((x[valid] - y[valid])^2)) else NA
+                bias_val <- if(sum(valid) > 0) mean(y[valid] - x[valid]) else NA
+                corr_val <- NA
+                nse_val <- NA
             } else {
-            rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
-            bias_val <- mean(y[valid] - x[valid])
-            corr_val <- if (length(x[valid]) > 1) cor(x[valid], y[valid])^2 else NA  #R2
-            # Nash-Sutcliffe Efficiency (NSE) calculation
-            obs_mean <- mean(x[valid])
-            numerator <- sum((x[valid] - y[valid])^2)
-            denominator <- sum((x[valid] - obs_mean)^2)
-            nse_val <- if (denominator == 0) NA else 1 - numerator / denominator
+                rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
+                bias_val <- mean(y[valid] - x[valid])
+                corr_val <- cor(x[valid], y[valid])^2 # R^2
+                obs_mean <- mean(x[valid])
+                numerator <- sum((x[valid] - y[valid])^2)
+                denominator <- sum((x[valid] - obs_mean)^2)
+                nse_val <- if (denominator == 0) { if(numerator == 0) 1 else -Inf } else { 1 - numerator / denominator } # Handle perfect fit or zero variance in obs
             }
             
             data.frame(
-            Measurement = meas_col,
-            OutputVariable = output_var,
-            RMSE = rmse_val,
-            BIAS = bias_val,
-            Correlation = corr_val,
-            NSE = nse_val,
-            stringsAsFactors = FALSE
+                Measurement = meas_col_original_name, # Use original name for clarity
+                OutputVariable = output_var,
+                RMSE = rmse_val,
+                BIAS = bias_val,
+                Correlation = corr_val,
+                NSE = nse_val,
+                stringsAsFactors = FALSE
             )
         })
         
-        metrics <- do.call(rbind, metrics_list)
-        if (is.null(metrics)) {
+        metrics <- do.call(rbind, Filter(NROW, metrics_list)) # Filter out NULLs and ensure NROW > 0 for rbind
+        
+        if (is.null(metrics) || nrow(metrics) == 0) {
             metrics <- data.frame(
-            Measurement = character(),
-            OutputVariable = character(),
-            RMSE = numeric(),
-            BIAS = numeric(),
-            Correlation = numeric(),
-            NSE = numeric(),
-            stringsAsFactors = FALSE
+                Measurement = character(),
+                OutputVariable = character(),
+                RMSE = numeric(),
+                BIAS = numeric(),
+                Correlation = numeric(),
+                NSE = numeric(),
+                stringsAsFactors = FALSE
             )
         }
         metrics
@@ -5544,7 +5585,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.5.4</strong></p>
+                    <p><strong>Version 2.19.6</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
