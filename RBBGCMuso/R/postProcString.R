@@ -5,7 +5,7 @@
 postProcMuso  <- function(modelData, procString){
     modelDat <- modelData[,-(1:4)]
     cNames <- colnames(modelData)
-    tocalc <- gsub("(@)(\\d)","modelDat[,\\2]",procString)
+    tocalc <- gsub("(@)(\\d+)","modelDat[,\\2]",procString)
     newVarName <- gsub("\\s","",unlist(strsplit(procString,"<-"))[1])
     assign(newVarName,eval(parse(text = unlist(strsplit(tocalc,"<-"))[2])))
     modelData <- cbind.data.frame(modelData,eval(parse(text = newVarName)))
