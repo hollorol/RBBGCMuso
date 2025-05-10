@@ -617,9 +617,13 @@ function wrapText(elementId, openTag, closeTag) {
                                     div(id = "parametersLayout",
                                         # Left column: top Run Muso button, variable picker, and file input
                                         div(class = "colLeft",
-                                            div(style = "margin-top: 10px;",
+                                            div(style = "margin-top: 10px; display: flex; align-items: center; gap: 10px;",
                                                 actionButton("runModel", "Run Muso",
-                                                            style = "background-color: red; color: white; border-color: red;")
+                                                            style = "background-color: red; color: white; border-color: red;"),
+                                                div(
+                                                    style = "margin-top: 6px;",
+                                                    checkboxInput("runSpinup", "Include Spinup Run", value = FALSE)
+                                                )
                                             ),
                                             tags$div(
                                                 id = "controlp",
@@ -1625,7 +1629,7 @@ tuneMusoServer <- function(input, output, session){
                 export_df[is.na(export_df)] <- -9999
                 
                 # Write to file
-                fwrite(export_df, file, row.names = FALSE, sep = " ")
+                fwrite(export_df, file, row.names = FALSE, sep = "\t")
             }
         )
 
@@ -3171,6 +3175,7 @@ tuneMusoServer <- function(input, output, session){
         # saving scroll position
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
+        runSpinup <- input$runSpinup
         #print("Writing parameter values to file before model run:...")
         #myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
         for (epc in rv$epc_files) {
@@ -3217,10 +3222,17 @@ tuneMusoServer <- function(input, output, session){
                 w$hide()
                 return()  
             }
-        myShowNotification("Running the model...", type = "message", duration = 5)
+
+        if(runSpinup){
+            showNotification("Running the model with SPINUP run...", type = "message", duration = 5)
+        }
+        else{
+            showNotification("Running the model...", type = "message", duration = 5)
+        }
+
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
             model_future <- future({
-                calibMuso(settings = settings, silent = TRUE)
+                calibMuso(settings = settings, silent = TRUE, skipSpinup = !runSpinup)
             })
 
             result <- tryCatch({
@@ -5082,131 +5094,131 @@ observeEvent(input$variable_info_btn, {
     })
 
     # auto update function
-    observe({
-        req(input$autoupdate, sliderDebounce())
+    # observe({
+    #     req(input$autoupdate, sliderDebounce())
 
-           if (isRunning()) return()
-            isRunning(TRUE)
-            on.exit(isRunning(FALSE))
+    #        if (isRunning()) return()
+    #         isRunning(TRUE)
+    #         on.exit(isRunning(FALSE))
 
-        isolate({
-            updateCurrentEPCValues()
-            #epc <- input$selected_epc
+    #     isolate({
+    #         updateCurrentEPCValues()
+    #         #epc <- input$selected_epc
             
-            for (epc in rv$epc_files) {
-                paramVal <- epcValues[[epc]]
-            if (is.null(paramVal)) {
-                paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
-            }
-            if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
-            settings$epcInput[["normal"]] <- epc
-            prettyChangeMuso(settings, paramVal, 
-                    calibrationPar = parameters[, 2], 
-                    fileToChange = "epc", 
-                    fixAlloc = FALSE)
-            #print(paste0("Written for: ", epc))
-            myShowNotification(paste0(epc), type = "message", duration = 5)
+    #         for (epc in rv$epc_files) {
+    #             paramVal <- epcValues[[epc]]
+    #         if (is.null(paramVal)) {
+    #             paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
+    #         }
+    #         if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
+    #         settings$epcInput[["normal"]] <- epc
+    #         prettyChangeMuso(settings, paramVal, 
+    #                 calibrationPar = parameters[, 2], 
+    #                 fileToChange = "epc", 
+    #                 fixAlloc = FALSE)
+    #         #print(paste0("Written for: ", epc))
+    #         myShowNotification(paste0(epc), type = "message", duration = 5)
             
-        }
+    #     }
 
-        if (!is.null(soil_parameters())){
-            updateCurrentSoilValues()
-            paramVal <- soilValues$values
-            if (!identical(paramVal, InitialDefaultsSoil$values)) {
-                req(soil_file(), soil_parameters())
-                prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
-                        fileToChange = "soil", fixAlloc = FALSE)
-                #myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
-            }
-        }
+    #     if (!is.null(soil_parameters())){
+    #         updateCurrentSoilValues()
+    #         paramVal <- soilValues$values
+    #         if (!identical(paramVal, InitialDefaultsSoil$values)) {
+    #             req(soil_file(), soil_parameters())
+    #             prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
+    #                     fileToChange = "soil", fixAlloc = FALSE)
+    #             #myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
+    #         }
+    #     }
 
-        })
+    #     })
              
 
-        isolate({
-            if(input$destination == "auto") {
-                outputList$prev <- outputList$nextVal
-                   model_future <- future({
-                calibMuso(settings = settings, silent = TRUE)
-            })
+    #     isolate({
+    #         if(input$destination == "auto") {
+    #             outputList$prev <- outputList$nextVal
+    #                model_future <- future({
+    #             calibMuso(settings = settings, silent = TRUE)
+    #         })
 
-            result <- tryCatch({
-                value(model_future)
-                }, error = function(e) {
-                    modelCrashed(TRUE)
-                # If there's an error (model crash), trigger a non-intrusive toast confirmation
-                if(isTRUE(exportSettings$auto_reset)){
-                    resetToLastGoodValues()
-                    #showNotification(paste("Model error:", e$message, "\nResetting to last good values..."), type = "error")
-                }
-                else {
-                    confirmSweetAlert(
-                        session = session,
-                        inputId = "resetConfirm",
-                        title = "Model Crash!",
-                        text = "The model crashed. Would you like to reset parameters to the last good values?",
-                        type = "warning",
-                        btn_labels = c("No", "Yes"),
-                        closeOnClickOutside = TRUE,
-                        timer = 0,         # No auto-dismiss
-                        toast = TRUE,      # Makes it a non-blocking toast-style popup
-                        position = "top-right"
-                    )
-                }
-                    return(NULL)
-                })
+    #         result <- tryCatch({
+    #             value(model_future)
+    #             }, error = function(e) {
+    #                 modelCrashed(TRUE)
+    #             # If there's an error (model crash), trigger a non-intrusive toast confirmation
+    #             if(isTRUE(exportSettings$auto_reset)){
+    #                 resetToLastGoodValues()
+    #                 #showNotification(paste("Model error:", e$message, "\nResetting to last good values..."), type = "error")
+    #             }
+    #             else {
+    #                 confirmSweetAlert(
+    #                     session = session,
+    #                     inputId = "resetConfirm",
+    #                     title = "Model Crash!",
+    #                     text = "The model crashed. Would you like to reset parameters to the last good values?",
+    #                     type = "warning",
+    #                     btn_labels = c("No", "Yes"),
+    #                     closeOnClickOutside = TRUE,
+    #                     timer = 0,         # No auto-dismiss
+    #                     toast = TRUE,      # Makes it a non-blocking toast-style popup
+    #                     position = "top-right"
+    #                 )
+    #             }
+    #                 return(NULL)
+    #             })
 
-        if (length(result) == 0) {
-            myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
-             if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
-        } else {
-        modelCrashed(FALSE)
-        print("Model ran successfully")
-        #showNotification("Model ran successfully", type = "message")
+    #     if (length(result) == 0) {
+    #         myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
+    #          if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
+    #     } else {
+    #     modelCrashed(FALSE)
+    #     print("Model ran successfully")
+    #     #showNotification("Model ran successfully", type = "message")
         
-        updateLastGoodValues()
+    #     updateLastGoodValues()
 
-        dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
+    #     dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
     
 
-        if (length(newVars$defs) > 0) {
+    #     if (length(newVars$defs) > 0) {
           
-                for (var_name in names(newVars$defs)) {
-                    def <- newVars$defs[[var_name]]
-                    pattern <- paste0("^", def$base_variable, "\\[")
-                    base_cols <- grep(pattern, names(dfs_orig), value = TRUE)
+    #             for (var_name in names(newVars$defs)) {
+    #                 def <- newVars$defs[[var_name]]
+    #                 pattern <- paste0("^", def$base_variable, "\\[")
+    #                 base_cols <- grep(pattern, names(dfs_orig), value = TRUE)
                      
-                    if (length(base_cols) == 0) {
-                        showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
-                        next
-                    }
-                    pattern_ind <- paste0(def$base_variable, "\\[|\\]")
-                    base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
-                    current_layers <- layers[base_indices + 1]  
+    #                 if (length(base_cols) == 0) {
+    #                     showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
+    #                     next
+    #                 }
+    #                 pattern_ind <- paste0(def$base_variable, "\\[|\\]")
+    #                 base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
+    #                 current_layers <- layers[base_indices + 1]  
                     
-                    new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
-                    swc_vals <- as.numeric(r)
-                    midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
-                    })
-                    dfs_orig[[var_name]] <- new_val
-                }
-            result <- as.matrix(dfs_orig)
-        }
-        outputList$nextVal <- result
+    #                 new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
+    #                 swc_vals <- as.numeric(r)
+    #                 midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
+    #                 })
+    #                 dfs_orig[[var_name]] <- new_val
+    #             }
+    #         result <- as.matrix(dfs_orig)
+    #     }
+    #     outputList$nextVal <- result
 
-            }}
+    #         }}
             
             
-             else {
-                outputList[[input$destination]] <- calibMuso(
-                    settings = settings,
-                    silent = TRUE
-                )
-            }
-        })
+    #          else {
+    #             outputList[[input$destination]] <- calibMuso(
+    #                 settings = settings,
+    #                 silent = TRUE
+    #             )
+    #         }
+    #     })
             
         
-    }) %>% bindEvent(sliderDebounce()) #triggering the event upon slider change
+    # }) %>% bindEvent(sliderDebounce()) #triggering the event upon slider change
 
 
         # hotkey insertions
@@ -5585,7 +5597,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.19.6</strong></p>
+                    <p><strong>Version 2.20</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
