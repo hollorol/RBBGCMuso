@@ -4948,7 +4948,7 @@ observeEvent(input$make_output, {
         numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0),
         textInput("variable_name", "Variable Name", value = "SWC_0_50"),
         selectInput("base_variable", "Base Variable",
-                    choices = c("VWC", "tsoil"),
+                    choices = c("VWC", "Tsoil"),
                     selected = "VWC"),
         easyClose = TRUE,
         footer = tagList(
@@ -4967,7 +4967,7 @@ observeEvent(input$variable_info_btn, {
         observeEvent(input$base_variable, {
             if(input$base_variable == "VWC" && input$variable_name %in% c("Tsoil_0_50", "tsoil_0_50")) {
                 updateTextInput(session, "variable_name", value = "SWC_0_50")
-            } else if(input$base_variable == "tsoil" && input$variable_name %in% c("SWC_0_50", "swc_0_50")) {
+            } else if(input$base_variable == "Tsoil" && input$variable_name %in% c("SWC_0_50", "swc_0_50")) {
                 updateTextInput(session, "variable_name", value = "Tsoil_0_50")
             }
         })
@@ -5597,7 +5597,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.20</strong></p>
+                    <p><strong>Version 2.20.2</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
