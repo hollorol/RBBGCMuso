@@ -15743,42 +15743,6 @@
     "descriptions": "Avareged bulk density in the top 30 cm of soil"
   },
   {
-    "codes": 3306,
-    "names": "SOC_top5",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 5 cm of soil"
-  },
-  {
-    "codes": 3307,
-    "names": "SOC_top10",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 10 cm of soil"
-  },
-  {
-    "codes": 3308,
-    "names": "SOC_top15",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 15 cm of soil"
-  },
-  {
-    "codes": 3309,
-    "names": "SOC_top20",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 20 cm of soil"
-  },
-  {
-    "codes": 3310,
-    "names": "SOC_top25",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 25 cm of soil"
-  },
-  {
-    "codes": 3311,
-    "names": "SOC_top30",
-    "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 30 cm of soil"
-  },
-  {
     "codes": 3312,
     "names": "VWC_top5",
     "units": "m3m-3",
@@ -15851,6 +15815,42 @@
     "descriptions": "Avareged daily temperature in the top 30  cm of soil"
   },
   {
+    "codes": 3306,
+    "names": "SOC_top5",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 5 cm of soil"
+  },
+  {
+    "codes": 3307,
+    "names": "SOC_top10",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 10 cm of soil"
+  },
+  {
+    "codes": 3308,
+    "names": "SOC_top15",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 15 cm of soil"
+  },
+  {
+    "codes": 3309,
+    "names": "SOC_top20",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 20 cm of soil"
+  },
+  {
+    "codes": 3310,
+    "names": "SOC_top25",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 25 cm of soil"
+  },
+  {
+    "codes": 3311,
+    "names": "SOC_top30",
+    "units": "kgCm-2",
+    "descriptions": "Avareged soil organic carbon content in the top 30 cm of soil"
+  },
+  {
     "codes": 3324,
     "names": "SOCpercent_top5",
     "units": "%",
@@ -15885,6 +15885,78 @@
     "names": "SOCpercent_top30",
     "units": "%",
     "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
+  },
+  {
+    "codes": 3306,
+    "names": "SOC4_top5",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 5 cm of soil"
+  },
+  {
+    "codes": 3307,
+    "names": "SOC4_top10",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 10 cm of soil"
+  },
+  {
+    "codes": 3308,
+    "names": "SOC4_top15",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 15 cm of soil"
+  },
+  {
+    "codes": 3309,
+    "names": "SOC4_top20",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 20 cm of soil"
+  },
+  {
+    "codes": 3310,
+    "names": "SOC4_top25",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 25 cm of soil"
+  },
+  {
+    "codes": 3311,
+    "names": "SOC4_top30",
+    "units": "kgCm-2",
+    "descriptions": "Avareged stable soil organic carbon content in the top 30 cm of soil"
+  },
+  {
+    "codes": 3324,
+    "names": "SOC4percent_top5",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 5 cm of soil"
+  },
+  {
+    "codes": 3325,
+    "names": "SOC4percent_top10",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 10 cm of soil"
+  },
+  {
+    "codes": 3326,
+    "names": "SOC4percent_top15",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 15 cm of soil"
+  },
+  {
+    "codes": 3327,
+    "names": "SOC4percent_top20",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 20 cm of soil"
+  },
+  {
+    "codes": 3328,
+    "names": "SOC4percent_top25",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 25 cm of soil"
+  },
+  {
+    "codes": 3329,
+    "names": "SOC4percent_top30",
+    "units": "%",
+    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
   },
   {
     "codes": 3330,
