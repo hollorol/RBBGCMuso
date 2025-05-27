@@ -4080,7 +4080,7 @@ tuneMusoServer <- function(input, output, session){
             export_df[is.na(export_df)] <- -9999
             
            
-            fwrite(export_df, file, row.names = FALSE, sep = " ")
+            fwrite(export_df, file, row.names = FALSE, sep = "\t")
         }
     )
 

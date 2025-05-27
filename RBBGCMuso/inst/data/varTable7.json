@@ -15743,235 +15743,235 @@
     "descriptions": "Avareged bulk density in the top 30 cm of soil"
   },
   {
-    "codes": 3312,
+    "codes": 3306,
     "names": "VWC_top5",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 5 cm of soil"
   },
   {
-    "codes": 3313,
+    "codes": 3307,
     "names": "VWC_top10",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 10 cm of soil"
   },
   {
-    "codes": 3314,
+    "codes": 3308,
     "names": "VWC_top15",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 15 cm of soil"
   },
   {
-    "codes": 3315,
+    "codes": 3309,
     "names": "VWC_top20",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 20 cm of soil"
   },
   {
-    "codes": 3316,
+    "codes": 3310,
     "names": "VWC_top25",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 25 cm of soil"
   },
   {
-    "codes": 3317,
+    "codes": 3311,
     "names": "VWC_top30",
     "units": "m3m-3",
     "descriptions": "Avareged volumetric water content in the top 30 cm of soil"
   },
   {
-    "codes": 3318,
+    "codes": 3312,
     "names": "Tsoil_top5",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 5 cm of soil"
   },
   {
-    "codes": 3319,
+    "codes": 3313,
     "names": "Tsoil_top10",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 10 cm of soil"
   },
   {
-    "codes": 3320,
+    "codes": 3314,
     "names": "Tsoil_top15",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 15 cm of soil"
   },
   {
-    "codes": 3321,
+    "codes": 3315,
     "names": "Tsoil_top20",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 20 cm of soil"
   },
   {
-    "codes": 3322,
+    "codes": 3316,
     "names": "Tsoil_top25",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 25 cm of soil"
   },
   {
-    "codes": 3323,
+    "codes": 3317,
     "names": "Tsoil_top30",
     "units": "Celsius",
     "descriptions": "Avareged daily temperature in the top 30  cm of soil"
   },
   {
-    "codes": 3306,
+    "codes": 3318,
     "names": "SOC_top5",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 5 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 5 cm of soil"
   },
   {
-    "codes": 3307,
+    "codes": 3319,
     "names": "SOC_top10",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 10 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 10 cm of soil"
   },
   {
-    "codes": 3308,
+    "codes": 3320,
     "names": "SOC_top15",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 15 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 15 cm of soil"
   },
   {
-    "codes": 3309,
+    "codes": 3321,
     "names": "SOC_top20",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 20 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 20 cm of soil"
   },
   {
-    "codes": 3310,
+    "codes": 3322,
     "names": "SOC_top25",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 25 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 25 cm of soil"
   },
   {
-    "codes": 3311,
+    "codes": 3323,
     "names": "SOC_top30",
     "units": "kgCm-2",
-    "descriptions": "Avareged soil organic carbon content in the top 30 cm of soil"
+    "descriptions": "Total soil organic carbon content in the top 30 cm of soil"
   },
   {
     "codes": 3324,
     "names": "SOCpercent_top5",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 5 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 5 cm of soil"
   },
   {
     "codes": 3325,
     "names": "SOCpercent_top10",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 10 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 10 cm of soil"
   },
   {
     "codes": 3326,
     "names": "SOCpercent_top15",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 15 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 15 cm of soil"
   },
   {
     "codes": 3327,
     "names": "SOCpercent_top20",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 20 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 20 cm of soil"
   },
   {
     "codes": 3328,
     "names": "SOCpercent_top25",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 25 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 25 cm of soil"
   },
   {
     "codes": 3329,
     "names": "SOCpercent_top30",
     "units": "%",
-    "descriptions": "Avareged soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
-  },
-  {
-    "codes": 3306,
-    "names": "SOC4_top5",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 5 cm of soil"
-  },
-  {
-    "codes": 3307,
-    "names": "SOC4_top10",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 10 cm of soil"
-  },
-  {
-    "codes": 3308,
-    "names": "SOC4_top15",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 15 cm of soil"
-  },
-  {
-    "codes": 3309,
-    "names": "SOC4_top20",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 20 cm of soil"
-  },
-  {
-    "codes": 3310,
-    "names": "SOC4_top25",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 25 cm of soil"
-  },
-  {
-    "codes": 3311,
-    "names": "SOC4_top30",
-    "units": "kgCm-2",
-    "descriptions": "Avareged stable soil organic carbon content in the top 30 cm of soil"
-  },
-  {
-    "codes": 3324,
-    "names": "SOC4percent_top5",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 5 cm of soil"
-  },
-  {
-    "codes": 3325,
-    "names": "SOC4percent_top10",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 10 cm of soil"
-  },
-  {
-    "codes": 3326,
-    "names": "SOC4percent_top15",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 15 cm of soil"
-  },
-  {
-    "codes": 3327,
-    "names": "SOC4percent_top20",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 20 cm of soil"
-  },
-  {
-    "codes": 3328,
-    "names": "SOC4percent_top25",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 25 cm of soil"
-  },
-  {
-    "codes": 3329,
-    "names": "SOC4percent_top30",
-    "units": "%",
-    "descriptions": "Avareged stable soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
+    "descriptions": "Total soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
   },
   {
     "codes": 3330,
+    "names": "SOC4_top5",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 5 cm of soil"
+  },
+  {
+    "codes": 3331,
+    "names": "SOC4_top10",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 10 cm of soil"
+  },
+  {
+    "codes": 3332,
+    "names": "SOC4_top15",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 15 cm of soil"
+  },
+  {
+    "codes": 3333,
+    "names": "SOC4_top20",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 20 cm of soil"
+  },
+  {
+    "codes": 3334,
+    "names": "SOC4_top25",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 25 cm of soil"
+  },
+  {
+    "codes": 3335,
+    "names": "SOC4_top30",
+    "units": "kgCm-2",
+    "descriptions": "Total stable soil organic carbon content in the top 30 cm of soil"
+  },
+  {
+    "codes": 3336,
+    "names": "SOC4percent_top5",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 5 cm of soil"
+  },
+  {
+    "codes": 3337,
+    "names": "SOC4percent_top10",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 10 cm of soil"
+  },
+  {
+    "codes": 3338,
+    "names": "SOC4percent_top15",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 15 cm of soil"
+  },
+  {
+    "codes": 3339,
+    "names": "SOC4percent_top20",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 20 cm of soil"
+  },
+  {
+    "codes": 3340,
+    "names": "SOC4percent_top25",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 25 cm of soil"
+  },
+  {
+    "codes": 3341,
+    "names": "SOC4percent_top30",
+    "units": "%",
+    "descriptions": "Total stable soil organic carboncontent (carbon/soil in percent) in the top 30 cm of soil"
+  },
+  {
+    "codes": 3342,
     "names": "NH4ppmAVAIL_top30",
     "units": "ppm",
     "descriptions": "Available soil NH4-N content in soil top 0-30 cm"
   },
   {
-    "codes": 3331,
+    "codes": 3343,
     "names": "NO3ppmAVAIL_top30",
     "units": "ppm",
     "descriptions": "Available soil NO3-N content in soil top 0-30 cm"
   },
   {
-    "codes": 3332,
+    "codes": 3344,
     "names": "sminNppmAVAIL_top30",
     "units": "ppm",
     "descriptions": "Available mineralized N in soil top 0-30 cm"
