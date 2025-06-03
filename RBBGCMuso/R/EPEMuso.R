@@ -19,7 +19,7 @@ EPEui <- function() {
     titlePanel(
       div(
         style = "display: flex; align-items: center; margin-left: 0px;",
-        tags$span("Endpoint Profile Editor (RBBGCMuso Alpha)", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
+        tags$span("Endpoint Profile Editor (BBGCMuso Alpha)", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
         tags$span(paste0(workdir), style = "font-size: 14px; color: #666;")
       )
     ),
