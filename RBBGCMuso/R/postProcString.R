@@ -2,8 +2,10 @@
 #' 
 #' This is a function wich provides some minimal post processing capabilities
 #' @keywords internal
-postProcMuso  <- function(modelData, procString){
-    modelDat <- modelData[,-(1:4)]
+postProcMuso  <- function(modelData, procString, prettyOut = FALSE){
+    if(prettyOut) {
+        modelDat <- modelData[,-(1:4)]
+    } 
     cNames <- colnames(modelData)
     tocalc <- gsub("(@)(\\d+)","modelDat[,\\2]",procString)
     newVarName <- gsub("\\s","",unlist(strsplit(procString,"<-"))[1])
