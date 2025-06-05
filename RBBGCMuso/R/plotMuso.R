@@ -456,3 +456,361 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
      }   
     
 }
+
+
+
+#' Create Ensemble Plot
+#'
+#' Generates an ensemble plot from model run outputs, including
+#' measurement data and a "best run" simulation.
+#'
+#' @param run_output_subfolder Character. Name of the subfolder within `working_directory`
+#'        that contains the individual run output folders by default calibrateMuso creates a "thread" folder in the root dir which in turn
+#'        contains "thread_1/calib/", "thread_2/calib/", etc.
+#' @param measurement_data R object or Character. Either a data.frame/data.table object
+#'        containing the measurement data, or a character string path to the measurement CSV file.
+#' @param model_mapping_code Numeric. The model variable code used by
+#'        `musoMapping()` to get the variable name.
+#' @param measurement_data_column Character. The name of the column in
+#'        `measurement_data` to be used for plotting observed values.
+#' @param plot_individual_lines Logical. If `TRUE`, plots individual ensemble member lines.
+#'        If `FALSE`, plots ensemble summary (median and quantiles). Default is `TRUE`.
+#' @param year_axis_interval Numeric. Interval for year ticks on the x-axis. Default is `2`.
+#' @param best_run_param_file Character. Path to the CSV file containing parameters for the
+#'        "best run" simulation (most likely "maxlikelihood_parameters.csv"). This path should be
+#'        relative to `working_directory` or an absolute path. If `NULL` or file not found,
+#'        the best run line is not plotted. Default is "maxlikelihood_parameters.csv" since calibrateMuso creates this by default.
+#' @param fileToChange Character. The type of MuSo file to change for the best run
+#'        simulation, typically "epc" or "soil". Default is "epc".
+#' @param settings An RBBGCMuso settings object (output of `setupMuso()`).
+#'        Required if plotting the best run. If `NULL` and best run is attempted,
+#'        a warning will be issued.
+#' @param output_plot_filename_prefix Character. Prefix for the output PNG filename.
+#'        The plot type (individual/summary) will be appended. Default "ensemble_plot".
+#'
+#' @return Invisibly returns the ggplot object. Saves the plot to a PNG file in `working_directory`.
+#'
+#' @details
+#' The function expects model run output CSVs to be structured as:
+#' `working_directory/run_output_subfolder/thread_*/calib/*.csv`.
+#' The first column of these CSVs should be dates parsable by `as.Date` with format "%d.%m.%Y".
+#' The `best_run_param_file` is expected to have a structure that `changeMuso`
+#' can use, typically with parameter values in the third column and calibration parameter names/codes
+#' in the second. This one is provided by calibrateMuso
+#' 
+#' Currently this function uses one binded data.table for all ensemble members so it can use high amounts of memory.
+#' 
+#' Optionally you can use the 'ragg' package for a faster plotting, but it is not required.
+#'
+#' @export
+#' @importFrom data.table fread rbindlist as.data.table setnames
+#' @importFrom ggplot2 ggplot theme_minimal labs theme element_text element_rect element_line scale_x_date geom_line geom_ribbon geom_point ggsave
+#' @importFrom lubridate year month day
+#' @importFrom progress progress_bar
+#' @importFrom grDevices dev.off
+
+
+musoEnsemblePlot <- function(
+    run_output_subfolder = "thread",
+    measurement_data,
+    model_mapping_code,
+    measurement_data_column,
+    plot_individual_lines = TRUE,
+    year_axis_interval = 2,
+    best_run_param_file = "maxlikelihood_parameters.csv",
+    fileToChange = "epc",
+    settings = setupMuso(),
+    output_plot_filename_prefix = "ensemble_plot"
+) {
+
+  working_directory <- settings$inputLoc
+  #Validate Inputs
+  if (missing(working_directory) || !dir.exists(working_directory)) {
+    stop("`working_directory` must exist.")
+  }
+  if (missing(measurement_data)) {
+    stop("`measurement_data` (file path or data.frame/data.table) must be provided.")
+  }
+  if (missing(model_mapping_code)) {
+    stop("`model_mapping_code` must be provided.")
+  }
+  if (missing(measurement_data_column)) {
+    stop("`measurement_data_column` must be provided (the column name in measurement_data).")
+  }
+
+  # Measurement Data Handling 
+  md_table <- NULL
+  if (is.character(measurement_data) && length(measurement_data) == 1) {
+    if (!file.exists(measurement_data)) {
+      message("Measurement data file not found at: ", measurement_data)
+      md_table <- data.table::data.table() # Empty table
+    } else {
+      md_table <- tryCatch({
+        data.table::fread(measurement_data)
+      }, error = function(e) {
+        message("Error reading measurement data file: ", measurement_data)
+        message("Original error: ", e$message)
+        data.table::data.table()
+      })
+    }
+  } else if (is.data.frame(measurement_data) || data.table::is.data.table(measurement_data)) {
+    md_table <- data.table::as.data.table(measurement_data)
+  } else {
+    stop("`measurement_data` must be a file path string or a data.frame/data.table object.")
+  }
+
+  if (nrow(md_table) > 0) {
+    md_table[md_table == -9999] <- NA
+  } else {
+    message("Measurement data is empty or could not be loaded. Plot will not include measurement points.")
+  }
+
+  # --- Path and File Setup ---
+  run_csv_base_path <- file.path(working_directory, run_output_subfolder)
+  if (!dir.exists(run_csv_base_path)) {
+      stop(paste("Run output subfolder not found:", run_csv_base_path))
+  }
+
+  csv_paths <- list.files(
+    path = run_csv_base_path,
+    pattern = "\\.csv$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  # Further filter to ensure they are from 'calib' subdirectories within specific thread folders
+  csv_paths <- csv_paths[grepl(paste0(run_output_subfolder, "_[^/]+/calib/.*\\.csv$"), csv_paths)]
+
+
+  if (length(csv_paths) == 0) {
+    stop(paste0("No CSV files found in '", run_csv_base_path, "/**/", run_output_subfolder,"_*/calib/' matching the pattern."))
+  }
+
+  first_csv_data <- tryCatch({
+    data.table::fread(csv_paths[1], select = 1, data.table = FALSE)
+  }, error = function(e) {
+    stop("Error reading the first CSV file to get dates: ", csv_paths[1], ". Error: ", e$message)
+  })
+
+  if (ncol(first_csv_data) < 1 || nrow(first_csv_data) == 0) {
+    stop("The first CSV file ", csv_paths[1], " does not contain any data or columns.")
+  }
+  dates_from_files <- first_csv_data[[1]]
+  dates_from_files <- tryCatch({
+    as.Date(dates_from_files, format = "%d.%m.%Y")
+  }, warning = function(w) {
+    message("Warning while parsing dates from the first CSV: ", w$message)
+    message("Please ensure the date format in the first column is 'dd.mm.YYYY'.")
+    tryCatch(as.Date(dates_from_files), error = function(e) dates_from_files)
+  }, error = function(e) {
+    message("Error parsing dates from the first CSV: ", e$message)
+    dates_from_files
+  })
+
+  if (any(is.na(dates_from_files))) {
+    warning("Some dates could not be parsed from run outputs and resulted in NA. Expected format: %d.%m.%Y")
+  }
+
+  year_starts <- seq.Date(
+    from = as.Date(format(min(dates_from_files, na.rm = TRUE), "%Y-01-01")),
+    to = as.Date(format(max(dates_from_files, na.rm = TRUE), "%Y-01-01")),
+    by = paste(year_axis_interval, "years")
+  )
+  
+  # --- Model Variable Name ---
+  # This assumes RBBGCMuso is available in the environment where this function is called
+  model_var_name <- tryCatch({
+    musoMapping(model_mapping_code)
+  }, error = function(e) {
+    message("Error calling musoMapping with model_mapping_code: ", model_mapping_code)
+    message("Ensure RBBGCMuso is loaded and model_mapping_code is valid. Using 'UnknownVariable' as placeholder.")
+    message("Original error: ", e$message)
+    return("UnknownVariable")
+  })
+
+  plot_type_string <- if (plot_individual_lines) "Individual Runs" else "Ensemble Summary"
+  plot_title <- paste0("Ensemble of ", model_var_name, " with measurements (", plot_type_string, ")")
+
+  # --- Combine all run data ---
+  all_runs_data_list <- list()
+  total_files <- length(csv_paths)
+  message("Reading and combining data from ", total_files, " CSV files for plotting...")
+  pb_read <- progress::progress_bar$new(
+    format = "Reading run CSVs [:bar] :percent (:current/:total) ETA: :eta",
+    total = total_files,
+    width = 60
+  )
+
+  for (i in seq_along(csv_paths)) {
+    file <- csv_paths[i]
+    pb_read$tick()
+    current_data <- tryCatch({
+      data.table::fread(file, select = model_var_name, data.table = TRUE)
+    }, error = function(e) {
+      message("\nWarning: Could not read or find column '", model_var_name, "' in file: ", file, ". Skipping.")
+      NULL
+    })
+
+    if (!is.null(current_data) && model_var_name %in% names(current_data) && nrow(current_data) == length(dates_from_files)) {
+      current_data[, date := dates_from_files]
+      current_data[, run_id := paste0("run_", i)]
+      data.table::setnames(current_data, old = model_var_name, new = "value")
+      all_runs_data_list[[i]] <- current_data[, .(date, run_id, value)]
+    } else if (!is.null(current_data) && nrow(current_data) != length(dates_from_files)) {
+      message("\nWarning: File ", file, " has ", nrow(current_data), " rows, but expected ", length(dates_from_files), ". Skipping.")
+    } else if (!is.null(current_data) && !(model_var_name %in% names(current_data))) {
+       message("\nWarning: Column '", model_var_name, "' not found in file: ", file, ". Skipping.")
+    }
+  }
+  all_runs_data <- data.table::rbindlist(all_runs_data_list, fill = TRUE)
+
+  if (nrow(all_runs_data) == 0) {
+    stop("No valid run data could be processed from the CSV files for plotting. Aborting.")
+  }
+
+  # --- Initialize ggplot ---
+  p <- ggplot2::ggplot() +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::labs(x = "Date", y = model_var_name, title = plot_title) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = ggplot2::rel(1.2)),
+      axis.text = ggplot2::element_text(size = ggplot2::rel(0.9)),
+      axis.title = ggplot2::element_text(size = ggplot2::rel(1)),
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+      plot.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
+      panel.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
+      axis.line = ggplot2::element_line(color = "black", linewidth = 0.5),
+      panel.grid.major = ggplot2::element_line(color = "grey90", linewidth = 0.3),
+      panel.grid.minor = ggplot2::element_line(color = "grey95", linewidth = 0.2)
+    ) +
+    ggplot2::scale_x_date(breaks = year_starts, date_labels = "%Y")
+
+  # --- Plotting based on choice ---
+  if (plot_individual_lines) {
+    message("Adding individual ensemble member lines to plot...")
+    p <- p + ggplot2::geom_line(data = all_runs_data, ggplot2::aes(x = date, y = value, group = run_id), color = "grey40", alpha = 0.05, linewidth = 0.15)
+  } else {
+    message("Calculating ensemble summaries (median, quantiles)...")
+    ensemble_summary <- all_runs_data[, .(
+      median_value = stats::median(value, na.rm = TRUE), 
+      q25_value = stats::quantile(value, 0.25, na.rm = TRUE),
+      q75_value = stats::quantile(value, 0.75, na.rm = TRUE),
+      q05_value = stats::quantile(value, 0.05, na.rm = TRUE),
+      q95_value = stats::quantile(value, 0.95, na.rm = TRUE)
+    ), by = date]
+
+    message("Adding ensemble summary (ribbons and median line) to plot...")
+    p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q05_value, ymax = q95_value), fill = "grey70", alpha = 0.5)
+    p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q25_value, ymax = q75_value), fill = "grey50", alpha = 0.6)
+    p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = 0.8)
+  }
+
+  # --- Best Run Data ---
+  best_run_data_for_plot <- NULL
+  actual_best_run_param_file <- if (!is.null(best_run_param_file) && !startsWith(best_run_param_file, "/") && !grepl("^[A-Za-z]:", best_run_param_file)) {
+      file.path(working_directory, best_run_param_file)
+  } else {
+      best_run_param_file
+  }
+
+
+  if (!is.null(actual_best_run_param_file) && file.exists(actual_best_run_param_file)) {
+    if (is.null(settings)) {
+        message("Warning: `settings` is NULL. Cannot simulate 'best run' line without RBBGCMuso settings.")
+    } else {
+        paramVal_best <- data.table::fread(actual_best_run_param_file, sep = ",", header = TRUE)
+
+        if (ncol(paramVal_best) >=3 ) {
+            tryCatch({
+              changeMuso(settings,
+                                    fileToChange = fileToChange,
+                                    parameters = paramVal_best[[3]],
+                                    calibrationPar = paramVal_best[[2]], 
+                                    fixAlloc = FALSE)
+              result_maxlikelihood <- calibMuso(settings = settings, skipSpinup = TRUE, prettyOut = FALSE, silent = TRUE)
+
+              if (!is.null(result_maxlikelihood) && !is.null(colnames(result_maxlikelihood))) {
+                if (model_var_name %in% colnames(result_maxlikelihood)) {
+                  modelVar_maxlikelihood_values <- result_maxlikelihood[, model_var_name]
+                  if (length(dates_from_files) == length(modelVar_maxlikelihood_values)) {
+                    best_run_data_for_plot <- data.frame(date = dates_from_files, value = modelVar_maxlikelihood_values)
+                  } else {
+                    message("Length mismatch for 'best run' output. Best run line not plotted.")
+                  }
+                } else {
+                  message("Model variable '", model_var_name, "' not found in 'best run' output. Best run line not plotted.")
+                }
+              } else {
+                message("'Best run' simulation output is NULL or has no column names. Best run line not plotted.")
+              }
+            }, error = function(e) {
+              message("Error during 'best run' simulation: ", e$message, ". Best run line not plotted.")
+            })
+        } else {
+            message("Best run parameter file '", actual_best_run_param_file, "' does not have the expected format (at least 3 columns). Best run line not plotted.")
+        }
+    }
+  } else {
+    if (!is.null(best_run_param_file)) message("Best run parameter file not found: ", actual_best_run_param_file, ". Best run line not plotted.")
+  }
+
+  if (!is.null(best_run_data_for_plot) && nrow(best_run_data_for_plot) > 0) {
+    p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = 0.6)
+  }
+
+  # --- Measurement Points ---
+  if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
+    measurement_values_for_plot <- tryCatch(as.numeric(md_table[[measurement_data_column]]), warning = function(w) {
+        message("Warning: Measurement column '", measurement_data_column, "' could not be coerced to numeric.")
+        rep(NA_real_, nrow(md_table))
+    })
+
+    if (length(dates_from_files) == length(measurement_values_for_plot)) {
+      md_plot_data <- data.table::data.table(date = dates_from_files, value_md = measurement_values_for_plot)
+      md_plot_data <- md_plot_data[!is.na(value_md)]
+      if(nrow(md_plot_data) > 0) {
+          p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
+      } else {
+          message("No valid (non-NA) measurement data points to plot for '", measurement_data_column, "'.")
+      }
+    } else {
+      message("Length mismatch between simulation dates and measurement data rows. Measurement points will not be plotted.")
+    }
+  } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
+    message("Column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+  }
+
+  # --- Saving the plot ---
+  filename_suffix_plot <- if (plot_individual_lines) "individual_lines" else "ensemble_summary"
+  final_plot_filename <- file.path(working_directory, paste0(output_plot_filename_prefix, "_", filename_suffix_plot, ".png"))
+  message("\nSaving the plot to ", final_plot_filename, "...")
+
+  if (requireNamespace("ragg", quietly = TRUE)) {
+    message("Using ragg package for PNG saving.")
+    tryCatch({
+      ragg::agg_png(
+        filename = final_plot_filename,
+        width = 10, height = 6, units = "in", res = 300, background = "#F5F5F5"
+      )
+      print(p) # Explicitly print the ggplot object
+      grDevices::dev.off()
+      message("Plot saved successfully using ragg.")
+    }, error = function(e) {
+      message("Error using ragg: ", e$message, ". Falling back to ggsave.")
+      ggplot2::ggsave(
+        filename = final_plot_filename, plot = p,
+        width = 10, height = 6, dpi = 300, bg = "#F5F5F5"
+      )
+      message("Plot saved successfully using ggsave as fallback.")
+    })
+  } else {
+    message("ragg package not found. Falling back to ggsave.")
+    ggplot2::ggsave(
+      filename = final_plot_filename, plot = p,
+      width = 10, height = 6, dpi = 300, bg = "#F5F5F5"
+    )
+    message("Plot saved successfully using ggsave.")
+  }
+  
+  print(paste("Plot saved as", basename(final_plot_filename), "in", working_directory))
+  return(invisible(p)) # Return the ggplot object invisibly
+}
