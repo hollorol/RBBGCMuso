@@ -44,6 +44,7 @@ Imports:
     shiny,
 	shinyWidgets,
 	shinyjs,
+	progress,
 	shinyjqui,
 	colourpicker,
 	DT,
