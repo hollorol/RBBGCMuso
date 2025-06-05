@@ -12,13 +12,12 @@ changemulline <- function(filePaths, calibrationPar, contents, src=NULL, outFile
     }
     
     #fileStringVector <- readLines(src)
-    fileStringVector <- readLines(src,warn=FALSE,encoding="UTF-8")
+    fileStringVector <- readLines(src,warn=FALSE)
     Map(function(index, content){
            fileStringVector <<- changeByIndex(index, content, fileStringVector)
 
     }, calibrationPar, contents)
-    #writeLines(fileStringVector, outFiles)
-    writeLines(fileStringVector,outFiles,useBytes=TRUE)
+    writeLines(fileStringVector,outFiles)
 }
 
 prettyChangemulline <- function(filePaths, calibrationPar, contents, src=NULL, outFiles=filePaths){
@@ -37,10 +36,10 @@ prettyChangemulline <- function(filePaths, calibrationPar, contents, src=NULL, o
     writeLines(fileStringVector,outFiles,useBytes=TRUE)
 }
 
- changeNth <- function (string,place,replacement) {
-     trimws(gsub(sprintf("^((.*?\\s+){%s})(.*?\\s+)", place), sprintf("\\1%s ", replacement), paste0(string," "), perl=TRUE),
-            which="right")
- }
+changeNth <- function (string,place,replacement) {
+    trimws(gsub(sprintf("^((.*?\\s+){%s})(.*?\\s+)", place), sprintf("\\1%s ", replacement), paste0(string," "), perl=TRUE),
+           which="right")
+}
 
 prettyChangeNth <- function(string, place, replacement) {
     # Split the string by any whitespace into fields
@@ -128,21 +127,27 @@ musoCompareFiles <- function(filenames, indices){
     })
 }
 
+
+#' changeMuso
+#' 
+#' A function to change lines mainly in soil, epc or ini files 
+#' @param calibrationPar the line number in the chosen file of the parameters to change 
+#' @param parameters the values for the chosen parameters listed in calibrationPar
+#' @param fileToChange defining which file to change
+#' @usage changeMuso(settings, parameters, calibrationPar, fileToChange, fixAlloc)
+#' @export 
 changeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAlloc){
         #print(paste("Value of fileToChange:", fileToChange))
 
         switch(fileToChange,
                epc = {
                   fileToChange <- tools::file_path_as_absolute(settings$epcInput[2])
-               #print("AAAAA")
-               #print(settings$epcInput[2])
-               #print(settings$soilFile)
                 
                }, 
                soil = {
                    fileToChange <- tools::file_path_as_absolute(settings$soilFile[2])
-                   #print("soitest")
-                   #print(settings$soilFile[2])
+                   
+                   
                },
 
                fileToChange <- tools::file_path_as_absolute(fileType)
@@ -162,7 +167,7 @@ changeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAl
         if(fixAlloc){
             fixAlloc(settings)
         }
-                       # fileToChange = fileToChange,)
+                       
 
 }
 
