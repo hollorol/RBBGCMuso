@@ -33,7 +33,17 @@ EPEui <- function() {
       .plot-control-row { margin-top: 8px; margin-bottom: 5px; }
       /* Style for DT tables to make them compact */
       .compact-dt table.dataTable th, .compact-dt table.dataTable td { padding: 2px 8px !important; }
-      .compact-dt .dataTables_scrollBody { max-height: 320px !important; } 
+      .compact-dt .dataTables_scrollBody { max-height: 320px !important; }
+      .conservation-panel { border: 1px solid #007bff; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f8f9fa; }
+      .conservation-header { font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #0056b3; }
+      .layer-row { display: flex; align-items: center; margin-bottom: 4px; padding: 2px; border-radius: 4px; }
+      .layer-label { font-size: 11px; font-weight: bold; width: 130px; }
+      .sum-display { font-size: 12px; width: 240px; }
+      .deficit-val { font-weight: bold; font-size: 12px; }
+      .deficit-green { color: #28a745; }
+      .deficit-red { color: #dc3545; }
+      .compensate-buttons { margin-left: 20px; }
+      .compensate-buttons .btn-xs { margin-left: 5px; }
     "))),
     
     div(
@@ -207,6 +217,24 @@ EPEserver <- function(input, output, session) {
     annmax_livecrootc = list(name = "annmax_livecrootc", indices = 330, type = "double")
   )
   
+  # Define groups of related variables for conservation sum
+  variable_groups <- list(
+    soilc = list(name = "Soil Carbon Pools", members = c("soil1c", "soil2c", "soil3c", "soil4c")),
+    soiln = list(name = "Soil Nitrogen Pools", members = c("soil1n", "soil2n", "soil3n", "soil4n")),
+    litrc = list(name = "Litter Carbon Pools", members = c("litr1c", "litr2c", "litr3c", "litr4c")),
+    litrn = list(name = "Litter Nitrogen Pools", members = c("litr1n", "litr2n", "litr3n", "litr4n"))
+  )
+  
+  # Helper to find which group a variable belongs to
+  find_variable_group <- function(var_name) {
+    for (group_name in names(variable_groups)) {
+      if (var_name %in% variable_groups[[group_name]]$members) {
+        return(group_name)
+      }
+    }
+    return(NULL)
+  }
+  
   # Plotting constants and Table Row Names
   depth_layers_top_orig <- c(0, 3, 10, 30, 60, 90, 120, 150, 200, 400)
   depth_layers_bottom_orig <- c(3, 10, 30, 60, 90, 120, 150, 200, 400, 1000)
@@ -234,8 +262,9 @@ EPEserver <- function(input, output, session) {
     selected_var_names = character(0),
     plot_axis_limits = list(), 
     initialized_vars = character(0), 
-    table_update_triggers = reactiveValues(), # For forcing DT refresh
-    status_message = "Please upload a binary file to begin."
+    table_update_triggers = reactiveValues(), 
+    status_message = "Please upload a binary file to begin.",
+    conservation_sums = reactiveValues() # To store initial sums and deficits
   )
   
   plot_data_slicers <- new.env(parent = emptyenv())
@@ -251,6 +280,11 @@ EPEserver <- function(input, output, session) {
     rv$selected_var_names <- character(0) 
     rv$plot_axis_limits <- list()
     rv$initialized_vars <- character(0) 
+    
+    # Reset conservation sums
+    for(group_name in names(rv$conservation_sums)) {
+      rv$conservation_sums[[group_name]] <- NULL
+    }
     
     # Reset table update triggers
     for(name in names(rv$table_update_triggers)) {
@@ -269,6 +303,21 @@ EPEserver <- function(input, output, session) {
       }
       rv$full_data_vector <- data_read
       rv$edited_data_vector <- data_read 
+      
+      # Pre-calculate initial sums for all groups
+      for (group_name in names(variable_groups)) {
+        group_info <- variable_groups[[group_name]]
+        initial_sum_layers <- rep(0, 10)
+        for (member_name in group_info$members) {
+          member_indices <- variable_defs[[member_name]]$indices
+          initial_sum_layers <- initial_sum_layers + data_read[member_indices + 1]
+        }
+        rv$conservation_sums[[group_name]] <- list(
+          initial = initial_sum_layers,
+          deficit = rep(0, 10) # Initially, no deficit
+        )
+      }
+      
       vars_with_10_layers <- sapply(variable_defs, function(var_def) { length(var_def$indices) == 10 })
       rv$depth_vars_choices <- names(variable_defs)[vars_with_10_layers] # Keep original order from variable_defs
       if (length(rv$depth_vars_choices) > 0) {
@@ -313,24 +362,89 @@ EPEserver <- function(input, output, session) {
   
   
   output$dynamic_tables_ui <- renderUI({
-    req(input$file_input, rv$full_data_vector) 
-    if (length(rv$selected_var_names) == 0 ) {
+    req(input$file_input, rv$full_data_vector)
+    selected_vars <- rv$selected_var_names
+    if (length(selected_vars) == 0) {
       return(p("Select one or more variables to edit their data."))
     }
-    tagList( 
-      lapply(rv$selected_var_names, function(var_name) {
-        column(4, key = paste0("table_col_", var_name), 
-               div(style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px;",
-                   tags$h5(strong(variable_defs[[var_name]]$name %||% var_name)),
-                   div(class = "compact-dt", 
-                       DTOutput(outputId = paste0("table_", var_name)) 
-                   ),
-                   actionButton(inputId = paste0("reset_", var_name), label = "Reset Values", icon = icon("undo"), class = "btn-warning btn-xs", style="margin-top: 10px;")
-               )
+    
+    # Processed vars keeps track of variables already displayed in a group
+    processed_vars <- c()
+    ui_elements <- list()
+    
+    for (var_name in selected_vars) {
+      if (var_name %in% processed_vars) next
+      
+      group_name <- find_variable_group(var_name)
+      
+      if (!is.null(group_name)) {
+        # It's a grouped variable
+        group_info <- variable_groups[[group_name]]
+        group_members <- group_info$members
+        
+        # UI for conservation sums and buttons
+        conservation_ui <- div(class = "conservation-panel",
+          div(class = "conservation-header", paste("Conservation Sums for:", group_info$name)),
+          # This div will be updated reactively
+          uiOutput(paste0("conservation_status_", group_name))
         )
-      })
-    ) %>% fluidRow() 
+        
+        # UI for the tables of all group members
+        table_uis <- lapply(group_members, function(member_name) {
+          column(3, key = paste0("table_col_", member_name),
+                 div(style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px;",
+                     tags$h5(strong(variable_defs[[member_name]]$name %||% member_name)),
+                     div(class = "compact-dt", DTOutput(outputId = paste0("table_", member_name))),
+                     actionButton(inputId = paste0("reset_", member_name), label = "Reset", icon = icon("undo"), class = "btn-warning btn-xs", style="margin-top: 10px;")
+                 )
+          )
+        })
+        
+        # Add the entire group UI as one block
+        ui_elements[[length(ui_elements) + 1]] <- tagList(
+          conservation_ui,
+          fluidRow(table_uis)
+        )
+        
+        processed_vars <- c(processed_vars, group_members)
+      } else {
+        # It's a standalone variable
+        ui_elements[[length(ui_elements) + 1]] <- column(4, key = paste0("table_col_", var_name), 
+                 div(style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px;",
+                     tags$h5(strong(variable_defs[[var_name]]$name %||% var_name)),
+                     div(class = "compact-dt", DTOutput(outputId = paste0("table_", var_name))),
+                     actionButton(inputId = paste0("reset_", var_name), label = "Reset Values", icon = icon("undo"), class = "btn-warning btn-xs", style="margin-top: 10px;")
+                 )
+          )
+      }
+    }
+    
+    # Arrange standalone variables in rows
+    final_ui_list <- list()
+    current_row <- list()
+    for (el in ui_elements) {
+        # Check if element is a tagList (a group) or a column (standalone)
+        if (inherits(el, "shiny.tag.list")) {
+            if (length(current_row) > 0) {
+                final_ui_list[[length(final_ui_list) + 1]] <- fluidRow(current_row)
+                current_row <- list()
+            }
+            final_ui_list[[length(final_ui_list) + 1]] <- el
+        } else {
+            current_row[[length(current_row) + 1]] <- el
+            if (length(current_row) == 3) {
+                final_ui_list[[length(final_ui_list) + 1]] <- fluidRow(current_row)
+                current_row <- list()
+            }
+        }
+    }
+    if (length(current_row) > 0) {
+        final_ui_list[[length(final_ui_list) + 1]] <- fluidRow(current_row)
+    }
+
+    tagList(final_ui_list)
   })
+
   
   output$dynamic_plots_ui <- renderUI({
     req(input$file_input, rv$full_data_vector) 
@@ -396,7 +510,6 @@ EPEserver <- function(input, output, session) {
         
         # Render DT Table
         output[[paste0("table_", local_var_name)]] <- renderDT({
-          # Explicitly depend on the trigger for this table
           req(rv$table_update_triggers[[local_var_name]]) 
           
           req(rv$edited_data_vector) 
@@ -444,8 +557,6 @@ EPEserver <- function(input, output, session) {
           if(is.na(new_value_num)){
             msg <- paste("Invalid numeric input ('", new_value_char ,"') for ", (variable_defs[[local_var_name]]$name %||% local_var_name), " at layer ", row_idx -1, sep="")
             rv$status_message <- msg; showNotification(msg, type = "error", duration = 7)
-            
-            # Trigger re-render of this table to revert visual edit
             rv$table_update_triggers[[local_var_name]] <- Sys.time() 
             return()
           }
@@ -457,18 +568,32 @@ EPEserver <- function(input, output, session) {
             
             if (index_to_update_in_vector > 0 && index_to_update_in_vector <= length(rv$edited_data_vector)) {
               temp_vector <- rv$edited_data_vector 
-              current_val_in_vector <- temp_vector[index_to_update_in_vector]
+              old_value <- temp_vector[index_to_update_in_vector]
               
-              if (!isTRUE(all.equal(current_val_in_vector, new_value_num, tolerance = .Machine$double.eps^0.5))) { 
+              if (!isTRUE(all.equal(old_value, new_value_num, tolerance = .Machine$double.eps^0.5))) { 
                 temp_vector[index_to_update_in_vector] <- new_value_num
                 rv$edited_data_vector <- temp_vector 
-                rv$status_message <- paste("Value for", (var_info_edit$name %||% local_var_name), "at layer", row_idx-1, "updated to", formatC(new_value_num, format="e", digits=3))
-                # The change in rv$edited_data_vector will trigger the slicer,
-                # which in turn will trigger renderDT to re-render with the new formatted value.
-                # No explicit rv$table_update_triggers here as renderDT already depends on slicer.
+                
+                group_name <- find_variable_group(local_var_name)
+                if (!is.null(group_name)) {
+                    value_change <- new_value_num - old_value
+                    current_deficits <- isolate(rv$conservation_sums[[group_name]]$deficit)
+                    current_deficits[row_idx] <- current_deficits[row_idx] - value_change
+                    rv$conservation_sums[[group_name]]$deficit <- current_deficits
+
+                    rv$status_message <- sprintf(
+                        "Updated %s L%d from %.2e to %.2e (change: %.2e). New Deficit: %.2e.",
+                        local_var_name, row_idx - 1, old_value, new_value_num, value_change, current_deficits[row_idx]
+                    )
+                } else {
+                    value_change <- new_value_num - old_value
+                    rv$status_message <- sprintf(
+                        "Updated %s L%d from %.2e to %.2e (change: %.2e).",
+                        (var_info_edit$name %||% local_var_name), row_idx - 1, old_value, new_value_num, value_change
+                    )
+                }
+
               } else {
-                # Value is numerically the same, but user might have typed a different string format.
-                # Force re-render with standard formatC by updating the trigger.
                 rv$table_update_triggers[[local_var_name]] <- Sys.time()
                 rv$status_message <- paste("Value for", (var_info_edit$name %||% local_var_name), "at layer", row_idx-1, "re-formatted (no numeric change).")
               }
@@ -488,29 +613,36 @@ EPEserver <- function(input, output, session) {
           
           var_info_reset <- isolate(variable_defs[[var_to_reset_name]])
           full_data_vec <- isolate(rv$full_data_vector)
-          current_edited_values_for_var <- isolate(rv$edited_data_vector[var_info_reset$indices + 1])
           
-          req(var_info_reset, full_data_vec, current_edited_values_for_var, rv$edited_data_vector)
+          req(var_info_reset, full_data_vec, rv$edited_data_vector)
           
           original_values_slice <- full_data_vec[var_info_reset$indices + 1]
-          notification_id <- paste0("notify_reset_", var_to_reset_name) 
           
-          if (isTRUE(all.equal(current_edited_values_for_var, original_values_slice, tolerance = .Machine$double.eps^0.5))) {
-            msg <- paste((var_info_reset$name %||% var_to_reset_name), "values are already the original.")
-            showNotification(msg, type = "default", duration = 3, id = notification_id)
-          } else {
-            indices_to_update <- var_info_reset$indices + 1
-            temp_vector <- rv$edited_data_vector 
-            temp_vector[indices_to_update] <- original_values_slice
-            rv$edited_data_vector <- temp_vector 
-            
-            # Trigger re-render of this table after reset
-            rv$table_update_triggers[[var_to_reset_name]] <- Sys.time()
-            
-            msg <- paste((var_info_reset$name %||% var_to_reset_name), "has been reset.")
-            rv$status_message <- msg
-            showNotification(msg, type = "message", duration = 5, id = notification_id) 
+          # Update the data vector
+          indices_to_update <- var_info_reset$indices + 1
+          temp_vector <- rv$edited_data_vector 
+          temp_vector[indices_to_update] <- original_values_slice
+          rv$edited_data_vector <- temp_vector
+
+          # Trigger table re-render
+          rv$table_update_triggers[[var_to_reset_name]] <- Sys.time()
+          
+          # Recalculate deficit for the group if applicable
+          group_name <- find_variable_group(var_to_reset_name)
+          if(!is.null(group_name)){
+            group_info <- variable_groups[[group_name]]
+            current_sum_layers <- rep(0,10)
+            for(member_name in group_info$members){
+              member_indices <- variable_defs[[member_name]]$indices
+              current_sum_layers <- current_sum_layers + rv$edited_data_vector[member_indices+1]
+            }
+            initial_sums <- isolate(rv$conservation_sums[[group_name]]$initial)
+            rv$conservation_sums[[group_name]]$deficit <- initial_sums - current_sum_layers
           }
+          
+          msg <- paste((var_info_reset$name %||% var_to_reset_name), "has been reset.")
+          rv$status_message <- msg
+          showNotification(msg, type = "message", duration = 5, id = paste0("notify_reset_", var_to_reset_name)) 
         })
         
         #Custom X-Axis Toggle Switch Observer 
@@ -519,10 +651,8 @@ EPEserver <- function(input, output, session) {
             rv$plot_axis_limits[[local_var_name]] <- list(min = NULL, max = NULL, is_custom_active = FALSE)
           }
           is_active <- input[[paste0("toggle_custom_", local_var_name)]] %||% FALSE
-          # Only update if the state has changed to avoid feedback loops
           if (rv$plot_axis_limits[[local_var_name]]$is_custom_active != is_active) {
             rv$plot_axis_limits[[local_var_name]]$is_custom_active <- is_active
-            # Update UI only if necessary
             updateSwitchInput(session, paste0("toggle_custom_", local_var_name), value = is_active)
             rv$status_message <- paste("Custom X-axis toggle for", variable_defs[[local_var_name]]$name %||% local_var_name, "set to", if (is_active) "ON" else "OFF")
             showNotification(rv$status_message, type = "message", duration = 3)
@@ -656,6 +786,110 @@ EPEserver <- function(input, output, session) {
     
   }) 
   
+  # Conservation Sums Logic
+  
+  # Dynamically render the UI for each conservation group
+  lapply(names(variable_groups), function(group_name) {
+    output[[paste0("conservation_status_", group_name)]] <- renderUI({
+      req(rv$conservation_sums[[group_name]])
+      
+      initial_sums <- rv$conservation_sums[[group_name]]$initial
+      deficits <- rv$conservation_sums[[group_name]]$deficit
+      group_info <- variable_groups[[group_name]]
+      
+      tagList(
+        lapply(1:10, function(i) {
+          deficit_val <- deficits[i]
+          deficit_class <- if (abs(deficit_val) < 1e-9) "" else if (deficit_val < 0) "deficit-red" else "deficit-green"
+          
+          # Create compensation buttons for this layer
+          compensate_btns <- lapply(group_info$members, function(member_name) {
+            actionButton(
+              inputId = paste("compensate", group_name, i, member_name, sep = "_"),
+              label = member_name,
+              class = "btn-primary btn-xs"
+            )
+          })
+          
+          div(class = "layer-row",
+              div(class = "layer-label", table_row_names_with_depths[i]),
+              div(class = "sum-display", HTML(sprintf(
+                  "Initial Sum: %.3e | Deficit: <span class='deficit-val %s'>%.3e</span>",
+                  initial_sums[i], deficit_class, deficit_val
+              ))),
+              div(class = "compensate-buttons", compensate_btns)
+          )
+        })
+      )
+    })
+  })
+  
+  # Dynamically create observers for all compensation buttons
+  lapply(names(variable_groups), function(group_name) {
+    group_info <- variable_groups[[group_name]]
+    lapply(group_info$members, function(member_name) {
+      lapply(1:10, function(layer_idx) {
+        button_id <- paste("compensate", group_name, layer_idx, member_name, sep = "_")
+        observeEvent(input[[button_id]], {
+          
+          deficit_to_apply <- isolate(rv$conservation_sums[[group_name]]$deficit[layer_idx])
+          
+          if (abs(deficit_to_apply) < 1e-9) {
+            showNotification(paste("No deficit to compensate for Layer", layer_idx - 1), type="default")
+            return()
+          }
+          
+          # Find the index in the main data vector for the target variable and layer
+          var_info <- variable_defs[[member_name]]
+          target_global_idx <- var_info$indices[layer_idx] + 1
+          
+          current_val <- isolate(rv$edited_data_vector[target_global_idx])
+          
+          # The amount to add to the current value is the deficit
+          new_val <- current_val + deficit_to_apply
+          
+          # Safety check: value cannot be negative
+          actual_change <- deficit_to_apply
+          if (new_val < 0) {
+            actual_change <- -current_val # Change is limited to making the value 0
+            new_val <- 0
+          }
+          
+          # Update the data vector
+          temp_vector <- rv$edited_data_vector
+          temp_vector[target_global_idx] <- new_val
+          rv$edited_data_vector <- temp_vector
+          
+          # Update the deficit
+          remaining_deficit <- deficit_to_apply - actual_change
+          current_deficits <- isolate(rv$conservation_sums[[group_name]]$deficit)
+          current_deficits[layer_idx] <- remaining_deficit
+          rv$conservation_sums[[group_name]]$deficit <- current_deficits
+          
+          # Trigger table re-render for the modified variable
+          rv$table_update_triggers[[member_name]] <- Sys.time()
+          
+          # User feedback
+          if (abs(remaining_deficit) > 1e-9) {
+            msg <- sprintf(
+              "Partially compensated Layer %d with %s. Remaining deficit: %.2e",
+              layer_idx - 1, member_name, remaining_deficit
+            )
+            showNotification(msg, type = "warning", duration = 8)
+            rv$status_message <- msg
+          } else {
+            msg <- sprintf(
+              "Compensated Layer %d deficit of %.2e using %s.",
+              layer_idx - 1, deficit_to_apply, member_name
+            )
+            showNotification(msg, type = "message", duration = 5)
+            rv$status_message <- msg
+          }
+        })
+      })
+    })
+  })
+
   # Overwrite File in Working Directory Button
   overwrite_wd_trigger <- eventReactive(input$overwrite_wd_button, {
     list(timestamp = Sys.time()) 
@@ -685,9 +919,8 @@ EPEserver <- function(input, output, session) {
       
       tryCatch({
         writeBin(rv$edited_data_vector, target_file_path, size = 8, endian = "little")
-        #rv$full_data_vector <- rv$edited_data_vector 
         rv$status_message <- paste("File '", input$file_input$name, "' overwritten in working directory", sep="")
-        showNotification(rv$status_message, type = "message", duration = 7, id = "notify_overwrite_wd_success") # Changed to message
+        showNotification(rv$status_message, type = "message", duration = 7, id = "notify_overwrite_wd_success") 
       }, error = function(e) {
         rv$status_message <- paste("Error overwriting file '", input$file_input$name, "': ", e$message, sep="")
         showNotification(rv$status_message, type = "error", duration = NULL, id = "notify_overwrite_wd_error") 
