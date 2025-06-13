@@ -724,8 +724,8 @@ musoEnsemblePlot <- function(
             tryCatch({
               changeMuso(settings,
                                     fileToChange = fileToChange,
-                                    parameters = paramVal_best[,3],
-                                    calibrationPar = paramVal_best[,2], 
+                                    parameters = paramVal_best[[3]],
+                                    calibrationPar = paramVal_best[[2]], 
                                     fixAlloc = FALSE)
               result_maxlikelihood <- calibMuso(settings = settings, skipSpinup = TRUE, prettyOut = FALSE, silent = TRUE)
 
