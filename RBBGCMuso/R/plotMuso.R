@@ -269,6 +269,7 @@ plotMusoWithData <- function(mdata, plotName = NULL,
                                      silent = TRUE,
                                      continious = FALSE,
                                      leapYearHandling = FALSE,
+                                     skipSpinup = TRUE,
                                      postProcString = NULL
                                      ) {
 
@@ -291,7 +292,7 @@ plotMusoWithData <- function(mdata, plotName = NULL,
 
 
     
-    baseData_from_calibMuso <- calibMuso(settings = settings, silent = silent, prettyOut = FALSE,
+    baseData_from_calibMuso <- calibMuso(settings = settings, silent = silent, prettyOut = FALSE, skipSpinup = skipSpinup,
                                          postProcString = postProcString,
                                          leapYearHandling = leapYearHandling)
 
