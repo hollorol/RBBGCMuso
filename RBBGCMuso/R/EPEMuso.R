@@ -247,7 +247,13 @@ EPEserver <- function(input, output, session) {
     top_transformed <- sqrt(depth_layers_top_orig[i])
     bottom_transformed <- sqrt(depth_layers_bottom_orig[i])
     new_depth_midpoints_transformed[i] <- (top_transformed + bottom_transformed) / 2
+    if( i < 10) {
     table_row_names_with_depths[i] <- paste0("Layer ", i-1, " [", depth_layers_top_orig[i], "-", depth_layers_bottom_orig[i], " cm]")
+    } 
+    else {
+      table_row_names_with_depths[i] <- paste0("Layer ", i-1, " [", depth_layers_top_orig[i], "-", depth_layers_bottom_orig[i], "]")
+
+    }
   }
   
   
@@ -268,6 +274,28 @@ EPEserver <- function(input, output, session) {
   )
   
   plot_data_slicers <- new.env(parent = emptyenv())
+  
+  # Custom formatting function for table values
+  custom_format <- function(x) {
+    # This nested function formats a single value based on the specified rules.
+    format_single_value <- function(val) {
+        if (is.na(val) || !is.numeric(val)) { return(as.character(val)) }
+        if (val == 0) { return("0") }
+        
+        # Check if the absolute value is between 1e-4 and 1e4 (inclusive).
+        if (abs(val) >= 1e-4 && abs(val) <= 1e4) {
+            # If it is, format as a standard number.
+            # `scientific = FALSE` forces decimal notation.
+            # `trim = TRUE` removes leading/trailing whitespace.
+            return(format(val, scientific = FALSE, trim = TRUE))
+        } else {
+            # Otherwise, format using scientific notation with 3 decimal places.
+            return(formatC(val, format = "e", digits = 3))
+        }
+    }
+    # Apply the formatting function to every element in the input vector.
+    sapply(x, format_single_value)
+  }
   
   
   observeEvent(input$file_input, {
@@ -519,8 +547,9 @@ EPEserver <- function(input, output, session) {
           current_values_for_table <- plot_data_slicers[[local_var_name]]()
           req(current_values_for_table)
           
+          # Use the custom formatting function here instead of formatC
           df_for_table <- data.frame(
-            Value = formatC(current_values_for_table, format = "e", digits = 3)
+            Value = custom_format(current_values_for_table)
           )
           
           DT::datatable(df_for_table, 
