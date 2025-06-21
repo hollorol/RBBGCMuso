@@ -21,7 +21,9 @@ musoSensi(
   plotTitle = "Sensitivity",
   skipSpinup = TRUE,
   skipZero = TRUE,
+  sourceFile = NULL,
   postProcString = NULL,
+  constraints = NULL,
   modifyOut = TRUE,
   dpi = 300
 )
@@ -43,7 +45,7 @@ musoSensi(
 
 \item{varIndex}{This parameter specify which parameter of the output will be used. You can extract this information from the ini-files. At the output parameter specifications, the parameters order will determine this number. For example, if you have set these output parameters: 412, 874, 926, 888, and you want to use 926, you should address varIndex with 3.}
 
-\item{skipSpinup}{With this parameter, you can turn of the spinup phase after the first spinup. I will decrease the time significantly.}
+\item{skipSpinup}{With this parameter, you can turn of the spinup phase after the first spinup. It will decrease the time significantly.}
 
 \item{calibrationPar}{You may want to change some parameters in your epc file, before you run the modell. You have to select the appropirate modell parameters. You can refence to these with the number of the line in the epc file where the variables are. It indexes from one. You should use a vector for this, like: c(1,5,8)}
 }

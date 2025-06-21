@@ -125,7 +125,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 ############################spinup run############################
    ########################################################## 
 
-    #print("Fourth checkpoint")
+    
     
 
      if(aggressive == TRUE){
@@ -134,7 +134,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 
     
     if(!is.null(parameters)){
-        #print("Parameters are not NULL")
+        
         if(is.list(parameters)){
             for(i in seq_along(parameters)){
                 tryCatch(changeMuso(settings, parameters[[i]],
@@ -152,15 +152,13 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
         
     }
-    #else { 
-    #    print("parameters are NULL") 
-    #}    
+  
 
     ##We change the working directory becase of the model, but we want to avoid sideeffects, so we save the current location and after that we will change everything to it.
     
    if(!skipSpinup) {
 
-    #print("ROGER 0")
+    
     ##Run the model for the spinup run.
 
     if(silent){#silenc mode
@@ -182,7 +180,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         system(paste(executable,iniInput[1],sep=" "))
     }
 
-    #print("ROGER 1")
+    
 
     logspinup <- getLogs(outputLoc,outputNames,type="spinup")
     ## logspinup <- grep(paste0(outputNames[1],".log"), list.files(outputLoc),value = TRUE)
@@ -200,7 +198,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         stop("Model Failure") #in that case the modell did not create even a logfile
     }
 
-    #print("ROGER 2")
+    
 
     if(length(logspinup)>1){
         spincrash<-TRUE
@@ -243,7 +241,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
                          stop("Cannot run the model-check the executable!")})
         }
 
-        #print("ROGER 3")
+        
         ##read the output
          
         switch(timee,
@@ -269,7 +267,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         }
     }
 
-    #print("ROGER 4")
+    
 
     if(skipSpinup){
        logfiles <- tryCatch(getLogs(outputLoc,outputNames,type="normal"),
@@ -287,13 +285,6 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 ###############################################    
 #############LOG SECTION#######################
 ###############################################
-    #print("ROGER 5")
-    #print("checking log files")
-    #print(logfiles)
-    #for (log in logfiles) {
-    #    print(paste("Contents of log file:", log))
-    #    print(readLines(log, warn = FALSE))
-    #}
 
 
 
@@ -323,7 +314,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         
     }
         
-    #print("ROGER 6")
+
     
 
     if(keepEpc){#if keepepc option turned on
@@ -346,7 +337,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
         
                        stampAndDir(stampDir=dirName, wrongDir=dirERROR, names=logfiles, type="general",errorsign=errorsign,logfiles=logfiles)}
   
-    #print("ROGER 7")
+    
     #cleanupMuso(location=outputLoc,deep = FALSE)
     if(errorsign==1){
         stop("Model Failure")
@@ -354,7 +345,7 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 
     
 
-    #print("ROGER 7.5")
+    
 
         if (timee == "d") {
             if (!prettyOut) {
@@ -376,11 +367,10 @@ calibMuso <- function(settings=setupMuso(), calibrationPar=NULL,
 
 
     if(!is.null(postProcString)){
-        Reva <- postProcMuso(Reva,postProcString)
+        Reva <- postProcMuso(Reva,postProcString, prettyOut = prettyOut)
     }
 
-    #print("ROGER 8")
-
+    
     ## if(leapYear){
     ##     Reva <- corrigMuso(settings,Reva)
     ##     if(!prettyOut){

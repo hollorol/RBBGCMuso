@@ -57,7 +57,7 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
                                         outVars = outVarIndex,
                                         silent = TRUE,
                                         fileToChange = fileToChange,fixAlloc=fixAlloc), error = function(e){NULL})
-        #print(calResult)
+        
 
         if(is.null(calResult)){
             b <- cbind(rep(NA,365),parVal)
@@ -79,7 +79,7 @@ musoQuickEffect <- function(settings = setupMuso(), calibrationPar = NULL,  star
         tibble::as_tibble() %>%
         mutate(date=as.Date(rownames(a),"%d.%m.%Y")) %>%
         select(date,as.character(varNames),parVal)
-    Sys.setlocale("LC_TIME", "English")
+    
     y_label <- paste0(varNames, if (!is.na(varUnit) && varUnit != "") paste0("  [", varUnit, "]") else "")
     if(cols){
     print(suppressWarnings(ggplot(data = a, aes_string(x= "date", y= varNames))+geom_line(aes(alpha = factor(parVal), color = factor(parVal))) + labs(y=y_label, alpha = parName, color = parName) + scale_alpha_discrete(range=c(0.25,1)) + scale_color_viridis_d() ))

@@ -31,8 +31,6 @@ musoQuickEffect(
 
 \item{nSteps}{Number of steps from startVal to endVal. It equals the number of simulations, and number of curves on the final plot.}
 
-\item{modifyOriginal}{If TRUE, the original parameter values will be changed in file. If FALSE, the original parameter values will not be changed (given it works).}
-
 \item{outVar}{The output variable that we want to visualize according to how the calibrationPar parameter changes. The user can either provide the code (for example 3009) or the name (for example "GPP") of the output variable.}
 
 \item{parName}{This will be the name displayed above the parameter scale.}

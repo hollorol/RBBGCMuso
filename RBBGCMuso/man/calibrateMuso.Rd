@@ -6,7 +6,7 @@
 \usage{
 calibrateMuso(
   measuredData,
-  parameters = read.csv("parameters.csv", stringsAsFactor = FALSE),
+  parameters = "parameters.csv",
   startDate = NULL,
   endDate = NULL,
   formatString = "\%Y-\%m-\%d",
@@ -23,10 +23,13 @@ calibrateMuso(
   uncertainity = NULL,
   naVal = NULL,
   postProcString = NULL,
+  sourceFile = NULL,
   thread_prefix = "thread",
   numCores = max(c(parallel::detectCores() - 1, 1)),
   pb = txtProgressBar(min = 0, max = iterations, style = 3),
+  constraints = NULL,
   maxLikelihoodEpc = TRUE,
+  fileToChange = "epc",
   pbUpdate = setTxtProgressBar,
   outputLoc = "./",
   method = "GLUE",

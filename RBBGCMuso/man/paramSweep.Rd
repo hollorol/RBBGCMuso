@@ -9,7 +9,8 @@ paramSweep(
   parameters = NULL,
   outputDir = NULL,
   iterations = 10,
-  outVar = "daily_gpp",
+  outVar = 3009,
+  fileToChange = "epc",
   htmlOutName = "paramsweep.html",
   fixAlloc = FALSE
 )

@@ -4,7 +4,7 @@
 \alias{postProcMuso}
 \title{postProcMuso}
 \usage{
-postProcMuso(modelData, procString)
+postProcMuso(modelData, procString, prettyOut = FALSE)
 }
 \description{
 This is a function wich provides some minimal post processing capabilities

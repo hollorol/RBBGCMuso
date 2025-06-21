@@ -30,13 +30,13 @@ keepEpc=FALSE, export=FALSE, silent=FALSE, aggressive=FALSE, leapYear=FALSE)
 
 \item{binaryPlace}{The place of the binary output files.}
 
-\item{fileToChange}{You can change any line of the epc or the ini file, you just have to specify with this variable which file you van a change. Two options possible: "epc", "ini"}
+\item{fileToChange}{You can change any line of the epc, soil or the ini file, you just have to specify with this variable which file you want to change. Three options possible: "epc", "ini", "soil"}
 
 \item{skipSpinup}{If TRUE, calibMuso wont do spinup simulation}
 
 \item{prettyOut}{date ad Date type, separate year, month, day vectors}
 
-\item{leapYear}{Should the function do a leapyear correction on the outputdata? If TRUE, then the 31.12 day will be doubled.}
+\item{leapYearHandling}{Should the function do a leapyear correction on the outputdata? If TRUE, then the dec 31 is removed for every leap year}
 }
 \value{
 No return, outputs are written to file

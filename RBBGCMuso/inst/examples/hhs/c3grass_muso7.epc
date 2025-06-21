@@ -1,4 +1,4 @@
-ECOPHYS FILE - C3 grass  Biome-BGC Muso  v7
+ECOPHYS FILE - C3 grass  Biome-BGC Muso  v7alpha
 ----------------------------------------------------------------------------------------
 FLAGS
 0	(flag)		biome type flag (1 = WOODY 0 = NON-WOODY)
@@ -128,7 +128,7 @@ GROWING SEASON PARAMETERS
 ----------------------------------------------------------------------------------------
 PHENOLOGICAL (ALLOCATION) PARAMETERS (7 phenological phases)
 phase1   	phase2		phase2		phase2		phase2        	phase2  phase2 	        (text) name of the phenophase
-160		10000          10000		1500		2000		1000 2000 	  	(Celsius) length of phenophase (GDD)
+160		10000          10000		1500		2000		1000	2000 	  	(Celsius) length of phenophase (GDD)
 0.5		0.3		0.3		0.00		0.00  		0.1	  0.1    	(ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
 0.5		0.6		0.6		0.20		0.20  		0.30	  0.30   	(ratio) fine root ALLOCATION
 0.0		0.00		0.0		0.60		0.60  		0.30	  0.30   	(ratio) fruit ALLOCATION 	                                                                                                                                                                                                                                             
