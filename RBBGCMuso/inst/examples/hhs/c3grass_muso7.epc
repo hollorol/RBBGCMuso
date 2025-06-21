@@ -1,4 +1,4 @@
-ECOPHYS FILE - C3 grass  Biome-BGC Muso  v7alpha
+ECOPHYS FILE - C3 grass version7
 ----------------------------------------------------------------------------------------
 FLAGS
 0	(flag)		biome type flag (1 = WOODY 0 = NON-WOODY)
@@ -10,7 +10,7 @@ PLANT FUNCTIONING PARAMETERS
 364	(yday)		yearday to end litterfall (when phenology flag = 0)
 1.0	(prop.)		transfer growth period as fraction of growing season (when transferGDD_flag = 0)
 1.0	(prop.)		litterfall as fraction of growing season (when transferGDD_flag = 0)
-9 	(Celsius) 	base temperature
+0	(Celsius) 	base temperature
 -9999	(Celsius) 	minimum  temperature for growth displayed on current day (-9999: no T-dependence of allocation)
 -9999	(Celsius) 	optimal1 temperature for growth displayed on current day (-9999: no T-dependence of allocation) 
 -9999	(Celsius) 	optimal2 temperature for growth displayed on current day (-9999: no T-dependence of allocation) 
@@ -20,17 +20,17 @@ PLANT FUNCTIONING PARAMETERS
 -9999	(Celsius) 	optimal2 temperature for carbon assimilation displayed on current day (-9999: no limitation) 
 -9999	(Celsius) 	maxmimum temperature for carbon assimilation displayed on current day (-9999: no limitation)
 30      (Celsius)       threshold temperature for ET-calculation (line 57 in INI file) using PT-method (-9999: no data - only PM-method)
-1.0	(1/yr)		annual leaf and fine root turnover fraction          
-0.00	(1/yr)		annual live wood turnover fraction                   
-0.0	(1/yr)		annual fire mortality fraction                       
-0.01	(1/vegper)	whole-plant mortality fraction in vegetation period  
+1.0	(1/yr)		annual leaf and fine root turnover fraction          ---> 1.0 (White et al., 2000)
+0.00	(1/yr)		annual live wood turnover fraction                   ---> 0.0 (White et al., 2000)
+0.0	(1/yr)		annual fire mortality fraction                       ---> 0.05 (White et al., 2000)
+0.01	(1/vegper)	whole-plant mortality fraction in vegetation period  ---> 0.1 (White et al., 2000)
 0.2	(prop)	        dead stem biomass combustion proportion
 0.3	(prop)	        coarse woody biomass combustion proportion
-25 	(kgC/kgN)	C:N of leaves                              
-45.0	(kgC/kgN)	C:N of leaf litter, after retranslocation  
-50.0	(kgC/kgN)	C:N of fine roots                          
-25.     (kgC/kgN)       C:N of fruit      , usually we set same as C:N of leaves
-25.     (kgC/kgN)  	C:N of soft stem  , usually we set same as C:N of leaves
+34.	(kgC/kgN)	C:N of leaves                              ---> 25.0 (White et al., 2000)
+45.0	(kgC/kgN)	C:N of leaf litter, after retranslocation  ---> 45.0 (White et al., 2000)
+50.0	(kgC/kgN)	C:N of fine roots                          ---> 50.0 (White et al., 2000)
+34.     (kgC/kgN)       C:N of fruit      , usually we set same as C:N of leaves
+34.     (kgC/kgN)  	C:N of soft stem  , usually we set same as C:N of leaves
 0.0     (kgC/kgN)	C:N of live wood
 0.0     (kgC/kgN)	C:N of dead wood
 0.4	(kgC/kgDM)	dry matter carbon content of leaves
@@ -40,27 +40,27 @@ PLANT FUNCTIONING PARAMETERS
 0.4     (kgC/kgDM)  	dry matter carbon content of soft stem 
 0.4     (kgC/kgDM)	dry matter carbon content of live wood
 0.4     (kgC/kgDM)	dry matter carbon content of dead wood
-0.68	(DIM)		leaf litter labile proportion              
-0.23	(DIM)		leaf litter cellulose proportion           
-0.222	(DIM)		fine root labile proportion                
-0.531	(DIM)		fine root cellulose proportion             
+0.68	(DIM)		leaf litter labile proportion                ---> 0.680 (White et al., 2000)
+0.23	(DIM)		leaf litter cellulose proportion             ---> 0.230 (White et al., 2000)
+0.68	(DIM)		fine root labile proportion                  ---> 0.222 (White et al., 2000)
+0.23	(DIM)		fine root cellulose proportion               ---> 0.531 (White et al., 2000)
 0.68    (DIM)		fruit litter labile proportion
 0.23    (DIM)		fruit litter cellulose proportion
 0.68    (DIM)		soft stem litter labile proportion
 0.23    (DIM)		soft stem litter cellulose proportion
-0.75    (DIM)		dead wood cellulose proportion		 no woody component, does not matter
-0.022	(1/LAI/d)	canopy water interception coefficient    
-0.48	(DIM)		canopy light extinction coefficient      
+0.75    (DIM)		dead wood cellulose proportion      , no woody component, does not matter
+0.022	(1/LAI/d)	canopy water interception coefficient    ---> 0.022 (White et al., 2000)
+0.48	(DIM)		canopy light extinction coefficient      ---> 0.48 (White et al., 2000)
 2.0     (g/MJ)          potential radiation use efficiency
 0.781   (DIM)           radiation parameter1 (Jiang et al.2015)
 -13.596 (DIM)           radiation parameter2 (Jiang et al.2015)
-2.0	(DIM)		all-sided to projected leaf area ratio   
-2.0	(DIM)		ratio of shaded SLA:sunlit SLA            
-0.21	(DIM)		fraction of leaf N in Rubisco             
+2.0	(DIM)		all-sided to projected leaf area ratio    ---> 2.0 (White et al., 2000)
+2.0	(DIM)		ratio of shaded SLA:sunlit SLA            ---> 2.0 (White et al., 2000)
+0.18	(DIM)		fraction of leaf N in Rubisco             ---> 0.21 (White et al., 2000)
 0.03	(DIM)		fraction of leaf N in PEP Carboxylase 
-0.006	(m/s)		maximum stomatal conductance (projected area basis)   + grasslands may have higher (White et al., 2000)
-0.00006	(m/s)		cuticular conductance (projected area basis)          or(max stomatal cond/100) (White et al., 2000)
-0.04	(m/s)		boundary layer conductance (projected area basis)   
+0.004	(m/s)		maximum stomatal conductance (projected area basis)   ---> 0.006 + grasslands may have higher (White et al., 2000)
+0.00006	(m/s)		cuticular conductance (projected area basis)           --> 0.00006 or (max stomatal cond/100) (White et al., 2000)
+0.04	(m/s)		boundary layer conductance (projected area basis)   ---> 0.04 (White et al., 2000)
 1.2     (m) 		maximum height of plant
 0.8     (kgC) 	        stem weight corresponding to maximum height
 0.5     (dimless) 	plant height function shape parameter (slope)
@@ -98,7 +98,7 @@ CROP SPECIFIC PARAMETERS
 STRESS AND SENESCENCE PARAMETERS
 0.5	(prop)		VWC ratio to calc. drought water stress limit (prop. to FC-WP)
 1.0	(prop)		VWC ratio to calc. anoxic water stress limit (prop. to SAT-FC)
-30      (nday)		critical length (days) of full water stress (in the rootzone) leading to complete plant mortality
+30      (prop)		critical value of full (regarding to all layer) water stress length 
 1000	(Pa)		vapor pressure deficit: start of conductance reduction
 5000	(Pa)		vapor pressure deficit: complete conductance reduction
 0.006    (prop.) 	maximum water stress mortality coefficient of leaf
@@ -109,7 +109,7 @@ STRESS AND SENESCENCE PARAMETERS
 0.1     (prop.) 	turnover rate of wilted standing biomass to litter
 0.1     (prop.) 	turnover rate of non-woody cut-down biomass to litter
 0.01    (prop.) 	turnover rate of woody cut-down biomass to litter
-30	(nday)		critical value of water stress length leading to excess mortality (see Manual)
+30	(nday)		critical value of water stress length
 0.0     (dimless)       effect of water stress on photosynthesis (1: full effect, 0: no effect)        
 ----------------------------------------------------------------------------------------
 GROWING SEASON PARAMETERS
@@ -128,7 +128,7 @@ GROWING SEASON PARAMETERS
 ----------------------------------------------------------------------------------------
 PHENOLOGICAL (ALLOCATION) PARAMETERS (7 phenological phases)
 phase1   	phase2		phase2		phase2		phase2        	phase2  phase2 	        (text) name of the phenophase
-160		10000          10000		1500		2000		1000	2000 	  	(Celsius) length of phenophase (GDD)
+160		10000          10000		1500		2000		2000	  2000   	(Celsius) length of phenophase (GDD)
 0.5		0.3		0.3		0.00		0.00  		0.1	  0.1    	(ratio) leaf ALLOCATION 	                                                                                                                                                                                                                                                           
 0.5		0.6		0.6		0.20		0.20  		0.30	  0.30   	(ratio) fine root ALLOCATION
 0.0		0.00		0.0		0.60		0.60  		0.30	  0.30   	(ratio) fruit ALLOCATION 	                                                                                                                                                                                                                                             
