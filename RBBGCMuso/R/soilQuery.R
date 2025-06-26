@@ -56,6 +56,17 @@ createSoilFile <- function(lat,lon,
                            paste(createMusoLayers(getMeanSoil(rest,"silt")/10), collapse="\t"))
     outFile[90] <- sprintf("%s (dimless) soil PH",
                            paste(createMusoLayers(getMeanSoil(rest,"phh2o")/10), collapse="\t"))
+    outFile[92] <- sprintf("%s (g/cm3) bulk density",
+                           paste(createMusoLayers(getMeanSoil(rest,"bdod")/100), collapse="\t"))
+    # this can be used for field capacity
+    #outFile[93] <- sprintf("%s (m3/m3) volumetric water content at saturation",
+    #                       paste(createMusoLayers(getMeanSoil(rest,"wv0010")/1000), collapse="\t"))
+    # we've found out that the values underestimate the field capacity 
+    #outFile[94] <- sprintf("%s (m3/m3) volumetric water content at field capacity",
+    #                       paste(createMusoLayers(getMeanSoil(rest,"wv0033")/1000), collapse="\t"))
+    # this can be used for wilting point
+    #outFile[95] <- sprintf("%s (m3/m3) volumetric water content at wilting point",
+    #                       paste(createMusoLayers(getMeanSoil(rest,"wv1500")/1000), collapse="\t"))
     # outFile[58] <- sprintf("%s (%%) bulk density",paste(createMusoLayers(soilDepth),collapse="\t"))
     writeLines(outFile,outputFile)
 }
