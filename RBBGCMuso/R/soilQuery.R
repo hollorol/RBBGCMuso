@@ -31,7 +31,7 @@ getSoilDataFull <- function(lat, lon, apiURL) {
 createSoilFile <- function(lat,lon,
                             outputFile="recent.soi",
                             method="constant",apiURL,
-                            template=system.file("examples/hhs/hhs_MuSo7.soi",package="RBBGCMuso")) {
+                            template=system.file("examples/hhs/hhs_muso7.soi",package="RBBGCMuso")) {
     if(missing(apiURL)){
         apiURL <- "https://rest.isric.org/soilgrids/v2.0/properties"
     }
