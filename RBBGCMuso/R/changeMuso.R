@@ -150,7 +150,7 @@ changeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAl
                    
                },
 
-               fileToChange <- tools::file_path_as_absolute(fileType)
+               fileToChange <- tools::file_path_as_absolute(fileToChange)
         )
 
         bck  <- file.path(settings$inputLoc, "bck",
