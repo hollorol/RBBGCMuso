@@ -185,7 +185,7 @@ prettyChangeMuso <- function(settings, parameters, calibrationPar, fileToChange,
                   
                },
 
-               fileToChange <- tools::file_path_as_absolute(fileType)
+               fileToChange <- tools::file_path_as_absolute(fileToChange)
         )
 
         bck  <- file.path(settings$inputLoc, "bck",
@@ -194,11 +194,8 @@ prettyChangeMuso <- function(settings, parameters, calibrationPar, fileToChange,
         prettyChangemulline(filePaths = fileToChange,
                       calibrationPar = calibrationPar,
                       contents = parameters,
-                      src = if(file.exists(bck)){
-                          bck
-                      } else {
-                          NULL
-                      })
+                      src = NULL
+                      )
         if(fixAlloc){
             fixAlloc(settings)
         }
