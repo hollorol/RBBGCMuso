@@ -3232,7 +3232,7 @@ tuneMusoServer <- function(input, output, session){
 
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
             model_future <- future({
-                calibMuso(settings = settings, silent = TRUE, skipSpinup = !runSpinup)
+                calibMuso(settings = settings, silent = TRUE, skipSpinup = !runSpinup, doBackup = FALSE)
             })
 
             result <- tryCatch({
