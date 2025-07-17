@@ -566,7 +566,7 @@ musoEnsemblePlot <- function(
     message("Measurement data is empty or could not be loaded. Plot will not include measurement points.")
   }
 
-  # --- Path and File Setup ---
+  # Path and File Setup
   run_csv_base_path <- file.path(working_directory, run_output_subfolder)
   if (!dir.exists(run_csv_base_path)) {
       stop(paste("Run output subfolder not found:", run_csv_base_path))
@@ -617,8 +617,7 @@ musoEnsemblePlot <- function(
     by = paste(year_axis_interval, "years")
   )
   
-  # --- Model Variable Name ---
-  # This assumes RBBGCMuso is available in the environment where this function is called
+  # Model Variable Name 
   model_var_name <- tryCatch({
     musoMapping(model_mapping_code)
   }, error = function(e) {
@@ -668,7 +667,7 @@ musoEnsemblePlot <- function(
     stop("No valid run data could be processed from the CSV files for plotting. Aborting.")
   }
 
-  # --- Initialize ggplot ---
+  # Initialize ggplot 
   p <- ggplot2::ggplot() +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::labs(x = "Date", y = model_var_name, title = plot_title) +
@@ -685,7 +684,7 @@ musoEnsemblePlot <- function(
     ) +
     ggplot2::scale_x_date(breaks = year_starts, date_labels = "%Y")
 
-  # --- Plotting based on choice ---
+  # Plotting based on choice
   if (plot_individual_lines) {
     message("Adding individual ensemble member lines to plot...")
     p <- p + ggplot2::geom_line(data = all_runs_data, ggplot2::aes(x = date, y = value, group = run_id), color = "grey40", alpha = 0.05, linewidth = 0.15)
@@ -705,7 +704,7 @@ musoEnsemblePlot <- function(
     p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = 0.8)
   }
 
-  # --- Best Run Data ---
+  # Best Run Data 
   best_run_data_for_plot <- NULL
   actual_best_run_param_file <- if (!is.null(best_run_param_file) && !startsWith(best_run_param_file, "/") && !grepl("^[A-Za-z]:", best_run_param_file)) {
       file.path(working_directory, best_run_param_file)
@@ -758,7 +757,7 @@ musoEnsemblePlot <- function(
     p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = 0.6)
   }
 
-  # --- Measurement Points ---
+  #  Measurement Points 
   if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
     measurement_values_for_plot <- tryCatch(as.numeric(md_table[[measurement_data_column]]), warning = function(w) {
         message("Warning: Measurement column '", measurement_data_column, "' could not be coerced to numeric.")
@@ -780,7 +779,7 @@ musoEnsemblePlot <- function(
     message("Column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
   }
 
-  # --- Saving the plot ---
+  #  Saving the plot
   filename_suffix_plot <- if (plot_individual_lines) "individual_lines" else "ensemble_summary"
   final_plot_filename <- file.path(working_directory, paste0(output_plot_filename_prefix, "_", filename_suffix_plot, ".png"))
   message("\nSaving the plot to ", final_plot_filename, "...")

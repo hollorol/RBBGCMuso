@@ -171,7 +171,14 @@ changeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAl
 
 }
 
-
+#' prettyChangeMuso
+#' 
+#' A function to change lines mainly in soil, epc or ini files 
+#' @param calibrationPar the line number in the chosen file of the parameters to change 
+#' @param parameters the values for the chosen parameters listed in calibrationPar
+#' @param fileToChange defining which file to change
+#' @usage changeMuso(settings, parameters, calibrationPar, fileToChange, fixAlloc)
+#' @export 
 prettyChangeMuso <- function(settings, parameters, calibrationPar, fileToChange, fixAlloc){
        
 
