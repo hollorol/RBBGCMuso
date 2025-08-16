@@ -49,6 +49,7 @@ Imports:
 	colourpicker,
 	DT,
 	waiter,
+	ranger,
     rpart.plot
 Maintainer: Roland Hollo's <hollorol@gmail.com>
 Suggests: knitr,

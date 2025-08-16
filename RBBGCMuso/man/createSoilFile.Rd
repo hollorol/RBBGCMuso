@@ -10,7 +10,8 @@ createSoilFile(
   outputFile = "recent.soi",
   method = "constant",
   apiURL,
-  template = system.file("examples/hhs/hhs_MuSo7.soi", package = "RBBGCMuso")
+  getVWC = FALSE,
+  template = system.file("examples/hhs/hhs_muso7.soi", package = "RBBGCMuso")
 )
 }
 \description{

@@ -433,8 +433,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
             # Check if match found a valid index
             if (length(idx_from_name) == 1 && !is.na(idx_from_name) && idx_from_name > 0) {
                  modelColIndex <- idx_from_name
-                 # Optional: Print a message indicating name matching was used
-                 # print(paste("Info: Found model column for '", key, "' by name match.", sep=""))
+             
             }
         }
 
@@ -455,10 +454,10 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
                   warning(paste("Error accessing modelled data for key:", key, "at index", modelColIndex, "-", e$message), call. = FALSE)
                   rep(NA, length(alignIndexes$mod)) # Return NA vector of correct expected length
              })
-        # --- End Find Modelled Column ---
+        # End Find Modelled Column
 
 
-        # --- Find Measured Column(s) ---
+        # Find Measured Column(s)
         # Search for columns in 'mes' ending with the key
         selected_indices <- grep(sprintf("%s$", key), colnames(mes))
 
@@ -470,7 +469,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
         }
 
         # Select the actual column(s) based on index/indices
-        # Handle case where multiple columns match (e.g., _mean, _sd) - prefer single exact/mean match
+        # Handle case where multiple columns match (_mean, _sd) - prefer single exact/mean match
         measured_col_data <- mes[alignIndexes$meas, selected_indices, drop = FALSE] # Use drop=FALSE to keep data frame structure
 
         # Determine the primary measurement column for RMSE ('m') and the data for likelihood ('measured_for_like')
@@ -494,10 +493,10 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
              }
         }
          m <- measured_col_data[, m_col_index]
-        # --- End Find Measured Column(s) ---
+        # End Find Measured Column(s)
 
 
-        # --- Alignment and NA Handling ---
+        # Alignment and NA Handling
         # Align modelled and measured data, removing rows where *either* is NA
         valid_indices <- !is.na(modelled) & !is.na(m)
         modelled_aligned <- modelled[valid_indices]
@@ -510,18 +509,18 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
                    call. = FALSE)
            return(c(likelihood = NA, rmse = NA))
         }
-        # --- End Alignment and NA Handling ---
+        # End Alignment and NA Handling
 
 
-        # --- Calculate Likelihood and RMSE ---
+        # Calculate Likelihood and RMSE 
         # Get the appropriate likelihood function for this key
         currentLikelihoodFunc <- likelihoods[[key]]
         if (is.null(currentLikelihoodFunc) || !is.function(currentLikelihoodFunc)) {
              warning(paste("Likelihood function not found or invalid for key:", key), call. = FALSE)
-             # Decide default behavior: NA or default likelihood? Returning NA for now.
+             # Returning NA for now.
              likelihood_val <- NA
         } else {
-             # Calculate likelihood - pass the potentially multi-column aligned measurement data
+             # Calculate likelihood 
              likelihood_val <- tryCatch({
                   currentLikelihoodFunc(modelled_aligned, m_aligned)
              }, error = function(e) {
@@ -534,7 +533,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
         rmse_val <- sqrt(mean((modelled_aligned - m_aligned)^2, na.rm = TRUE)) # na.rm is fallback
 
         res <- c(likelihood = likelihood_val, rmse = rmse_val)
-        # --- End Calculate Likelihood and RMSE ---
+        # End Calculate Likelihood and RMSE
 
         return(res) # Return named vector for this key
 
@@ -570,3 +569,197 @@ agroLikelihood <- function(modVector,measured){
 maxLikelihoodAgromo <- function (results, imgPath, varName, ...) {
     
 }
+
+
+
+#' musoOptimCalib
+#'
+#' This function allows further post process for calibrateMuso results based on random forest surrogate model which will then be optimized.
+#' Currenlty only DE (differential evolution) is available but in the future custom optimizing method could be used as an input
+#' Note: For multiobjective calibration it won't work, its calibResult file looks a little different but will be supported in the future
+#' 
+#' @param calibList The calibration results created by the calibrationMuso, or a path to the csv file with the results. 
+#' @param parameters THe parameters.csv used for setting the min and max values
+#' @param numTrees Number of trees for the random forest
+#' @param mtry The number of variables randomly sampled as candidates at each split.  
+#' @param dataTrain The percent of the data to be randomly selected for training. 
+#'                  Base is 0.8 so 80 percent of the data will be used for training.
+#' @param method The method to be used for optimization. Currently only DEoptim is available.
+#' @param maxIterations The maximum number of iterations for the optimization.
+#' @param NP The population size for the DEoptim algorithm.
+#' @export
+musoOptimCalib <- function(
+                    settings = setupMuso(),
+                    calibList = "calibResults.csv", 
+                    parameters = "parameters_soil.csv",
+                    numTrees = 1000, 
+                    mtry = 3, 
+                    dataTrain = 0.8,
+                    method = "DEoptim",
+                    maxIterations = 50,
+                    NP = 100
+                    ){
+
+    # check whether the package given for the function for the optimization is installed
+    if(!requireNamespace("DEoptim", quietly = TRUE)){
+        stop("Currently the DEoptim package is required for this function to work. Please install it using install.packages('DEoptim').")
+    }
+
+    # try to be as robust about the editing of calibResults.
+    calibData <- read.table(calibList, header=TRUE, sep=",", stringsAsFactors=FALSE) 
+    parameters <- read.csv(parameters, stringsAsFactors=FALSE)
+    # remove all columns ending with _rmse
+    calibData <- calibData[,!grepl("_rmse$", colnames(calibData))]
+
+    # getting the min and max values for the parameters used in the calibration (and their names) from the parameters.csv
+    minValues <- parameters$min
+    maxValues <- parameters$max
+    paramNames <- parameters[,1] 
+
+    # get the name of the likelihood column, ending with _likelihood
+    likelihoodCol <- grep("_likelihood$", colnames(calibData), value=TRUE)
+    # creating the formula string for the random forest model where we will use as.formula so it won't complain
+    formula_string <- sprintf("%s ~ .", likelihoodCol)
+
+    # creating filtered data 
+    model_data <- calibData[, c(paramNames, likelihoodCol)]
+    # randomly select the data for training
+    dataTrainIndex <- sample(1:nrow(model_data), size = round(nrow(model_data) * dataTrain), replace = FALSE)
+    dataTrained <- model_data[dataTrainIndex,]
+    dataTesting <- model_data[-dataTrainIndex,]
+
+    # random forest model
+    randomForest <- ranger::ranger(
+        formula = as.formula(formula_string),
+        data = dataTrained,
+        num.trees = numTrees,
+        mtry = mtry
+    )
+
+    # plot the random forest result for the user for inspection
+    plot(predict(randomForest,dataTesting)$predictions,dataTesting[,likelihoodCol],
+    main = "Random Forest Predictions vs Observed Likelihood",
+    xlab = "Predicted Likelihood",
+    ylab = "Observed Likelihood",
+    col = "blue",
+    pch = 19)
+
+    # add a line for the perfect prediction
+    abline(a=0, b=1, col="red", lwd=2)
+
+    correlation <- cor(predict(randomForest,dataTesting)$predictions, dataTesting[,likelihoodCol], use="complete.obs")
+    rmse <- sqrt(mean((predict(randomForest,dataTesting)$predictions - dataTesting[,likelihoodCol])^2, na.rm=TRUE))
+    cat("Random Forest Model Correlation and RMSE:\n")
+    cat(sprintf("Correlation: %.8f, RMSE: %.8f\n", correlation, rmse))
+
+    optimizationFunc <- function(x){
+        m <- as.data.frame(setNames(as.list(x), paramNames))
+
+        predictions <- predict(randomForest, data = m)$predictions
+        return(-predictions) # return negative because DEoptim minimizes the function
+    }
+
+    # get the max likelihood value and the related parameters
+    maxLikelihood <- max(calibData[,likelihoodCol], na.rm=TRUE)
+    maxLikelihoodParams <- calibData[which.max(calibData[,likelihoodCol]), paramNames]
+
+
+    cat(sprintf("Starting optimizatin with %s method, %d iterations and population size of %d.\n\n", method, maxIterations, NP))
+    cat(sprintf("For comparison: Max Likelihood from the calibration data: %.6f \n", maxLikelihood))
+    cat(sprintf("Parameters for max likelihood: \n %s", paste(maxLikelihoodParams, collapse=", \n")))
+    cat("\n\n")
+
+    # optimization using DEoptim
+    optimResult <- DEoptim::DEoptim(
+        optimizationFunc,
+        lower = minValues,
+        upper = maxValues,
+        control = list(
+            itermax = maxIterations,
+            NP = NP,
+            trace = TRUE
+        )
+    )
+
+    # get the best parameters from the optimization result
+    bestParams <- optimResult$optim$bestmem
+    bestLikelihood <- -optimResult$optim$bestval
+    bestParams <- as.data.frame(setNames(as.list(bestParams), paramNames))
+    
+
+    cat("Best Parameters:\n")
+    print(bestParams)
+    cat(sprintf("Optim Likelihood: %.8f \n", bestLikelihood))
+    bestParams <- cbind(bestParams, likelihood = bestLikelihood)
+    # set the likelihood column name to the same as in the calibData
+    colnames(bestParams)[ncol(bestParams)] <- likelihoodCol
+
+    # save the best parameters to a csv file
+    # if optRanges.csv exists, read it and create the optimizedCalibParameters.csv including optRanges data
+    if(file.exists(file.path(settings$outputLoc,"optRanges.csv"))){
+    cat("optRanges.csv found, creating optimizedCalibParameters.csv including optRanges data...\n")
+        optRanges <- read.csv(file.path(settings$outputLoc,"optRanges.csv"), row.names = 1, check.names = FALSE)
+        optRanges$optimized <- NA
+        #parName <- colnames(bestParams)
+        optRanges[c(paramNames,likelihoodCol),"optimized"] <- as.numeric(bestParams[1,])
+
+        # bring in the maxlikelihood params and value as well
+        #optRanges$maxLikelihood <- NA
+        #opt... or not
+        write.csv(optRanges,file = file.path(settings$outputLoc, "optimizedCalibParameters.csv"), row.names = TRUE)
+        
+        cat(sprintf("Optimized parameters saved to %s/optimizedCalibParameters.csv .\n", file.path(settings$outputLoc)))
+    }
+    else{
+    cat("optRanges.csv not found, saving only the optimized parameters to optimizedCalibParameters.csv...\n")
+    write.csv(bestParams, file = file.path(settings$outputLoc, "optimizedCalibParameters.csv"), row.names = FALSE)
+    cat("Optimized parameters saved to optimizedCalibParameters.csv in the output directory.\n")
+
+    }
+
+    # visualization of the optimization result, saving them as a pdf file
+    pdf(file.path(settings$outputLoc, "optimization_dotplots.pdf"))
+    pari <- par(mfrow=c(1,2)) 
+
+    top5points <- calibData[,likelihoodCol] > quantile(calibData[,likelihoodCol], 0.95, na.rm=TRUE)
+    calibDataTop5 <- calibData[top5points,]
+    
+    # Calculate GLUE intervals from the top 5% of calibration data
+    optRanges <- t(apply(calibDataTop5[, paramNames], 2, function(x) quantile(x, c(0.05, 0.5, 0.95), na.rm = TRUE)))
+
+
+    for(i in seq_along(paramNames)){
+        param <- paramNames[i]
+        
+        # General dotty plot
+        plot(calibData[,param], calibData[,likelihoodCol], pch=19, cex=.1, ylab="likelihood",
+             main = param, xlab="", 
+             xlim = c(parameters$min[i], parameters$max[i]))
+        # abline(v = optRanges[param, 1], col = "blue")
+        # abline(v = optRanges[param, 2], col = "green")
+        # abline(v = optRanges[param, 3], col = "red")
+        abline(v = bestParams[1,param], col = "orange", lwd = 1.5)
+
+        # Top 5% dotty plot
+        plot(calibDataTop5[,param], calibDataTop5[,likelihoodCol], pch=19, cex=.1, ylab="likelihood",
+             main = paste0(param," (top 5%)"), xlab="",
+             xlim = c(parameters$min[i], parameters$max[i]))
+        abline(v = optRanges[param, 1], col = "blue")
+        abline(v = optRanges[param, 2], col = "green")
+        abline(v = optRanges[param, 3], col = "red")
+        abline(v = bestParams[1,param], col = "orange", lwd = 1.5)
+        
+        # Add optimum value text
+        # text(x = par("usr")[1] + 0.05 * diff(par("usr")[1:2]), 
+        #      y = par("usr")[4] - 0.05 * diff(par("usr")[3:4]), 
+        #      labels = paste("Optimum:", format(bestParams[1,param], digits = 4)),
+        #      adj = c(0, 1), col = "red")
+    }
+
+    par(pari)
+    dev.off()
+    cat(sprintf("Dot plots saved to %s/optimization_dotplots.pdf\n", settings$outputLoc))
+
+}
+
+
