@@ -589,7 +589,7 @@ maxLikelihoodAgromo <- function (results, imgPath, varName, ...) {
 #' @param NP The population size for the DEoptim algorithm.
 #' @export
 musoOptimCalib <- function(
-                    settings = setupMuso(),
+                    outputLoc = "./",
                     calibList = "calibResults.csv", 
                     parameters = "parameters_soil.csv",
                     numTrees = 1000, 
@@ -696,9 +696,9 @@ musoOptimCalib <- function(
 
     # save the best parameters to a csv file
     # if optRanges.csv exists, read it and create the optimizedCalibParameters.csv including optRanges data
-    if(file.exists(file.path(settings$outputLoc,"optRanges.csv"))){
+    if(file.exists(file.path(outputLoc,"optRanges.csv"))){
     cat("optRanges.csv found, creating optimizedCalibParameters.csv including optRanges data...\n")
-        optRanges <- read.csv(file.path(settings$outputLoc,"optRanges.csv"), row.names = 1, check.names = FALSE)
+        optRanges <- read.csv(file.path(outputLoc,"optRanges.csv"), row.names = 1, check.names = FALSE)
         optRanges$optimized <- NA
         #parName <- colnames(bestParams)
         optRanges[c(paramNames,likelihoodCol),"optimized"] <- as.numeric(bestParams[1,])
@@ -706,19 +706,19 @@ musoOptimCalib <- function(
         # bring in the maxlikelihood params and value as well
         #optRanges$maxLikelihood <- NA
         #opt... or not
-        write.csv(optRanges,file = file.path(settings$outputLoc, "optimizedCalibParameters.csv"), row.names = TRUE)
+        write.csv(optRanges,file = file.path(outputLoc, "optimizedCalibParameters.csv"), row.names = TRUE)
         
-        cat(sprintf("Optimized parameters saved to %s/optimizedCalibParameters.csv .\n", file.path(settings$outputLoc)))
+        cat(sprintf("Optimized parameters saved to %s/optimizedCalibParameters.csv .\n", file.path(outputLoc)))
     }
     else{
     cat("optRanges.csv not found, saving only the optimized parameters to optimizedCalibParameters.csv...\n")
-    write.csv(bestParams, file = file.path(settings$outputLoc, "optimizedCalibParameters.csv"), row.names = FALSE)
+    write.csv(bestParams, file = file.path(outputLoc, "optimizedCalibParameters.csv"), row.names = FALSE)
     cat("Optimized parameters saved to optimizedCalibParameters.csv in the output directory.\n")
 
     }
 
     # visualization of the optimization result, saving them as a pdf file
-    pdf(file.path(settings$outputLoc, "optimization_dotplots.pdf"))
+    pdf(file.path(outputLoc, "optimization_dotplots.pdf"))
     pari <- par(mfrow=c(1,2)) 
 
     top5points <- calibData[,likelihoodCol] > quantile(calibData[,likelihoodCol], 0.95, na.rm=TRUE)
@@ -758,7 +758,7 @@ musoOptimCalib <- function(
 
     par(pari)
     dev.off()
-    cat(sprintf("Dot plots saved to %s/optimization_dotplots.pdf\n", settings$outputLoc))
+    cat(sprintf("Dot plots saved to %s/optimization_dotplots.pdf\n", outputLoc))
 
 }
 

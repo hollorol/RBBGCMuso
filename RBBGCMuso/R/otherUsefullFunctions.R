@@ -348,19 +348,19 @@ musoRedistSoc <- function(input_file,
 #' run_config <- list(
 #'  
 #'  # Site level information
-#'  site_name = "askov270",
-#'  output_dir = "c:/muso/SOC/askovGLUE/",
+#'  site_name = "site1",
+#'  output_dir = "c:/muso/SOC/",
 #'  # this will be the base endpoint file which will be modified for each method and ratio
-#'  input_file = "c:/muso/SOC/askovGLUE/askov270GLUE/base.endpoint", 
+#'  input_file = "c:/muso/SOC/base.endpoint", 
 #'  
 #'  target_layer_cm = 23,
 #'  target_tsoc_layer = 4.77,
 #'  
 #'  # "method" names and their corresponding rsoc values
 #'  methods = list(
-#'    list(name = "Barre",   rsoc = 1.32),
-#'    list(name = "Falloon", rsoc = 0.4),
-#'    list(name = "Willard", rsoc = 1.76)
+#'    list(name = "Method1", rsoc = 1.32),
+#'    list(name = "Method2", rsoc = 0.4),
+#'    list(name = "Method3", rsoc = 1.76)
 #'  ),
 #'  
 #'  # A list of ratio components. The script will loop through these for EACH method
