@@ -5,7 +5,7 @@
 \title{musoOptimCalib}
 \usage{
 musoOptimCalib(
-  settings = setupMuso(),
+  outputLoc = "./",
   calibList = "calibResults.csv",
   parameters = "parameters_soil.csv",
   numTrees = 1000,
@@ -25,7 +25,8 @@ musoOptimCalib(
 
 \item{mtry}{The number of variables randomly sampled as candidates at each split.}
 
-\item{dataTrain}{The percent of the data to be randomly selected for training. Base is 0.8 so 80% of the data will be used for training.}
+\item{dataTrain}{The percent of the data to be randomly selected for training. 
+Base is 0.8 so 80 percent of the data will be used for training.}
 
 \item{method}{The method to be used for optimization. Currently only DEoptim is available.}
 
