@@ -30,7 +30,7 @@ getSoilDataFull <- function(lat, lon, apiURL) {
 
 createSoilFile <- function(lat,lon,
                             outputFile="recent.soi",
-                            method="constant",apiURL, getVWC = FALSE,
+                            method="constant",apiURL, getVWC = FALSE, getSOC = TRUE, getBD = FALSE.
                             template=system.file("examples/hhs/hhs_muso7.soi",package="RBBGCMuso")) {
     if(missing(apiURL)){
         apiURL <- "https://rest.isric.org/soilgrids/v2.0/properties"
@@ -56,13 +56,15 @@ createSoilFile <- function(lat,lon,
                            paste(createMusoLayers(getMeanSoil(rest,"silt")/10), collapse="\t"))
     outFile[90] <- sprintf("%s (dimless) soil PH",
                            paste(createMusoLayers(getMeanSoil(rest,"phh2o")/10), collapse="\t"))
+    if(getBD){ # Because this is for the "fine earth fraction" which is not necessarily what we want
     outFile[92] <- sprintf("%s (g/cm3) bulk density",
                            paste(createMusoLayers(getMeanSoil(rest,"bdod")/100), collapse="\t"))
+    }
     if(getVWC){
         # this can be used for field capacity
         outFile[93] <- sprintf("%s (m3/m3) volumetric water content at saturation",
                             paste(createMusoLayers(getMeanSoil(rest,"wv0010")/1000), collapse="\t"))
-        # we've found out that the values underestimate the field capacity, so for now this is just conditional for now
+        # we've found out that the values underestimate the field capacity, so this is just conditional for now
         # but we have ratios so in the future we'll use that 
         outFile[94] <- sprintf("%s (m3/m3) volumetric water content at field capacity",
                             paste(createMusoLayers(getMeanSoil(rest,"wv0033")/1000), collapse="\t"))
@@ -71,9 +73,29 @@ createSoilFile <- function(lat,lon,
                             paste(createMusoLayers(getMeanSoil(rest,"wv1500")/1000), collapse="\t"))
     }
 
+    # this isn't from the properties url
+    # if (getSOC) {
+    #     soilOC <- tryCatch(getMeanSoil(rest, "soc") * 10, error = function(e) {
+    #         stop("There is no data for the given coordinates")
+    #     })
+    #     soilN <- tryCatch(getMeanSoil(rest, "nitrogen") * 10, error = function(e) {
+    #         stop("There is no data for the given coordinates")
+    #     })
+    #     # Create a data frame for SOC and Nitrogen
+    #     soilData <- data.frame(
+    #         Depth_cm = soilGridDepths,
+    #         SOC_g_per_kg = soilOC,
+    #         Nitrogen_g_per_kg = soilN
+    #     )
+        
+    #     csvFile <- sub("\\.soi$", "_soc_n.csv", outputFile)
+    #     write.csv(soilData, file = csvFile, row.names = FALSE)
+    #     cat(glue("SOC (g/kg) and Nitrogen (g/kg) data saved to {csvFile}\n"))
+    # }
+
     writeLines(outFile,outputFile)
 }
-# createSoilFile(60,50)
+
 
 getMeanSoil <- function(rest, name){
     sapply(
