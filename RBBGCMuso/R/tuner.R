@@ -1177,6 +1177,73 @@ tuneMusoServer <- function(input, output, session){
 
      dailyOutputNames <- reactiveVal(settings$dailyOutputTable$name)
 
+
+    find_duplicates <- function(df) {
+    
+        # Find all dates that appear more than once
+        duplicated_dates <- df$Date[duplicated(df$Date) | duplicated(df$Date, fromLast = TRUE)]
+        
+        if (length(duplicated_dates) == 0) {
+            return(list(clean_df = df, mergable = NULL, conflicts = NULL))
+        }
+        
+        # Get the actual duplicated rows from the original dataframe
+        dupe_rows <- df[df$Date %in% unique(duplicated_dates), ]
+        
+        # Dataframe without the problematic rows for now
+        clean_df <- df[!(df$Date %in% unique(duplicated_dates)), ]
+        
+        mergable_list <- list()
+        conflicts_list <- list()
+        
+        # Process each duplicated date
+        for (d in unique(dupe_rows$Date)) {
+            
+            rows_for_date <- dupe_rows[dupe_rows$Date == d, ]
+            
+            # 1. Check for PERFECT duplicates (all values in the row are the same)
+            # We can silently remove these.
+            distinct_rows <- distinct(rows_for_date)
+            
+            if (nrow(distinct_rows) == 1) {
+                # If only one unique row exists for this date, it was a perfect duplicate.
+                # We can just add one instance of it back to our clean_df.
+                clean_df <- rbind(clean_df, distinct_rows)
+                next # Move to the next duplicated date
+            }
+            
+            # 2. Check for MERGABLE duplicates (conflicting NAs, like your 1982 example)
+            # We can merge these if the user agrees.
+            # The logic here is: for each column, if there's only one non-NA value, it's mergable.
+            can_merge <- TRUE
+            merged_row <- distinct_rows[1, , drop = FALSE]
+            
+            for (col in names(distinct_rows)[-1]) { # Assuming first col is "Date"
+                non_na_values <- na.omit(distinct_rows[[col]])
+                if (length(unique(non_na_values)) > 1) {
+                    can_merge <- FALSE
+                    break
+                }
+                # Coalesce the values (take the first non-NA)
+                merged_row[[col]] <- coalesce(!!!distinct_rows[[col]])
+            }
+            
+            if (can_merge) {
+                mergable_list[[as.character(d)]] <- list(original = distinct_rows, merged = merged_row)
+            } else {
+                # 3. If it's not a perfect dupe and not mergable, it's a CONFLICT
+                conflicts_list[[as.character(d)]] <- distinct_rows
+            }
+        }
+        
+        return(list(
+            clean_df = clean_df,
+            mergable = if(length(mergable_list) > 0) mergable_list else NULL,
+            conflicts = if(length(conflicts_list) > 0) conflicts_list else NULL
+        ))
+    }
+
+
     # Reading and processing of measurement files
     measurementData <- reactiveVal(NULL)
     initialMeasurementData <- reactiveVal(NULL)
@@ -1581,7 +1648,7 @@ tuneMusoServer <- function(input, output, session){
         # exporting our data frame
         output$exportData <- downloadHandler(
             filename = function() {
-                paste("tuneMusoExport_measurementData-", Sys.Date(), ".csv", sep = "")
+                paste("tuneMusoExport_measurementData-", Sys.Date(), ".txt", sep = "")
             },
             content = function(file) {
                 # Make a copy for export
@@ -4039,7 +4106,7 @@ tuneMusoServer <- function(input, output, session){
 
     output$exportDataSim <- downloadHandler(
         filename = function() {
-            paste("tuneMusoExport_simData-", Sys.Date(), ".csv", sep = "")
+            paste("tuneMusoExport_simData-", Sys.Date(), ".txt", sep = "")
         },
         content = function(file) {
             # Make a copy for export
@@ -4097,354 +4164,370 @@ tuneMusoServer <- function(input, output, session){
         })
 
          ######## OUTPUT EDITING ############
-        outputData <- reactiveVal()
+     # This reactive value holds the main data from the model run + any persistent transformations.
+    # It gets reset on every new model run.
+    model_output_processed <- reactiveVal()
 
-        # An observer that sets outputData when simTableDat() is available.
+    # This reactive value holds only the one-time "snapshot" variables.
+    # It PERSISTS across model runs.
+    snapshot_storage <- reactiveVal(NULL)
 
-        observe({
-            req(outputData())
-            updatePickerInput(session, "exportCols", choices = colnames(outputData()))
-        })
-        # A reactiveValues list to track modifications for each column.
-        outputTransformsTracker <- reactiveValues(modifications = list())
-        outputTransforms <- reactiveValues(transforms = list())
+    # This is the final, combined data view that the UI will use.
+    # It reactively merges the main model data with the persistent snapshots.
+    outputData <- reactive({
+        req(model_output_processed())
+        processed <- model_output_processed()
+        snapshots <- snapshot_storage()
 
-        ## ---- Output Transformation Modal ----
-        observeEvent(input$editOutputTransforms, {
-            req(simTableDat())
-            showModal(modalDialog(
-                title = "Output Data Transformations",
-                size = "l",
-                easyClose = TRUE,
-                footer = modalButton("Close"),
-                tabsetPanel(
-                    # Tab for replacing values with NA
-                    tabPanel("Set Values to NA",
-                        fluidRow(
-                            column(4,
-                                pickerInput("col_to_na_output", "Select column(s):", 
-                                            choices = setdiff(colnames(outputData()), "Date"),
-                                            multiple = TRUE,
-                                            options = list(`actions-box` = TRUE))
-                            ),
-                            column(4,
-                                numericInput("na_lower_output", "Lower bound:", value = NA)
-                            ),
-                            column(4,
-                                numericInput("na_upper_output", "Upper bound:", value = NA)
-                            )
+        # If there are snapshots, merge them with the main data by Date.
+        if (!is.null(snapshots) && ncol(snapshots) > 1) {
+            # all.x = TRUE ensures we keep all rows from the main model data.
+            merge(processed, snapshots, by = "Date", all.x = TRUE)
+        } else {
+            processed
+        }
+    })
+
+    # An observer that updates the column picker whenever the final outputData changes.
+    observe({
+        req(outputData())
+        updatePickerInput(session, "exportCols", choices = colnames(outputData()))
+    })
+
+    # A reactiveValues list to track modifications for each column.
+    outputTransformsTracker <- reactiveValues(modifications = list())
+    outputTransforms <- reactiveValues(transforms = list())
+
+    ## ---- Output Transformation Modal ----
+    observeEvent(input$editOutputTransforms, {
+        req(simTableDat())
+        showModal(modalDialog(
+            title = "Output Data Transformations",
+            size = "l",
+            easyClose = TRUE,
+            footer = modalButton("Close"),
+            tabsetPanel(
+                # Tab for replacing values with NA
+                tabPanel("Set Values to NA",
+                    fluidRow(
+                        column(4,
+                            pickerInput("col_to_na_output", "Select column(s):",
+                                        choices = setdiff(colnames(outputData()), "Date"),
+                                        multiple = TRUE,
+                                        options = list(`actions-box` = TRUE))
                         ),
-                        fluidRow(
-                            column(4,
-                                checkboxInput("na_keep_transformation", "Keep transformation upon model run", value = TRUE)
-                            ),
-                            column(8,
-                                div(style = "text-align: right;",
-                                    actionButton("apply_na_output", "Apply Transformation", 
-                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
-                                )
-                            )
+                        column(4,
+                            numericInput("na_lower_output", "Lower bound:", value = NA)
+                        ),
+                        column(4,
+                            numericInput("na_upper_output", "Upper bound:", value = NA)
                         )
                     ),
-                    # Tab for arithmetic operations
-                    tabPanel("Arithmetic Operation",
-                        fluidRow(
-                            column(4,
-                                pickerInput("col_arith_output", "Select column(s):", 
-                                            choices = setdiff(colnames(outputData()), "Date"), 
-                                            multiple = TRUE,
-                                            options = list(`actions-box` = TRUE))
-                            ),
-                            column(4,
-                                selectInput("arith_op_output", "Operation", 
-                                            choices = c("Add", "Subtract", "Multiply", "Divide"))
-                            ),
-                            column(4,
-                                numericInput("arith_val_output", "Value:", value = 0)
-                            )
+                    fluidRow(
+                        column(4,
+                            checkboxInput("na_keep_transformation", "Keep transformation upon model run", value = TRUE)
                         ),
-                        fluidRow(
-                            column(4,
-                                checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE),
-                                checkboxInput("interaction_newcol_arith", "Create as new variable", value = FALSE),
-                                uiOutput("arithNewVarNames")
-                            ),
-                            column(8,
-                                div(style = "text-align: right;", 
-                                    actionButton("apply_arith_output", "Apply Transformation", 
-                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
-                                )
+                        column(8,
+                            div(style = "text-align: right;",
+                                actionButton("apply_na_output", "Apply Transformation",
+                                            style = "color: white; background-color: #007bff; border-color: #007bff;")
                             )
                         )
+                    )
+                ),
+                # Tab for arithmetic operations
+                tabPanel("Arithmetic Operation",
+                    fluidRow(
+                        column(4,
+                            pickerInput("col_arith_output", "Select column(s):",
+                                        choices = setdiff(colnames(outputData()), "Date"),
+                                        multiple = TRUE,
+                                        options = list(`actions-box` = TRUE))
+                        ),
+                        column(4,
+                            selectInput("arith_op_output", "Operation",
+                                        choices = c("Add", "Subtract", "Multiply", "Divide"))
+                        ),
+                        column(4,
+                            numericInput("arith_val_output", "Value:", value = 0)
+                        )
                     ),
-                    # Tab for interactions between columns
-                    tabPanel("Column Interaction",
-                        # Adding info button at top-right
-                        div(
-                            style = "position: absolute; top: 10px; right: 10px;",
-                            tags$button(
-                                id = "interaction_info_btn",
-                                class = "btn btn-default action-button",
-                                tags$i(class = "fa fa-info-circle"),
-                                title = "Column Interaction Information"
+                    fluidRow(
+                        column(4,
+                            checkboxInput("arith_keep_transformation", "Keep transformation upon model run", value = TRUE),
+                            checkboxInput("interaction_newcol_arith", "Create as new variable", value = FALSE),
+                            uiOutput("arithNewVarNames")
+                        ),
+                        column(8,
+                            div(style = "text-align: right;",
+                                actionButton("apply_arith_output", "Apply Transformation",
+                                            style = "color: white; background-color: #007bff; border-color: #007bff;")
+                            )
+                        )
+                    )
+                ),
+                # Tab for interactions between columns
+                tabPanel("Column Interaction",
+                    # Adding info button at top-right
+                    div(
+                        style = "position: absolute; top: 10px; right: 10px;",
+                        tags$button(
+                            id = "interaction_info_btn",
+                            class = "btn btn-default action-button",
+                            tags$i(class = "fa fa-info-circle"),
+                            title = "Column Interaction Information"
+                        )
+                    ),
+                    # Adding info overlay
+                    div(
+                        id = "interaction_info_overlay",
+                        style = "display:none; position:absolute; top:44px; right:10px; width:98%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
+                        tags$p(div(HTML("
+                            <p><strong>Column Interaction Information</strong></p>
+                            <p>This panel allows you to perform operations between variables (referred to as columns).</p>
+                            <ul>
+                                <li><strong>Target column</strong>: Select a single column to apply the operation to.</li>
+                                <li><strong>Interaction column(s)</strong>: Choose one or more columns to interact with the target column. The interaction columns won't be affected during the operations.</li>
+                                <li><strong>Create as new variable</strong>: If checked, the result is stored as a new column (variable) with a custom name. <strong>In this case the target column also remains unchanged.</strong></li>
+                            </ul>
+                            
+                        ")))
+                    ),
+                    fluidRow(
+                        column(4,
+                            selectInput("col1_output", "Target column:",
+                                        choices = setdiff(colnames(outputData()), "Date"))
+                        ),
+                        column(4,
+                            pickerInput("col2_output", "Interaction column(s):",
+                                        choices = setdiff(colnames(outputData()), "Date"),
+                                        multiple = TRUE,
+                                        options = list(`actions-box` = TRUE))
+                        ),
+                        column(4,
+                            selectInput("interaction_op_output", "Operation",
+                                        choices = c("Multiply", "Add", "Subtract", "Divide"))
+                        )
+                    ),
+                    fluidRow(
+                        column(4,
+                            checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = TRUE),
+                            checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
+                            conditionalPanel(
+                                condition = "input.interaction_newcol == true",
+                                textInput("interaction_newcol_name", "New Variable Name:")
                             )
                         ),
-                        # Adding info overlay
-                        div(
-                            id = "interaction_info_overlay",
-                            style = "display:none; position:absolute; top:44px; right:10px; width:98%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
-                            tags$p(div(HTML("
-                                <p><strong>Column Interaction Information</strong></p>
-                                <p>This panel allows you to perform operations between variables (referred to as columns).</p>
-                                <ul>
-                                    <li><strong>Target column</strong>: Select a single column to apply the operation to.</li>
-                                    <li><strong>Interaction column(s)</strong>: Choose one or more columns to interact with the target column. The interaction columns won't be affected during the operations.</li>
-                                    <li><strong>Create as new variable</strong>: If checked, the result is stored as a new column (variable) with a custom name. <strong>In this case the target column remains unchanged.</strong></li>
-                                </ul>
-                                
-                            ")))
-                        ),
-                        fluidRow(
-                            column(4,
-                                selectInput("col1_output", "Target column:", 
-                                            choices = setdiff(colnames(outputData()), "Date"))
-                            ),
-                            column(4,
-                                pickerInput("col2_output", "Interaction column(s):",  
-                                            choices = setdiff(colnames(outputData()), "Date"), 
-                                            multiple = TRUE,
-                                            options = list(`actions-box` = TRUE))
-                            ),
-                            column(4,
-                                selectInput("interaction_op_output", "Operation", 
-                                            choices = c("Multiply", "Add", "Subtract", "Divide"))
-                            )
-                        ),
-                        fluidRow(
-                            column(4,
-                                checkboxInput("interaction_keep_transformation", "Keep transformation upon model run", value = TRUE),
-                                checkboxInput("interaction_newcol", "Create as new variable", value = FALSE),
-                                conditionalPanel(
-                                    condition = "input.interaction_newcol == true",
-                                    textInput("interaction_newcol_name", "New Variable Name:")
-                                )
-                            ),
-                            column(8,
-                                div(style = "text-align: right;", 
-                                    actionButton("apply_interaction_output", "Apply Transformation", 
-                                                style = "color: white; background-color: #007bff; border-color: #007bff;")
-                                )
+                        column(8,
+                            div(style = "text-align: right;",
+                                actionButton("apply_interaction_output", "Apply Transformation",
+                                            style = "color: white; background-color: #007bff; border-color: #007bff;")
                             )
                         )
                     )
                 )
-            ))
-        })
+            )
+        ))
+    })
 
-        observeEvent(input$interaction_info_btn, {
-            shinyjs::toggle("interaction_info_overlay", anim = TRUE)
-        })
+    observeEvent(input$interaction_info_btn, {
+        shinyjs::toggle("interaction_info_overlay", anim = TRUE)
+    })
 
-        output$arithNewVarNames <- renderUI({
-            req(input$interaction_newcol_arith, input$col_arith_output)
-            if (isTRUE(input$interaction_newcol_arith) && length(input$col_arith_output) > 0) {
-                # For each selected column, create a text input with an ID based on the column name
-                lapply(input$col_arith_output, function(col) {
-                textInput(inputId = paste0("newName_", col), label = paste("New name for", col, ":"), value = "")
-                })
-            }
+    output$arithNewVarNames <- renderUI({
+        req(input$interaction_newcol_arith, input$col_arith_output)
+        if (isTRUE(input$interaction_newcol_arith) && length(input$col_arith_output) > 0) {
+            # For each selected column, create a text input with an ID based on the column name
+            lapply(input$col_arith_output, function(col) {
+            textInput(inputId = paste0("newName_", col), label = paste("New name for", col, ":"), value = "")
             })
+        }
+    })
 
 
 
-        ## ---- Observers for Each Transformation ---- (I'm going to cry by the end of this)
-        ##                                             update: I'm crying but ig it works kinda
-        ##                                             update 2: I'm going to cry again, 'add as new variable' options here we go
-        ##                                             update 3: I'm crying less cause it kinda works
-        ##                                             update 4: I'm not crying but I had an idea which might make me
-
+        ## ---- Observers for Each Transformation ---- 
         # NA Transformation
-        observeEvent(input$apply_na_output, {
-            req(outputData(), input$col_to_na_output)
-            df <- outputData()
-            cols <- input$col_to_na_output
-            lower_bound <- input$na_lower_output
-            upper_bound <- input$na_upper_output
-            
-            # Define the transformation function
-            na_transform <- function(data, col) {
-                new_values <- data[[col]]
-                if (!is.na(lower_bound) && !is.na(upper_bound)) {
-                    new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
-                } else if (!is.na(lower_bound)) {
-                    new_values[new_values >= lower_bound] <- NA
-                } else if (!is.na(upper_bound)) {
-                    new_values[new_values <= upper_bound] <- NA
-                }
-                return(new_values)
-            }
+   observeEvent(input$apply_na_output, {
+    req(model_output_processed(), input$col_to_na_output)
+    df <- model_output_processed()
+    cols <- input$col_to_na_output
+    lower_bound <- input$na_lower_output
+    upper_bound <- input$na_upper_output
 
-            # Apply the transformation to all selected columns
-            for (col in cols) {
-                df[[col]] <- na_transform(df, col)
-            }
+    na_transform <- function(data, col) {
+        new_values <- data[[col]]
+        if (!is.na(lower_bound) && !is.na(upper_bound)) {
+            new_values[new_values >= lower_bound & new_values <= upper_bound] <- NA
+        } else if (!is.na(lower_bound)) {
+            new_values[new_values >= lower_bound] <- NA
+        } else if (!is.na(upper_bound)) {
+            new_values[new_values <= upper_bound] <- NA
+        }
+        return(new_values)
+    }
 
-            if (isTRUE(input$na_keep_transformation)) {
-            for (col in cols) {
-                local({
+    # Apply the transformation to all selected columns
+    for (col in cols) {
+        df[[col]] <- na_transform(df, col)
+    }
+
+    if (isTRUE(input$na_keep_transformation)) {
+        for (col in cols) {
+            local({
                 currentCol <- col
                 outputTransforms$transforms[[currentCol]] <- function(data) na_transform(data, currentCol)
                 outputTransformsTracker$modifications[[currentCol]] <-
                     c(outputTransformsTracker$modifications[[currentCol]],
                     paste("Persistent NA transformation on", currentCol, "with lower =", lower_bound, "and upper =", upper_bound))
-                })
-            }
-            } else {
-            for (col in cols) {
-                outputTransforms$transforms[[col]] <- NULL
-                outputTransformsTracker$modifications[[col]] <-
-                c(outputTransformsTracker$modifications[[col]],
-                    paste("One-time NA transformation on", col, "with lower =", lower_bound, "and upper =", upper_bound))
-            }
-            }
-
-                outputData(df)
-                showNotification(paste("Updated", paste(cols, collapse = ", "), "with NA transformation"))
-        })
-
-        # Arithmetic Operation
-        observeEvent(input$apply_arith_output, {
-        req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
-        df <- outputData()
-        cols <- input$col_arith_output
-        op <- input$arith_op_output
-        val <- input$arith_val_output
-        
-        # Define the arithmetic transformation function for a given column.
-        arith_transform <- function(data, col) {
-            switch(op,
-            "Add"      = data[[col]] + val,
-            "Subtract" = data[[col]] - val,
-            "Multiply" = data[[col]] * val,
-            "Divide"   = {
-                if (val == 0) {
-                showNotification("Division by zero not allowed", type = "error")
-                data[[col]]  # Return original values if division by zero occurs.
-                } else {
-                data[[col]] / val
-                }
-            }
-            )
+            })
         }
-        
-        # Flag to track whether any new variables have been created.
-        new_vars_created <- FALSE
-        
-        if (isTRUE(input$interaction_newcol_arith)) {
-            # Process each selected column: create new column only if a non-empty new name is provided.
-            for (col in cols) {
+    } else {
+        # For one-time NA transformation, we don't store a persistent function
+        # The change is already applied to model_output_processed
+        for (col in cols) {
+            outputTransforms$transforms[[col]] <- NULL
+            outputTransformsTracker$modifications[[col]] <-
+            c(outputTransformsTracker$modifications[[col]],
+                paste("One-time NA transformation on", col, "with lower =", lower_bound, "and upper =", upper_bound))
+        }
+    }
+
+    model_output_processed(df)
+    showNotification(paste("Updated", paste(cols, collapse = ", "), "with NA transformation"))
+})
+
+# Arithmetic Operation
+observeEvent(input$apply_arith_output, {
+    req(outputData(), input$col_arith_output, input$arith_op_output, input$arith_val_output)
+    # Use outputData() here to ensure calculations are based on the complete, merged view
+    df_full <- outputData()
+    cols <- input$col_arith_output
+    op <- input$arith_op_output
+    val <- input$arith_val_output
+    
+    arith_transform <- function(data, col) {
+        switch(op,
+        "Add"      = data[[col]] + val,
+        "Subtract" = data[[col]] - val,
+        "Multiply" = data[[col]] * val,
+        "Divide"   = {
+            if (val == 0) {
+                showNotification("Division by zero not allowed", type = "error")
+                data[[col]]
+            } else {
+                data[[col]] / val
+            }
+        })
+    }
+    
+    # Flag to track whether any new variables have been created for the picker update.
+    new_vars_created <- FALSE
+
+    if (isTRUE(input$interaction_newcol_arith)) {
+        # --- CREATE NEW VARIABLE ---
+        for (col in cols) {
             new_name <- input[[paste0("newName_", col)]]
-            
-            if (nzchar(new_name)) {  # if new_name is not an empty string
+            if (nzchar(new_name)) {
                 new_vars_created <- TRUE
                 
-                # Create the new column using the transformation.
-                df[[new_name]] <- arith_transform(df, col)
-                
-                # Store persistent transformation function if needed.
                 if (isTRUE(input$arith_keep_transformation)) {
-                outputTransforms$transforms[[new_name]] <- function(data) arith_transform(data, col)
-                outputTransformsTracker$modifications[[new_name]] <-
-                    c(outputTransformsTracker$modifications[[new_name]],
-                    paste(op, "operation persistent on new column", new_name, "with value", val))
+                    # PERSISTENT new var: store transform and apply to current data
+                    outputTransforms$transforms[[new_name]] <- function(data) arith_transform(data, col)
+                    df_processed <- model_output_processed()
+                    df_processed[[new_name]] <- arith_transform(df_processed, col)
+                    model_output_processed(df_processed)
+                     outputTransformsTracker$modifications[[new_name]] <-
+                        c(outputTransformsTracker$modifications[[new_name]],
+                        paste(op, "operation persistent on new column", new_name, "with value", val))
                 } else {
-                outputTransforms$transforms[[new_name]] <- NULL
-                outputTransformsTracker$modifications[[new_name]] <-
-                    c(outputTransformsTracker$modifications[[new_name]],
-                    paste(op, "operation one-time on new column", new_name, "with value", val))
+                    # SNAPSHOT new var: store in snapshot_storage
+                    new_snapshot_col <- arith_transform(df_full, col)
+                    new_snapshot_df <- data.frame(Date = df_full$Date, new_snapshot_col)
+                    names(new_snapshot_df)[2] <- new_name
+
+                    current_snapshots <- snapshot_storage()
+                    if (is.null(current_snapshots)) {
+                        snapshot_storage(new_snapshot_df)
+                    } else {
+                        if(new_name %in% names(current_snapshots)) {
+                            showNotification(paste("Snapshot", new_name, "exists. Overwriting."), type = "warning")
+                            current_snapshots[[new_name]] <- NULL
+                        }
+                        snapshot_storage(merge(current_snapshots, new_snapshot_df, by = "Date", all = TRUE))
+                    }
+                    outputTransformsTracker$modifications[[new_name]] <-
+                        c(outputTransformsTracker$modifications[[new_name]],
+                        paste(op, "operation one-time on new column", new_name, "with value", val))
                 }
                 
                 # Update the dailyOutputTable with the new variable.
                 new_row <- data.frame(
-                index = max(rv$settings$dailyOutputTable$index) + 1,
-                code  = NA,  # Indicates a custom variable
-                name  = new_name,
-                stringsAsFactors = FALSE
+                    index = max(rv$settings$dailyOutputTable$index, 0) + 1,
+                    code  = NA,  # Indicates a custom variable
+                    name  = new_name,
+                    stringsAsFactors = FALSE
                 )
                 rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+
             } else {
                 # If no new name is provided, skip transformation for that column.
                 showNotification(paste("No new name provided for", col, "- original column remains unchanged."), 
                                 type = "warning")
             }
-            }
-        } else {
-            # When new variable mode is off, modify the original columns.
-            for (col in cols) {
-            df[[col]] <- arith_transform(df, col)
-            
+        }
+    } else {
+        # --- MODIFY EXISTING VARIABLE ---
+        df_processed <- model_output_processed()
+        for (col in cols) {
+            df_processed[[col]] <- arith_transform(df_processed, col)
             if (isTRUE(input$arith_keep_transformation)) {
                 outputTransforms$transforms[[col]] <- function(data) arith_transform(data, col)
                 outputTransformsTracker$modifications[[col]] <-
-                c(outputTransformsTracker$modifications[[col]],
+                    c(outputTransformsTracker$modifications[[col]],
                     paste(op, "operation persistent on", col, "with value", val))
             } else {
                 outputTransforms$transforms[[col]] <- NULL
                 outputTransformsTracker$modifications[[col]] <-
-                c(outputTransformsTracker$modifications[[col]],
+                    c(outputTransformsTracker$modifications[[col]],
                     paste(op, "operation one-time on", col, "with value", val))
             }
-            }
         }
-        
-        # Update the reactive output data.
-        outputData(df)
-        
-        # If new variables were created, update the pickerInput for 'selected_vars' so they appear.
-        if (new_vars_created) {
-            updatePickerInput(session, "selected_vars",
-                            choices = rv$settings$dailyOutputTable$name,
-                            selected = intersect(input$selected_vars, rv$settings$dailyOutputTable$name))
-        }
-        
-        showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
-        })
-
-
-        # Column Interaction
-        observeEvent(input$apply_interaction_output, {
-            req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
-            df <- outputData()
-            col1 <- input$col1_output
-            cols2 <- input$col2_output
-            op <- input$interaction_op_output
-            
-            new_col <- if (isTRUE(input$interaction_newcol)) {
-                req(input$interaction_newcol_name)  
-                input$interaction_newcol_name
-            } else {
-                col1
-            }
-
+        model_output_processed(df_processed)
+    }
     
+    # If new variables were created, update the pickerInput for 'selected_vars' so they appear.
+    if (new_vars_created) {
+        updatePickerInput(session, "selected_vars",
+                        choices = rv$settings$dailyOutputTable$name,
+                        selected = union(input$selected_vars, rv$settings$dailyOutputTable$name[is.na(rv$settings$dailyOutputTable$code)]))
+    }
+    
+    showNotification(paste("Applied", op, "operation to", paste(cols, collapse = ", ")))
+})
+
+
+# Column Interaction
+observeEvent(input$apply_interaction_output, {
+    req(outputData(), input$col1_output, input$col2_output, input$interaction_op_output)
+    df_full <- outputData()
+    col1 <- input$col1_output
+    cols2 <- input$col2_output
+    op <- input$interaction_op_output
+
     interaction_transform <- function(data) {
         base <- data[[col1]]
         if (op == "Add") {
-            # Sum the selected columns and add to col1
-            combined <- rowSums(data[, cols2, drop = FALSE])
+            combined <- rowSums(data[, cols2, drop = FALSE], na.rm = TRUE)
             base + combined
         } else if (op == "Subtract") {
-            # Subtract the sum of the selected columns from col1
-            combined <- rowSums(data[, cols2, drop = FALSE])
+            combined <- rowSums(data[, cols2, drop = FALSE], na.rm = TRUE)
             base - combined
         } else if (op == "Multiply") {
-            # Multiply col1 by the product of the selected columns
-            combined <- apply(data[, cols2, drop = FALSE], 1, prod)
+            combined <- apply(data[, cols2, drop = FALSE], 1, prod, na.rm = TRUE)
             base * combined
         } else if (op == "Divide") {
-            # Divide col1 by the product of the selected columns
-            combined <- apply(data[, cols2, drop = FALSE], 1, prod)
-            # Check for division by zero in the product
+            combined <- apply(data[, cols2, drop = FALSE], 1, prod, na.rm = TRUE)
             zero_idx <- combined == 0
             if(any(zero_idx)) {
                 showNotification("Division by zero encountered in one or more rows; setting those to NA", type = "warning")
@@ -4454,182 +4537,217 @@ tuneMusoServer <- function(input, output, session){
         }
     }
 
-            
- 
+    if (isTRUE(input$interaction_newcol)) {
+        # --- CREATE NEW VARIABLE ---
+        req(input$interaction_newcol_name)
+        new_col <- input$interaction_newcol_name
+        
+        if (isTRUE(input$interaction_keep_transformation)) {
+            # PERSISTENT
+            outputTransforms$transforms[[new_col]] <- interaction_transform
+            df_processed <- model_output_processed()
+            df_processed[[new_col]] <- interaction_transform(df_processed)
+            model_output_processed(df_processed)
+            outputTransformsTracker$modifications[[new_col]] <-
+                c(outputTransformsTracker$modifications[[new_col]],
+                paste(op, "operation persistent on new column", new_col, "with", paste(cols2, collapse = ", ")))
+        } else {
+            # SNAPSHOT
+            new_snapshot_col <- interaction_transform(df_full)
+            new_snapshot_df <- data.frame(Date = df_full$Date, new_snapshot_col)
+            names(new_snapshot_df)[2] <- new_col
 
-            #df[[col1]] <- interaction_transform(df)
-            if (isTRUE(input$interaction_newcol)) {
-                df[[new_col]] <- interaction_transform(df)
-                if (isTRUE(input$interaction_keep_transformation)) {
-                    outputTransforms$transforms[[new_col]] <- interaction_transform
-                    outputTransformsTracker$modifications[[new_col]] <-
-                        c(outputTransformsTracker$modifications[[new_col]],
-                        paste(op, "operation persistent on new column", new_col, "with", paste(cols2, collapse = ", ")))
-                } else {
-                    outputTransforms$transforms[[new_col]] <- NULL
-                    outputTransformsTracker$modifications[[new_col]] <-
-                        c(outputTransformsTracker$modifications[[new_col]],
-                        paste(op, "operation one-time on new column", new_col, "with", paste(cols2, collapse = ", ")))
-                }
+            current_snapshots <- snapshot_storage()
+            if (is.null(current_snapshots)) {
+                snapshot_storage(new_snapshot_df)
             } else {
-                df[[col1]] <- interaction_transform(df)
-                if (isTRUE(input$interaction_keep_transformation)) {
-                    outputTransforms$transforms[[col1]] <- interaction_transform
-                    outputTransformsTracker$modifications[[col1]] <-
-                        c(outputTransformsTracker$modifications[[col1]],
-                        paste(op, "operation persistent on", col1, "with", paste(cols2, collapse = ", ")))
-                } else {
-                    outputTransforms$transforms[[col1]] <- NULL
-                    outputTransformsTracker$modifications[[col1]] <-
-                        c(outputTransformsTracker$modifications[[col1]],
-                        paste(op, "operation one-time on", col1, "with", paste(cols2, collapse = ", ")))
+                 if(new_col %in% names(current_snapshots)) {
+                    showNotification(paste("Snapshot", new_col, "exists. Overwriting."), type = "warning")
+                    current_snapshots[[new_col]] <- NULL
                 }
+                snapshot_storage(merge(current_snapshots, new_snapshot_df, by = "Date", all = TRUE))
             }
-
-            outputData(df)
-                 showNotification(paste("Applied", op, "operation between", col1, "and", paste(cols2, collapse = ", "),
-                             if (isTRUE(input$interaction_newcol)) paste("as new column", new_col) else ""))
-            
-            if (isTRUE(input$interaction_newcol) && nzchar(input$interaction_newcol_name)) {
-            new_row <- data.frame(
-                index = max(rv$settings$dailyOutputTable$index) + 1,
-                code = NA,
-                name = input$interaction_newcol_name
-            )
-            rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
-
-                updatePickerInput(session, "selected_vars",
-                                choices = rv$settings$dailyOutputTable$name,
-                                selected = input$selected_vars)
-            }
-        })
-
-
-        ## ---- Reset Transformations UI & Observer ----
-
-        observe({
-            req(outputData())
-            df <- outputData()
-            available_cols <- setdiff(names(df), "Date")
-            updatePickerInput(session,
-                                inputId = "exportCols",
-                                choices = available_cols,
-                                selected = character(0))
-       
-            
-        })
-
-        # Observer to reset modifications: this reverts columns back to the original simTableDat values.
-        observeEvent(input$resetOutputMods, {
-            req(outputData(), simTableDat())
-            colsToReset <- input$exportCols  # using the same pickerInput for reset
-            if (length(colsToReset) > 0) {
-                df_current <- outputData()
-                df_initial <- simTableDat()  # Original simulation output
-                for (col in colsToReset) {
-                if (col %in% names(outputTransforms$transforms)) {
-                    if (col %in% colnames(df_current) && col %in% colnames(df_initial)) {
-                    df_current[[col]] <- df_initial[[col]]
-                    }
-                    # Remove the stored transformation function and history log for this column
-                    outputTransforms$transforms[[col]] <- NULL
-                    outputTransformsTracker$modifications[[col]] <- NULL
-                } else {
-                    showNotification(paste("Column", col, "has not been modified."), type = "message")
-                }
-                }
-                outputData(df_current)
-
-                # Remove corresponding rows from dailyOutputTable
-               rv$settings$dailyOutputTable <- rv$settings$dailyOutputTable[
-                    !(rv$settings$dailyOutputTable$name %in% colsToReset & is.na(rv$settings$dailyOutputTable$code)),
-                ]
-
-
-                
-                existing_selection <- input$selected_vars
-                new_selection <- intersect(existing_selection, rv$settings$dailyOutputTable$name)
-                    updatePickerInput(session, "selected_vars",
-                  choices = rv$settings$dailyOutputTable$name,
-                  selected = new_selection)
-
-                showNotification("Selected modification(s) have been reset", type = "message")
-            }
-        })
-
-        auto_multi_transform <- function(data) {
-            target_cols <- c("GPP", "TR", "NEE", "NEP", "NPP", "NBP", "MR", "GR", "HR","SR")
-            data %>% 
-                mutate(across(any_of(target_cols), ~ . * 1000))
+            outputTransformsTracker$modifications[[new_col]] <-
+                c(outputTransformsTracker$modifications[[new_col]],
+                paste(op, "operation one-time on new column", new_col, "with", paste(cols2, collapse = ", ")))
         }
 
-        observe({
-            req(simTableDat())
-            newData <- simTableDat()
-            
-            # Clear previous auto-multi transform if checkbox is unchecked
-            if (!isTRUE(input$autoMulti)) {
-                outputTransforms$transforms[["autoMulti"]] <- NULL
-            }
-            
-            # Apply all transformations in sequence
-            for (tranName in names(outputTransforms$transforms)) {
-                if (tranName == "autoMulti" && isTRUE(input$autoMulti)) {
-                    # Apply to entire dataframe
-                    newData <- outputTransforms$transforms[[tranName]](newData)
+        # Add new variable to the management table
+        new_row <- data.frame(
+            index = max(rv$settings$dailyOutputTable$index, 0) + 1,
+            code = NA,
+            name = new_col,
+            stringsAsFactors = FALSE
+        )
+        rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
+
+        updatePickerInput(session, "selected_vars",
+                        choices = rv$settings$dailyOutputTable$name,
+                        selected = union(input$selected_vars, new_col))
+
+    } else {
+        # --- MODIFY EXISTING VARIABLE ---
+        df_processed <- model_output_processed()
+        df_processed[[col1]] <- interaction_transform(df_processed)
+
+        if (isTRUE(input$interaction_keep_transformation)) {
+            outputTransforms$transforms[[col1]] <- interaction_transform
+             outputTransformsTracker$modifications[[col1]] <-
+                c(outputTransformsTracker$modifications[[col1]],
+                paste(op, "operation persistent on", col1, "with", paste(cols2, collapse = ", ")))
+        } else {
+            outputTransforms$transforms[[col1]] <- NULL
+             outputTransformsTracker$modifications[[col1]] <-
+                c(outputTransformsTracker$modifications[[col1]],
+                paste(op, "operation one-time on", col1, "with", paste(cols2, collapse = ", ")))
+        }
+        model_output_processed(df_processed)
+    }
+
+    showNotification(paste("Applied", op, "operation between", col1, "and", paste(cols2, collapse = ", "),
+                             if (isTRUE(input$interaction_newcol)) paste("as new column", new_col) else ""))
+})
+
+
+## ---- Reset Transformations UI & Observer ----
+observeEvent(input$resetOutputMods, {
+    req(simTableDat())
+    colsToReset <- input$exportCols
+    if (length(colsToReset) > 0) {
+        df_processed <- model_output_processed()
+        df_initial <- simTableDat()
+        snapshots <- snapshot_storage()
+        snapshots_modified <- FALSE
+
+        for (col in colsToReset) {
+            # Check if it's a snapshot and delete it
+            if (!is.null(snapshots) && col %in% names(snapshots)) {
+                snapshots[[col]] <- NULL
+                snapshots_modified <- TRUE
+                outputTransformsTracker$modifications[[col]] <- NULL # Clear tracker
+            } else {
+                # Otherwise, it's a modification on the main data; reset it
+                if (col %in% names(df_initial)) {
+                    # Revert to original value if the column was from the model
+                    df_processed[[col]] <- df_initial[[col]]
                 } else {
-                    # Handle column-specific transformations
-                    newData[[tranName]] <- outputTransforms$transforms[[tranName]](newData)
+                    # Remove the column entirely if it was a persistent new variable
+                    df_processed[[col]] <- NULL
+                }
+                # Remove any stored persistent transformation and its tracker
+                outputTransforms$transforms[[col]] <- NULL
+                outputTransformsTracker$modifications[[col]] <- NULL
+            }
+        }
+
+        if (snapshots_modified) {
+            # If after removing columns, the snapshot df only has 'Date' left or is empty, set it to NULL
+            snapshot_storage(if(ncol(snapshots) <= 1) NULL else snapshots)
+        }
+        model_output_processed(df_processed)
+
+        # Remove corresponding rows from the management table (dailyOutputTable)
+        rv$settings$dailyOutputTable <- rv$settings$dailyOutputTable[
+            !(rv$settings$dailyOutputTable$name %in% colsToReset & is.na(rv$settings$dailyOutputTable$code)),
+        ]
+
+        # Update the picker input for plotting, ensuring the selection is valid
+        existing_selection <- input$selected_vars
+        new_selection <- intersect(existing_selection, rv$settings$dailyOutputTable$name)
+        updatePickerInput(session, "selected_vars",
+            choices = rv$settings$dailyOutputTable$name,
+            selected = new_selection)
+
+        showNotification("Selected modification(s) have been reset", type = "message")
+    }
+})
+
+auto_multi_transform <- function(data) {
+    target_cols <- c("GPP", "TR", "NEE", "NEP", "NPP", "NBP", "MR", "GR", "HR","SR")
+    data %>% 
+        mutate(across(any_of(target_cols), ~ . * 1000))
+}
+
+# This observer now ONLY runs when simTableDat() changes (a model run).
+# It resets the main data and re-applies only the persistent transformations.
+# It DOES NOT touch the snapshot_storage.
+observeEvent(simTableDat(), {
+    req(simTableDat())
+    newData <- simTableDat()
+
+    # Handle the auto-multiplication transformation if the checkbox is checked
+    if (isTRUE(input$autoMulti)) {
+        outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
+    } else {
+        outputTransforms$transforms[["autoMulti"]] <- NULL
+    }
+
+    # Apply all persistent transformations in sequence
+    # Note: A NULL entry in the list will be skipped.
+    for (tranName in names(outputTransforms$transforms)) {
+        transform_func <- outputTransforms$transforms[[tranName]]
+        if(!is.null(transform_func)) {
+             # Special case for whole-dataframe transformations like autoMulti
+            if(tranName == "autoMulti") {
+                 newData <- transform_func(newData)
+            } else {
+                 # Standard column-specific transformation
+                 newData[[tranName]] <- transform_func(newData)
+            }
+        }
+    }
+    
+    # This sets the main, non-snapshot data for the new run.
+    model_output_processed(newData)
+}, ignoreNULL = TRUE, priority = 10) # High priority to run before other reactives
+
+# This observer now just toggles the persistent transform function for auto-multiplication.
+# The actual data application happens in the main observeEvent(simTableDat(), ...).
+observeEvent(input$autoMulti, {
+    # This is the key fix:
+    # It ensures this observer doesn't run until model_output_processed() has data.
+    # This prevents the error on app launch.
+    req(model_output_processed())
+
+    if (isTRUE(input$autoMulti)) {
+        # Store transformation only when checked
+        outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
+        outputTransformsTracker$modifications[["autoMulti"]] <- "Auto-multiplied GPP, TR, NEE, etc. by 1000"
+        
+        # Immediately apply the transformation to the current data
+        df_processed <- model_output_processed()
+        model_output_processed(auto_multi_transform(df_processed))
+
+    } else {
+        # Remove the persistent transformation
+        outputTransforms$transforms[["autoMulti"]] <- NULL
+        outputTransformsTracker$modifications[["autoMulti"]] <- NULL
+        
+        # Immediately revert the transformation from the current data
+        # This is done by re-running the main data processing logic.
+        # We re-process from the original simTableDat for this run,
+        # making sure to apply any other persistent transforms that might exist.
+        
+        # Added a req() here for safety, to ensure simTableDat() exists before reverting.
+        req(simTableDat())
+        newData <- simTableDat()
+
+        # This loop correctly re-applies any other existing transformations.
+        for (tranName in names(outputTransforms$transforms)) {
+            transform_func <- outputTransforms$transforms[[tranName]]
+            if(!is.null(transform_func)) {
+                 # Special case for whole-dataframe transformations like autoMulti
+                if(tranName == "autoMulti") {
+                     newData <- transform_func(newData)
+                } else {
+                     # Standard column-specific transformation
+                     newData[[tranName]] <- transform_func(newData)
                 }
             }
-            
-            if (!identical(newData, outputData())) {
-                outputData(newData)
-            }
-        })
-
-        observeEvent(input$autoMulti, {
-            if (isTRUE(input$autoMulti)) {
-                # Store transformation only when checked
-                outputTransforms$transforms[["autoMulti"]] <- auto_multi_transform
-                outputTransformsTracker$modifications[["autoMulti"]] <- "Auto-multiplied GPP, TR, NEE by 1000"
-            }
-        })
-
-#observeEvent(simTableDat(), {
-#    req(simTableDat())
-#    outputData(simTableDat())
-#    outputTransforms$transforms <- list()  # Clear transformations on new data
-#    outputTransformsTracker$modifications <- list()
-#})
-
-
-        observeEvent(input$AppendSim, {
-            req(measurementData(), outputData(), input$exportCols)
-            
-            # Extract Date and the selected simulation columns from outputData()
-            sim_subset <- outputData()[, c("Date", input$exportCols), drop = FALSE]
-            
-            # If the checkbox is checked, rename the selected columns to add the "_sim" suffix
-            if (isTRUE(input$appendSimSuffix)) {
-                # Create new names for the selected columns
-                new_names <- paste0(input$exportCols, "_sim")
-                # Rename only the non-Date columns
-                names(sim_subset)[names(sim_subset) %in% input$exportCols] <- new_names
-            }
-            
-            # Get the current measurement data
-            meas_df <- measurementData()
-            
-            # Merge by "Date" (since both data frames have a Date column, left_join will not duplicate it)
-            new_meas_df <- dplyr::left_join(meas_df, sim_subset, by = "Date")
-            
-            # Update the measurement data reactive value
-            measurementData(new_meas_df)
-            
-            showNotification("Selected simulation columns appended to measurement data.", type = "message")
-        })
-
+        }
+        model_output_processed(newData)
+    }
+})
 
         
     ######## METRICS CALCULATION #########
@@ -4656,7 +4774,7 @@ tuneMusoServer <- function(input, output, session){
                 OutputVariable = character(),
                 RMSE = numeric(),
                 BIAS = numeric(),
-                Correlation = numeric(), # This is R^2 in your existing code
+                Correlation = numeric(), 
                 NSE = numeric(),
                 stringsAsFactors = FALSE
             ))
@@ -4706,13 +4824,11 @@ tuneMusoServer <- function(input, output, session){
             if (output_var == "None") return(NULL)
             
             # Determine actual column names in merged_df (could have _meas or _simi suffix or be original)
-            # This logic needs to be robust if column names in meas_df or sim_df might already have these suffixes.
-            # Assuming original names from mapping keys are sufficient for meas_df, and output_var for sim_df.
             
             x_col_name_in_merged <- paste0(meas_col_original_name, "_meas") 
             y_col_name_in_merged <- paste0(output_var, "_simi")
 
-            # Fallback if suffixes were not added (e.g. if names were unique)
+            # Fallback if suffixes were not added (if names were unique)
             if (!x_col_name_in_merged %in% colnames(merged_df) && meas_col_original_name %in% colnames(merged_df)) {
                 x_col_name_in_merged <- meas_col_original_name
             }
@@ -4738,7 +4854,7 @@ tuneMusoServer <- function(input, output, session){
             } else {
                 rmse_val <- sqrt(mean((x[valid] - y[valid])^2))
                 bias_val <- mean(y[valid] - x[valid])
-                corr_val <- cor(x[valid], y[valid])^2 # R^2
+                corr_val <- cor(x[valid], y[valid])^2 
                 obs_mean <- mean(x[valid])
                 numerator <- sum((x[valid] - y[valid])^2)
                 denominator <- sum((x[valid] - obs_mean)^2)
@@ -5597,7 +5713,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.20.2</strong></p>
+                    <p><strong>Version 2.22.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -6046,7 +6162,7 @@ observeEvent(input$variable_info_btn, {
                                     type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
                     
               if (!is.null(custom$additional_vars)) {
@@ -6314,10 +6430,6 @@ observeEvent(input$variable_info_btn, {
                                             }
                                         }
                 
-                
-                                
-                       
-                        
 
                         n_meas <- length(mappedCols)
                         meas_colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Greens")[4:9]))(n_meas)
@@ -6488,7 +6600,7 @@ observeEvent(input$variable_info_btn, {
                                     type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0(var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
 
                                       # Adding the epc labels on the x axis
