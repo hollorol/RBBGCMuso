@@ -65,9 +65,9 @@ SOIL MOISTURE PARAMETERS
 6       (mm)                                                                        maximum height of pond water
 -9999   (dimless)                                measured runoff curve number (0: no runoff, -9999: model estimation)
 0.002   (prop)                                                  fraction of dissolved part of SOIL1 organic matter
-0.002   (prop)                                                  fraction of dissolved part of SOIL2 organic matter
-0.001   (prop)                                                  fraction of dissolved part of SOIL3 organic matter
-0.001   (prop)                                                  fraction of dissolved part of SOIL4 organic matter
+0.0002   (prop)                                                  fraction of dissolved part of SOIL2 organic matter
+0.000   (prop)                                                  fraction of dissolved part of SOIL3 organic matter
+0.000   (prop)                                                  fraction of dissolved part of SOIL4 organic matter
 2       (dimless)                                       soil cover parameter: number of layer affected by soil cover 
 10      (kgC/m2)                      soil cover parameter: critical amount of soil cover to affect soil temperature
 100     (dimless)                                         parameter 1 for estimate soil cover from aboveground litter

@@ -8,3 +8,13 @@
 *.dll
 RBBGCMuso/R/tags
 RBBGCMuso.Rcheck/*
+test/*
+RBBGCMuso/inst/data/varTable7test.json
+RBBGCMuso/inst/data/textext.txt
+RBBGCMuso/inst/examples/klin
+RBBGCMuso/inst/data/epcConstMatrix7_wrong4someRizzon.json
+RBBGCMuso/inst/data/soilConstMatrix7_b21.json
+RBBGCMuso/inst/data/varTable7_b27.json
+RBBGCMuso_1.0.0.tar.gz
+RBBGCMuso/R/ERA.R
+
