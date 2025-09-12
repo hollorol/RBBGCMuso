@@ -588,7 +588,7 @@ maxLikelihoodAgromo <- function (results, imgPath, varName, ...) {
 #' @param maxIterations The maximum number of iterations for the optimization.
 #' @param NP The population size for the DEoptim algorithm. Generally setting this 10 times larger than your parameter vector is necessary for proper results
 #' @param saveAllNP saves all the population results as the calibration runs and writes it into a csv later
-#' @param parallel option to perform the optimization method in a parallel way for better speed
+#' @param parallel option to perform the optimization method in a parallel way for better speed. A cluster will be created.
 #' @param cluster for better perfomance in case you call this function in a loop this option allows the use of already created clusters. If given the musoOptimCalib function won't create and destroy clusters at each call.
 #' @param numCores Number of cores to be used if parallel is TRUE
 #' @export
@@ -681,11 +681,11 @@ musoOptimCalib <- function(
             # Create a new cluster if none provided
             cluster <- parallel::makeCluster(numCores, type = "SOCK")
             on.exit(parallel::stopCluster(cluster), add = TRUE)
-            parallel::clusterExport(cluster, "randomForest", envir = environment())
+            parallel::clusterExport(cluster, c("randomForest","paramNames"), envir = environment())
             parallel::clusterEvalQ(cluster, library(ranger))
         } else {
             # Use provided cluster, export necessary objects
-            parallel::clusterExport(cluster, "randomForest",envir = environment())
+            parallel::clusterExport(cluster, c("randomForest","paramNames"),envir = environment())
             parallel::clusterEvalQ(cluster, library(ranger))
         }
     }
@@ -705,7 +705,7 @@ musoOptimCalib <- function(
             NP = NP,
             trace = TRUE,
             storepopfrom = if(saveAllNP) 1 else itermax+1, # itermax + 1 will only save the best
-            parallelType = if(parallel) "parallel" else "none",
+            parallelType = "none", # giving a cluster object overrides the parallelType argument
             cluster = if(parallel) cluster else NULL
         )
     )
