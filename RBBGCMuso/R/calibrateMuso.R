@@ -756,13 +756,12 @@ musoOptimCalib <- function(
     ### SOME PLOTTING ###
     # combining all the populations if saveAllNP was true and creating plots for the parameter ranges
     AllPopulations <- optimResult$member$storepop
-        if (is.null(AllPopulations) || length(AllPopulations) == 0) {
+    if (is.null(AllPopulations) || length(AllPopulations) == 0) {
         AllPopulations <- list(optimResult$member$pop)
-        }  else {
+    }  else {
         AllPopulations <- c(AllPopulations, list(optimResult$member$pop))
-        }
+    }
     names(AllPopulations) <- paste0("iter", seq_len(length(AllPopulations)))
-
     # Calculate relative ranges for each parameter across iterations
     rel_ranges <- t(sapply(AllPopulations, function(pop) {
         sapply(seq_along(paramNames), function(i) {
@@ -773,27 +772,24 @@ musoOptimCalib <- function(
     # Prepare iterBest for plotting (exclude likelihood column)
     iter_best_plot <- iterBest[, paramNames, drop = FALSE]
     iter_best_plot$iteration <- seq_len(nrow(iter_best_plot))
-
     # Start PDF device for multi-page output
     pdf(file.path(outputLoc, "relative_ranges.pdf"), width = 8, height = 6)
-
     # 1. Relative ranges plot
     rel_ranges_df <- as.data.frame(rel_ranges)
     rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
     rel_ranges_df <- tidyr::pivot_longer(rel_ranges_df, cols = -iteration, 
                                 names_to = "parameter", values_to = "relative_range")
-
     p1 <- ggplot(rel_ranges_df, aes(x = iteration, y = relative_range, color = parameter)) +
         geom_line(linewidth = 1) +
         scale_y_continuous(limits = c(0, 1), name = "Relative Range (Range / Initial Range)") +
-        scale_x_continuous(name = "Iteration") +
+        # Ensure integer breaks for the x-axis
+        scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
         scale_color_viridis_d(option = "viridis", name = "Parameter") +
         theme_minimal() +
         theme(legend.position = "right",
             plot.title = element_text(hjust = 0.5)) +
         ggtitle("Parameter Range Evolution in DEoptim")
     print(p1)
-
     # 2. Per-parameter value vs. iteration plot
     iter_best_long <- tidyr::pivot_longer(iter_best_plot, cols = -iteration, 
                                 names_to = "parameter", values_to = "value")
@@ -801,7 +797,8 @@ musoOptimCalib <- function(
         geom_line(linewidth = 1) +
         geom_point(size = 2) +
         facet_wrap(~ parameter, scales = "free_y", ncol = 1) +
-        scale_x_continuous(name = "Iteration", breaks = scales::pretty_breaks(n = 5)) +
+        # Ensure integer breaks for the x-axis for consistency
+        scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
         scale_y_continuous(name = "Parameter Value") +
         scale_color_viridis_d(option = "viridis", name = "Parameter") +
         theme_minimal() +
@@ -811,7 +808,6 @@ musoOptimCalib <- function(
         ggtitle("Best Parameter Values vs. Iteration") +
         guides(color = guide_legend(override.aes = list(size = 3)))
     print(p2)
-
     # 3. Histograms: first 50% vs. last 50% iterations
     half_point <- nrow(iter_best_plot) %/% 2
     iter_best_long$period <- ifelse(iter_best_long$iteration <= half_point, 
@@ -821,7 +817,8 @@ musoOptimCalib <- function(
         geom_histogram(aes(y = after_stat(count)), bins = 15, color = "black", alpha = 0.7, position = "dodge") +
         facet_wrap(~ parameter, scales = "free", ncol = 1) +
         scale_x_continuous(name = "Parameter Value") +
-        scale_y_continuous(name = "Frequency", breaks = scales::pretty_breaks(n = 5)) +
+        # Ensure integer breaks for the y-axis (frequency)
+        scale_y_continuous(name = "Frequency", breaks = function(y) unique(floor(pretty(y)))) +
         scale_fill_manual(values = c("coral", "skyblue"), name = "Period") +
         theme_minimal() +
         theme(legend.position = "right",
@@ -830,7 +827,6 @@ musoOptimCalib <- function(
         ggtitle("Histograms: First 50% vs. Last 50% Iterations") +
         guides(fill = guide_legend(override.aes = list(alpha = 1)))
     print(p3)
-
     # Close PDF device
     dev.off()
 
