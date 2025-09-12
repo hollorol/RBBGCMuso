@@ -780,7 +780,7 @@ musoOptimCalib <- function(
     # 1. Relative ranges plot
     rel_ranges_df <- as.data.frame(rel_ranges)
     rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
-    rel_ranges_df <- pivot_longer(rel_ranges_df, cols = -iteration, 
+    rel_ranges_df <- tidyr::pivot_longer(rel_ranges_df, cols = -iteration, 
                                 names_to = "parameter", values_to = "relative_range")
 
     p1 <- ggplot(rel_ranges_df, aes(x = iteration, y = relative_range, color = parameter)) +
@@ -795,7 +795,7 @@ musoOptimCalib <- function(
     print(p1)
 
     # 2. Per-parameter value vs. iteration plot
-    iter_best_long <- pivot_longer(iter_best_plot, cols = -iteration, 
+    iter_best_long <- tidyr::pivot_longer(iter_best_plot, cols = -iteration, 
                                 names_to = "parameter", values_to = "value")
     p2 <- ggplot(iter_best_long, aes(x = iteration, y = value, color = parameter)) +
         geom_line(linewidth = 1) +
