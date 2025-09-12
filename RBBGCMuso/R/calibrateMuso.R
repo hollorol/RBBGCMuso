@@ -756,11 +756,11 @@ musoOptimCalib <- function(
     ### SOME PLOTTING ###
     # combining all the populations if saveAllNP was true and creating plots for the parameter ranges
     AllPopulations <- optimResult$member$storepop
-    if (is.null(AllPopulations) || length(AllPopulations) == 0) {
-        AllPopulations <- list(optimResult$member$pop)
-    }  else {
-        AllPopulations <- c(AllPopulations, list(optimResult$member$pop))
-    }
+        if (is.null(AllPopulations) || length(AllPopulations) == 0) {
+            AllPopulations <- list(optimResult$member$pop)
+        }  else {
+            AllPopulations <- c(AllPopulations, list(optimResult$member$pop))
+        }
     names(AllPopulations) <- paste0("iter", seq_len(length(AllPopulations)))
     # Calculate relative ranges for each parameter across iterations
     rel_ranges <- t(sapply(AllPopulations, function(pop) {
@@ -810,16 +810,25 @@ musoOptimCalib <- function(
     print(p2)
     # 3. Histograms: first 50% vs. last 50% iterations
     half_point <- nrow(iter_best_plot) %/% 2
-    iter_best_long$period <- ifelse(iter_best_long$iteration <= half_point, 
-                                    paste0("First ", half_point, " Iterations"),
-                                    paste0("Last ", nrow(iter_best_plot) - half_point, " Iterations"))
+
+    # Convert 'period' to a factor to ensure correct ordering in plot and legend
+    period_levels <- c(paste0("First ", half_point, " Iterations"),
+                    paste0("Last ", nrow(iter_best_plot) - half_point, " Iterations"))
+    iter_best_long$period <- factor(ifelse(iter_best_long$iteration <= half_point, 
+                                        period_levels[1],
+                                        period_levels[2]),
+                                    levels = period_levels)
+
+    num_bins <- ceiling(log2(nrow(iter_best_plot)) + 1)
+
     p3 <- ggplot(iter_best_long, aes(x = value, fill = period)) +
-        geom_histogram(aes(y = after_stat(count)), bins = 15, color = "black", alpha = 0.7, position = "dodge") +
+        geom_histogram(aes(y = after_stat(count)), bins = num_bins, color = "black", position = "stack") +
+        geom_rug(aes(color = period), alpha = 0.7) +
         facet_wrap(~ parameter, scales = "free", ncol = 1) +
         scale_x_continuous(name = "Parameter Value") +
-        # Ensure integer breaks for the y-axis (frequency)
         scale_y_continuous(name = "Frequency", breaks = function(y) unique(floor(pretty(y)))) +
         scale_fill_manual(values = c("coral", "skyblue"), name = "Period") +
+        scale_color_manual(values = c("coral", "skyblue"), name = "Period") +
         theme_minimal() +
         theme(legend.position = "right",
             strip.text = element_text(size = 10),
