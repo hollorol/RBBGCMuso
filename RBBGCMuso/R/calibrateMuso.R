@@ -819,10 +819,10 @@ musoOptimCalib <- function(
                                         period_levels[2]),
                                     levels = period_levels)
 
-    num_bins <- ceiling(log2(nrow(iter_best_plot)) + 1)
+    #num_bins <- ceiling(log2(nrow(iter_best_plot)) + 1)
 
     p3 <- ggplot(iter_best_long, aes(x = value, fill = period)) +
-        geom_histogram(aes(y = after_stat(count)), bins = num_bins, color = "black", position = "stack") +
+        geom_histogram(aes(y = after_stat(count)), bins = 15, color = "black", position = "stack") +
         geom_rug(aes(color = period), alpha = 0.7) +
         facet_wrap(~ parameter, scales = "free", ncol = 1) +
         scale_x_continuous(name = "Parameter Value") +
