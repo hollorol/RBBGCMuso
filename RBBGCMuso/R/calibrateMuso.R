@@ -586,7 +586,11 @@ maxLikelihoodAgromo <- function (results, imgPath, varName, ...) {
 #'                  Base is 0.8 so 80 percent of the data will be used for training.
 #' @param method The method to be used for optimization. Currently only DEoptim is available.
 #' @param maxIterations The maximum number of iterations for the optimization.
-#' @param NP The population size for the DEoptim algorithm.
+#' @param NP The population size for the DEoptim algorithm. Generally setting this 10 times larger than your parameter vector is necessary for proper results
+#' @param saveAllNP saves all the population results as the calibration runs and writes it into a csv later
+#' @param parallel option to perform the optimization method in a parallel way for better speed
+#' @param cluster for better perfomance in case you call this function in a loop this option allows the use of already created clusters. If given the musoOptimCalib function won't create and destroy clusters at each call.
+#' @param numCores Number of cores to be used if parallel is TRUE
 #' @export
 musoOptimCalib <- function(
                     outputLoc = "./",
@@ -597,12 +601,20 @@ musoOptimCalib <- function(
                     dataTrain = 0.8,
                     method = "DEoptim",
                     maxIterations = 50,
-                    NP = 100
+                    NP = 100,
+                    saveAllNP = FALSE,
+                    parallel = FALSE,
+                    cluster = NULL,
+                    numCores = parallel::detectCores()-1
                     ){
 
     # check whether the package given for the function for the optimization is installed
     if(!requireNamespace("DEoptim", quietly = TRUE)){
-        stop("Currently the DEoptim package is required for this function to work. Please install it using install.packages('DEoptim').")
+        stop("Currently the DEoptim package is required for this function to work and is not a strict requirement of the RBBGCMuso package. Please install it using install.packages('DEoptim') if you wish to use the musoOptimCalib function")
+    }
+
+    if (parallel && numCores < 1) {
+        stop("numCores must be at least 1 when parallel = TRUE")
     }
 
     # try to be as robust about the editing of calibResults.
@@ -663,8 +675,22 @@ musoOptimCalib <- function(
     maxLikelihood <- max(calibData[,likelihoodCol], na.rm=TRUE)
     maxLikelihoodParams <- calibData[which.max(calibData[,likelihoodCol]), paramNames]
 
+    # creating cluster for the parallel run so the DE optimization can properly do paralallelisation
+    if (parallel) {
+        if (is.null(cluster)) {
+            # Create a new cluster if none provided
+            cluster <- parallel::makeCluster(numCores, type = "SOCK")
+            on.exit(parallel::stopCluster(cluster), add = TRUE)
+            parallel::clusterExport(cluster, "randomForest", envir = environment())
+            parallel::clusterEvalQ(cluster, library(ranger))
+        } else {
+            # Use provided cluster, export necessary objects
+            parallel::clusterExport(cluster, "randomForest",envir = environment())
+            parallel::clusterEvalQ(cluster, library(ranger))
+        }
+    }
 
-    cat(sprintf("Starting optimizatin with %s method, %d iterations and population size of %d.\n\n", method, maxIterations, NP))
+    cat(sprintf("Starting optimization with %s method, %d iterations and population size of %d.\n\n", method, maxIterations, NP))
     cat(sprintf("For comparison: Max Likelihood from the calibration data: %.6f \n", maxLikelihood))
     cat(sprintf("Parameters for max likelihood: \n %s", paste(maxLikelihoodParams, collapse=", \n")))
     cat("\n\n")
@@ -677,7 +703,10 @@ musoOptimCalib <- function(
         control = list(
             itermax = maxIterations,
             NP = NP,
-            trace = TRUE
+            trace = TRUE,
+            storepopfrom = if(saveAllNP) 1 else itermax+1, # itermax + 1 will only save the best
+            parallelType = if(parallel) "parallel" else "none",
+            cluster = if(parallel) cluster else NULL
         )
     )
 
@@ -716,6 +745,97 @@ musoOptimCalib <- function(
     cat("Optimized parameters saved to optimizedCalibParameters.csv in the output directory.\n")
 
     }
+
+    # saving the best members at each iteration to a csv file
+    iterBest <- as.data.frame(optimResult$member$bestmemit)
+    colnames(iterBest) <- paramNames
+    iterBest$likelihood <- -optimResult$member$bestvalit
+    write.csv(iterBest, file = file.path(outputLoc, "optimization_iterations_bestMembers.csv"), row.names = FALSE,quote = FALSE)
+
+
+    ### SOME PLOTTING ###
+    # combining all the populations if saveAllNP was true and creating plots for the parameter ranges
+    AllPopulations <- optimResult$member$storepop
+        if (is.null(AllPopulations) || length(AllPopulations) == 0) {
+        AllPopulations <- list(optimResult$member$pop)
+        }  else {
+        AllPopulations <- c(AllPopulations, list(optimResult$member$pop))
+        }
+    names(AllPopulations) <- paste0("iter", seq_len(length(AllPopulations)))
+
+    # Calculate relative ranges for each parameter across iterations
+    rel_ranges <- t(sapply(AllPopulations, function(pop) {
+        sapply(seq_along(paramNames), function(i) {
+            (max(pop[,i]) - min(pop[,i])) / (maxValues[i] - minValues[i])
+        })
+    }))
+    colnames(rel_ranges) <- paramNames
+    # Prepare iterBest for plotting (exclude likelihood column)
+    iter_best_plot <- iterBest[, paramNames, drop = FALSE]
+    iter_best_plot$iteration <- seq_len(nrow(iter_best_plot))
+
+    # Start PDF device for multi-page output
+    pdf(file.path(outputLoc, "relative_ranges.pdf"), width = 8, height = 6)
+
+    # 1. Relative ranges plot
+    rel_ranges_df <- as.data.frame(rel_ranges)
+    rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
+    rel_ranges_df <- pivot_longer(rel_ranges_df, cols = -iteration, 
+                                names_to = "parameter", values_to = "relative_range")
+
+    p1 <- ggplot(rel_ranges_df, aes(x = iteration, y = relative_range, color = parameter)) +
+        geom_line(linewidth = 1) +
+        scale_y_continuous(limits = c(0, 1), name = "Relative Range (Range / Initial Range)") +
+        scale_x_continuous(name = "Iteration") +
+        scale_color_viridis_d(option = "viridis", name = "Parameter") +
+        theme_minimal() +
+        theme(legend.position = "right",
+            plot.title = element_text(hjust = 0.5)) +
+        ggtitle("Parameter Range Evolution in DEoptim")
+    print(p1)
+
+    # 2. Per-parameter value vs. iteration plot
+    iter_best_long <- pivot_longer(iter_best_plot, cols = -iteration, 
+                                names_to = "parameter", values_to = "value")
+    p2 <- ggplot(iter_best_long, aes(x = iteration, y = value, color = parameter)) +
+        geom_line(linewidth = 1) +
+        geom_point(size = 2) +
+        facet_wrap(~ parameter, scales = "free_y", ncol = 1) +
+        scale_x_continuous(name = "Iteration", breaks = scales::pretty_breaks(n = 5)) +
+        scale_y_continuous(name = "Parameter Value") +
+        scale_color_viridis_d(option = "viridis", name = "Parameter") +
+        theme_minimal() +
+        theme(legend.position = "right",
+            strip.text = element_text(size = 10),
+            plot.title = element_text(hjust = 0.5)) +
+        ggtitle("Best Parameter Values vs. Iteration") +
+        guides(color = guide_legend(override.aes = list(size = 3)))
+    print(p2)
+
+    # 3. Histograms: first 50% vs. last 50% iterations
+    half_point <- nrow(iter_best_plot) %/% 2
+    iter_best_long$period <- ifelse(iter_best_long$iteration <= half_point, 
+                                    paste0("First ", half_point, " Iterations"),
+                                    paste0("Last ", nrow(iter_best_plot) - half_point, " Iterations"))
+    p3 <- ggplot(iter_best_long, aes(x = value, fill = period)) +
+        geom_histogram(aes(y = after_stat(count)), bins = 15, color = "black", alpha = 0.7, position = "dodge") +
+        facet_wrap(~ parameter, scales = "free", ncol = 1) +
+        scale_x_continuous(name = "Parameter Value") +
+        scale_y_continuous(name = "Frequency", breaks = scales::pretty_breaks(n = 5)) +
+        scale_fill_manual(values = c("coral", "skyblue"), name = "Period") +
+        theme_minimal() +
+        theme(legend.position = "right",
+            strip.text = element_text(size = 10),
+            plot.title = element_text(hjust = 0.5)) +
+        ggtitle("Histograms: First 50% vs. Last 50% Iterations") +
+        guides(fill = guide_legend(override.aes = list(alpha = 1)))
+    print(p3)
+
+    # Close PDF device
+    dev.off()
+
+    cat(sprintf("Relative ranges plot saved to %s/relative_ranges.pdf\n", outputLoc))
+
 
     # visualization of the optimization result, saving them as a pdf file
     pdf(file.path(outputLoc, "optimization_dotplots.pdf"))

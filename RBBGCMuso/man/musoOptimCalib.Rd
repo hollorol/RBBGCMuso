@@ -13,7 +13,11 @@ musoOptimCalib(
   dataTrain = 0.8,
   method = "DEoptim",
   maxIterations = 50,
-  NP = 100
+  NP = 100,
+  saveAllNP = FALSE,
+  parallel = FALSE,
+  cluster = NULL,
+  numCores = parallel::detectCores() - 1
 )
 }
 \arguments{
@@ -32,7 +36,15 @@ Base is 0.8 so 80 percent of the data will be used for training.}
 
 \item{maxIterations}{The maximum number of iterations for the optimization.}
 
-\item{NP}{The population size for the DEoptim algorithm.}
+\item{NP}{The population size for the DEoptim algorithm. Generally setting this 10 times larger than your parameter vector is necessary for proper results}
+
+\item{saveAllNP}{saves all the population results as the calibration runs and writes it into a csv later}
+
+\item{parallel}{option to perform the optimization method in a parallel way for better speed}
+
+\item{cluster}{for better perfomance in case you call this function in a loop this option allows the use of already created clusters. If given the musoOptimCalib function won't create and destroy clusters at each call.}
+
+\item{numCores}{Number of cores to be used if parallel is TRUE}
 }
 \description{
 This function allows further post process for calibrateMuso results based on random forest surrogate model which will then be optimized.
