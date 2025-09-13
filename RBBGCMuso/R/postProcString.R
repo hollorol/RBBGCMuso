@@ -4,7 +4,7 @@
 #' @keywords internal
 postProcMuso  <- function(modelData, procString, prettyOut = FALSE){
     if(prettyOut) {
-        modelDat <- modelData[,-(1:4)]
+        modelData <- modelData[,-(1:4)]
     } 
     cNames <- colnames(modelData)
     tocalc <- gsub("(@)(\\d+)","modelDat[,\\2]",procString)

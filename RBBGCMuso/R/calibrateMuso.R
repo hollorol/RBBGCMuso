@@ -800,7 +800,7 @@ musoOptimCalib <- function(
                                 names_to = "parameter", values_to = "value")
     p2 <- ggplot(iter_best_long, aes(x = iteration, y = value, color = parameter)) +
         geom_line(linewidth = 1) +
-        geom_point(size = 2) +
+        geom_point(size = 1.2) +
         facet_wrap(~ parameter, scales = "free_y", ncol = 1) +
         # Ensure integer breaks for the x-axis for consistency
         scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
@@ -822,7 +822,7 @@ musoOptimCalib <- function(
                                     paste0("Last ", nrow(iter_best_plot) - half_point, " Iterations"))
     
     p3 <- ggplot(iter_best_long, aes(x = value, fill = period)) +
-        geom_histogram(aes(y = after_stat(count)), bins = 15, color = "black", alpha = 1, position = "stack") +
+        geom_histogram(aes(y = after_stat(count)), bins = 20, color = "black", alpha = 1, position = "stack") +
         facet_wrap(~ parameter, scales = "free", ncol = 1) +
         scale_x_continuous(name = "Parameter Value") +
         # Ensure integer breaks for the y-axis (frequency)
