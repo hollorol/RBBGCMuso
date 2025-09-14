@@ -704,7 +704,7 @@ musoOptimCalib <- function(
             itermax = maxIterations,
             NP = NP,
             trace = TRUE,
-            storepopfrom = if(saveAllNP) 1 else itermax+1, # itermax + 1 will only save the best
+            storepopfrom = if(saveAllNP) 1 else maxIterations+1, # itermax + 1 will only save the best
             parallelType = "none", # giving a cluster object overrides the parallelType argument
             cluster = if(parallel) cluster else NULL
         )
@@ -762,6 +762,14 @@ musoOptimCalib <- function(
         AllPopulations <- c(AllPopulations, list(optimResult$member$pop))
     }
     names(AllPopulations) <- paste0("iter", seq_len(length(AllPopulations)))
+
+    all_data <- do.call(rbind, lapply(seq_along(AllPopulations), function(i) {
+        df <- as.data.frame(AllPopulations[[i]])
+        colnames(df) <- paramNames
+        df$iteration <- i
+        return(df)
+    }))
+
     # Calculate relative ranges for each parameter across iterations
     rel_ranges <- t(sapply(AllPopulations, function(pop) {
         sapply(seq_along(paramNames), function(i) {
@@ -836,49 +844,40 @@ musoOptimCalib <- function(
         guides(fill = guide_legend(override.aes = list(alpha = 1)))
     print(p3)
 
-    # 4. Scouting scatter plots (new addition)
-    # Combine all populations into a single data frame
-    all_data <- do.call(rbind, AllPopulations)
-    colnames(all_data) <- paramNames  # Ensure column names are set
 
-    # Number of parameters
-    n_parameters <- length(paramNames)
+    if(saveAllNP){
+        # 4. Scouting scatter plots 
 
-    # Determine grid layout
-    ncols <- ceiling(sqrt(n_parameters))
-    nrows <- ceiling(n_parameters / ncols)
+        # Number of parameters
+        n_parameters <- length(paramNames)
 
-    # Create list of scatter plots for each parameter
-    scatter_plots <- list()
-    for (i in seq_len(n_parameters)) {
-        param_data <- all_data[, i]
-        param_data_shuffled <- sample(param_data)  # Shuffle for y-axis
+        # Determine grid layout
+        #ncols <- ceiling(sqrt(n_parameters))
+        #nrows <- ceiling(n_parameters / ncols)
 
-        df <- data.frame(x = param_data, y = param_data_shuffled)
+        scatter_plots <- list()
+        for (i in seq_len(n_parameters)) {
+            p <- ggplot(all_data, aes(x = iteration, y = .data[[paramNames[i]]])) +
+                geom_point(size = 1, alpha = 0.05, color = "blue") +
+                scale_x_continuous(limits = c(1, max(all_data$iteration)), name = "Iteration") +
+                scale_y_continuous(limits = c(minValues[i], maxValues[i]), name = paste(paramNames[i])) +
+                labs(
+                    title = paste(paramNames[i])
+                ) +
+                theme_minimal()
+            scatter_plots[[i]] <- p
+        }
 
-        p <- ggplot(df, aes(x = x, y = y)) +
-            geom_point(size = 1, alpha = 0.05, color = "blue") +
-            coord_fixed(ratio = 1, xlim = c(minValues[i], maxValues[i]), ylim = c(minValues[i], maxValues[i])) +
-            labs(
-                title = paste(paramNames[i]),
-                x = "",
-                y = ""
-            ) +
-            theme_minimal()
-
-        scatter_plots[[i]] <- p
+        # Plot two scatter plots per page
+        for (i in seq(1, n_parameters, by = 2)) {
+            plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
+            gridExtra::grid.arrange(
+                grobs = plots_to_show,
+                ncol = 2,
+                top = grid::textGrob("DE Population Evolution Scatter Plots", gp = grid::gpar(fontsize = 20, fontface = "bold"))
+            )
+        }
     }
-
-    # Arrange and print the grid of scatter plots
-   for (i in seq(1, n_parameters, by = 2)) {
-        plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
-        gridExtra::grid.arrange(
-            grobs = plots_to_show,
-            ncol = 2,
-            top = grid::textGrob("DE Population Scatter", gp = grid::gpar(fontsize = 20, fontface = "bold"))
-        )
-    }
-
     # Close PDF device
     dev.off()
 
