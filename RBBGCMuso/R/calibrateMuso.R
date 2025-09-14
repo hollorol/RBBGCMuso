@@ -835,6 +835,50 @@ musoOptimCalib <- function(
         ggtitle("Histograms: First 50% vs. Last 50% Iterations") +
         guides(fill = guide_legend(override.aes = list(alpha = 1)))
     print(p3)
+
+    # 4. Scouting scatter plots (new addition)
+    # Combine all populations into a single data frame
+    all_data <- do.call(rbind, AllPopulations)
+    colnames(all_data) <- paramNames  # Ensure column names are set
+
+    # Number of parameters
+    n_parameters <- length(paramNames)
+
+    # Determine grid layout
+    ncols <- ceiling(sqrt(n_parameters))
+    nrows <- ceiling(n_parameters / ncols)
+
+    # Create list of scatter plots for each parameter
+    scatter_plots <- list()
+    for (i in seq_len(n_parameters)) {
+        param_data <- all_data[, i]
+        param_data_shuffled <- sample(param_data)  # Shuffle for y-axis
+
+        df <- data.frame(x = param_data, y = param_data_shuffled)
+
+        p <- ggplot(df, aes(x = x, y = y)) +
+            geom_point(size = 1, alpha = 0.05, color = "blue") +
+            coord_fixed(ratio = 1, xlim = c(minValues[i], maxValues[i]), ylim = c(minValues[i], maxValues[i])) +
+            labs(
+                title = paste(paramNames[i]),
+                x = "",
+                y = ""
+            ) +
+            theme_minimal()
+
+        scatter_plots[[i]] <- p
+    }
+
+    # Arrange and print the grid of scatter plots
+   for (i in seq(1, n_parameters, by = 2)) {
+        plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
+        gridExtra::grid.arrange(
+            grobs = plots_to_show,
+            ncol = 2,
+            top = grid::textGrob("DE Population Scatter", gp = grid::gpar(fontsize = 20, fontface = "bold"))
+        )
+    }
+
     # Close PDF device
     dev.off()
 
