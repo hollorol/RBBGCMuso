@@ -945,45 +945,75 @@ musoOptimCalib <- function(
 
     cat(sprintf("Relative ranges plot saved to %s/relative_ranges.pdf\n", outputLoc))
 
-       pdf(file.path(outputLoc, "dotty_density.pdf"))
+    pdf(file.path(outputLoc, "dotty_density.pdf"))
     
     for(i in seq_along(paramNames)){
         param <- paramNames[i]
         
-        # Define the layout: 2 rows, 1 column. Top plot is 3x taller than the bottom plot.
-        layout(matrix(c(1, 2), nrow = 2), heights = c(3, 1))
+        # Set margins to make room for the secondary y-axis on the right
+        par(mar = c(5.1, 4.1, 4.1, 4.1))
         
         # Set a common x-axis limit based on the parameter's min/max range
         plot_xlim <- c(parameters$min[i], parameters$max[i])
         
-        # top Plot: Dotty Plo
-        # Adjust margins: bottom, left, top, right. Remove bottom margin to reduce space.
-        par(mar = c(1, 4.1, 4.1, 2.1)) 
+        # Create the base dotty plot
         plot(calibData[,param], calibData[,likelihoodCol], 
-             pch = 19, cex = .1, ylab = "likelihood",
-             main = param, xlab = "", xaxt = "n", # Remove x-axis label and ticks
+             pch = 19, cex = .1, 
+             ylab = "Likelihood",
+             xlab = param,
+             main = param, 
              xlim = plot_xlim)
-        abline(v = bestParams[1,param], col = "orange", lwd = 2) # Highlight the optimized parameter
+
+        # Overlay the density plot
         
-        
-        # Adjust margins for the density plot. Remove top margin.
-        par(mar = c(5.1, 4.1, 1, 2.1))
+        # Get the plotting area coordinates of the dotty plot
+        plot_coords <- par("usr")
+        y_range_dotty_coords <- plot_coords[3:4]
+
+        # Calculate the density of the best iteration members
         dens_data <- density(iterBest[[param]])
-        plot(dens_data, 
-             main = "", xlab = param, ylab = "Density",
-             xlim = plot_xlim, yaxt="n") # Remove y-axis ticks for a cleaner look
-        polygon(dens_data, col = "skyblue", border = "black")
-        abline(v = bestParams[1,param], col = "orange", lwd = 2) # Show optimized parameter on density plot
+        max_density <- max(dens_data$y)
+
+        # Scale the density y-values to fit in the bottom 33% of the plot area
+        scaled_density_y <- y_range_dotty_coords[1] + (dens_data$y / max_density) * (diff(y_range_dotty_coords) * 0.33)
+        
+        # Draw the filled density polygon
+        polygon(dens_data$x, scaled_density_y, 
+                col = adjustcolor("skyblue", alpha.f = 0.5), 
+                border = "blue")
+
+        # Add the secondary axis for the density plot
+        # Define the labels and positions for the new axis
+        pretty_density_labels <- pretty(c(0, max_density))
+        
+        # Scale the positions of these labels to match where they should appear on the plot
+        pretty_density_scaled_pos <- y_range_dotty_coords[1] + (pretty_density_labels / max_density) * (diff(y_range_dotty_coords) * 0.33)
+        
+        # Draw the secondary axis on the right side (side = 4)
+        axis(side = 4, at = pretty_density_scaled_pos, labels = pretty_density_labels)
+        
+        # Add a title for the secondary axis
+        mtext("Density", side = 4, line = 3)
+        
+        # Highlight the optimized parameter value, making sure it's on top
+        abline(v = bestParams[1,param], col = "orange", lwd = 1.5)
+
+        # Add a legend to clarify the plot elements
+        # legend("topright", 
+        #        legend = c("Likelihood", "Density", "Optimized Value"),
+        #        col = c("black", "blue", "orange"),
+        #        pch = c(19, NA, NA),
+        #        lty = c(NA, 1, 1),
+        #        lwd = c(NA, 2, 2),
+        #        bg = "white")
     }
     
-    
+    # Close the PDF device for the combined plots
     dev.off()
     # Reset plotting layout to default
     par(mfrow=c(1,1), mar=c(5.1, 4.1, 4.1, 2.1))
     
     cat(sprintf("Combined dotty and density plots saved to %s/dotty_density.pdf\n", outputLoc))
-
-
 
     # visualization of the optimization result, saving them as a pdf file
     pdf(file.path(outputLoc, "optimization_dotplots.pdf"))
