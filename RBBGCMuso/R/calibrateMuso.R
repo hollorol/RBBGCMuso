@@ -845,43 +845,144 @@ musoOptimCalib <- function(
     print(p3)
 
 
-    if(saveAllNP){
-        # 4. Scouting scatter plots 
 
-        # Number of parameters
-        n_parameters <- length(paramNames)
+    # doesn't look that good
+    # if(saveAllNP){
+    #     # 4. Scouting scatter plots 
 
-        # Determine grid layout
-        #ncols <- ceiling(sqrt(n_parameters))
-        #nrows <- ceiling(n_parameters / ncols)
+    #     # Number of parameters
+    #     n_parameters <- length(paramNames)
 
-        scatter_plots <- list()
-        for (i in seq_len(n_parameters)) {
-            p <- ggplot(all_data, aes(x = iteration, y = .data[[paramNames[i]]])) +
-                geom_point(size = 1, alpha = 0.05, color = "blue") +
-                scale_x_continuous(limits = c(1, max(all_data$iteration)), name = "Iteration") +
-                scale_y_continuous(limits = c(minValues[i], maxValues[i]), name = paste(paramNames[i])) +
-                labs(
-                    title = paste(paramNames[i])
-                ) +
-                theme_minimal()
-            scatter_plots[[i]] <- p
-        }
+    #     # Determine grid layout
+    #     #ncols <- ceiling(sqrt(n_parameters))
+    #     #nrows <- ceiling(n_parameters / ncols)
 
-        # Plot two scatter plots per page
-        for (i in seq(1, n_parameters, by = 2)) {
-            plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
-            gridExtra::grid.arrange(
-                grobs = plots_to_show,
-                ncol = 2,
-                top = grid::textGrob("DE Population Evolution Scatter Plots", gp = grid::gpar(fontsize = 20, fontface = "bold"))
-            )
-        }
+    #     scatter_plots <- list()
+    #     for (i in seq_len(n_parameters)) {
+    #         p <- ggplot(all_data, aes(x = iteration, y = .data[[paramNames[i]]])) +
+    #             geom_point(size = 1, alpha = 0.05, color = "blue") +
+    #             scale_x_continuous(limits = c(1, max(all_data$iteration)), name = "Iteration") +
+    #             scale_y_continuous(limits = c(minValues[i], maxValues[i]), name = paste(paramNames[i])) +
+    #             labs(
+    #                 title = paste(paramNames[i])
+    #             ) +
+    #             theme_minimal()
+    #         scatter_plots[[i]] <- p
+    #     }
+
+    #     # Plot two scatter plots per page
+    #     for (i in seq(1, n_parameters, by = 2)) {
+    #         plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
+    #         gridExtra::grid.arrange(
+    #             grobs = plots_to_show,
+    #             ncol = 2,
+    #             top = grid::textGrob("DE Population Evolution Scatter Plots", gp = grid::gpar(fontsize = 20, fontface = "bold"))
+    #         )
+    #     }
+    # }
+
+    # 4. Density plots for each parameter
+    # for (param in paramNames) {
+    #   min_val <- min(iter_best_plot[[param]])
+    #   max_val <- max(iter_best_plot[[param]])
+    #   dens <- density(iter_best_plot[[param]])
+    #   bw <- dens$bw
+    #   n <- dens$n
+    #   p_density <- ggplot(iter_best_plot, aes_string(x = param)) +
+    #     geom_density(fill = "#0066CC", alpha = 0.6, color = "#003366") +
+    #     scale_x_continuous(labels = function(x) format(x, scientific = FALSE, trim = TRUE)) +
+    #     theme_minimal(base_size = 12) +
+    #     theme(
+    #       plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    #       plot.subtitle = element_text(hjust = 0.5, size = 10),
+    #       axis.title = element_text(face = "bold"),
+    #       panel.grid.minor = element_blank(),
+    #       panel.grid.major = element_line(color = "gray90"),
+    #       plot.caption = element_text(hjust = 0.5, size = 8)
+    #     ) +
+    #     labs(title = param,
+    #          subtitle = paste("Min:", format(min_val, scientific = FALSE, trim = TRUE), " Max:", format(max_val, scientific = FALSE, trim = TRUE)),
+    #          x = param, y = "Density",
+    #          caption = paste("N =", n, "  Bandwidth =", format(bw, scientific = TRUE, digits = 4)))
+    #   print(p_density)
+    # }
+
+
+    for (param in paramNames) {
+        i <- match(param, paramNames)
+        plot_xlim <- c(parameters$min[i], parameters$max[i])
+
+        min_val <- min(iter_best_plot[[param]])
+        max_val <- max(iter_best_plot[[param]])
+        dens <- density(iter_best_plot[[param]])
+        bw <- dens$bw
+        n <- dens$n
+        p_density <- ggplot(iter_best_plot, aes_string(x = param)) +
+            geom_density(fill = "#0066CC", alpha = 0.6, color = "#003366") +
+            scale_x_continuous(
+            labels = function(x) format(x, scientific = FALSE, trim = TRUE),
+            limits = plot_xlim
+            ) +
+            theme_minimal(base_size = 12) +
+            theme(
+            plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+            plot.subtitle = element_text(hjust = 0.5, size = 10),
+            axis.title = element_text(face = "bold"),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(color = "gray90"),
+            plot.caption = element_text(hjust = 0.5, size = 8)
+            ) +
+            labs(title = param,
+                subtitle = paste("Min:", format(min_val, scientific = FALSE, trim = TRUE), " Max:", format(max_val, scientific = FALSE, trim = TRUE)),
+                x = param, y = "Density",
+                caption = paste("N =", n, "  Bandwidth =", format(bw, scientific = TRUE, digits = 4)))
+        print(p_density)
     }
+
+
     # Close PDF device
     dev.off()
 
     cat(sprintf("Relative ranges plot saved to %s/relative_ranges.pdf\n", outputLoc))
+
+       pdf(file.path(outputLoc, "dotty_density.pdf"))
+    
+    for(i in seq_along(paramNames)){
+        param <- paramNames[i]
+        
+        # Define the layout: 2 rows, 1 column. Top plot is 3x taller than the bottom plot.
+        layout(matrix(c(1, 2), nrow = 2), heights = c(3, 1))
+        
+        # Set a common x-axis limit based on the parameter's min/max range
+        plot_xlim <- c(parameters$min[i], parameters$max[i])
+        
+        # top Plot: Dotty Plo
+        # Adjust margins: bottom, left, top, right. Remove bottom margin to reduce space.
+        par(mar = c(1, 4.1, 4.1, 2.1)) 
+        plot(calibData[,param], calibData[,likelihoodCol], 
+             pch = 19, cex = .1, ylab = "likelihood",
+             main = param, xlab = "", xaxt = "n", # Remove x-axis label and ticks
+             xlim = plot_xlim)
+        abline(v = bestParams[1,param], col = "orange", lwd = 2) # Highlight the optimized parameter
+        
+        
+        # Adjust margins for the density plot. Remove top margin.
+        par(mar = c(5.1, 4.1, 1, 2.1))
+        dens_data <- density(iterBest[[param]])
+        plot(dens_data, 
+             main = "", xlab = param, ylab = "Density",
+             xlim = plot_xlim, yaxt="n") # Remove y-axis ticks for a cleaner look
+        polygon(dens_data, col = "skyblue", border = "black")
+        abline(v = bestParams[1,param], col = "orange", lwd = 2) # Show optimized parameter on density plot
+    }
+    
+    
+    dev.off()
+    # Reset plotting layout to default
+    par(mfrow=c(1,1), mar=c(5.1, 4.1, 4.1, 2.1))
+    
+    cat(sprintf("Combined dotty and density plots saved to %s/dotty_density.pdf\n", outputLoc))
+
 
 
     # visualization of the optimization result, saving them as a pdf file
