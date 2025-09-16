@@ -630,6 +630,10 @@ musoOptimCalib <- function(
 
     # get the name of the likelihood column, ending with _likelihood
     likelihoodCol <- grep("_likelihood$", colnames(calibData), value=TRUE)
+
+     # remove rows that have NA in any of the likelihood columns
+    calibData <- calibData[complete.cases(calibData[,likelihoodCol]), ]
+
     # creating the formula string for the random forest model where we will use as.formula so it won't complain
     formula_string <- sprintf("%s ~ .", likelihoodCol)
 
@@ -782,7 +786,7 @@ musoOptimCalib <- function(
     iter_best_plot <- iterBest[, paramNames, drop = FALSE]
     iter_best_plot$iteration <- seq_len(nrow(iter_best_plot))
     
-    pdf(file.path(outputLoc, "relative_ranges.pdf"), width = 8, height = 6)
+    pdf(file.path(outputLoc, "DE_analysis.pdf"), width = 8, height = 6)
     
     
     # 1. Relative ranges plot
@@ -790,6 +794,8 @@ musoOptimCalib <- function(
     rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
     rel_ranges_df <- tidyr::pivot_longer(rel_ranges_df, cols = -iteration, 
                                 names_to = "parameter", values_to = "relative_range")
+
+    if(saveAllNP){
     p1 <- ggplot(rel_ranges_df, aes(x = iteration, y = relative_range, color = parameter)) +
         geom_line(linewidth = 1) +
         scale_y_continuous(limits = c(0, 1), name = "Relative Range (Range / Initial Range)") +
@@ -801,7 +807,7 @@ musoOptimCalib <- function(
             plot.title = element_text(hjust = 0.5)) +
         ggtitle("Parameter Range Evolution in DEoptim")
     print(p1)
-    
+    }
     
     # 2. Per-parameter value vs. iteration plot
     iter_best_long <- tidyr::pivot_longer(iter_best_plot, cols = -iteration, 
