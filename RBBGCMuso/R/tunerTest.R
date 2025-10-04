@@ -3229,6 +3229,8 @@ tuneMusoServerTest <- function(input, output, session){
 
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
+        copiedEPCs <- reactiveVal(list())
+        copiedSoil <- reactiveVal(FALSE)
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
@@ -3251,7 +3253,28 @@ tuneMusoServerTest <- function(input, output, session){
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
             }
             if (isTRUE(all.equal(paramVal, lastGoodValues$epc[[epc]]))) next # Skip writing if no changes
+            
+                # Check and create backup if first time writing to this EPC file
+                current_copied_epcs <- copiedEPCs()
+                if (is.null(current_copied_epcs[[epc]])) {
+                    current_copied_epcs[[epc]] <- FALSE
+                }
+                if (!current_copied_epcs[[epc]]) {
+                    timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+                    
+                    orig_file <- file.path(workdir, epc)
+                    base_name <- tools::file_path_sans_ext(epc)
+                    ext <- tools::file_ext(epc)
+                    backup_file <- file.path(workdir, paste0(base_name, "_", timestamp, "_ORIGINAL",".", ext))
+                    file.copy(orig_file, backup_file)
+                    current_copied_epcs[[epc]] <- TRUE
+                    copiedEPCs(current_copied_epcs)
+                    myShowNotification(paste0("Backup created for ", epc, " as ", basename(backup_file)), type = "message", duration = 7)
+                }
+            
+            
             settings$epcInput[["normal"]] <- epc
+                
             prettyChangeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
@@ -3272,10 +3295,26 @@ tuneMusoServerTest <- function(input, output, session){
 
             #if (!identical(paramVal, lastGoodValues$soil)) {
             if(soilChanged){
+
+                if (!copiedSoil()) {
+                    timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+                    orig_file <- file.path(workdir, soil_file())
+                    base_name <- tools::file_path_sans_ext(soil_file())
+                    ext <- tools::file_ext(soil_file())
+                    backup_file <- file.path(workdir, paste0(base_name, "_", timestamp, "_ORIGINAL",".", ext))
+                    file.copy(orig_file, backup_file)
+                    copiedSoil(TRUE)
+                    myShowNotification(paste0("Backup created for ", soil_file(), " as ", basename(backup_file)), type = "message", duration = 7)
+                }
+
+
                 req(soil_file(), soil_parameters())
                 paramValChanged <- format(paramVal, scientific = FALSE, trim = TRUE)
-                prettyChangeMuso(settings, paramValChanged, calibrationPar = soil_parameters()[,2],
-                        fileToChange = "soil", fixAlloc = FALSE)
+                prettyChangeMuso(settings, 
+                                paramValChanged, 
+                                calibrationPar = soil_parameters()[,2],
+                                fileToChange = "soil", 
+                                fixAlloc = FALSE)
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
