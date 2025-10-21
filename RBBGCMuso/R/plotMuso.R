@@ -514,7 +514,6 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
 #' @importFrom progress progress_bar
 #' @importFrom grDevices dev.off
 
-
 musoEnsemblePlot <- function(
     run_output_subfolder = "thread",
     measurement_data,
@@ -526,10 +525,10 @@ musoEnsemblePlot <- function(
     fileToChange = "epc",
     settings = setupMuso(),
     output_plot_filename_prefix = "ensemble_plot",
+    years_to_plot = NULL,
     meas_point_size = 2.5,
     meadian_line_size = 0.8,
-    best_run_line_size = 0.6,
-    years_to_plot = NULL
+    best_run_line_size = 0.6
 ) {
 
   working_directory <- settings$inputLoc
@@ -547,7 +546,7 @@ musoEnsemblePlot <- function(
     stop("`measurement_data_column` must be provided (the column name in measurement_data).")
   }
 
-  # Measurement Data Handling 
+  # Measurement Data Handling
   md_table <- NULL
   if (is.character(measurement_data) && length(measurement_data) == 1) {
     if (!file.exists(measurement_data)) {
@@ -621,7 +620,7 @@ musoEnsemblePlot <- function(
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
 
-
+  # --- NEW: Filter dates based on years_to_plot ---
   if (!is.null(years_to_plot) && is.numeric(years_to_plot)) {
     message("Filtering data to include only year(s): ", paste(years_to_plot, collapse = ", "))
     dates_from_files <- dates_from_files[lubridate::year(dates_from_files) %in% years_to_plot]
@@ -636,8 +635,8 @@ musoEnsemblePlot <- function(
     to = as.Date(format(max(dates_from_files, na.rm = TRUE), "%Y-01-01")),
     by = paste(year_axis_interval, "years")
   )
-  
-  # Model Variable Name 
+
+  # Model Variable Name
   model_var_name <- tryCatch({
     musoMapping(model_mapping_code)
   }, error = function(e) {
@@ -687,7 +686,7 @@ musoEnsemblePlot <- function(
     stop("No valid run data could be processed from the CSV files for plotting. Aborting.")
   }
 
-  # Initialize ggplot 
+  # Initialize ggplot
   p <- ggplot2::ggplot() +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::labs(x = "Date", y = model_var_name, title = plot_title) +
@@ -711,7 +710,7 @@ musoEnsemblePlot <- function(
   } else {
     message("Calculating ensemble summaries (median, quantiles)...")
     ensemble_summary <- all_runs_data[, .(
-      median_value = stats::median(value, na.rm = TRUE), 
+      median_value = stats::median(value, na.rm = TRUE),
       q25_value = stats::quantile(value, 0.25, na.rm = TRUE),
       q75_value = stats::quantile(value, 0.75, na.rm = TRUE),
       q05_value = stats::quantile(value, 0.05, na.rm = TRUE),
@@ -724,7 +723,7 @@ musoEnsemblePlot <- function(
     p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = meadian_line_size)
   }
 
-  # Best Run Data 
+  # Best Run Data
   best_run_data_for_plot <- NULL
   actual_best_run_param_file <- if (!is.null(best_run_param_file) && !startsWith(best_run_param_file, "/") && !grepl("^[A-Za-z]:", best_run_param_file)) {
       file.path(working_directory, best_run_param_file)
@@ -744,7 +743,7 @@ musoEnsemblePlot <- function(
               changeMuso(settings,
                                     fileToChange = fileToChange,
                                     parameters = paramVal_best[[3]],
-                                    calibrationPar = paramVal_best[[2]], 
+                                    calibrationPar = paramVal_best[[2]],
                                     fixAlloc = FALSE)
               result_maxlikelihood <- calibMuso(settings = settings, skipSpinup = TRUE, prettyOut = FALSE, silent = TRUE)
 
@@ -776,81 +775,6 @@ musoEnsemblePlot <- function(
   if (!is.null(best_run_data_for_plot) && nrow(best_run_data_for_plot) > 0) {
     p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = best_run_line_size)
   }
-
-  #  Measurement Points 
-  # OLD VERSION
-  # if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
-  #   measurement_values_for_plot <- tryCatch(as.numeric(md_table[[measurement_data_column]]), warning = function(w) {
-  #       message("Warning: Measurement column '", measurement_data_column, "' could not be coerced to numeric.")
-  #       rep(NA_real_, nrow(md_table))
-  #   })
-
-  #   if (length(dates_from_files) == length(measurement_values_for_plot)) {
-  #     md_plot_data <- data.table::data.table(date = dates_from_files, value_md = measurement_values_for_plot)
-  #     md_plot_data <- md_plot_data[!is.na(value_md)]
-  #     if(nrow(md_plot_data) > 0) {
-  #         p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
-  #     } else {
-  #         message("No valid (non-NA) measurement data points to plot for '", measurement_data_column, "'.")
-  #     }
-  #   } else {
-  #     message("Length mismatch between simulation dates and measurement data rows. Measurement points will not be plotted.")
-  #   }
-  # } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
-  #   message("Column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
-  # }
-
-  # VERSION 2 ALigning measurement
-  # if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
-
-  #   if (ncol(md_table) < 3) {
-  #     message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
-  #   } else {
-  #     # Make a copy to avoid modifying the original md_table by reference
-  #     md_to_align <- data.table::copy(md_table)
-
-  #     # Robustly create a date column from the first three columns
-  #     md_to_align[, date := tryCatch({
-  #         as.Date(paste(md_to_align[[1]], md_to_align[[2]], md_to_align[[3]], sep = "-"))
-  #       }, error = function(e) {
-  #         message("Could not create valid dates from the first three columns of measurement data.")
-  #         as.Date(NA) # Return NA on failure
-  #     })]
-      
-  #     md_to_align <- md_to_align[!is.na(date)]
-
-  #     # Data Alignment via Merge 
-  #     if (nrow(md_to_align) > 0) {
-  #       model_dates_dt <- data.table::data.table(date = dates_from_files)
-
-  #       # Subset and rename for clarity and to avoid column name conflicts
-  #       md_subset <- md_to_align[, .SD, .SDcols = c("date", measurement_data_column)]
-  #       data.table::setnames(md_subset, old = measurement_data_column, new = "value_md")
-
-  #       # Align measurement data to the model's timeline using a left join
-  #       aligned_md <- merge(model_dates_dt, md_subset, by = "date", all.x = TRUE)
-
-  #       # Ensure the value column is numeric
-  #       aligned_md[, value_md := as.numeric(value_md)]
-
-  #       # Filter out NA values for plotting (these are dates with no corresponding measurement)
-  #       md_plot_data <- aligned_md[!is.na(value_md)]
-
-  #       if(nrow(md_plot_data) > 0) {
-  #           message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
-  #           p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
-  #       } else {
-  #           message("No valid (non-NA) measurement data points found after aligning with model dates.")
-  #       }
-
-  #     } else {
-  #       message("No valid dates could be constructed from measurement data to perform alignment.")
-  #     }
-  #   }
-
-  # } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
-  #   message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
-  # }
 
   if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
 
@@ -916,7 +840,7 @@ musoEnsemblePlot <- function(
     )
     message("Plot saved successfully using ggsave.")
   }
-  
+
   print(paste("Plot saved as", basename(final_plot_filename), "in", working_directory))
   return(invisible(p)) # Return the ggplot object invisibly
 }
