@@ -513,7 +513,6 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
 #' @importFrom lubridate year month day
 #' @importFrom progress progress_bar
 #' @importFrom grDevices dev.off
-
 musoEnsemblePlot <- function(
     run_output_subfolder = "thread",
     measurement_data,
@@ -620,19 +619,14 @@ musoEnsemblePlot <- function(
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
 
-  # --- NEW: Filter dates based on years_to_plot ---
-  if (!is.null(years_to_plot) && is.numeric(years_to_plot)) {
-    message("Filtering data to include only year(s): ", paste(years_to_plot, collapse = ", "))
-    dates_from_files <- dates_from_files[lubridate::year(dates_from_files) %in% years_to_plot]
-    if (length(dates_from_files) == 0) {
-      stop("No data available for the selected year(s). Please check the 'years_to_plot' argument.")
-    }
+  year_starts_df <- data.frame(date = dates_from_files)
+  if (!is.null(years_to_plot)) {
+    year_starts_df <- year_starts_df %>% dplyr::filter(lubridate::year(date) %in% years_to_plot)
   }
 
-
   year_starts <- seq.Date(
-    from = as.Date(format(min(dates_from_files, na.rm = TRUE), "%Y-01-01")),
-    to = as.Date(format(max(dates_from_files, na.rm = TRUE), "%Y-01-01")),
+    from = as.Date(format(min(year_starts_df$date, na.rm = TRUE), "%Y-01-01")),
+    to = as.Date(format(max(year_starts_df$date, na.rm = TRUE), "%Y-01-01")),
     by = paste(year_axis_interval, "years")
   )
 
@@ -658,7 +652,9 @@ musoEnsemblePlot <- function(
     total = total_files,
     width = 60
   )
-
+  
+  original_dates <- dates_from_files
+  
   for (i in seq_along(csv_paths)) {
     file <- csv_paths[i]
     pb_read$tick()
@@ -669,21 +665,115 @@ musoEnsemblePlot <- function(
       NULL
     })
 
-    if (!is.null(current_data) && model_var_name %in% names(current_data) && nrow(current_data) == length(dates_from_files)) {
-      current_data[, date := dates_from_files]
+    if (!is.null(current_data) && model_var_name %in% names(current_data) && nrow(current_data) == length(original_dates)) {
+      current_data[, date := original_dates]
       current_data[, run_id := paste0("run_", i)]
       data.table::setnames(current_data, old = model_var_name, new = "value")
       all_runs_data_list[[i]] <- current_data[, .(date, run_id, value)]
-    } else if (!is.null(current_data) && nrow(current_data) != length(dates_from_files)) {
-      message("\nWarning: File ", file, " has ", nrow(current_data), " rows, but expected ", length(dates_from_files), ". Skipping.")
+    } else if (!is.null(current_data) && nrow(current_data) != length(original_dates)) {
+      message("\nWarning: File ", file, " has ", nrow(current_data), " rows, but expected ", length(original_dates), ". Skipping.")
     } else if (!is.null(current_data) && !(model_var_name %in% names(current_data))) {
        message("\nWarning: Column '", model_var_name, "' not found in file: ", file, ". Skipping.")
     }
   }
   all_runs_data <- data.table::rbindlist(all_runs_data_list, fill = TRUE)
 
+  # Best Run Data
+  best_run_data_for_plot <- NULL
+  actual_best_run_param_file <- if (!is.null(best_run_param_file) && !startsWith(best_run_param_file, "/") && !grepl("^[A-Za-z]:", best_run_param_file)) {
+      file.path(working_directory, best_run_param_file)
+  } else {
+      best_run_param_file
+  }
+
+
+  if (!is.null(actual_best_run_param_file) && file.exists(actual_best_run_param_file)) {
+    if (is.null(settings)) {
+        message("Warning: `settings` is NULL. Cannot simulate 'best run' line without RBBGCMuso settings.")
+    } else {
+        paramVal_best <- data.table::fread(actual_best_run_param_file, sep = ",", header = TRUE)
+
+        if (ncol(paramVal_best) >=3 ) {
+            tryCatch({
+              changeMuso(settings,
+                                    fileToChange = fileToChange,
+                                    parameters = paramVal_best[[3]],
+                                    calibrationPar = paramVal_best[[2]],
+                                    fixAlloc = FALSE)
+              result_maxlikelihood <- calibMuso(settings = settings, skipSpinup = TRUE, prettyOut = FALSE, silent = TRUE)
+
+              if (!is.null(result_maxlikelihood) && !is.null(colnames(result_maxlikelihood))) {
+                if (model_var_name %in% colnames(result_maxlikelihood)) {
+                  modelVar_maxlikelihood_values <- result_maxlikelihood[, model_var_name]
+                  if (length(original_dates) == length(modelVar_maxlikelihood_values)) {
+                    best_run_data_for_plot <- data.frame(date = original_dates, value = modelVar_maxlikelihood_values)
+                  } else {
+                    message("Length mismatch for 'best run' output. Best run line not plotted.")
+                  }
+                } else {
+                  message("Model variable '", model_var_name, "' not found in 'best run' output. Best run line not plotted.")
+                }
+              } else {
+                message("'Best run' simulation output is NULL or has no column names. Best run line not plotted.")
+              }
+            }, error = function(e) {
+              message("Error during 'best run' simulation: ", e$message, ". Best run line not plotted.")
+            })
+        } else {
+            message("Best run parameter file '", actual_best_run_param_file, "' does not have the expected format (at least 3 columns). Best run line not plotted.")
+        }
+    }
+  } else {
+    if (!is.null(best_run_param_file)) message("Best run parameter file not found: ", actual_best_run_param_file, ". Best run line not plotted.")
+  }
+
+  # Measurement Data
+  if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
+
+    if (ncol(md_table) < 3) {
+      message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
+    } else {
+      # Prepare the measurement data first
+      measurements_processed <- md_table %>%
+        tibble::as_tibble() %>%
+        dplyr::mutate(
+          date = lubridate::make_date(year = .[[1]], month = .[[2]], day = .[[3]]),
+          value_md = as.numeric(.data[[measurement_data_column]])
+        ) %>%
+        dplyr::filter(!is.na(date) & !is.na(value_md)) %>%
+        dplyr::select(date, value_md)
+
+      # Create a tibble for the model's date range and join the measurements
+      md_plot_data <- tibble::tibble(date = original_dates) %>%
+        dplyr::left_join(measurements_processed, by = "date") %>%
+        tidyr::drop_na(value_md) # Remove dates that don't have a measurement
+    }
+
+  } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
+    message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+  }
+  
+  # Centralized filtering of all data frames based on years_to_plot 
+  if (!is.null(years_to_plot) && is.numeric(years_to_plot)) {
+    message("Filtering all plot data to include only year(s): ", paste(years_to_plot, collapse = ", "))
+
+    # Filter main ensemble data (data.table syntax)
+    all_runs_data <- all_runs_data[lubridate::year(date) %in% years_to_plot]
+
+    # Filter best run data if it exists (it's a data.frame)
+    if (!is.null(best_run_data_for_plot)) {
+      best_run_data_for_plot <- best_run_data_for_plot[lubridate::year(best_run_data_for_plot$date) %in% years_to_plot, ]
+    }
+
+    # Filter measurement data if it exists
+    if (exists("md_plot_data") && !is.null(md_plot_data) && nrow(md_plot_data) > 0) {
+      md_plot_data <- md_plot_data %>%
+        dplyr::filter(lubridate::year(date) %in% years_to_plot)
+    }
+  }
+
   if (nrow(all_runs_data) == 0) {
-    stop("No valid run data could be processed from the CSV files for plotting. Aborting.")
+    stop("No valid run data could be processed or remained after filtering for the selected year(s). Aborting.")
   }
 
   # Initialize ggplot
@@ -722,91 +812,16 @@ musoEnsemblePlot <- function(
     p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q25_value, ymax = q75_value), fill = "grey50", alpha = 0.6)
     p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = meadian_line_size)
   }
-
-  # Best Run Data
-  best_run_data_for_plot <- NULL
-  actual_best_run_param_file <- if (!is.null(best_run_param_file) && !startsWith(best_run_param_file, "/") && !grepl("^[A-Za-z]:", best_run_param_file)) {
-      file.path(working_directory, best_run_param_file)
-  } else {
-      best_run_param_file
-  }
-
-
-  if (!is.null(actual_best_run_param_file) && file.exists(actual_best_run_param_file)) {
-    if (is.null(settings)) {
-        message("Warning: `settings` is NULL. Cannot simulate 'best run' line without RBBGCMuso settings.")
-    } else {
-        paramVal_best <- data.table::fread(actual_best_run_param_file, sep = ",", header = TRUE)
-
-        if (ncol(paramVal_best) >=3 ) {
-            tryCatch({
-              changeMuso(settings,
-                                    fileToChange = fileToChange,
-                                    parameters = paramVal_best[[3]],
-                                    calibrationPar = paramVal_best[[2]],
-                                    fixAlloc = FALSE)
-              result_maxlikelihood <- calibMuso(settings = settings, skipSpinup = TRUE, prettyOut = FALSE, silent = TRUE)
-
-              if (!is.null(result_maxlikelihood) && !is.null(colnames(result_maxlikelihood))) {
-                if (model_var_name %in% colnames(result_maxlikelihood)) {
-                  modelVar_maxlikelihood_values <- result_maxlikelihood[, model_var_name]
-                  if (length(dates_from_files) == length(modelVar_maxlikelihood_values)) {
-                    best_run_data_for_plot <- data.frame(date = dates_from_files, value = modelVar_maxlikelihood_values)
-                  } else {
-                    message("Length mismatch for 'best run' output. Best run line not plotted.")
-                  }
-                } else {
-                  message("Model variable '", model_var_name, "' not found in 'best run' output. Best run line not plotted.")
-                }
-              } else {
-                message("'Best run' simulation output is NULL or has no column names. Best run line not plotted.")
-              }
-            }, error = function(e) {
-              message("Error during 'best run' simulation: ", e$message, ". Best run line not plotted.")
-            })
-        } else {
-            message("Best run parameter file '", actual_best_run_param_file, "' does not have the expected format (at least 3 columns). Best run line not plotted.")
-        }
-    }
-  } else {
-    if (!is.null(best_run_param_file)) message("Best run parameter file not found: ", actual_best_run_param_file, ". Best run line not plotted.")
-  }
-
+  
   if (!is.null(best_run_data_for_plot) && nrow(best_run_data_for_plot) > 0) {
     p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = best_run_line_size)
   }
 
-  if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
-
-    if (ncol(md_table) < 3) {
-      message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
-    } else {
-      # Prepare the measurement data first
-      measurements_processed <- md_table %>%
-        tibble::as_tibble() %>%
-        dplyr::mutate(
-          date = lubridate::make_date(year = .[[1]], month = .[[2]], day = .[[3]]),
-          value_md = as.numeric(.data[[measurement_data_column]])
-        ) %>%
-        dplyr::filter(!is.na(date) & !is.na(value_md)) %>%
-        dplyr::select(date, value_md)
-
-      # Create a tibble for the model's date range and join the measurements
-      md_plot_data <- tibble::tibble(date = dates_from_files) %>%
-        dplyr::left_join(measurements_processed, by = "date") %>%
-        tidyr::drop_na(value_md) # Remove dates that don't have a measurement
-
-
-      if(nrow(md_plot_data) > 0) {
-          message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
-          p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = meas_point_size, shape = 19)
-      } else {
-          message("No valid (non-NA) measurement data points found after aligning with model dates.")
-      }
-    }
-
-  } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
-    message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+  if (exists("md_plot_data") && !is.null(md_plot_data) && nrow(md_plot_data) > 0) {
+      message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
+      p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = meas_point_size, shape = 19)
+  } else {
+      message("No valid (non-NA) measurement data points found after aligning with model dates.")
   }
 
   #  Saving the plot
