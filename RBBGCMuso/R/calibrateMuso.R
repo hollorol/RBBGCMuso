@@ -413,10 +413,10 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
      # Iterate through the *names* provided in the dataVar argument
      likelihoodRMSE_list <- sapply(names(dataVar), function(key){
 
-        # --- Find Modelled Column ---
+        # Find Modelled Column 
         modelColIndex <- NA # Default to invalid index
 
-        # 1. Try using the pre-calculated index (derived from code in dataVar)
+        #    Try using the pre-calculated index (derived from code in dataVar)
         #    Check if the key exists in the names derived from dataVar codes
         #    and if the corresponding index is valid for the 'mod' data frame
         if (key %in% names(musoCodeToIndex)) {
@@ -427,7 +427,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
              }
         }
 
-        # 2. If index from code wasn't found or valid, try matching column by name
+        #   If index from code wasn't found or valid, try matching column by name
         if (is.na(modelColIndex)) {
             idx_from_name <- match(key, colnames(mod))
             # Check if match found a valid index
@@ -437,7 +437,7 @@ calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes,
             }
         }
 
-        # 3. Check if we successfully found a column index for the model output
+        #   Check if we successfully found a column index for the model output
         if (is.na(modelColIndex)) {
             warning(paste("Could not find model output column for key:", key,
                           "(tried code lookup and name matching). Skipping likelihood calculation for this variable."),
@@ -788,132 +788,85 @@ musoOptimCalib <- function(
     
     pdf(file.path(outputLoc, "DE_analysis.pdf"), width = 8, height = 6)
     
-    
-    # 1. Relative ranges plot
-    rel_ranges_df <- as.data.frame(rel_ranges)
-    rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
-    rel_ranges_df <- tidyr::pivot_longer(rel_ranges_df, cols = -iteration, 
-                                names_to = "parameter", values_to = "relative_range")
+    # Create chunks of parameters for pagination
+    n_params <- length(paramNames)
+    params_per_page <- 4
+    param_chunks <- split(paramNames, ceiling(seq_along(paramNames) / params_per_page))
 
+    # 1. Relative ranges plot
     if(saveAllNP){
-    p1 <- ggplot(rel_ranges_df, aes(x = iteration, y = relative_range, color = parameter)) +
-        geom_line(linewidth = 1) +
-        scale_y_continuous(limits = c(0, 1), name = "Relative Range (Range / Initial Range)") +
-        # Ensure integer breaks for the x-axis
-        scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
-        scale_color_viridis_d(option = "viridis", name = "Parameter") +
-        theme_minimal() +
-        theme(legend.position = "right",
-            plot.title = element_text(hjust = 0.5)) +
-        ggtitle("Parameter Range Evolution in DEoptim")
-    print(p1)
+        rel_ranges_df <- as.data.frame(rel_ranges)
+        rel_ranges_df$iteration <- seq_len(nrow(rel_ranges_df))
+        rel_ranges_df <- tidyr::pivot_longer(rel_ranges_df, cols = -iteration, 
+                                    names_to = "parameter", values_to = "relative_range")
+        
+        for (chunk in param_chunks) {
+            rel_ranges_df_subset <- rel_ranges_df[rel_ranges_df$parameter %in% chunk, ]
+            
+            p1 <- ggplot2::ggplot(rel_ranges_df_subset, ggplot2::aes(x = iteration, y = relative_range, color = parameter)) +
+                ggplot2::geom_line(linewidth = 1) +
+                ggplot2::scale_y_continuous(limits = c(0, 1), name = "Relative Range (Range / Initial Range)") +
+                ggplot2::scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
+                ggplot2::scale_color_viridis_d(option = "viridis", name = "Parameter") +
+                ggplot2::theme_minimal() +
+                ggplot2::theme(legend.position = "right",
+                    plot.title = ggplot2::element_text(hjust = 0.5)) +
+                ggplot2::ggtitle("Parameter Range Evolution in DEoptim")
+            print(p1)
+        }
     }
     
-    # 2. Per-parameter value vs. iteration plot
+    # 2. Per-parameter value vs. iteration plot 
     iter_best_long <- tidyr::pivot_longer(iter_best_plot, cols = -iteration, 
                                 names_to = "parameter", values_to = "value")
-    p2 <- ggplot(iter_best_long, aes(x = iteration, y = value, color = parameter)) +
-        geom_line(linewidth = 1) +
-        geom_point(size = 1.2) +
-        facet_wrap(~ parameter, scales = "free_y", ncol = 1) +
-        # Ensure integer breaks for the x-axis for consistency
-        scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
-        scale_y_continuous(name = "Parameter Value") +
-        scale_color_viridis_d(option = "viridis", name = "Parameter") +
-        theme_minimal() +
-        theme(legend.position = "right",
-            strip.text = element_text(size = 10),
-            plot.title = element_text(hjust = 0.5)) +
-        ggtitle("Best Parameter Values vs. Iteration") +
-        guides(color = guide_legend(override.aes = list(size = 3)))
-    print(p2)
+    
+    for (chunk in param_chunks) {
+        iter_best_long_subset <- iter_best_long[iter_best_long$parameter %in% chunk, ]
+        iter_best_long_subset$parameter <- factor(iter_best_long_subset$parameter, levels = chunk)
+        
+        p2 <- ggplot2::ggplot(iter_best_long_subset, ggplot2::aes(x = iteration, y = value, color = parameter)) +
+            ggplot2::geom_line(linewidth = 1) +
+            ggplot2::geom_point(size = 1.2) +
+            ggplot2::facet_wrap(~ parameter, scales = "free_y", ncol = 1) +
+            ggplot2::scale_x_continuous(name = "Iteration", breaks = function(x) unique(floor(pretty(x)))) +
+            ggplot2::scale_y_continuous(name = "Parameter Value") +
+            ggplot2::scale_color_viridis_d(option = "viridis", name = "Parameter") +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(legend.position = "right",
+                strip.text = ggplot2::element_text(size = 10),
+                plot.title = ggplot2::element_text(hjust = 0.5)) +
+            ggplot2::ggtitle("Best Parameter Values vs. Iteration") +
+            ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
+        print(p2)
+    }
     
     
     # 3. Histograms: first 50% vs. last 50% iterations
-    half_point <- nrow(iter_best_plot) %/% 2
+      half_point <- nrow(iter_best_plot) %/% 2
     iter_best_long$period <- ifelse(iter_best_long$iteration <= half_point, 
                                     paste0("First ", half_point, " Iterations"),
                                     paste0("Last ", nrow(iter_best_plot) - half_point, " Iterations"))
     
-    p3 <- ggplot(iter_best_long, aes(x = value, fill = period)) +
-        geom_histogram(aes(y = after_stat(count)), bins = 20, color = "black", alpha = 1, position = "stack") +
-        facet_wrap(~ parameter, scales = "free", ncol = 1) +
-        scale_x_continuous(name = "Parameter Value") +
-        # Ensure integer breaks for the y-axis (frequency)
-        scale_y_continuous(name = "Frequency", breaks = function(y) unique(floor(pretty(y)))) +
-        scale_fill_manual(values = c("coral", "skyblue"), name = "Period") +
-        theme_minimal() +
-        theme(legend.position = "right",
-            strip.text = element_text(size = 10),
-            plot.title = element_text(hjust = 0.5)) +
-        ggtitle("Histograms: First 50% vs. Last 50% Iterations") +
-        guides(fill = guide_legend(override.aes = list(alpha = 1)))
-    print(p3)
-
-
-
-    # doesn't look that good
-    # if(saveAllNP){
-    #     # 4. Scouting scatter plots 
-
-    #     # Number of parameters
-    #     n_parameters <- length(paramNames)
-
-    #     # Determine grid layout
-    #     #ncols <- ceiling(sqrt(n_parameters))
-    #     #nrows <- ceiling(n_parameters / ncols)
-
-    #     scatter_plots <- list()
-    #     for (i in seq_len(n_parameters)) {
-    #         p <- ggplot(all_data, aes(x = iteration, y = .data[[paramNames[i]]])) +
-    #             geom_point(size = 1, alpha = 0.05, color = "blue") +
-    #             scale_x_continuous(limits = c(1, max(all_data$iteration)), name = "Iteration") +
-    #             scale_y_continuous(limits = c(minValues[i], maxValues[i]), name = paste(paramNames[i])) +
-    #             labs(
-    #                 title = paste(paramNames[i])
-    #             ) +
-    #             theme_minimal()
-    #         scatter_plots[[i]] <- p
-    #     }
-
-    #     # Plot two scatter plots per page
-    #     for (i in seq(1, n_parameters, by = 2)) {
-    #         plots_to_show <- scatter_plots[i:min(i+1, n_parameters)]
-    #         gridExtra::grid.arrange(
-    #             grobs = plots_to_show,
-    #             ncol = 2,
-    #             top = grid::textGrob("DE Population Evolution Scatter Plots", gp = grid::gpar(fontsize = 20, fontface = "bold"))
-    #         )
-    #     }
-    # }
+    for (chunk in param_chunks) {
+        iter_best_long_subset <- iter_best_long[iter_best_long$parameter %in% chunk, ]
+        iter_best_long_subset$parameter <- factor(iter_best_long_subset$parameter, levels = chunk)
+        
+        p3 <- ggplot2::ggplot(iter_best_long_subset, ggplot2::aes(x = value, fill = period)) +
+            ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(count)), bins = 20, color = "black", alpha = 1, position = "stack") +
+            ggplot2::facet_wrap(~ parameter, scales = "free", ncol = 1) +
+            ggplot2::scale_x_continuous(name = "Parameter Value") +
+            ggplot2::scale_y_continuous(name = "Frequency", breaks = function(y) unique(floor(pretty(y)))) +
+            ggplot2::scale_fill_manual(values = c("coral", "skyblue"), name = "Period") +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(legend.position = "right",
+                strip.text = ggplot2::element_text(size = 10),
+                plot.title = ggplot2::element_text(hjust = 0.5)) +
+            ggplot2::ggtitle("Histograms: First 50% vs. Last 50% Iterations") +
+            ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(alpha = 1)))
+        print(p3)
+    }
 
     # 4. Density plots for each parameter
-    # for (param in paramNames) {
-    #   min_val <- min(iter_best_plot[[param]])
-    #   max_val <- max(iter_best_plot[[param]])
-    #   dens <- density(iter_best_plot[[param]])
-    #   bw <- dens$bw
-    #   n <- dens$n
-    #   p_density <- ggplot(iter_best_plot, aes_string(x = param)) +
-    #     geom_density(fill = "#0066CC", alpha = 0.6, color = "#003366") +
-    #     scale_x_continuous(labels = function(x) format(x, scientific = FALSE, trim = TRUE)) +
-    #     theme_minimal(base_size = 12) +
-    #     theme(
-    #       plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-    #       plot.subtitle = element_text(hjust = 0.5, size = 10),
-    #       axis.title = element_text(face = "bold"),
-    #       panel.grid.minor = element_blank(),
-    #       panel.grid.major = element_line(color = "gray90"),
-    #       plot.caption = element_text(hjust = 0.5, size = 8)
-    #     ) +
-    #     labs(title = param,
-    #          subtitle = paste("Min:", format(min_val, scientific = FALSE, trim = TRUE), " Max:", format(max_val, scientific = FALSE, trim = TRUE)),
-    #          x = param, y = "Density",
-    #          caption = paste("N =", n, "  Bandwidth =", format(bw, scientific = TRUE, digits = 4)))
-    #   print(p_density)
-    # }
-
-
     for (param in paramNames) {
         i <- match(param, paramNames)
         plot_xlim <- c(parameters$min[i], parameters$max[i])
@@ -923,22 +876,22 @@ musoOptimCalib <- function(
         dens <- density(iter_best_plot[[param]])
         bw <- dens$bw
         n <- dens$n
-        p_density <- ggplot(iter_best_plot, aes_string(x = param)) +
-            geom_density(fill = "#0066CC", alpha = 0.6, color = "#003366") +
-            scale_x_continuous(
+        p_density <- ggplot2::ggplot(iter_best_plot, ggplot2::aes_string(x = param)) +
+            ggplot2::geom_density(fill = "#0066CC", alpha = 0.6, color = "#003366") +
+            ggplot2::scale_x_continuous(
             labels = function(x) format(x, scientific = FALSE, trim = TRUE),
             limits = plot_xlim
             ) +
-            theme_minimal(base_size = 12) +
-            theme(
-            plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-            plot.subtitle = element_text(hjust = 0.5, size = 10),
-            axis.title = element_text(face = "bold"),
-            panel.grid.minor = element_blank(),
-            panel.grid.major = element_line(color = "gray90"),
-            plot.caption = element_text(hjust = 0.5, size = 8)
+            ggplot2::theme_minimal(base_size = 12) +
+            ggplot2::theme(
+            plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
+            plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 10),
+            axis.title = ggplot2::element_text(face = "bold"),
+            panel.grid.minor = ggplot2::element_blank(),
+            panel.grid.major = ggplot2::element_line(color = "gray90"),
+            plot.caption = ggplot2::element_text(hjust = 0.5, size = 8)
             ) +
-            labs(title = param,
+            ggplot2::labs(title = param,
                 subtitle = paste("Min:", format(min_val, scientific = FALSE, trim = TRUE), " Max:", format(max_val, scientific = FALSE, trim = TRUE)),
                 x = param, y = "Density",
                 caption = paste("N =", n, "  Bandwidth =", format(bw, scientific = TRUE, digits = 4)))
