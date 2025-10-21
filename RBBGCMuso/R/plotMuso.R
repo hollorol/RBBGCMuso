@@ -619,16 +619,35 @@ musoEnsemblePlot <- function(
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
 
-  year_starts_df <- data.frame(date = dates_from_files)
-  if (!is.null(years_to_plot)) {
-    year_starts_df <- year_starts_df %>% dplyr::filter(lubridate::year(date) %in% years_to_plot)
-  }
+  # Dynamic X-axis breaks and labels depending on years to plot
+  num_years_to_plot <- if (!is.null(years_to_plot)) length(unique(years_to_plot)) else Inf
 
-  year_starts <- seq.Date(
-    from = as.Date(format(min(year_starts_df$date, na.rm = TRUE), "%Y-01-01")),
-    to = as.Date(format(max(year_starts_df$date, na.rm = TRUE), "%Y-01-01")),
-    by = paste(year_axis_interval, "years")
-  )
+  if (num_years_to_plot == 1) {
+    message("Adjusting x-axis for single-year view: monthly breaks.")
+    x_axis_breaks <- "1 month"
+    x_axis_labels <- "%b %Y" # e.g., Jan 2022
+  } else if (num_years_to_plot %in% c(2, 3)) {
+    message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
+    x_axis_breaks <- "3 months"
+    x_axis_labels <- "%b %Y" # e.g., Jan 2022
+  } else {
+    # Default behavior for many years or all years
+    message("Adjusting x-axis for long-term view: yearly breaks.")
+    
+    # Determine the date range for the axis
+    date_range_for_axis <- data.frame(date = dates_from_files)
+    if (!is.null(years_to_plot)) {
+      date_range_for_axis <- date_range_for_axis %>% 
+        dplyr::filter(lubridate::year(date) %in% years_to_plot)
+    }
+
+    x_axis_breaks <- seq.Date(
+      from = as.Date(format(min(date_range_for_axis$date, na.rm = TRUE), "%Y-01-01")),
+      to = as.Date(format(max(date_range_for_axis$date, na.rm = TRUE), "%Y-01-01")),
+      by = paste(year_axis_interval, "years")
+    )
+    x_axis_labels <- "%Y"
+  }
 
   # Model Variable Name
   model_var_name <- tryCatch({
@@ -791,7 +810,7 @@ musoEnsemblePlot <- function(
       panel.grid.major = ggplot2::element_line(color = "grey90", linewidth = 0.3),
       panel.grid.minor = ggplot2::element_line(color = "grey95", linewidth = 0.2)
     ) +
-    ggplot2::scale_x_date(breaks = year_starts, date_labels = "%Y")
+    ggplot2::scale_x_date(breaks = x_axis_breaks, date_labels = x_axis_labels)
 
   # Plotting based on choice
   if (plot_individual_lines) {
