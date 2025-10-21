@@ -488,6 +488,10 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
 #'        a warning will be issued.
 #' @param output_plot_filename_prefix Character. Prefix for the output PNG filename.
 #'        The plot type (individual/summary) will be appended. Default "ensemble_plot".
+#' @param meas_point_size Numeric. Size of the measurement data points. Default is `2.5`.
+#' @param meadian_line_size Numeric. Size of the median line in summary plots. Default is `0.8`.
+#' @param best_run_line_size Numeric. Size of the best run line. Default is `0.6`.
+#' @param years_to_plot Numeric vector or NULL. Specific years to plot. If `NULL`, all years are plotted. Default is `NULL`, you may give c(2000,2001) etc.
 #'
 #' @return Invisibly returns the ggplot object. Saves the plot to a PNG file in `working_directory`.
 #'
@@ -521,7 +525,11 @@ musoEnsemblePlot <- function(
     best_run_param_file = "maxlikelihood_parameters.csv",
     fileToChange = "epc",
     settings = setupMuso(),
-    output_plot_filename_prefix = "ensemble_plot"
+    output_plot_filename_prefix = "ensemble_plot",
+    meas_point_size = 2.5,
+    meadian_line_size = 0.8,
+    best_run_line_size = 0.6,
+    years_to_plot = NULL
 ) {
 
   working_directory <- settings$inputLoc
@@ -613,6 +621,16 @@ musoEnsemblePlot <- function(
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
 
+
+  if (!is.null(years_to_plot) && is.numeric(years_to_plot)) {
+    message("Filtering data to include only year(s): ", paste(years_to_plot, collapse = ", "))
+    dates_from_files <- dates_from_files[lubridate::year(dates_from_files) %in% years_to_plot]
+    if (length(dates_from_files) == 0) {
+      stop("No data available for the selected year(s). Please check the 'years_to_plot' argument.")
+    }
+  }
+
+
   year_starts <- seq.Date(
     from = as.Date(format(min(dates_from_files, na.rm = TRUE), "%Y-01-01")),
     to = as.Date(format(max(dates_from_files, na.rm = TRUE), "%Y-01-01")),
@@ -703,7 +721,7 @@ musoEnsemblePlot <- function(
     message("Adding ensemble summary (ribbons and median line) to plot...")
     p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q05_value, ymax = q95_value), fill = "grey70", alpha = 0.5)
     p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q25_value, ymax = q75_value), fill = "grey50", alpha = 0.6)
-    p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = 0.8)
+    p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = meadian_line_size)
   }
 
   # Best Run Data 
@@ -756,7 +774,7 @@ musoEnsemblePlot <- function(
   }
 
   if (!is.null(best_run_data_for_plot) && nrow(best_run_data_for_plot) > 0) {
-    p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = 0.6)
+    p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = best_run_line_size)
   }
 
   #  Measurement Points 
@@ -857,7 +875,7 @@ musoEnsemblePlot <- function(
 
       if(nrow(md_plot_data) > 0) {
           message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
-          p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
+          p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = meas_point_size, shape = 19)
       } else {
           message("No valid (non-NA) measurement data points found after aligning with model dates.")
       }
