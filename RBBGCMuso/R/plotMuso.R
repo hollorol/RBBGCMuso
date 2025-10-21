@@ -611,6 +611,8 @@ musoEnsemblePlot <- function(
     warning("Some dates could not be parsed from run outputs and resulted in NA. Expected format: %d.%m.%Y")
   }
 
+  dates_from_files <- dates_from_files[!is.na(dates_from_files)]
+
   year_starts <- seq.Date(
     from = as.Date(format(min(dates_from_files, na.rm = TRUE), "%Y-01-01")),
     to = as.Date(format(max(dates_from_files, na.rm = TRUE), "%Y-01-01")),
@@ -630,7 +632,7 @@ musoEnsemblePlot <- function(
   plot_type_string <- if (plot_individual_lines) "Individual Runs" else "Ensemble Summary"
   plot_title <- paste0("Ensemble of ", model_var_name, " with measurements (", plot_type_string, ")")
 
-  # --- Combine all run data ---
+  # Combine all run data
   all_runs_data_list <- list()
   total_files <- length(csv_paths)
   message("Reading and combining data from ", total_files, " CSV files for plotting...")
@@ -758,25 +760,111 @@ musoEnsemblePlot <- function(
   }
 
   #  Measurement Points 
-  if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
-    measurement_values_for_plot <- tryCatch(as.numeric(md_table[[measurement_data_column]]), warning = function(w) {
-        message("Warning: Measurement column '", measurement_data_column, "' could not be coerced to numeric.")
-        rep(NA_real_, nrow(md_table))
-    })
+  # OLD VERSION
+  # if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
+  #   measurement_values_for_plot <- tryCatch(as.numeric(md_table[[measurement_data_column]]), warning = function(w) {
+  #       message("Warning: Measurement column '", measurement_data_column, "' could not be coerced to numeric.")
+  #       rep(NA_real_, nrow(md_table))
+  #   })
 
-    if (length(dates_from_files) == length(measurement_values_for_plot)) {
-      md_plot_data <- data.table::data.table(date = dates_from_files, value_md = measurement_values_for_plot)
-      md_plot_data <- md_plot_data[!is.na(value_md)]
+  #   if (length(dates_from_files) == length(measurement_values_for_plot)) {
+  #     md_plot_data <- data.table::data.table(date = dates_from_files, value_md = measurement_values_for_plot)
+  #     md_plot_data <- md_plot_data[!is.na(value_md)]
+  #     if(nrow(md_plot_data) > 0) {
+  #         p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
+  #     } else {
+  #         message("No valid (non-NA) measurement data points to plot for '", measurement_data_column, "'.")
+  #     }
+  #   } else {
+  #     message("Length mismatch between simulation dates and measurement data rows. Measurement points will not be plotted.")
+  #   }
+  # } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
+  #   message("Column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+  # }
+
+  # VERSION 2 ALigning measurement
+  # if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
+
+  #   if (ncol(md_table) < 3) {
+  #     message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
+  #   } else {
+  #     # Make a copy to avoid modifying the original md_table by reference
+  #     md_to_align <- data.table::copy(md_table)
+
+  #     # Robustly create a date column from the first three columns
+  #     md_to_align[, date := tryCatch({
+  #         as.Date(paste(md_to_align[[1]], md_to_align[[2]], md_to_align[[3]], sep = "-"))
+  #       }, error = function(e) {
+  #         message("Could not create valid dates from the first three columns of measurement data.")
+  #         as.Date(NA) # Return NA on failure
+  #     })]
+      
+  #     md_to_align <- md_to_align[!is.na(date)]
+
+  #     # Data Alignment via Merge 
+  #     if (nrow(md_to_align) > 0) {
+  #       model_dates_dt <- data.table::data.table(date = dates_from_files)
+
+  #       # Subset and rename for clarity and to avoid column name conflicts
+  #       md_subset <- md_to_align[, .SD, .SDcols = c("date", measurement_data_column)]
+  #       data.table::setnames(md_subset, old = measurement_data_column, new = "value_md")
+
+  #       # Align measurement data to the model's timeline using a left join
+  #       aligned_md <- merge(model_dates_dt, md_subset, by = "date", all.x = TRUE)
+
+  #       # Ensure the value column is numeric
+  #       aligned_md[, value_md := as.numeric(value_md)]
+
+  #       # Filter out NA values for plotting (these are dates with no corresponding measurement)
+  #       md_plot_data <- aligned_md[!is.na(value_md)]
+
+  #       if(nrow(md_plot_data) > 0) {
+  #           message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
+  #           p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
+  #       } else {
+  #           message("No valid (non-NA) measurement data points found after aligning with model dates.")
+  #       }
+
+  #     } else {
+  #       message("No valid dates could be constructed from measurement data to perform alignment.")
+  #     }
+  #   }
+
+  # } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
+  #   message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+  # }
+
+  if (nrow(md_table) > 0 && measurement_data_column %in% names(md_table)) {
+
+    if (ncol(md_table) < 3) {
+      message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
+    } else {
+      # Prepare the measurement data first
+      measurements_processed <- md_table %>%
+        tibble::as_tibble() %>%
+        dplyr::mutate(
+          date = lubridate::make_date(year = .[[1]], month = .[[2]], day = .[[3]]),
+          value_md = as.numeric(.data[[measurement_data_column]])
+        ) %>%
+        dplyr::filter(!is.na(date) & !is.na(value_md)) %>%
+        dplyr::select(date, value_md)
+
+      # Create a tibble for the model's date range and join the measurements
+      md_plot_data <- tibble::tibble(date = dates_from_files) %>%
+        dplyr::left_join(measurements_processed, by = "date") %>%
+        tidyr::drop_na(value_md) # Remove dates that don't have a measurement
+
+
       if(nrow(md_plot_data) > 0) {
+          message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
           p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = 2.5, shape = 19)
       } else {
-          message("No valid (non-NA) measurement data points to plot for '", measurement_data_column, "'.")
+          message("No valid (non-NA) measurement data points found after aligning with model dates.")
       }
-    } else {
-      message("Length mismatch between simulation dates and measurement data rows. Measurement points will not be plotted.")
     }
+
   } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
-    message("Column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
+    message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
   }
 
   #  Saving the plot
