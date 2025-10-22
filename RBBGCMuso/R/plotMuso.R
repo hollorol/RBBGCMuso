@@ -513,6 +513,7 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
 #' @importFrom lubridate year month day
 #' @importFrom progress progress_bar
 #' @importFrom grDevices dev.off
+
 musoEnsemblePlot <- function(
     run_output_subfolder = "thread",
     measurement_data,
@@ -526,9 +527,204 @@ musoEnsemblePlot <- function(
     output_plot_filename_prefix = "ensemble_plot",
     years_to_plot = NULL,
     meas_point_size = 2.5,
-    meadian_line_size = 0.8,
+    median_line_size = 0.8,
     best_run_line_size = 0.6
 ) {
+  
+  # --- UPGRADE: Helper Function 1: Date Range Parser ---
+  # This function parses the new `years_to_plot` format and assigns plot groups
+  # to all available dates.
+  parse_and_group_dates <- function(years_to_plot, all_available_dates) {
+    
+    
+    # Case 1: NULL input, plot everything in one group
+    if (is.null(years_to_plot)) {
+      message("`years_to_plot` is NULL. All dates will be plotted in a single group.")
+      return(data.table::data.table(date = all_available_dates, plot_group = 1))
+    }
+    
+    # Standardize input to a list of ranges
+    range_list_input <- list()
+    if (is.numeric(years_to_plot)) {
+      # Handle single vector c(2022) or c(2022.01, 2022.11)
+      if (all(years_to_plot == floor(years_to_plot))) {
+        # It's a list of whole years, e.g., c(2021, 2022)
+        message("Interpreting numeric input as a list of whole years.")
+        range_list_input <- lapply(years_to_plot, function(y) c(y, y))
+      } else {
+        # It's a single range, e.g., c(2022.01, 2022.11) or c(2022.01)
+        message("Interpreting numeric input as a single date range.")
+        range_list_input <- list(years_to_plot)
+      }
+    } else if (is.list(years_to_plot)) {
+      # It's already in the list format, e.g., list(c(2021.01, 2022.04), c(2024.01, 2025.11))
+      message("Interpreting input as a list of date ranges.")
+      range_list_input <- years_to_plot
+    } else {
+      stop("`years_to_plot` must be NULL, a numeric vector, or a list.")
+    }
+    
+    # Now, `range_list_input` is a list, e.g., list(c(2022), c(2023.01, 2023.05))
+    parsed_ranges <- list()
+    
+    for (i in seq_along(range_list_input)) {
+      range_vec <- range_list_input[[i]]
+      
+      if (length(range_vec) == 1) {
+        # Case: c(2022) or c(2022.01)
+        val <- range_vec[1]
+        year <- floor(val)
+        # Per user request, c(2022.01) is equivalent to c(2022) -> plot whole year
+        start_date <- as.Date(paste0(year, "-01-01"))
+        end_date <- as.Date(paste0(year, "-12-31"))
+        
+      } else if (length(range_vec) == 2) {
+        # Case: c(2022.01, 2022.11) or c(2022, 2023)
+        val_start <- range_vec[1]
+        val_end <- range_vec[2]
+        
+        year_start <- floor(val_start)
+        month_start <- round((val_start - year_start) * 100)
+        
+        year_end <- floor(val_end)
+        month_end <- round((val_end - year_end) * 100)
+        
+        if (month_start == 0) month_start <- 1 # 2022.0 -> 2022.01
+        if (month_end == 0) month_end <- 12   # 2022.0 -> 2022.12
+        
+        start_date <- as.Date(paste(year_start, month_start, 1, sep = "-"))
+        # Get last day of end month
+        end_date <- lubridate::ceiling_date(as.Date(paste(year_end, month_end, 1, sep = "-")), "month") - lubridate::days(1)
+        
+      } else {
+        warning(paste("Range element", i, "has", length(range_vec), "items. Expected 1 or 2. Skipping."))
+        next
+      }
+      
+      parsed_ranges[[i]] <- data.frame(start = start_date, end = end_date)
+    }
+    
+    if (length(parsed_ranges) == 0) {
+      warning("No valid date ranges were parsed from `years_to_plot`. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    # Bind, sort, and merge overlapping ranges
+    all_ranges_df <- dplyr::bind_rows(parsed_ranges)
+    all_ranges_df <- all_ranges_df[order(all_ranges_df$start), ]
+    
+    merged_ranges_list <- list()
+    if (nrow(all_ranges_df) > 0) {
+      current_range <- all_ranges_df[1, ]
+      
+      if (nrow(all_ranges_df) > 1) {
+        for (j in 2:nrow(all_ranges_df)) {
+          next_range <- all_ranges_df[j, ]
+          
+          # Check for overlap or contiguity (gap <= 1 day)
+          if (next_range$start <= (current_range$end + lubridate::days(1))) {
+            # Merge
+            current_range$end <- max(current_range$end, next_range$end)
+          } else {
+            # Save old range, start new one
+            merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+            current_range <- next_range
+          }
+        }
+      }
+      # Add the last range
+      merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+    }
+    
+    if (length(merged_ranges_list) == 0) {
+      warning("No valid date ranges remained after merging. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    message(paste("Identified", length(merged_ranges_list), "non-continuous plot group(s)."))
+    
+    # Convert list to data.table for foverlaps
+    merged_dt <- data.table::as.data.table(dplyr::bind_rows(merged_ranges_list))
+    merged_dt[, plot_group := .I] # Assign group IDs (1, 2, 3...)
+    
+    # Create data.table of all dates
+    all_dates_dt <- data.table::data.table(date_start = all_available_dates, date_end = all_available_dates)
+    
+    # Set keys for foverlaps
+    data.table::setkey(all_dates_dt, date_start, date_end)
+    data.table::setkey(merged_dt, start, end)
+    
+    # Find overlaps
+    date_group_mapping <- data.table::foverlaps(
+      all_dates_dt, 
+      merged_dt, 
+      by.x = c("date_start", "date_end"), 
+      by.y = c("start", "end"), 
+      nomatch = NA_integer_
+    )
+    
+    # Select and rename
+    final_mapping <- date_group_mapping[, .(date = date_start, plot_group)]
+    
+    return(final_mapping)
+  }
+  
+  # --- UPGRADE: Helper Function 2: Dynamic Axis Breaks ---
+  # This function calculates the best x-axis breaks based on the
+  # date range of the *current* plot group.
+  calculate_axis_breaks <- function(date_vector, year_axis_interval_base = 2) {
+    
+    if (length(date_vector) == 0) {
+      return(list(breaks = "1 year", labels = "%Y"))
+    }
+    
+    min_date <- min(date_vector, na.rm = TRUE)
+    max_date <- max(date_vector, na.rm = TRUE)
+    num_days <- as.numeric(difftime(max_date, min_date, units = "days"))
+    
+    # ~1 year or less
+    if (num_days <= 400) {
+      message("Adjusting x-axis for single-year view: monthly breaks.")
+      x_axis_breaks <- "1 month"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # ~1-3 years
+    else if (num_days <= (365 * 3 + 1)) {
+      message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
+      x_axis_breaks <- "3 months"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # More than 3 years
+    else {
+      message("Adjusting x-axis for long-term view: yearly breaks.")
+      
+      start_year <- lubridate::year(min_date)
+      end_year <- lubridate::year(max_date)
+      
+      # Adjust interval if range is too large
+      num_years <- end_year - start_year + 1
+      year_interval <- if (num_years > 20) floor(num_years / 10) else year_axis_interval_base
+      
+      x_axis_breaks <- seq.Date(
+        from = as.Date(paste0(start_year, "-01-01")),
+        to = as.Date(paste0(end_year, "-12-31")),
+        by = paste(year_interval, "years")
+      )
+      x_axis_labels <- "%Y"
+    }
+    
+    return(list(breaks = x_axis_breaks, labels = x_axis_labels))
+  }
+  
+  # --- Start of Original Function ---
+  
+  # UPGRADE: Check for required packages at the start
+  if (!requireNamespace("data.table", quietly = TRUE)) stop("Package 'data.table' is required. Please install it.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required. Please install it.")
+  if (!requireNamespace("lubridate", quietly = TRUE)) stop("Package 'lubridate' is required. Please install it.")
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required. Please install it.")
+  if (!requireNamespace("progress", quietly = TRUE)) stop("Package 'progress' is required. Please install it.")
+  
 
   working_directory <- settings$inputLoc
   #Validate Inputs
@@ -584,7 +780,6 @@ musoEnsemblePlot <- function(
     recursive = TRUE,
     full.names = TRUE
   )
-  # Further filter to ensure they are from 'calib' subdirectories within specific thread folders
   csv_paths <- csv_paths[grepl(paste0(run_output_subfolder, "_[^/]+/calib/.*\\.csv$"), csv_paths)]
 
 
@@ -618,36 +813,10 @@ musoEnsemblePlot <- function(
   }
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
-
-  # Dynamic X-axis breaks and labels depending on years to plot
-  num_years_to_plot <- if (!is.null(years_to_plot)) length(unique(years_to_plot)) else Inf
-
-  if (num_years_to_plot == 1) {
-    message("Adjusting x-axis for single-year view: monthly breaks.")
-    x_axis_breaks <- "1 month"
-    x_axis_labels <- "%b %Y" # e.g., Jan 2022
-  } else if (num_years_to_plot %in% c(2, 3)) {
-    message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
-    x_axis_breaks <- "3 months"
-    x_axis_labels <- "%b %Y" # e.g., Jan 2022
-  } else {
-    # Default behavior for many years or all years
-    message("Adjusting x-axis for long-term view: yearly breaks.")
-    
-    # Determine the date range for the axis
-    date_range_for_axis <- data.frame(date = dates_from_files)
-    if (!is.null(years_to_plot)) {
-      date_range_for_axis <- date_range_for_axis %>% 
-        dplyr::filter(lubridate::year(date) %in% years_to_plot)
-    }
-
-    x_axis_breaks <- seq.Date(
-      from = as.Date(format(min(date_range_for_axis$date, na.rm = TRUE), "%Y-01-01")),
-      to = as.Date(format(max(date_range_for_axis$date, na.rm = TRUE), "%Y-01-01")),
-      by = paste(year_axis_interval, "years")
-    )
-    x_axis_labels <- "%Y"
-  }
+  
+  # --- UPGRADE: Use the new helper function to get date-to-group mappings
+  # This replaces the old, simple x-axis break logic.
+  date_group_mapping <- parse_and_group_dates(years_to_plot, dates_from_files)
 
   # Model Variable Name
   model_var_name <- tryCatch({
@@ -686,9 +855,16 @@ musoEnsemblePlot <- function(
 
     if (!is.null(current_data) && model_var_name %in% names(current_data) && nrow(current_data) == length(original_dates)) {
       current_data[, date := original_dates]
+      
+      # UPGRADE: Merge the plot group info
+      current_data <- merge(current_data, date_group_mapping, by = "date")
+      
       current_data[, run_id := paste0("run_", i)]
       data.table::setnames(current_data, old = model_var_name, new = "value")
-      all_runs_data_list[[i]] <- current_data[, .(date, run_id, value)]
+      
+      # UPGRADE: Select the new plot_group column
+      all_runs_data_list[[i]] <- current_data[, .(date, run_id, value, plot_group)]
+      
     } else if (!is.null(current_data) && nrow(current_data) != length(original_dates)) {
       message("\nWarning: File ", file, " has ", nrow(current_data), " rows, but expected ", length(original_dates), ". Skipping.")
     } else if (!is.null(current_data) && !(model_var_name %in% names(current_data))) {
@@ -726,6 +902,10 @@ musoEnsemblePlot <- function(
                   modelVar_maxlikelihood_values <- result_maxlikelihood[, model_var_name]
                   if (length(original_dates) == length(modelVar_maxlikelihood_values)) {
                     best_run_data_for_plot <- data.frame(date = original_dates, value = modelVar_maxlikelihood_values)
+                    
+                    # UPGRADE: Merge plot group info into best_run data
+                    best_run_data_for_plot <- merge(best_run_data_for_plot, date_group_mapping, by = "date")
+                    
                   } else {
                     message("Length mismatch for 'best run' output. Best run line not plotted.")
                   }
@@ -752,7 +932,6 @@ musoEnsemblePlot <- function(
     if (ncol(md_table) < 3) {
       message("Measurement data must have at least 3 columns (year, month, day) to construct dates. Points will not be plotted.")
     } else {
-      # Prepare the measurement data first
       measurements_processed <- md_table %>%
         tibble::as_tibble() %>%
         dplyr::mutate(
@@ -762,119 +941,185 @@ musoEnsemblePlot <- function(
         dplyr::filter(!is.na(date) & !is.na(value_md)) %>%
         dplyr::select(date, value_md)
 
-      # Create a tibble for the model's date range and join the measurements
       md_plot_data <- tibble::tibble(date = original_dates) %>%
         dplyr::left_join(measurements_processed, by = "date") %>%
-        tidyr::drop_na(value_md) # Remove dates that don't have a measurement
+        tidyr::drop_na(value_md)
+        
+      # UPGRADE: Merge plot group info into measurement data
+      if (exists("md_plot_data") && !is.null(md_plot_data) && nrow(md_plot_data) > 0) {
+        md_plot_data <- dplyr::left_join(md_plot_data, date_group_mapping, by = "date")
+      }
     }
 
   } else if (nrow(md_table) > 0 && !(measurement_data_column %in% names(md_table))) {
     message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
   }
   
-  # Centralized filtering of all data frames based on years_to_plot 
-  if (!is.null(years_to_plot) && is.numeric(years_to_plot)) {
-    message("Filtering all plot data to include only year(s): ", paste(years_to_plot, collapse = ", "))
-
-    # Filter main ensemble data (data.table syntax)
-    all_runs_data <- all_runs_data[lubridate::year(date) %in% years_to_plot]
-
-    # Filter best run data if it exists (it's a data.frame)
-    if (!is.null(best_run_data_for_plot)) {
-      best_run_data_for_plot <- best_run_data_for_plot[lubridate::year(best_run_data_for_plot$date) %in% years_to_plot, ]
-    }
-
-    # Filter measurement data if it exists
-    if (exists("md_plot_data") && !is.null(md_plot_data) && nrow(md_plot_data) > 0) {
-      md_plot_data <- md_plot_data %>%
-        dplyr::filter(lubridate::year(date) %in% years_to_plot)
-    }
-  }
-
-  if (nrow(all_runs_data) == 0) {
-    stop("No valid run data could be processed or remained after filtering for the selected year(s). Aborting.")
-  }
-
-  # Initialize ggplot
-  p <- ggplot2::ggplot() +
-    ggplot2::theme_minimal(base_size = 12) +
-    ggplot2::labs(x = "Date", y = model_var_name, title = plot_title) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 0.5, size = ggplot2::rel(1.2)),
-      axis.text = ggplot2::element_text(size = ggplot2::rel(0.9)),
-      axis.title = ggplot2::element_text(size = ggplot2::rel(1)),
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
-      plot.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
-      panel.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
-      axis.line = ggplot2::element_line(color = "black", linewidth = 0.5),
-      panel.grid.major = ggplot2::element_line(color = "grey90", linewidth = 0.3),
-      panel.grid.minor = ggplot2::element_line(color = "grey95", linewidth = 0.2)
-    ) +
-    ggplot2::scale_x_date(breaks = x_axis_breaks, date_labels = x_axis_labels)
-
-  # Plotting based on choice
-  if (plot_individual_lines) {
-    message("Adding individual ensemble member lines to plot...")
-    p <- p + ggplot2::geom_line(data = all_runs_data, ggplot2::aes(x = date, y = value, group = run_id), color = "grey40", alpha = 0.05, linewidth = 0.15)
-  } else {
-    message("Calculating ensemble summaries (median, quantiles)...")
-    ensemble_summary <- all_runs_data[, .(
-      median_value = stats::median(value, na.rm = TRUE),
-      q25_value = stats::quantile(value, 0.25, na.rm = TRUE),
-      q75_value = stats::quantile(value, 0.75, na.rm = TRUE),
-      q05_value = stats::quantile(value, 0.05, na.rm = TRUE),
-      q95_value = stats::quantile(value, 0.95, na.rm = TRUE)
-    ), by = date]
-
-    message("Adding ensemble summary (ribbons and median line) to plot...")
-    p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q05_value, ymax = q95_value), fill = "grey70", alpha = 0.5)
-    p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q25_value, ymax = q75_value), fill = "grey50", alpha = 0.6)
-    p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = meadian_line_size)
-  }
+  # --- UPGRADE: Centralized filtering based on plot_group ---
+  # This replaces the old `if (!is.null(years_to_plot)...)` block
   
-  if (!is.null(best_run_data_for_plot) && nrow(best_run_data_for_plot) > 0) {
-    p <- p + ggplot2::geom_line(data = best_run_data_for_plot, ggplot2::aes(x = date, y = value), color = "red", linewidth = best_run_line_size)
+  message("Filtering all data based on parsed date range(s)...")
+  
+  all_runs_data <- all_runs_data[!is.na(plot_group)]
+
+  if (!is.null(best_run_data_for_plot)) {
+    best_run_data_for_plot <- best_run_data_for_plot[!is.na(best_run_data_for_plot$plot_group), ]
   }
 
   if (exists("md_plot_data") && !is.null(md_plot_data) && nrow(md_plot_data) > 0) {
-      message("Plotting ", nrow(md_plot_data), " aligned measurement points.")
-      p <- p + ggplot2::geom_point(data = md_plot_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = meas_point_size, shape = 19)
-  } else {
-      message("No valid (non-NA) measurement data points found after aligning with model dates.")
+    md_plot_data <- md_plot_data %>%
+      dplyr::filter(!is.na(plot_group))
+  }
+  
+  # --- End of old filtering block replacement ---
+
+  if (nrow(all_runs_data) == 0) {
+    stop("No valid run data could be processed or remained after filtering for the selected date range(s). Aborting.")
   }
 
-  #  Saving the plot
-  filename_suffix_plot <- if (plot_individual_lines) "individual_lines" else "ensemble_summary"
-  final_plot_filename <- file.path(working_directory, paste0(output_plot_filename_prefix, "_", filename_suffix_plot, ".png"))
-  message("\nSaving the plot to ", final_plot_filename, "...")
+  # --- UPGRADE: New Plotting and Saving Loop ---
+  # This replaces the entire single-plot `ggplot` and `ggsave` block.
+  
+  plot_list <- list()
+  unique_groups <- sort(unique(all_runs_data$plot_group))
+  num_plots <- length(unique_groups)
+  
+  message(paste("Generating", num_plots, "plot(s) based on date groups."))
+  
+  for (i in seq_along(unique_groups)) {
+    current_group <- unique_groups[i]
+    
+    # Filter data for the current group
+    group_runs_data <- all_runs_data[plot_group == current_group]
+    group_best_run_data <- if (!is.null(best_run_data_for_plot)) best_run_data_for_plot[best_run_data_for_plot$plot_group == current_group, ] else NULL
+    group_md_data <- if (exists("md_plot_data") && !is.null(md_plot_data)) md_plot_data[md_plot_data$plot_group == current_group, ] else NULL
+    
+    if (nrow(group_runs_data) == 0) {
+       message(paste("Skipping plot group", current_group, "as it contains no model data."))
+       next
+    }
 
-  if (requireNamespace("ragg", quietly = TRUE)) {
-    message("Using ragg package for PNG saving.")
+    plot_title_suffix <- if (num_plots > 1) paste(" - (Part", i, "of", num_plots, ")") else ""
+    current_plot_title <- paste0(plot_title, plot_title_suffix)
+    
+    # Calculate dynamic axis breaks for this specific group
+    axis_params <- calculate_axis_breaks(group_runs_data$date, year_axis_interval)
+    
+    # Initialize ggplot
+    p <- ggplot2::ggplot() +
+      ggplot2::theme_minimal(base_size = 12) +
+      ggplot2::labs(x = "Date", y = model_var_name, title = current_plot_title) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, size = ggplot2::rel(1.2)),
+        axis.text = ggplot2::element_text(size = ggplot2::rel(0.9)),
+        axis.title = ggplot2::element_text(size = ggplot2::rel(1)),
+        axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+        plot.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
+        panel.background = ggplot2::element_rect(fill = "#F5F5F5", color = NA),
+        axis.line = ggplot2::element_line(color = "black", linewidth = 0.5),
+        panel.grid.major = ggplot2::element_line(color = "grey90", linewidth = 0.3),
+        panel.grid.minor = ggplot2::element_line(color = "grey95", linewidth = 0.2)
+      ) +
+      ggplot2::scale_x_date(breaks = axis_params$breaks, date_labels = axis_params$labels,
+                            limits = c(min(group_runs_data$date), max(group_runs_data$date))) # Set limits for this plot
+
+    # Plotting based on choice
+    if (plot_individual_lines) {
+      message(paste("Adding individual lines for plot group", i, "..."))
+      p <- p + ggplot2::geom_line(data = group_runs_data, ggplot2::aes(x = date, y = value, group = run_id), color = "grey40", alpha = 0.05, linewidth = 0.15)
+    } else {
+      message(paste("Calculating summaries for plot group", i, "..."))
+      ensemble_summary <- group_runs_data[, .(
+        median_value = stats::median(value, na.rm = TRUE),
+        q25_value = stats::quantile(value, 0.25, na.rm = TRUE),
+        q75_value = stats::quantile(value, 0.75, na.rm = TRUE),
+        q05_value = stats::quantile(value, 0.05, na.rm = TRUE),
+        q95_value = stats::quantile(value, 0.95, na.rm = TRUE)
+      ), by = date]
+      
+      p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q05_value, ymax = q95_value), fill = "grey70", alpha = 0.5)
+      p <- p + ggplot2::geom_ribbon(data = ensemble_summary, ggplot2::aes(x = date, ymin = q25_value, ymax = q75_value), fill = "grey50", alpha = 0.6)
+      p <- p + ggplot2::geom_line(data = ensemble_summary, ggplot2::aes(x = date, y = median_value), color = "steelblue", linewidth = median_line_size)
+    }
+    
+    if (!is.null(group_best_run_data) && nrow(group_best_run_data) > 0) {
+      p <- p + ggplot2::geom_line(data = group_best_run_data, ggplot2::aes(x = date, y = value), color = "red", linewidth = best_run_line_size)
+    }
+
+    if (!is.null(group_md_data) && nrow(group_md_data) > 0) {
+        message(paste("Plotting", nrow(group_md_data), "measurement points for group", i, "."))
+        p <- p + ggplot2::geom_point(data = group_md_data, ggplot2::aes(x = date, y = value_md), color = "blue", size = meas_point_size, shape = 19)
+    } else {
+        message(paste("No valid measurement data for group", i, "."))
+    }
+    
+    plot_list[[i]] <- p
+  } # End of for loop
+  
+  # Now, save the plots
+  filename_suffix_plot <- if (plot_individual_lines) "individual_lines" else "ensemble_summary"
+  final_plot_filename_base <- file.path(working_directory, paste0(output_plot_filename_prefix, "_", filename_suffix_plot))
+  
+  if (length(plot_list) > 1) {
+    # Save as multi-page PDF
+    final_pdf_filename <- paste0(final_plot_filename_base, ".pdf")
+    message("\nSaving ", length(plot_list), " separate plots to multi-page PDF: ", final_pdf_filename, "...")
+    
     tryCatch({
-      ragg::agg_png(
-        filename = final_plot_filename,
-        width = 10, height = 6, units = "in", res = 300, background = "#F5F5F5"
-      )
-      print(p) # Explicitly print the ggplot object
+      grDevices::pdf(file = final_pdf_filename, width = 11, height = 7)
+      for (p_to_print in plot_list) {
+        print(p_to_print) # Explicitly print each plot to the PDF device
+      }
       grDevices::dev.off()
-      message("Plot saved successfully using ragg.")
+      message("Plot PDF saved successfully.")
+      print(paste("Plots saved as", basename(final_pdf_filename), "in", working_directory))
+      return(invisible(plot_list)) # Return the list of plots
     }, error = function(e) {
-      message("Error using ragg: ", e$message, ". Falling back to ggsave.")
+      message("Error saving PDF: ", e$message)
+      if(names(grDevices::dev.cur()) != "null device") grDevices::dev.off() # Ensure device is closed on error
+      return(invisible(plot_list)) # Still return the plots
+    })
+    
+  } else if (length(plot_list) == 1) {
+    # Save as single PNG
+    final_png_filename <- paste0(final_plot_filename_base, ".png")
+    message("\nSaving single plot to PNG: ", final_png_filename, "...")
+    
+    p_to_save <- plot_list[[1]]
+
+    if (requireNamespace("ragg", quietly = TRUE)) {
+      message("Using ragg package for PNG saving.")
+      tryCatch({
+        ragg::agg_png(
+          filename = final_png_filename,
+          width = 10, height = 6, units = "in", res = 300, background = "#F5F5F5"
+        )
+        print(p_to_save)
+        grDevices::dev.off()
+        message("Plot saved successfully using ragg.")
+      }, error = function(e) {
+        message("Error using ragg: ", e$message, ". Falling back to ggsave.")
+        ggplot2::ggsave(
+          filename = final_png_filename, plot = p_to_save,
+          width = 10, height = 6, dpi = 300, bg = "#F5F5F5"
+        )
+        message("Plot saved successfully using ggsave as fallback.")
+      })
+    } else {
+      message("ragg package not found. Falling back to ggsave.")
       ggplot2::ggsave(
-        filename = final_plot_filename, plot = p,
+        filename = final_png_filename, plot = p_to_save,
         width = 10, height = 6, dpi = 300, bg = "#F5F5F5"
       )
-      message("Plot saved successfully using ggsave as fallback.")
-    })
+      message("Plot saved successfully using ggsave.")
+    }
+    
+    print(paste("Plot saved as", basename(final_png_filename), "in", working_directory))
+    return(invisible(p_to_save)) # Return the single plot
   } else {
-    message("ragg package not found. Falling back to ggsave.")
-    ggplot2::ggsave(
-      filename = final_plot_filename, plot = p,
-      width = 10, height = 6, dpi = 300, bg = "#F5F5F5"
-    )
-    message("Plot saved successfully using ggsave.")
+    message("No plots were generated. Nothing to save.")
+    return(invisible(NULL))
   }
-
-  print(paste("Plot saved as", basename(final_plot_filename), "in", working_directory))
-  return(invisible(p)) # Return the ggplot object invisibly
+  # --- End of new plotting/saving block ---
+  
 }
