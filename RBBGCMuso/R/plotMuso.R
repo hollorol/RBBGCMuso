@@ -489,9 +489,9 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
 #' @param output_plot_filename_prefix Character. Prefix for the output PNG filename.
 #'        The plot type (individual/summary) will be appended. Default "ensemble_plot".
 #' @param meas_point_size Numeric. Size of the measurement data points. Default is `2.5`.
-#' @param meadian_line_size Numeric. Size of the median line in summary plots. Default is `0.8`.
+#' @param median_line_size Numeric. Size of the median line in summary plots. Default is `0.8`.
 #' @param best_run_line_size Numeric. Size of the best run line. Default is `0.6`.
-#' @param years_to_plot Numeric vector or NULL. Specific years to plot. If `NULL`, all years are plotted. Default is `NULL`, you may give c(2000,2001) etc.
+#' @param years_to_plot NULL, Numeric vector, or List of Numeric vectors. Examples: c(2022), c(2022.01, 2022.11), list(c(2021.01, 2022.04), c(2024.01, 2025.11)). The decimal places represent months. If NULL, all available dates are plotted.
 #'
 #' @return Invisibly returns the ggplot object. Saves the plot to a PNG file in `working_directory`.
 #'

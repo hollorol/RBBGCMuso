@@ -14,7 +14,11 @@ musoEnsemblePlot(
   best_run_param_file = "maxlikelihood_parameters.csv",
   fileToChange = "epc",
   settings = setupMuso(),
-  output_plot_filename_prefix = "ensemble_plot"
+  output_plot_filename_prefix = "ensemble_plot",
+  years_to_plot = NULL,
+  meas_point_size = 2.5,
+  median_line_size = 0.8,
+  best_run_line_size = 0.6
 )
 }
 \arguments{
@@ -50,6 +54,14 @@ a warning will be issued.}
 
 \item{output_plot_filename_prefix}{Character. Prefix for the output PNG filename.
 The plot type (individual/summary) will be appended. Default "ensemble_plot".}
+
+\item{years_to_plot}{NULL, Numeric vector, or List of Numeric vectors. Examples: c(2022), c(2022.01, 2022.11), list(c(2021.01, 2022.04), c(2024.01, 2025.11)). The decimal places represent months. If NULL, all available dates are plotted.}
+
+\item{meas_point_size}{Numeric. Size of the measurement data points. Default is `2.5`.}
+
+\item{median_line_size}{Numeric. Size of the median line in summary plots. Default is `0.8`.}
+
+\item{best_run_line_size}{Numeric. Size of the best run line. Default is `0.6`.}
 }
 \value{
 Invisibly returns the ggplot object. Saves the plot to a PNG file in `working_directory`.

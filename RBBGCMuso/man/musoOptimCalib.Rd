@@ -40,7 +40,7 @@ Base is 0.8 so 80 percent of the data will be used for training.}
 
 \item{saveAllNP}{saves all the population results as the calibration runs and writes it into a csv later}
 
-\item{parallel}{option to perform the optimization method in a parallel way for better speed}
+\item{parallel}{option to perform the optimization method in a parallel way for better speed. A cluster will be created.}
 
 \item{cluster}{for better perfomance in case you call this function in a loop this option allows the use of already created clusters. If given the musoOptimCalib function won't create and destroy clusters at each call.}
 

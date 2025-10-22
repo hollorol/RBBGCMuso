@@ -653,15 +653,20 @@ musoOptimCalib <- function(
     )
 
     # plot the random forest result for the user for inspection
-    plot(predict(randomForest,dataTesting)$predictions,dataTesting[,likelihoodCol],
-    main = "Random Forest Predictions vs Observed Likelihood",
-    xlab = "Predicted Likelihood",
-    ylab = "Observed Likelihood",
-    col = "blue",
-    pch = 19)
+    tryCatch({
+        plot(predict(randomForest,dataTesting)$predictions,dataTesting[,likelihoodCol],
+        main = "Random Forest Predictions vs Observed Likelihood",
+        xlab = "Predicted Likelihood",
+        ylab = "Observed Likelihood",
+        col = "blue",
+        pch = 19)
 
-    # add a line for the perfect prediction
-    abline(a=0, b=1, col="red", lwd=2)
+        # add a line for the perfect prediction
+        abline(a=0, b=1, col="red", lwd=2)
+    }, error = function(e) {
+
+        warning("Could not generate RF prediction plot. Error was: ", e$message)
+    })
 
     correlation <- cor(predict(randomForest,dataTesting)$predictions, dataTesting[,likelihoodCol], use="complete.obs")
     rmse <- sqrt(mean((predict(randomForest,dataTesting)$predictions - dataTesting[,likelihoodCol])^2, na.rm=TRUE))

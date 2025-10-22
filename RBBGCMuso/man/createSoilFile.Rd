@@ -11,6 +11,8 @@ createSoilFile(
   method = "constant",
   apiURL,
   getVWC = FALSE,
+  getSOC = TRUE,
+  getBD = FALSE,
   template = system.file("examples/hhs/hhs_muso7.soi", package = "RBBGCMuso")
 )
 }
