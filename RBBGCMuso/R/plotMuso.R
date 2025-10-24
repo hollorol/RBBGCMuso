@@ -531,7 +531,7 @@ musoEnsemblePlot <- function(
     best_run_line_size = 0.6
 ) {
   
-  # --- UPGRADE: Helper Function 1: Date Range Parser ---
+
   # This function parses the new `years_to_plot` format and assigns plot groups
   # to all available dates.
   parse_and_group_dates <- function(years_to_plot, all_available_dates) {
@@ -669,9 +669,8 @@ musoEnsemblePlot <- function(
     return(final_mapping)
   }
   
-  # --- UPGRADE: Helper Function 2: Dynamic Axis Breaks ---
-  # This function calculates the best x-axis breaks based on the
-  # date range of the *current* plot group.
+
+  # This function calculates the best x-axis breaks based on thedate range of the *current* plot group
   calculate_axis_breaks <- function(date_vector, year_axis_interval_base = 2) {
     
     if (length(date_vector) == 0) {
@@ -715,16 +714,6 @@ musoEnsemblePlot <- function(
     
     return(list(breaks = x_axis_breaks, labels = x_axis_labels))
   }
-  
-  # --- Start of Original Function ---
-  
-  # UPGRADE: Check for required packages at the start
-  if (!requireNamespace("data.table", quietly = TRUE)) stop("Package 'data.table' is required. Please install it.")
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Package 'dplyr' is required. Please install it.")
-  if (!requireNamespace("lubridate", quietly = TRUE)) stop("Package 'lubridate' is required. Please install it.")
-  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required. Please install it.")
-  if (!requireNamespace("progress", quietly = TRUE)) stop("Package 'progress' is required. Please install it.")
-  
 
   working_directory <- settings$inputLoc
   #Validate Inputs
@@ -814,8 +803,6 @@ musoEnsemblePlot <- function(
 
   dates_from_files <- dates_from_files[!is.na(dates_from_files)]
   
-  # --- UPGRADE: Use the new helper function to get date-to-group mappings
-  # This replaces the old, simple x-axis break logic.
   date_group_mapping <- parse_and_group_dates(years_to_plot, dates_from_files)
 
   # Model Variable Name
@@ -856,13 +843,13 @@ musoEnsemblePlot <- function(
     if (!is.null(current_data) && model_var_name %in% names(current_data) && nrow(current_data) == length(original_dates)) {
       current_data[, date := original_dates]
       
-      # UPGRADE: Merge the plot group info
+      #  Merge the plot group info
       current_data <- merge(current_data, date_group_mapping, by = "date")
       
       current_data[, run_id := paste0("run_", i)]
       data.table::setnames(current_data, old = model_var_name, new = "value")
       
-      # UPGRADE: Select the new plot_group column
+      # Select the new plot_group column
       all_runs_data_list[[i]] <- current_data[, .(date, run_id, value, plot_group)]
       
     } else if (!is.null(current_data) && nrow(current_data) != length(original_dates)) {
@@ -903,7 +890,7 @@ musoEnsemblePlot <- function(
                   if (length(original_dates) == length(modelVar_maxlikelihood_values)) {
                     best_run_data_for_plot <- data.frame(date = original_dates, value = modelVar_maxlikelihood_values)
                     
-                    # UPGRADE: Merge plot group info into best_run data
+                    #  Merge plot group info into best_run data
                     best_run_data_for_plot <- merge(best_run_data_for_plot, date_group_mapping, by = "date")
                     
                   } else {
@@ -955,8 +942,7 @@ musoEnsemblePlot <- function(
     message("Value column '", measurement_data_column, "' not found in measurement data. Measurement points will not be plotted.")
   }
   
-  # --- UPGRADE: Centralized filtering based on plot_group ---
-  # This replaces the old `if (!is.null(years_to_plot)...)` block
+  # Centralized filtering based on plot_group 
   
   message("Filtering all data based on parsed date range(s)...")
   
@@ -971,14 +957,12 @@ musoEnsemblePlot <- function(
       dplyr::filter(!is.na(plot_group))
   }
   
-  # --- End of old filtering block replacement ---
+
 
   if (nrow(all_runs_data) == 0) {
     stop("No valid run data could be processed or remained after filtering for the selected date range(s). Aborting.")
   }
 
-  # --- UPGRADE: New Plotting and Saving Loop ---
-  # This replaces the entire single-plot `ggplot` and `ggsave` block.
   
   plot_list <- list()
   unique_groups <- sort(unique(all_runs_data$plot_group))
@@ -1120,6 +1104,6 @@ musoEnsemblePlot <- function(
     message("No plots were generated. Nothing to save.")
     return(invisible(NULL))
   }
-  # --- End of new plotting/saving block ---
+
   
 }

@@ -989,6 +989,7 @@ tuneMusoServerTest <- function(input, output, session){
                 planting_data <- read.table(planting_file, header = FALSE, sep = "", stringsAsFactors = FALSE, fill = TRUE)[,c(1,6)]
                 colnames(planting_data) <- as.character(unlist(planting_data[1, ]))
                 planting_data <- planting_data[-1, ]
+                colnames(planting_data) <- c("DATE", "CROP(file)")
 
                 epc_files <- unique(unlist(strsplit(paste(planting_data$`CROP(file)`, collapse = " "), " +")))
                 
