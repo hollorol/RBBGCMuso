@@ -1110,7 +1110,7 @@ musoEnsemblePlot <- function(
 
 
 #' Harvest Index plot
-#' @description This function generates a plot of Harvest Index Biomass components over time using RBBGCMuso model outputs: yieldc = 313, leafc = 307, frootc = 310, softstemc = 316
+#' @description This function generates a plot of Harvest Index Biomass components over time using RBBGCMuso model outputs: yieldc = 313, leafc = 307, frootc = 310, softstemc = 316, stdeadbiomass = 407
 #' 
 #' @param settings RBBGCMuso settings object created by \code{setupMuso()}.
 #' @param yearsToPlot Numeric vector or list specifying the years or date ranges to plot. See details for format.
@@ -1121,14 +1121,20 @@ musoEnsemblePlot <- function(
 #' @param leafcColor Color for the leaf carbon line. Default is "#6fd76f"
 #' @param frootcColor Color for the fine root carbon line. Default is "brown"
 #' @param softstemcColor Color for the soft stem carbon line. Default is "black"
+#' @param stdbmassColor Color for the standing dead biomass line. Default is "black"
+#' @param harvestIndexColor Color for the harvest index points. Default is "blue"
+#' @param harvestIndexShape Shape for the harvest index points. Default is 19 (solid circle).
+#' @param harvestIndexSize Size for the harvest index points. Default is 2.5.
 #' @param yieldcWidth Line width for the yield carbon line. Default is 0.7.
 #' @param leafcWidth Line width for the leaf carbon line. Default is 0.7.
 #' @param frootcWidth Line width for the fine root carbon line. Default is 0.7.
 #' @param softstemcWidth Line width for the soft stem carbon line. Default is 0.7.
+#' @param stdbmassWidth Line width for the standing dead biomass line. Default is 0.7.
 #' @param yieldcLinetype Line type for the yield carbon line. Default is "solid".
 #' @param leafcLinetype Line type for the leaf carbon line. Default is "solid".
 #' @param frootcLinetype Line type for the fine root carbon line. Default is "solid".
 #' @param softstemcLinetype Line type for the soft stem carbon line. Default is "solid".
+#' @param stdbmassLinetype Line type for the standing dead biomass line. Default is "solid".
 #' @param xaxisTextSize Text size for x-axis labels. Default is 1.4 (relative to the theme)
 #' @param yaxisTitleSize Text size for y-axis title. Default is 1.2 (relative to the theme)
 #' @param yaxisTextSize Text size for y-axis labels. Default is 1.4 (relative to the theme)
@@ -1146,7 +1152,8 @@ musoEnsemblePlot <- function(
 
 #' @export
 
-musoPlotHarvestIndexBiomass <- function(settings = setupMuso(), 
+musoPlotHarvestIndexBiomass <- function(
+                                    settings = setupMuso(), 
                                     yearsToPlot = NULL,
                                     saveOutput = FALSE, 
                                     width = 10, 
@@ -1154,15 +1161,21 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
                                     yieldcColor = "darkgoldenrod2",
                                     leafcColor = "#6fd76f",
                                     frootcColor = "brown",
-                                    softstemcColor = "black",
+                                    softstemcColor = "#fa0000",
+                                    stdbmassColor = "black",
+                                    harvestIndexColor = "blue", 
+                                    harvestIndexShape = 19,     
+                                    harvestIndexSize = 2.5,     
                                     yieldcWidth = 0.7,
                                     leafcWidth = 0.7,
                                     frootcWidth = 0.7,
                                     softstemcWidth = 0.7,
+                                    stdbmassWidth = 0.7,
                                     yieldcLinetype = "solid",
                                     leafcLinetype = "solid",
                                     frootcLinetype = "solid",
                                     softstemcLinetype = "solid",
+                                    stdbmassLinetype = "solid",
                                     xaxisTextSize = 1.4,
                                     yaxisTitleSize = 1.2,
                                     yaxisTextSize = 1.4,
@@ -1350,8 +1363,6 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
     return(list(breaks = x_axis_breaks, labels = x_axis_labels))
   }
   
-  
-  
   if (!silent) message("Running model...")
   modelResult <- tryCatch({
     calibMuso(settings = settings, skipSpinup = TRUE, silent = TRUE, doBackup = FALSE)
@@ -1361,17 +1372,37 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
   if (!silent) message("Model run complete.")
   
   #Check for Required Variables
-  required_vars <- c("yieldc", "leafc", "frootc", "softstemc")
-  available_vars <- colnames(modelResult)
-  missing_vars <- setdiff(required_vars, available_vars)
+  all_req_vars_lines <- c("yieldc", "leafc", "frootc", "softstemc","STDBc_above")
+  all_req_vars_points <- c("harvestIndex")
+  all_req_vars <- c(all_req_vars_lines, all_req_vars_points)
   
-  if (length(missing_vars) > 0) {
+  available_vars <- colnames(modelResult)
+  
+  # Find which required vars are actually available
+  found_vars_lines <- intersect(all_req_vars_lines, available_vars)
+  found_vars_points <- intersect(all_req_vars_points, available_vars)
+  found_vars_all <- c(found_vars_lines, found_vars_points)
+  
+  missing_vars <- setdiff(all_req_vars, available_vars)
+  
+  # Check if AT LEAST ONE required var was found
+  if (length(found_vars_all) == 0) {
     stop(
-      "The following required variables are missing from the model output:\n",
-      paste(missing_vars, collapse = ", "),
-      "\nPlease include them in your n.ini file. The codes for the four needed variables are:\n 
-      yieldc = 313  |  leafc = 307  |  frootc = 310  |  softstemc = 316",
+      "None of the required variables for this plot were found in the model output:\n",
+      paste(all_req_vars, collapse = ", "),
+      "\nPlease include at least one of them in your n.ini file. The codes are:\n 
+      yieldc = 313  |  leafc = 307  |  frootc = 310  |  softstemc = 316  |  STDBc_above = 407  |  harvestIndex = 3103",
       call. = FALSE
+    )
+  }
+  
+  # If some are missing, but not all, issue a message
+  if (length(missing_vars) > 0) {
+    message(
+      "Warning: The following required variables are missing from the model output:\n",
+      paste(missing_vars, collapse = ", "),
+      "\nPlot will proceed using the available variables:\n",
+      paste(found_vars_all, collapse = ", ")
     )
   }
   
@@ -1408,43 +1439,82 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
     warning("No model data remaining after filtering for the specified 'yearsToPlot'. No plot will be generated.")
     return(invisible(NULL))
   }
+
+ harvest_points_data <- tibble::tibble(
+    Date = as.Date(character()), 
+    plot_group = integer(), 
+    harvestIndex = numeric()
+  )
   
-  # Prepare Data for Plotting 
-  plot_data_long <- plot_data_filtered %>%
-    # We now have 'plot_group' available
-    dplyr::select(dplyr::all_of(c("Date", "plot_group", required_vars))) %>%
-    dplyr::mutate(frootc = .data$frootc * -1) %>%
-    tidyr::pivot_longer(
-      cols = dplyr::all_of(required_vars),
-      names_to = "Variable",
-      values_to = "Value"
-    )
+  # Conditionally process harvestIndex data
+  if ("harvestIndex" %in% found_vars_points) {
+    if (!silent) message("Processing harvestIndex data for plotting...")
+    harvest_points_data <- plot_data_filtered %>%
+      dplyr::select(dplyr::all_of(c("Date", "plot_group", "harvestIndex"))) %>%
+      dplyr::group_by(.data$plot_group) %>%
+      dplyr::arrange(.data$Date) %>%
+      # Find the first day where harvestIndex is > 0, after a day where it was 0
+      dplyr::filter(.data$harvestIndex > 0 & dplyr::lag(.data$harvestIndex, default = 0) == 0) %>%
+      dplyr::ungroup()
+  } else {
+    if (!silent) message("Skipping harvestIndex points: variable not found.")
+  }
+  
+  # Prepare Data for Plotting (Lines)
+  # Initialize empty long data
+  plot_data_long <- tibble::tibble(
+    Date = as.Date(character()),
+    plot_group = integer(),
+    Variable = character(),
+    Value = numeric()
+  )
+  
+  if (length(found_vars_lines) > 0) {
+    if (!silent) message("Processing line data for plotting...")
+    plot_data_long <- plot_data_filtered %>%
+      # We now have 'plot_group' available
+      dplyr::select(dplyr::all_of(c("Date", "plot_group", found_vars_lines))) %>% # Use found_vars_lines
+      # Conditionally invert frootc if it exists
+      dplyr::mutate(across(any_of("frootc"), ~ .x * -1)) %>%
+      tidyr::pivot_longer(
+        cols = dplyr::all_of(found_vars_lines), # Use found_vars_lines
+        names_to = "Variable",
+        values_to = "Value"
+      )
+  } else {
+     if (!silent) message("Skipping line data: no line variables found.")
+  }
   
   # Set Default Aesthetics
   default_colors <- c(
     "yieldc" = yieldcColor,
     "leafc" = leafcColor,
     "frootc" = frootcColor,
-    "softstemc" = softstemcColor
+    "softstemc" = softstemcColor,
+    "STDBc_above" = stdbmassColor,
+    "harvestIndex" = harvestIndexColor
   )
   
   default_linetypes <- c(
     "yieldc" = yieldcLinetype,
     "leafc" =  leafcLinetype,
     "frootc" = frootcLinetype,
-    "softstemc" = softstemcLinetype
+    "softstemc" = softstemcLinetype,
+    "STDBc_above" = stdbmassLinetype
   )
   
   default_linewidths <- c(
     "yieldc" = yieldcWidth,
     "leafc" = leafcWidth,
     "frootc" = frootcWidth,
-    "softstemc" = softstemcWidth
+    "softstemc" = softstemcWidth,
+    "STDBc_above" = stdbmassWidth
   )
   
   # Create Plot
   plot_list <- list()
-  unique_groups <- sort(unique(plot_data_long$plot_group))
+  # Use plot_data_filtered to find all groups, even if only points are plotted
+  unique_groups <- sort(unique(plot_data_filtered$plot_group))
   num_plots <- length(unique_groups)
   
   if (!silent) message(paste("Generating", num_plots, "plot(s) based on date groups."))
@@ -1452,45 +1522,73 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
   for (i in seq_along(unique_groups)) {
     current_group <- unique_groups[i]
     
-    # Filter data for the current group
-    group_plot_data <- dplyr::filter(plot_data_long, .data$plot_group == current_group)
+    # Filter line data for the current group
+    group_plot_data_lines <- dplyr::filter(plot_data_long, .data$plot_group == current_group)
     
-    if (nrow(group_plot_data) == 0) {
-      message(paste("Skipping plot group", current_group, "as it contains no model data."))
+    # Filter point data for the current group 
+    group_plot_data_points <- dplyr::filter(harvest_points_data, .data$plot_group == current_group)
+    
+    # Check if we have *any* data for this group
+    if (nrow(group_plot_data_lines) == 0 && nrow(group_plot_data_points) == 0) {
+      message(paste("Skipping plot group", current_group, "as it contains no model data for *any* found variables."))
       next
     }
     
     # Calculate dynamic axis breaks for this specific group
-    # Using a default year interval of 2, as seen in the other function
-    axis_params <- calculate_axis_breaks(group_plot_data$Date, year_axis_interval_base = 2)
-    
+    # Use *all* available data dates for the range
+    all_group_dates <- c(group_plot_data_lines$Date, group_plot_data_points$Date)
+    if (length(all_group_dates) == 0) {
+         message(paste("Skipping plot group", current_group, " - no dates found.")) # Should be caught by above, but good safeguard
+         next
+    }
+    axis_params <- calculate_axis_breaks(all_group_dates, year_axis_interval_base = 2)
+    axis_limits <- c(min(all_group_dates, na.rm = TRUE), max(all_group_dates, na.rm = TRUE)) # Add na.rm
+
     plot_title_suffix <- if (num_plots > 1) paste(" - (Part", i, "of", num_plots, ")") else ""
     current_plot_title <- paste("Harvest Index & Biomass", plot_title_suffix)
     
-    p <- ggplot2::ggplot(
-      group_plot_data,
-      ggplot2::aes(x = .data$Date, y = .data$Value, color = .data$Variable, linetype = .data$Variable, linewidth = .data$Variable)
-    ) +
+    # Base plot: Initialize ggplot, but don't specify data yet
+    p <- ggplot2::ggplot() +
       # Add a zero line, important for root/shoot distinction
-      ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "grey50") +
+      ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "grey50")
       
-      # Pass '...' to this layer for other stuff
-      ggplot2::geom_line(...) +
+    # Conditionally add lines
+    if (nrow(group_plot_data_lines) > 0) {
+      p <- p + ggplot2::geom_line(
+        data = group_plot_data_lines,
+        mapping = ggplot2::aes(x = .data$Date, y = .data$Value, color = .data$Variable, linetype = .data$Variable, linewidth = .data$Variable),
+        ... # Pass '...'
+      )
+    }
+    
+    # Conditionally add points
+    if (nrow(group_plot_data_points) > 0) {
+      p <- p + ggplot2::geom_point(
+        data = group_plot_data_points,
+        mapping = ggplot2::aes(x = .data$Date, y = .data$harvestIndex, color = "harvestIndex"), # color mapping is essential for legend
+        shape = harvestIndexShape,
+        size = harvestIndexSize,
+        inherit.aes = FALSE
+      )
+    }
       
+    # Add scales, labels, and theme
+    p <- p +
       # Apply default scales
       ggplot2::scale_color_manual(values = default_colors) +
-      ggplot2::scale_linetype_manual(values = default_linetypes) +
-      ggplot2::scale_linewidth_manual(values = default_linewidths) +
       
+      # Hide the legends for linetype and linewidth
+      ggplot2::scale_linetype_manual(values = default_linetypes, guide = "none") +
+      ggplot2::scale_linewidth_manual(values = default_linewidths, guide = "none") +
       
       # Add informative labels
       ggplot2::labs(
         title = current_plot_title,
         x = "",
-        y = expression(kgC~m^{-2}),
-        color = "Variables",
-        linetype = "Variables",
-        linewidth = "Variables"
+        y = expression(kgC~m^{-2}), # Updated Y-axis label
+        color = "",
+        linetype = "",
+        linewidth = ""
       ) +
       
       # Use a clean theme
@@ -1498,9 +1596,9 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
       
       # Apply dynamic x-axis breaks and labels
       ggplot2::scale_x_date(
-        breaks = axis_params$breaks, 
+        breaks = axis_params$breaks,
         date_labels = axis_params$labels,
-        limits = c(min(group_plot_data$Date), max(group_plot_data$Date))
+        limits = axis_limits # Use calculated limits
       ) +
       # Improve x-axis text readability
       ggplot2::theme(
@@ -1508,17 +1606,17 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
         axis.title.y = ggplot2::element_text(size = ggplot2::rel(yaxisTitleSize)),
         axis.text.y = ggplot2::element_text(size = ggplot2::rel(yaxisTextSize)),
         legend.text = ggplot2::element_text(size = ggplot2::rel(legendTextSize)),
-        legend.title = ggplot2::element_text(size = ggplot2::rel(legendTitleSize))       
+        legend.title = ggplot2::element_text(size = ggplot2::rel(legendTitleSize))
       )
     
     # Get date range for filename
-    min_date <- min(group_plot_data$Date)
-    max_date <- max(group_plot_data$Date)
+    min_date <- min(all_group_dates, na.rm = TRUE)
+    max_date <- max(all_group_dates, na.rm = TRUE)
     date_range_str <- paste(format(min_date, "%m%Y"), format(max_date, "%m%Y"), sep = "_")
     
     plot_list[[i]] <- list(
-      plot = p, 
-      date_range = date_range_str, 
+      plot = p,
+      date_range = date_range_str,
       group_id = current_group
     )
   } # End of for loop
@@ -1565,12 +1663,12 @@ musoPlotHarvestIndexBiomass <- function(settings = setupMuso(),
       
       message("Saving: ", filename)
       ggplot2::ggsave(
-        filename = filename, 
-        plot = p_to_save, 
-        dpi = 300, 
-        width = width, 
-        height = height, 
-        units = "in", 
+        filename = filename,
+        plot = p_to_save,
+        dpi = 300,
+        width = width,
+        height = height,
+        units = "in",
         bg = "white"
       )
     }

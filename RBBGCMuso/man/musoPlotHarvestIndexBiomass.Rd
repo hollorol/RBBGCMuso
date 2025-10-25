@@ -13,15 +13,21 @@ musoPlotHarvestIndexBiomass(
   yieldcColor = "darkgoldenrod2",
   leafcColor = "#6fd76f",
   frootcColor = "brown",
-  softstemcColor = "black",
+  softstemcColor = "#fa0000",
+  stdbmassColor = "black",
+  harvestIndexColor = "blue",
+  harvestIndexShape = 19,
+  harvestIndexSize = 2.5,
   yieldcWidth = 0.7,
   leafcWidth = 0.7,
   frootcWidth = 0.7,
   softstemcWidth = 0.7,
+  stdbmassWidth = 0.7,
   yieldcLinetype = "solid",
   leafcLinetype = "solid",
   frootcLinetype = "solid",
   softstemcLinetype = "solid",
+  stdbmassLinetype = "solid",
   xaxisTextSize = 1.4,
   yaxisTitleSize = 1.2,
   yaxisTextSize = 1.4,
@@ -82,7 +88,7 @@ musoPlotHarvestIndexBiomass(
 A ggplot2 object representing the Harvest Index Biomass plot. If \code{saveOutput} is TRUE, the plot is also saved as a PNG file in the working directory.
 }
 \description{
-This function generates a plot of Harvest Index Biomass components over time using RBBGCMuso model outputs: yieldc = 313, leafc = 307, frootc = 310, softstemc = 316
+This function generates a plot of Harvest Index Biomass components over time using RBBGCMuso model outputs: yieldc = 313, leafc = 307, frootc = 310, softstemc = 316, stdeadbiomass = 407
 }
 \details{
 The \code{yearsToPlot} parameter allows flexible specification of the time periods to visualize:
