@@ -1107,3 +1107,490 @@ musoEnsemblePlot <- function(
 
   
 }
+
+
+#' Harvest Index plot
+#' @description This function generates a plot of Harvest Index Biomass components over time using RBBGCMuso model outputs: yieldc = 313, leafc = 307, frootc = 310, softstemc = 316
+#' 
+#' @param settings RBBGCMuso settings object created by \code{setupMuso()}.
+#' @param yearsToPlot Numeric vector or list specifying the years or date ranges to plot. See details for format.
+#' @param saveOutput Logical indicating whether to save the plot as a PNG file. Default is FALSE
+#' @param width Width of the saved plot in inches. Default is 10.
+#' @param height Height of the saved plot in inches. Default is 8.
+#' @param yieldcColor Color for the yield carbon line. Default is "darkgoldenrod2".
+#' @param leafcColor Color for the leaf carbon line. Default is "#6fd76f"
+#' @param frootcColor Color for the fine root carbon line. Default is "brown"
+#' @param softstemcColor Color for the soft stem carbon line. Default is "black"
+#' @param yieldcWidth Line width for the yield carbon line. Default is 0.7.
+#' @param leafcWidth Line width for the leaf carbon line. Default is 0.7.
+#' @param frootcWidth Line width for the fine root carbon line. Default is 0.7.
+#' @param softstemcWidth Line width for the soft stem carbon line. Default is 0.7.
+#' @param yieldcLinetype Line type for the yield carbon line. Default is "solid".
+#' @param leafcLinetype Line type for the leaf carbon line. Default is "solid".
+#' @param frootcLinetype Line type for the fine root carbon line. Default is "solid".
+#' @param softstemcLinetype Line type for the soft stem carbon line. Default is "solid".
+#' @param xaxisTextSize Text size for x-axis labels. Default is 1.4 (relative to the theme)
+#' @param yaxisTitleSize Text size for y-axis title. Default is 1.2 (relative to the theme)
+#' @param yaxisTextSize Text size for y-axis labels. Default is 1.4 (relative to the theme)
+#' @param legendTextSize Text size for legend text. Default is 1.2 (relative to the theme)
+#' @param legendTitleSize Text size for legend title. Default is 1.2 (relative to the theme)
+#' @param silent Logical indicating whether to suppress messages during processing. Default is FALSE
+#' @return A ggplot2 object representing the Harvest Index Biomass plot. If \code{saveOutput} is TRUE, the plot is also saved as a PNG file in the working directory.
+#' 
+#' @details 
+#' The \code{yearsToPlot} parameter allows flexible specification of the time periods to visualize:
+#' - If \code{NULL}, all available dates in the model output will be plotted. 
+#' - If a numeric vector of whole years (e.g., \code{c(2021, 2022)}), each year will be plotted in its entirety.
+#' - If a numeric vector of two values (e.g., \code{c(2022.01, 2022.11)}), it specifies a single date range from January 2022 to November 2022.
+#' - If a list of numeric vectors (e.g., \code{list(c(2021.01, 2021.12), c(2023.01, 2023.06))}), each vector specifies a separate date range to plot.
+
+#' @export
+
+musoPlotHarvestIndexBiomass <- function(settings = setupMuso(), 
+                                    yearsToPlot = NULL,
+                                    saveOutput = FALSE, 
+                                    width = 10, 
+                                    height = 8, 
+                                    yieldcColor = "darkgoldenrod2",
+                                    leafcColor = "#6fd76f",
+                                    frootcColor = "brown",
+                                    softstemcColor = "black",
+                                    yieldcWidth = 0.7,
+                                    leafcWidth = 0.7,
+                                    frootcWidth = 0.7,
+                                    softstemcWidth = 0.7,
+                                    yieldcLinetype = "solid",
+                                    leafcLinetype = "solid",
+                                    frootcLinetype = "solid",
+                                    softstemcLinetype = "solid",
+                                    xaxisTextSize = 1.4,
+                                    yaxisTitleSize = 1.2,
+                                    yaxisTextSize = 1.4,
+                                    legendTextSize = 1.2,
+                                    legendTitleSize = 1.2,
+                                    silent = FALSE,
+                                    ...) {
+  
+  # Helper Function from musoEnsemblePlot, prolly need to make this a separate function
+  parse_and_group_dates <- function(years_to_plot, all_available_dates) {
+    
+    if (is.null(years_to_plot)) {
+      if (!silent) message("`yearsToPlot` is NULL. All dates will be plotted in a single group.")
+
+      return(data.table::data.table(date = all_available_dates, plot_group = 1))
+    }
+    
+    # Standardize input to a list of ranges
+    range_list_input <- list()
+    if (is.numeric(years_to_plot)) {
+      # Handle single vector c(2022) or c(2022.01, 2022.11)
+      if (all(years_to_plot == floor(years_to_plot))) {
+        # It's a list of whole years, e.g., c(2021, 2022)
+        if (!silent) message("Interpreting numeric input as a list of whole years.")
+        range_list_input <- lapply(years_to_plot, function(y) c(y, y))
+      } else {
+        # It's a single range, c(2022.01, 2022.11) or c(2022.01)
+        if (!silent) message("Interpreting numeric input as a single date range.")
+        range_list_input <- list(years_to_plot)
+      }
+    } else if (is.list(years_to_plot)) {
+      # It's already in the list format, list(c(2021.01, 2022.04), c(2024.01, 2025.11))
+      if (!silent) message("Interpreting input as a list of date ranges.")
+      range_list_input <- years_to_plot
+    } else {
+      stop("`yearsToPlot` must be NULL, a numeric vector, or a list.")
+    }
+    
+    # Now, `range_list_input` is a list, list(c(2022), c(2023.01, 2023.05))
+    parsed_ranges <- list()
+    
+    for (i in seq_along(range_list_input)) {
+      range_vec <- range_list_input[[i]]
+      
+      if (length(range_vec) == 1) {
+        # Case: c(2022) or c(2022.01)
+        val <- range_vec[1]
+        year <- floor(val)
+        # Per user request, c(2022.01) is equivalent to c(2022) -> plot whole year
+        start_date <- as.Date(paste0(year, "-01-01"))
+        end_date <- as.Date(paste0(year, "-12-31"))
+        
+      } else if (length(range_vec) == 2) {
+        # Case: c(2022.01, 2022.11) or c(2022, 2023)
+        val_start <- range_vec[1]
+        val_end <- range_vec[2]
+        
+        year_start <- floor(val_start)
+        month_start <- round((val_start - year_start) * 100)
+        
+        year_end <- floor(val_end)
+        month_end <- round((val_end - year_end) * 100)
+        
+        if (month_start == 0) month_start <- 1 # 2022.0 -> 2022.01
+        if (month_end == 0) month_end <- 12   # 2022.0 -> 2022.12
+        
+        start_date <- as.Date(paste(year_start, month_start, 1, sep = "-"))
+        # Get last day of end month
+        end_date <- lubridate::ceiling_date(as.Date(paste(year_end, month_end, 1, sep = "-")), "month") - lubridate::days(1)
+        
+      } else {
+        warning(paste("Range element", i, "has", length(range_vec), "items. Expected 1 or 2. Skipping."))
+        next
+      }
+      parsed_ranges[[i]] <- data.frame(start = start_date, end = end_date)
+    }
+    
+    if (length(parsed_ranges) == 0) {
+      warning("No valid date ranges were parsed from `yearsToPlot`. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    # Bind, sort, and merge overlapping ranges
+    all_ranges_df <- dplyr::bind_rows(parsed_ranges)
+    all_ranges_df <- all_ranges_df[order(all_ranges_df$start), ]
+    
+    merged_ranges_list <- list()
+    if (nrow(all_ranges_df) > 0) {
+      current_range <- all_ranges_df[1, ]
+      
+      if (nrow(all_ranges_df) > 1) {
+        for (j in 2:nrow(all_ranges_df)) {
+          next_range <- all_ranges_df[j, ]
+          
+          # Check for overlap or contiguity (gap <= 1 day)
+          if (next_range$start <= (current_range$end + lubridate::days(1))) {
+            # Merge
+            current_range$end <- max(current_range$end, next_range$end)
+          } else {
+            # Save old range, start new one
+            merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+            current_range <- next_range
+          }
+        }
+      }
+      # Add the last range
+      merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+    }
+    
+    if (length(merged_ranges_list) == 0) {
+      warning("No valid date ranges remained after merging. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    if (!silent) message(paste("Identified", length(merged_ranges_list), "non-continuous plot group(s)."))
+    
+    # Convert list to data.table for foverlaps
+    merged_dt <- data.table::as.data.table(dplyr::bind_rows(parsed_ranges))
+    merged_dt[, plot_group := .I] # Assign group IDs (1, 2, 3...)
+    
+    # Create data.table of all dates
+    all_dates_dt <- data.table::data.table(date_start = all_available_dates, date_end = all_available_dates)
+    
+    # Set keys for foverlaps
+    data.table::setkey(all_dates_dt, date_start, date_end)
+    data.table::setkey(merged_dt, start, end)
+    
+    # Find overlaps
+    date_group_mapping <- data.table::foverlaps(
+      all_dates_dt, 
+      merged_dt, 
+      by.x = c("date_start", "date_end"), 
+      by.y = c("start", "end"), 
+      nomatch = NA_integer_
+    )
+    
+    # Select and rename
+    final_mapping <- date_group_mapping[, .(date = date_start, plot_group)]
+    
+    return(final_mapping)
+  }
+  
+  # another helper function from musoEnsemblePlot to calculate axis Breaks 
+  calculate_axis_breaks <- function(date_vector, year_axis_interval_base = 2) {
+    
+    if (length(date_vector) == 0) {
+      return(list(breaks = "1 year", labels = "%Y"))
+    }
+    
+    min_date <- min(date_vector, na.rm = TRUE)
+    max_date <- max(date_vector, na.rm = TRUE)
+    num_days <- as.numeric(difftime(max_date, min_date, units = "days"))
+    
+    # ~1 year or less
+    if (num_days <= 400) {
+      if (!silent) message("Adjusting x-axis for single-year view: monthly breaks.")
+      x_axis_breaks <- "1 month"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # ~1-3 years
+    else if (num_days <= (365 * 3 + 1)) {
+      if (!silent) message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
+      x_axis_breaks <- "3 months"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # More than 3 years
+    else {
+      if (!silent) message("Adjusting x-axis for long-term view: yearly breaks.")
+      
+      start_year <- lubridate::year(min_date)
+      end_year <- lubridate::year(max_date)
+      
+      # Adjust interval if range is too large
+      num_years <- end_year - start_year + 1
+      year_interval <- if (num_years > 20) floor(num_years / 10) else year_axis_interval_base
+      
+      x_axis_breaks <- seq.Date(
+        from = as.Date(paste0(start_year, "-01-01")),
+        to = as.Date(paste0(end_year, "-12-31")),
+        by = paste(year_interval, "years")
+      )
+      x_axis_labels <- "%Y"
+    }
+    
+    return(list(breaks = x_axis_breaks, labels = x_axis_labels))
+  }
+  
+  
+  
+  if (!silent) message("Running model...")
+  modelResult <- tryCatch({
+    calibMuso(settings = settings, skipSpinup = TRUE, silent = TRUE, doBackup = FALSE)
+  }, error = function(e) {
+    stop("Error running calibMuso: ", e$message, call. = FALSE)
+  })
+  if (!silent) message("Model run complete.")
+  
+  #Check for Required Variables
+  required_vars <- c("yieldc", "leafc", "frootc", "softstemc")
+  available_vars <- colnames(modelResult)
+  missing_vars <- setdiff(required_vars, available_vars)
+  
+  if (length(missing_vars) > 0) {
+    stop(
+      "The following required variables are missing from the model output:\n",
+      paste(missing_vars, collapse = ", "),
+      "\nPlease include them in your n.ini file. The codes for the four needed variables are:\n 
+      yieldc = 313  |  leafc = 307  |  frootc = 310  |  softstemc = 316",
+      call. = FALSE
+    )
+  }
+  
+  # Prepare Data & Parse Dates
+  plot_data <- modelResult %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column(var = "DateStr") %>%
+    dplyr::mutate(Date = as.Date(.data$DateStr, format = "%d.%m.%Y"))
+  
+  #Parse Date Ranges and Assign Plot Groups
+  if (!silent) message("Parsing date ranges from 'yearsToPlot'...")
+  all_available_dates <- plot_data$Date
+  
+  # Call the nested helper function
+  date_group_mapping <- parse_and_group_dates(
+    years_to_plot = yearsToPlot, 
+    all_available_dates = all_available_dates
+  )
+  
+  # Merge the plot_group into plot_data
+  # Convert to data.table for efficient join
+  plot_data_dt <- data.table::as.data.table(plot_data)
+  date_group_mapping_dt <- data.table::as.data.table(date_group_mapping)
+
+  # This makes the join key consistent
+  data.table::setnames(date_group_mapping_dt, "date", "Date")
+  
+  data.table::setkey(plot_data_dt, "Date")
+  data.table::setkey(date_group_mapping_dt, "Date") 
+  plot_data_with_groups <- date_group_mapping_dt[plot_data_dt, on = "Date"]
+  plot_data_filtered <- plot_data_with_groups[!is.na(plot_group)]
+  
+  if (nrow(plot_data_filtered) == 0) {
+    warning("No model data remaining after filtering for the specified 'yearsToPlot'. No plot will be generated.")
+    return(invisible(NULL))
+  }
+  
+  # Prepare Data for Plotting 
+  plot_data_long <- plot_data_filtered %>%
+    # We now have 'plot_group' available
+    dplyr::select(dplyr::all_of(c("Date", "plot_group", required_vars))) %>%
+    dplyr::mutate(frootc = .data$frootc * -1) %>%
+    tidyr::pivot_longer(
+      cols = dplyr::all_of(required_vars),
+      names_to = "Variable",
+      values_to = "Value"
+    )
+  
+  # Set Default Aesthetics
+  default_colors <- c(
+    "yieldc" = yieldcColor,
+    "leafc" = leafcColor,
+    "frootc" = frootcColor,
+    "softstemc" = softstemcColor
+  )
+  
+  default_linetypes <- c(
+    "yieldc" = yieldcLinetype,
+    "leafc" =  leafcLinetype,
+    "frootc" = frootcLinetype,
+    "softstemc" = softstemcLinetype
+  )
+  
+  default_linewidths <- c(
+    "yieldc" = yieldcWidth,
+    "leafc" = leafcWidth,
+    "frootc" = frootcWidth,
+    "softstemc" = softstemcWidth
+  )
+  
+  # Create Plot
+  plot_list <- list()
+  unique_groups <- sort(unique(plot_data_long$plot_group))
+  num_plots <- length(unique_groups)
+  
+  if (!silent) message(paste("Generating", num_plots, "plot(s) based on date groups."))
+  
+  for (i in seq_along(unique_groups)) {
+    current_group <- unique_groups[i]
+    
+    # Filter data for the current group
+    group_plot_data <- dplyr::filter(plot_data_long, .data$plot_group == current_group)
+    
+    if (nrow(group_plot_data) == 0) {
+      message(paste("Skipping plot group", current_group, "as it contains no model data."))
+      next
+    }
+    
+    # Calculate dynamic axis breaks for this specific group
+    # Using a default year interval of 2, as seen in the other function
+    axis_params <- calculate_axis_breaks(group_plot_data$Date, year_axis_interval_base = 2)
+    
+    plot_title_suffix <- if (num_plots > 1) paste(" - (Part", i, "of", num_plots, ")") else ""
+    current_plot_title <- paste("Harvest Index & Biomass", plot_title_suffix)
+    
+    p <- ggplot2::ggplot(
+      group_plot_data,
+      ggplot2::aes(x = .data$Date, y = .data$Value, color = .data$Variable, linetype = .data$Variable, linewidth = .data$Variable)
+    ) +
+      # Add a zero line, important for root/shoot distinction
+      ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "grey50") +
+      
+      # Pass '...' to this layer for other stuff
+      ggplot2::geom_line(...) +
+      
+      # Apply default scales
+      ggplot2::scale_color_manual(values = default_colors) +
+      ggplot2::scale_linetype_manual(values = default_linetypes) +
+      ggplot2::scale_linewidth_manual(values = default_linewidths) +
+      
+      
+      # Add informative labels
+      ggplot2::labs(
+        title = current_plot_title,
+        x = "",
+        y = expression(kgC~m^{-2}),
+        color = "Variables",
+        linetype = "Variables",
+        linewidth = "Variables"
+      ) +
+      
+      # Use a clean theme
+      ggplot2::theme_minimal() +
+      
+      # Apply dynamic x-axis breaks and labels
+      ggplot2::scale_x_date(
+        breaks = axis_params$breaks, 
+        date_labels = axis_params$labels,
+        limits = c(min(group_plot_data$Date), max(group_plot_data$Date))
+      ) +
+      # Improve x-axis text readability
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = ggplot2::rel(xaxisTextSize)),
+        axis.title.y = ggplot2::element_text(size = ggplot2::rel(yaxisTitleSize)),
+        axis.text.y = ggplot2::element_text(size = ggplot2::rel(yaxisTextSize)),
+        legend.text = ggplot2::element_text(size = ggplot2::rel(legendTextSize)),
+        legend.title = ggplot2::element_text(size = ggplot2::rel(legendTitleSize))       
+      )
+    
+    # Get date range for filename
+    min_date <- min(group_plot_data$Date)
+    max_date <- max(group_plot_data$Date)
+    date_range_str <- paste(format(min_date, "%m%Y"), format(max_date, "%m%Y"), sep = "_")
+    
+    plot_list[[i]] <- list(
+      plot = p, 
+      date_range = date_range_str, 
+      group_id = current_group
+    )
+  } # End of for loop
+  
+  if (length(plot_list) == 0) {
+    message("No plots were generated.")
+    return(invisible(NULL))
+  }
+  
+  if (saveOutput) {
+    if (!silent) message("Saving plot(s) as PNG...")
+    
+    # Determine output directory: 1st choice outputLoc, 2nd inputLoc, 3rd getwd()
+    output_dir <- settings$outputLoc
+    if (is.null(output_dir)) {
+      if (!silent) message("settings$outputLoc is NULL. Trying settings$inputLoc.")
+      output_dir <- settings$inputLoc
+    }
+    if (is.null(output_dir)) {
+      if (!silent) message("settings$inputLoc is also NULL. Saving to current working directory (getwd()).")
+      output_dir <- getwd()
+    }
+    
+    if (!dir.exists(output_dir)) {
+      if (!silent) message("Creating output directory: ", output_dir)
+      tryCatch(dir.create(output_dir, recursive = TRUE),
+               error = function(e) {
+                 stop("Could not create output directory: ", output_dir, "\nError: ", e$message, call. = FALSE)
+               })
+    }
+    
+    for (item in plot_list) {
+      p_to_save <- item$plot
+      date_range_str <- item$date_range
+      
+      # Use group_id if there are multiple plots, for a unique name
+      filename_suffix <- if(num_plots > 1) {
+        paste0(date_range_str, "_group_", item$group_id, ".png")
+      } else {
+        paste0(date_range_str, ".png")
+      }
+      
+      filename <- file.path(output_dir, paste0("muso_harvest_index_biomass_", filename_suffix))
+      
+      message("Saving: ", filename)
+      ggplot2::ggsave(
+        filename = filename, 
+        plot = p_to_save, 
+        dpi = 300, 
+        width = width, 
+        height = height, 
+        units = "in", 
+        bg = "white"
+      )
+    }
+  }
+  
+  if (!silent) message("Printing plot(s)...")
+  # Print each plot to the graphics device
+  for (item in plot_list) {
+    print(item$plot)
+  }
+  # Invisibly return the plot object(s)
+  plot_objects_only <- lapply(plot_list, function(item) item$plot)
+  if (length(plot_objects_only) == 1) {
+    return(invisible(plot_objects_only[[1]]))
+  } else {
+    return(invisible(plot_objects_only))
+  }
+}
+
+
+
+
+
