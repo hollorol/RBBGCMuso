@@ -7,9 +7,11 @@
 musoPlotHarvestIndexBiomass(
   settings = setupMuso(),
   yearsToPlot = NULL,
+  modelResult = NULL,
   saveOutput = FALSE,
   width = 10,
   height = 8,
+  yAxisLim = NULL,
   yieldcColor = "darkgoldenrod2",
   leafcColor = "#6fd76f",
   frootcColor = "brown",
@@ -42,6 +44,8 @@ musoPlotHarvestIndexBiomass(
 
 \item{yearsToPlot}{Numeric vector or list specifying the years or date ranges to plot. See details for format.}
 
+\item{modelResult}{optional model result matrix or data.frame. If NULL the model will be run to get the results.}
+
 \item{saveOutput}{Logical indicating whether to save the plot as a PNG file. Default is FALSE}
 
 \item{width}{Width of the saved plot in inches. Default is 10.}
@@ -56,6 +60,14 @@ musoPlotHarvestIndexBiomass(
 
 \item{softstemcColor}{Color for the soft stem carbon line. Default is "black"}
 
+\item{stdbmassColor}{Color for the standing dead biomass line. Default is "black"}
+
+\item{harvestIndexColor}{Color for the harvest index points. Default is "blue"}
+
+\item{harvestIndexShape}{Shape for the harvest index points. Default is 19 (solid circle).}
+
+\item{harvestIndexSize}{Size for the harvest index points. Default is 2.5.}
+
 \item{yieldcWidth}{Line width for the yield carbon line. Default is 0.7.}
 
 \item{leafcWidth}{Line width for the leaf carbon line. Default is 0.7.}
@@ -64,6 +76,8 @@ musoPlotHarvestIndexBiomass(
 
 \item{softstemcWidth}{Line width for the soft stem carbon line. Default is 0.7.}
 
+\item{stdbmassWidth}{Line width for the standing dead biomass line. Default is 0.7.}
+
 \item{yieldcLinetype}{Line type for the yield carbon line. Default is "solid".}
 
 \item{leafcLinetype}{Line type for the leaf carbon line. Default is "solid".}
@@ -71,6 +85,8 @@ musoPlotHarvestIndexBiomass(
 \item{frootcLinetype}{Line type for the fine root carbon line. Default is "solid".}
 
 \item{softstemcLinetype}{Line type for the soft stem carbon line. Default is "solid".}
+
+\item{stdbmassLinetype}{Line type for the standing dead biomass line. Default is "solid".}
 
 \item{xaxisTextSize}{Text size for x-axis labels. Default is 1.4 (relative to the theme)}
 

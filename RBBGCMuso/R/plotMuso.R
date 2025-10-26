@@ -1114,9 +1114,11 @@ musoEnsemblePlot <- function(
 #' 
 #' @param settings RBBGCMuso settings object created by \code{setupMuso()}.
 #' @param yearsToPlot Numeric vector or list specifying the years or date ranges to plot. See details for format.
+#' @param modelResult optional model result matrix or data.frame. If NULL the model will be run to get the results.
 #' @param saveOutput Logical indicating whether to save the plot as a PNG file. Default is FALSE
 #' @param width Width of the saved plot in inches. Default is 10.
 #' @param height Height of the saved plot in inches. Default is 8.
+#' @param yAxisLim Numeric vector of length 2 specifying y-axis limits. Default is NULL (automatic scaling).
 #' @param yieldcColor Color for the yield carbon line. Default is "darkgoldenrod2".
 #' @param leafcColor Color for the leaf carbon line. Default is "#6fd76f"
 #' @param frootcColor Color for the fine root carbon line. Default is "brown"
@@ -1155,9 +1157,11 @@ musoEnsemblePlot <- function(
 musoPlotHarvestIndexBiomass <- function(
                                     settings = setupMuso(), 
                                     yearsToPlot = NULL,
+                                    modelResult = NULL,
                                     saveOutput = FALSE, 
                                     width = 10, 
                                     height = 8, 
+                                    yAxisLim = NULL,
                                     yieldcColor = "darkgoldenrod2",
                                     leafcColor = "#6fd76f",
                                     frootcColor = "brown",
@@ -1363,14 +1367,44 @@ musoPlotHarvestIndexBiomass <- function(
     return(list(breaks = x_axis_breaks, labels = x_axis_labels))
   }
   
-  if (!silent) message("Running model...")
-  modelResult <- tryCatch({
-    calibMuso(settings = settings, skipSpinup = TRUE, silent = TRUE, doBackup = FALSE)
-  }, error = function(e) {
-    stop("Error running calibMuso: ", e$message, call. = FALSE)
-  })
-  if (!silent) message("Model run complete.")
-  
+  if (is.null(modelResult)) {
+    if (!silent) message("`modelResult` is NULL. Running model...")
+    modelResult <- tryCatch({
+      calibMuso(settings = settings, skipSpinup = TRUE, silent = TRUE, doBackup = FALSE)
+    }, error = function(e) {
+      stop("Error running calibMuso: ", e$message, call. = FALSE)
+    })
+    if (!silent) message("Model run complete.")
+    
+    # Prepare Data from model run
+    plot_data <- modelResult %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column(var = "DateStr") %>%
+      dplyr::mutate(Date = as.Date(.data$DateStr, format = "%d.%m.%Y"))
+    
+  } else {
+    if (!silent) message("Using user-provided `modelResult`.")
+    
+    plot_data <- as.data.frame(modelResult)
+    
+    # Check for 'Date' or 'date' column of class 'Date'
+    if ("Date" %in% colnames(plot_data) && inherits(plot_data$Date, "Date")) {
+      if (!silent) message("Found 'Date' column of class 'Date'.")
+      # Data is ready, no action needed
+    } else if ("date" %in% colnames(plot_data) && inherits(plot_data$date, "Date")) {
+      if (!silent) message("Found 'date' column of class 'Date'. Renaming to 'Date'.")
+      plot_data <- dplyr::rename(plot_data, Date = .data$date)
+    } else {
+      # Assume dates are in rownames if no valid Date column is found
+      if (!silent) {
+        message("Could not find a 'Date' or 'date' column of class 'Date'.")
+        message("Assuming dates are in rownames and format is '%d.%m.%Y'.")
+      }
+      plot_data <- plot_data %>%
+        tibble::rownames_to_column(var = "DateStr") %>%
+        dplyr::mutate(Date = as.Date(.data$DateStr, format = "%d.%m.%Y"))
+    }
+  }
   #Check for Required Variables
   all_req_vars_lines <- c("yieldc", "leafc", "frootc", "softstemc","STDBc_above")
   all_req_vars_points <- c("harvestIndex")
@@ -1405,12 +1439,6 @@ musoPlotHarvestIndexBiomass <- function(
       paste(found_vars_all, collapse = ", ")
     )
   }
-  
-  # Prepare Data & Parse Dates
-  plot_data <- modelResult %>%
-    as.data.frame() %>%
-    tibble::rownames_to_column(var = "DateStr") %>%
-    dplyr::mutate(Date = as.Date(.data$DateStr, format = "%d.%m.%Y"))
   
   #Parse Date Ranges and Assign Plot Groups
   if (!silent) message("Parsing date ranges from 'yearsToPlot'...")
@@ -1581,11 +1609,10 @@ musoPlotHarvestIndexBiomass <- function(
       ggplot2::scale_linetype_manual(values = default_linetypes, guide = "none") +
       ggplot2::scale_linewidth_manual(values = default_linewidths, guide = "none") +
       
-      # Add informative labels
       ggplot2::labs(
         title = current_plot_title,
         x = "",
-        y = expression(kgC~m^{-2}), # Updated Y-axis label
+        y = expression(kgC~m^{-2}), 
         color = "",
         linetype = "",
         linewidth = ""
@@ -1600,6 +1627,12 @@ musoPlotHarvestIndexBiomass <- function(
         date_labels = axis_params$labels,
         limits = axis_limits # Use calculated limits
       ) +
+
+      (if (!is.null(yAxisLim)) {
+        ggplot2::coord_cartesian(ylim = yAxisLim)
+      } else {
+        NULL # Add nothing if yAxisLim is NULL
+      }) +
       # Improve x-axis text readability
       ggplot2::theme(
         axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = ggplot2::rel(xaxisTextSize)),
