@@ -646,6 +646,7 @@ function wrapText(elementId, openTag, closeTag) {
                                                             selected = "line",
                                                             inline = TRUE)
                                             ),
+                                            actionButton("show_popup", "View Special Plots"),
                                             checkboxInput(
                                                 "lastRun", "Show Previous Model Run", value = FALSE
                                             ),
@@ -891,7 +892,82 @@ function wrapText(elementId, openTag, closeTag) {
         div(
             id = "plotPanel",
             uiOutput("dynamicPlots")
-        )
+        ),
+
+        # Pop up window for the custom plots
+          shinyjs::hidden(
+                div(
+                id = "popup_wrapper", # We will show/hide this wrapper div
+                
+                # We replaced absolutePanel with a standard div and wrapped it
+                # in both jqui_draggable and jqui_resizable for full control.
+                shinyjqui::jqui_draggable(
+                    shinyjqui::jqui_resizable(
+                    div(
+                        id = "popup_window",
+                        # Panel Content 
+                        # Define a specific drag handle area
+                        div(
+                        id = "popup_drag_handle",
+                        style = "height: 30px; 
+                                cursor: move; 
+                                padding: 5px 15px; 
+                                border-bottom: 1px solid #ccc; 
+                                background: #f0f0f0; 
+                                border-radius: 8px 8px 0 0;
+                                flex-shrink: 0;", 
+                        
+                        # Close button (moved inside the handle)
+                        actionButton("close_popup", "X", 
+                                    style = "float: right; font-weight: bold; color: #555; background: transparent; border: none; padding: 0 5px; margin-top: -2px;"),
+                        
+                        # Title (moved inside the handle)
+                        h4("Special Plots", style="margin: 0; line-height: 20px;")
+                        ),
+                        # END of handle area
+                        
+                        # Content area wrapper 
+                        # We wrap the content in its own div to apply padding
+                        div(
+                            style = "padding: 15px;overflow-y: auto; flex-grow: 1;",
+                            
+                            # Dynamic content
+                            #p("This content is dynamic and updates from the main page slider."),
+                            uiOutput("dynamic_content_area")
+                        ),
+                        
+                        # Styling
+                        style = "
+                                background: #f9f9f9;
+                                border: 1px solid #ccc;
+                                border-radius: 8px;
+                                box-shadow: 0 5px 15px rgba(0,0,0,.3);
+                                padding: 0;
+                                overflow: hidden;   
+                                width: 650px; 
+                                height: 450px;
+                                display: flex;      
+                                flex-direction: column; 
+                                "
+                    ),
+                    # jqui_resizable options
+                    # 'handles: "all"' gives all sides and corners
+                    options = list(handles = "all")
+                    ),
+                    # jqui_draggable options
+                    # using the ID of the new div as the handle
+                    options = list(handle = "#popup_drag_handle")
+                ),
+                
+                # apply the positioning to the outer wrapper
+                style = "
+                            position: absolute;
+                            top: 150px;
+                            right: 50px;
+                            z-index: 1000;
+                        "
+                )
+            )
     )
     )
 }
@@ -5715,7 +5791,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.22.0</strong></p>
+                    <p><strong>Version 2.23.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -6869,6 +6945,380 @@ observeEvent(input$variable_info_btn, {
                 
                 })
 
+
+
+    # Special plots pop up window
+    popup_visible <- reactiveVal(FALSE)
+    has_checked_vars <- reactiveVal(FALSE)
+
+    # # check to warn the user about variables
+    observeEvent(input$show_popup, {
+    
+        if (popup_visible() == FALSE) {
+            
+            if (has_checked_vars() == FALSE) {
+                
+                req(outputData()) 
+                
+                model_data <- outputData()
+                all_req_vars <- c("yieldc", "leafc", "frootc", "softstemc", "STDBc_above", "harvestIndex")
+                available_vars <- colnames(model_data)
+                missing_vars <- setdiff(all_req_vars, available_vars)
+                
+                if (length(missing_vars) > 0) {
+                    showNotification(
+                        paste("Warning: Missing plot variables (plot will be made without them):", paste(missing_vars, collapse = ", ")),
+                        type = "warning",
+                        duration = 20 
+                    )
+                }
+                
+                has_checked_vars(TRUE)
+            }
+        }
+        
+        popup_visible(!popup_visible())
+    })
+
+    plot_settings <- reactiveValues(
+        yieldcColor = "darkgoldenrod2",
+        leafcColor = "#6fd76f",
+        frootcColor = "brown",
+        softstemcColor = "#fa0000",
+        stdbmassColor = "black",
+        harvestIndexColor = "blue", 
+        
+        harvestIndexShape = 19,     
+        harvestIndexSize = 2.5,     
+        
+        yieldcWidth = 0.7,
+        leafcWidth = 0.7,
+        frootcWidth = 0.7,
+        softstemcWidth = 0.7,
+        stdbmassWidth = 0.7,
+        
+        yieldcLinetype = "solid",
+        leafcLinetype = "solid",
+        frootcLinetype = "solid",
+        softstemcLinetype = "solid",
+        stdbmassLinetype = "solid",
+        
+        xaxisTextSize = 1.4,
+        yaxisTitleSize = 1.2,
+        yaxisTextSize = 1.4,
+        legendTextSize = 1.2,
+        legendTitleSize = 1.2,
+
+        yAxisLimToggle = FALSE,
+        yAxisLimMin = -1,
+        yAxisLimMax = 1
+    )
+
+    # observeEvent(input$show_popup, {
+    #     # Toggles the reactive value between TRUE and FALSE
+    #     popup_visible(!popup_visible())
+    # })
+
+    observeEvent(input$close_popup, {
+        # Sets the reactive value to FALSE
+        popup_visible(FALSE)
+    })
+
+    observe({
+        if (popup_visible()) {
+            shinyjs::show("popup_wrapper")
+        } else {
+            shinyjs::hide("popup_wrapper")
+        }
+    })
+
+
+    observeEvent(input$toggle_custom_plot, {
+        shinyjs::toggle(id = "custom_plot_panel", anim = TRUE)
+    })
+    
+    linetype_choices <- c(
+        "Solid" = "solid",
+        "Dashed" = "dashed",
+        "Dotted" = "dotted",
+        "Dot-Dash" = "dotdash",
+        "Long Dash" = "longdash",
+        "Two Dash" = "twodash"
+    )
+
+
+    output$dynamic_content_area <- renderUI({
+        req(popup_visible())
+        
+        tagList(
+            # Customize button 
+            div(style = "display: flex; justify-content: flex-end; padding-bottom: 5px;",
+                actionLink("toggle_custom_plot", "Customize Plot", icon = icon("cog"))
+            ),
+            
+            # customisation panel
+            shinyjs::hidden(
+                div(
+                    id = "custom_plot_panel",
+                    style = "background: #fdfdfd; border: 1px solid #eee; padding: 10px; border-radius: 5px; margin-bottom: 10px;",
+                    
+                    h4(style="margin-top:0;", "Plot Customization"),
+                    
+                    #  Colors 
+                    h5("Colors"),
+                    fluidRow(
+                        # Use the `plot_settings` for default values 
+                        column(4, colourpicker::colourInput("yieldcColor", "YieldC", value = plot_settings$yieldcColor)),
+                        column(4, colourpicker::colourInput("leafcColor", "LeafC", value = plot_settings$leafcColor)),
+                        column(4, colourpicker::colourInput("frootcColor", "FRootC", value = plot_settings$frootcColor)),
+                        column(4, colourpicker::colourInput("softstemcColor", "SoftStemC", value = plot_settings$softstemcColor)),
+                        column(4, colourpicker::colourInput("stdbmassColor", "StDbMass", value = plot_settings$stdbmassColor)),
+                        column(4, colourpicker::colourInput("harvestIndexColor", "Harvest Index", value = plot_settings$harvestIndexColor))
+                    ),
+                    hr(),
+                    
+                    # Line Widths & Point Styles 
+                    h5("Line & Point Styles"),
+                    fluidRow(
+                        # Line Widths
+                        column(6,
+                            numericInput("yieldcWidth", "YieldC Width", value = plot_settings$yieldcWidth, min=0.1, max=5, step=0.1),
+                            numericInput("leafcWidth", "LeafC Width", value = plot_settings$leafcWidth, min=0.1, max=5, step=0.1),
+                            numericInput("frootcWidth", "FRootC Width", value = plot_settings$frootcWidth, min=0.1, max=5, step=0.1),
+                            numericInput("softstemcWidth", "SoftStemC Width", value = plot_settings$softstemcWidth, min=0.1, max=5, step=0.1),
+                            numericInput("stdbmassWidth", "StDbMass Width", value = plot_settings$stdbmassWidth, min=0.1, max=5, step=0.1)
+                        ),
+                        # Line Types
+                        column(6,
+                            selectInput("yieldcLinetype", "YieldC Type", linetype_choices, selected = plot_settings$yieldcLinetype),
+                            selectInput("leafcLinetype", "LeafC Type", linetype_choices, selected = plot_settings$leafcLinetype),
+                            selectInput("frootcLinetype", "FRootC Type", linetype_choices, selected = plot_settings$frootcLinetype),
+                            selectInput("softstemcLinetype", "SoftStemC Type", linetype_choices, selected = plot_settings$softstemcLinetype),
+                            selectInput("stdbmassLinetype", "StDbMass Type", linetype_choices, selected = plot_settings$stdbmassLinetype)
+                        )
+                    ),
+                    fluidRow(
+                        # Point Styles
+                        column(6, numericInput("harvestIndexShape", "HI Shape", value = plot_settings$harvestIndexShape, min=0, max=25, step=1)),
+                        column(6, numericInput("harvestIndexSize", "HI Size", value = plot_settings$harvestIndexSize, min=0, max=10, step=0.1))
+                    ),
+                    hr(),
+                    
+                    # Text Sizes
+                    h5("Text Sizes"),
+                    fluidRow(
+                        column(4, numericInput("xaxisTextSize", "X-Axis", value = plot_settings$xaxisTextSize, min=0.1, max=3, step=0.1)),
+                        column(4, numericInput("yaxisTitleSize", "Y-Title", value = plot_settings$yaxisTitleSize, min=0.1, max=3, step=0.1)),
+                        column(4, numericInput("yaxisTextSize", "Y-Axis", value = plot_settings$yaxisTextSize, min=0.1, max=3, step=0.1)),
+                        column(6, numericInput("legendTextSize", "Legend Text", value = plot_settings$legendTextSize, min=0.1, max=3, step=0.1)),
+                        column(6, numericInput("legendTitleSize", "Legend Title", value = plot_settings$legendTitleSize, min=0.1, max=3, step=0.1))
+                    ),
+                    hr(),
+                    h5("Y-Axis Range"),
+                    fluidRow(
+                        column(12, checkboxInput("yAxisLimToggle", "Set Custom Y-Axis Range", value = plot_settings$yAxisLimToggle))
+                    ),
+                    # This conditional UI will only show if the box is checked.
+                    conditionalPanel(
+                        condition = "input.yAxisLimToggle == true",
+                        fluidRow(
+                            column(6, numericInput("yAxisLimMin", "Y-Min", value = plot_settings$yAxisLimMin)),
+                            column(6, numericInput("yAxisLimMax", "Y-Max", value = plot_settings$yAxisLimMax))
+                        )
+                    ),
+                    hr(),
+                    
+                    # Apply & Save Buttons
+                    h5("Actions"),
+                    fluidRow(
+                        #Apply Button
+                        column(6,
+                            actionButton("apply_custom_plot", "Apply Changes", icon = icon("check"), width="100%", class = "btn-primary")
+                        ),
+                        column(6,
+                            actionButton("save_popup_plot", "Save as PNG", icon = icon("download"), width="100%")
+                        )
+                    ),
+                    
+                    h5("Save Dimensions (inches)"),
+                    fluidRow(
+                        column(6, numericInput("save_width", "Width", 10, min=1, max=30, step=0.5)),
+                        column(6, numericInput("save_height", "Height", 8, min=1, max=30, step=0.5))
+                    )
+                )
+            ), # end shinyjs::hidden
+        
+            # This is the original plot output
+            plotOutput("popup_plot", height = "350px")
+        )
+    })
+
+    plot_years <- reactive({
+      req(!is.null(input$singleYear), input$yearRange) # Wait for year inputs
+      
+      local_years_to_plot <- NULL # Initialize
+      
+      if (isTRUE(input$singleYear)) {
+          req(is.finite(input$yearRange))
+          local_years_to_plot <- input$yearRange
+      } else {
+          req(length(input$yearRange) == 2 &&
+              is.finite(input$yearRange[1]) &&
+              is.finite(input$yearRange[2]))
+          local_years_to_plot <- list(c(input$yearRange[1], input$yearRange[2]))
+      }
+      return(local_years_to_plot)
+    })
+
+       observeEvent(input$apply_custom_plot, {
+        
+        # Show a quick notification
+        #showNotification("Applying plot settings...", type = "message", duration = 2)
+        
+        # Update all values in the reactiveValues snapshot
+        plot_settings$yieldcColor <- input$yieldcColor
+        plot_settings$leafcColor <- input$leafcColor
+        plot_settings$frootcColor <- input$frootcColor
+        plot_settings$softstemcColor <- input$softstemcColor
+        plot_settings$stdbmassColor <- input$stdbmassColor
+        plot_settings$harvestIndexColor <- input$harvestIndexColor
+        
+        plot_settings$harvestIndexShape <- input$harvestIndexShape
+        plot_settings$harvestIndexSize <- input$harvestIndexSize
+        
+        plot_settings$yieldcWidth <- input$yieldcWidth
+        plot_settings$leafcWidth <- input$leafcWidth
+        plot_settings$frootcWidth <- input$frootcWidth
+        plot_settings$softstemcWidth <- input$softstemcWidth
+        plot_settings$stdbmassWidth <- input$stdbmassWidth
+        
+        plot_settings$yieldcLinetype <- input$yieldcLinetype
+        plot_settings$leafcLinetype <- input$leafcLinetype
+        plot_settings$frootcLinetype <- input$frootcLinetype
+        plot_settings$softstemcLinetype <- input$softstemcLinetype
+        plot_settings$stdbmassLinetype <- input$stdbmassLinetype
+        
+        plot_settings$xaxisTextSize <- input$xaxisTextSize
+        plot_settings$yaxisTitleSize <- input$yaxisTitleSize
+        plot_settings$yaxisTextSize <- input$yaxisTextSize
+        plot_settings$legendTextSize <- input$legendTextSize
+        plot_settings$legendTitleSize <- input$legendTitleSize
+
+        plot_settings$yAxisLimToggle <- input$yAxisLimToggle
+        plot_settings$yAxisLimMin <- input$yAxisLimMin
+        plot_settings$yAxisLimMax <- input$yAxisLimMax
+    })
+
+   output$popup_plot <- renderPlot({
+      
+      req(outputData(), plot_years())
+      
+      model_data <- outputData()
+      local_years_to_plot <- plot_years()
+
+    local_yAxisLim <- NULL
+      if (isTRUE(plot_settings$yAxisLimToggle) &&
+          is.numeric(plot_settings$yAxisLimMin) &&
+          is.numeric(plot_settings$yAxisLimMax)) {
+        local_yAxisLim <- c(plot_settings$yAxisLimMin, plot_settings$yAxisLimMax)
+      }
+
+      musoPlotHarvestIndexBiomass(
+        modelResult = model_data,
+        yearsToPlot = local_years_to_plot,
+        yAxisLim = local_yAxisLim,
+        silent = TRUE,
+        
+        # Pass all the *applied* values
+        yieldcColor = plot_settings$yieldcColor,
+        leafcColor = plot_settings$leafcColor,
+        frootcColor = plot_settings$frootcColor,
+        softstemcColor = plot_settings$softstemcColor,
+        stdbmassColor = plot_settings$stdbmassColor,
+        harvestIndexColor = plot_settings$harvestIndexColor,
+        
+        harvestIndexShape = plot_settings$harvestIndexShape,
+        harvestIndexSize = plot_settings$harvestIndexSize,
+        
+        yieldcWidth = plot_settings$yieldcWidth,
+        leafcWidth = plot_settings$leafcWidth,
+        frootcWidth = plot_settings$frootcWidth,
+        softstemcWidth = plot_settings$softstemcWidth,
+        stdbmassWidth = plot_settings$stdbmassWidth,
+        
+        yieldcLinetype = plot_settings$yieldcLinetype,
+        leafcLinetype = plot_settings$leafcLinetype,
+        frootcLinetype = plot_settings$frootcLinetype,
+        softstemcLinetype = plot_settings$softstemcLinetype,
+        stdbmassLinetype = plot_settings$stdbmassLinetype,
+        
+        xaxisTextSize = plot_settings$xaxisTextSize,
+        yaxisTitleSize = plot_settings$yaxisTitleSize,
+        yaxisTextSize = plot_settings$yaxisTextSize,
+        legendTextSize = plot_settings$legendTextSize,
+        legendTitleSize = plot_settings$legendTitleSize
+      )
+     
+    })
+    
+    # plot saving
+    observeEvent(input$save_popup_plot, {
+      req(outputData(), plot_years(), input$save_width, input$save_height)
+      
+      showNotification("Saving plot...", type = "message", duration = 3)
+      
+      model_data <- outputData()
+      local_years_to_plot <- plot_years()
+
+        local_yAxisLim <- NULL
+      if (isTRUE(plot_settings$yAxisLimToggle) &&
+          is.numeric(plot_settings$yAxisLimMin) &&
+          is.numeric(plot_settings$yAxisLimMax)) {
+        local_yAxisLim <- c(plot_settings$yAxisLimMin, plot_settings$yAxisLimMax)
+      }
+
+      musoPlotHarvestIndexBiomass(
+        modelResult = model_data,
+        yearsToPlot = local_years_to_plot,
+
+        yAxisLim = local_yAxisLim,
+        
+        saveOutput = TRUE,
+        width = input$save_width,
+        height = input$save_height,
+        silent = FALSE, 
+        
+        yieldcColor = plot_settings$yieldcColor,
+        leafcColor = plot_settings$leafcColor,
+        frootcColor = plot_settings$frootcColor,
+        softstemcColor = plot_settings$softstemcColor,
+        stdbmassColor = plot_settings$stdbmassColor,
+        harvestIndexColor = plot_settings$harvestIndexColor,
+        
+        harvestIndexShape = plot_settings$harvestIndexShape,
+        harvestIndexSize = plot_settings$harvestIndexSize,
+        
+        yieldcWidth = plot_settings$yieldcWidth,
+        leafcWidth = plot_settings$leafcWidth,
+        frootcWidth = plot_settings$frootcWidth,
+        softstemcWidth = plot_settings$softstemcWidth,
+        stdbmassWidth = plot_settings$stdbmassWidth,
+        
+        yieldcLinetype = plot_settings$yieldcLinetype,
+        leafcLinetype = plot_settings$leafcLinetype,
+        frootcLinetype = plot_settings$frootcLinetype,
+        softstemcLinetype = plot_settings$softstemcLinetype,
+        stdbmassLinetype = plot_settings$stdbmassLinetype,
+        
+        xaxisTextSize = plot_settings$xaxisTextSize,
+        yaxisTitleSize = plot_settings$yaxisTitleSize,
+        yaxisTextSize = plot_settings$yaxisTextSize,
+        legendTextSize = plot_settings$legendTextSize,
+        legendTitleSize = plot_settings$legendTitleSize
+      )
+      
+      showNotification("Plot saved!", type = "message", duration = 5)
+    })
 
     observeEvent(input$getOriginalIni,{
                      updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"),

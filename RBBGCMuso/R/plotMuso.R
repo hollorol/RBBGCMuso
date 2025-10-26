@@ -458,6 +458,193 @@ saveAllMusoPlots <- function(settings=NULL, plotName = ".png",
     
 }
 
+#' Date parse and grouping helper function
+#' 
+#' @export 
+#' 
+
+# Helper Function from musoEnsemblePlot, prolly need to make this a separate function
+  musoParseAndGroupDates <- function(years_to_plot, all_available_dates, silent = TRUE) {
+    
+    if (is.null(years_to_plot)) {
+      if (!silent) message("`yearsToPlot` is NULL. All dates will be plotted in a single group.")
+
+      return(data.table::data.table(date = all_available_dates, plot_group = 1))
+    }
+    
+    # Standardize input to a list of ranges
+    range_list_input <- list()
+    if (is.numeric(years_to_plot)) {
+      # Handle single vector c(2022) or c(2022.01, 2022.11)
+      if (all(years_to_plot == floor(years_to_plot))) {
+        # It's a list of whole years, e.g., c(2021, 2022)
+        if (!silent) message("Interpreting numeric input as a list of whole years.")
+        range_list_input <- lapply(years_to_plot, function(y) c(y, y))
+      } else {
+        # It's a single range, c(2022.01, 2022.11) or c(2022.01)
+        if (!silent) message("Interpreting numeric input as a single date range.")
+        range_list_input <- list(years_to_plot)
+      }
+    } else if (is.list(years_to_plot)) {
+      # It's already in the list format, list(c(2021.01, 2022.04), c(2024.01, 2025.11))
+      if (!silent) message("Interpreting input as a list of date ranges.")
+      range_list_input <- years_to_plot
+    } else {
+      stop("`yearsToPlot` must be NULL, a numeric vector, or a list.")
+    }
+    
+    # Now, `range_list_input` is a list, list(c(2022), c(2023.01, 2023.05))
+    parsed_ranges <- list()
+    
+    for (i in seq_along(range_list_input)) {
+      range_vec <- range_list_input[[i]]
+      
+      if (length(range_vec) == 1) {
+        # Case: c(2022) or c(2022.01)
+        val <- range_vec[1]
+        year <- floor(val)
+        # Per user request, c(2022.01) is equivalent to c(2022) -> plot whole year
+        start_date <- as.Date(paste0(year, "-01-01"))
+        end_date <- as.Date(paste0(year, "-12-31"))
+        
+      } else if (length(range_vec) == 2) {
+        # Case: c(2022.01, 2022.11) or c(2022, 2023)
+        val_start <- range_vec[1]
+        val_end <- range_vec[2]
+        
+        year_start <- floor(val_start)
+        month_start <- round((val_start - year_start) * 100)
+        
+        year_end <- floor(val_end)
+        month_end <- round((val_end - year_end) * 100)
+        
+        if (month_start == 0) month_start <- 1 # 2022.0 -> 2022.01
+        if (month_end == 0) month_end <- 12   # 2022.0 -> 2022.12
+        
+        start_date <- as.Date(paste(year_start, month_start, 1, sep = "-"))
+        # Get last day of end month
+        end_date <- lubridate::ceiling_date(as.Date(paste(year_end, month_end, 1, sep = "-")), "month") - lubridate::days(1)
+        
+      } else {
+        warning(paste("Range element", i, "has", length(range_vec), "items. Expected 1 or 2. Skipping."))
+        next
+      }
+      parsed_ranges[[i]] <- data.frame(start = start_date, end = end_date)
+    }
+    
+    if (length(parsed_ranges) == 0) {
+      warning("No valid date ranges were parsed from `yearsToPlot`. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    # Bind, sort, and merge overlapping ranges
+    all_ranges_df <- dplyr::bind_rows(parsed_ranges)
+    all_ranges_df <- all_ranges_df[order(all_ranges_df$start), ]
+    
+    merged_ranges_list <- list()
+    if (nrow(all_ranges_df) > 0) {
+      current_range <- all_ranges_df[1, ]
+      
+      if (nrow(all_ranges_df) > 1) {
+        for (j in 2:nrow(all_ranges_df)) {
+          next_range <- all_ranges_df[j, ]
+          
+          # Check for overlap or contiguity (gap <= 1 day)
+          if (next_range$start <= (current_range$end + lubridate::days(1))) {
+            # Merge
+            current_range$end <- max(current_range$end, next_range$end)
+          } else {
+            # Save old range, start new one
+            merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+            current_range <- next_range
+          }
+        }
+      }
+      # Add the last range
+      merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
+    }
+    
+    if (length(merged_ranges_list) == 0) {
+      warning("No valid date ranges remained after merging. No data will be plotted.")
+      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
+    }
+    
+    if (!silent) message(paste("Identified", length(merged_ranges_list), "non-continuous plot group(s)."))
+    
+    # Convert list to data.table for foverlaps
+    merged_dt <- data.table::as.data.table(dplyr::bind_rows(parsed_ranges))
+    merged_dt[, plot_group := .I] # Assign group IDs (1, 2, 3...)
+    
+    # Create data.table of all dates
+    all_dates_dt <- data.table::data.table(date_start = all_available_dates, date_end = all_available_dates)
+    
+    # Set keys for foverlaps
+    data.table::setkey(all_dates_dt, date_start, date_end)
+    data.table::setkey(merged_dt, start, end)
+    
+    # Find overlaps
+    date_group_mapping <- data.table::foverlaps(
+      all_dates_dt, 
+      merged_dt, 
+      by.x = c("date_start", "date_end"), 
+      by.y = c("start", "end"), 
+      nomatch = NA_integer_
+    )
+    
+    # Select and rename
+    final_mapping <- date_group_mapping[, .(date = date_start, plot_group)]
+    
+    return(final_mapping)
+  }
+
+
+#' x axis range helper function
+#' @export
+
+# another helper function from musoEnsemblePlot to calculate axis Breaks 
+  musoCalculateAxisBreaks <- function(date_vector, year_axis_interval_base = 2, silent = TRUE) {
+    
+    if (length(date_vector) == 0) {
+      return(list(breaks = "1 year", labels = "%Y"))
+    }
+    
+    min_date <- min(date_vector, na.rm = TRUE)
+    max_date <- max(date_vector, na.rm = TRUE)
+    num_days <- as.numeric(difftime(max_date, min_date, units = "days"))
+    
+    # ~1 year or less
+    if (num_days <= 400) {
+      if (!silent) message("Adjusting x-axis for single-year view: monthly breaks.")
+      x_axis_breaks <- "1 month"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # ~1-3 years
+    else if (num_days <= (365 * 3 + 1)) {
+      if (!silent) message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
+      x_axis_breaks <- "3 months"
+      x_axis_labels <- "%b %Y" # e.g., Jan 2022
+    } 
+    # More than 3 years
+    else {
+      if (!silent) message("Adjusting x-axis for long-term view: yearly breaks.")
+      
+      start_year <- lubridate::year(min_date)
+      end_year <- lubridate::year(max_date)
+      
+      # Adjust interval if range is too large
+      num_years <- end_year - start_year + 1
+      year_interval <- if (num_years > 20) floor(num_years / 10) else year_axis_interval_base
+      
+      x_axis_breaks <- seq.Date(
+        from = as.Date(paste0(start_year, "-01-01")),
+        to = as.Date(paste0(end_year, "-12-31")),
+        by = paste(year_interval, "years")
+      )
+      x_axis_labels <- "%Y"
+    }
+    
+    return(list(breaks = x_axis_breaks, labels = x_axis_labels))
+  }
 
 
 #' Create Ensemble Plot
@@ -1188,185 +1375,6 @@ musoPlotHarvestIndexBiomass <- function(
                                     silent = FALSE,
                                     ...) {
   
-  # Helper Function from musoEnsemblePlot, prolly need to make this a separate function
-  parse_and_group_dates <- function(years_to_plot, all_available_dates) {
-    
-    if (is.null(years_to_plot)) {
-      if (!silent) message("`yearsToPlot` is NULL. All dates will be plotted in a single group.")
-
-      return(data.table::data.table(date = all_available_dates, plot_group = 1))
-    }
-    
-    # Standardize input to a list of ranges
-    range_list_input <- list()
-    if (is.numeric(years_to_plot)) {
-      # Handle single vector c(2022) or c(2022.01, 2022.11)
-      if (all(years_to_plot == floor(years_to_plot))) {
-        # It's a list of whole years, e.g., c(2021, 2022)
-        if (!silent) message("Interpreting numeric input as a list of whole years.")
-        range_list_input <- lapply(years_to_plot, function(y) c(y, y))
-      } else {
-        # It's a single range, c(2022.01, 2022.11) or c(2022.01)
-        if (!silent) message("Interpreting numeric input as a single date range.")
-        range_list_input <- list(years_to_plot)
-      }
-    } else if (is.list(years_to_plot)) {
-      # It's already in the list format, list(c(2021.01, 2022.04), c(2024.01, 2025.11))
-      if (!silent) message("Interpreting input as a list of date ranges.")
-      range_list_input <- years_to_plot
-    } else {
-      stop("`yearsToPlot` must be NULL, a numeric vector, or a list.")
-    }
-    
-    # Now, `range_list_input` is a list, list(c(2022), c(2023.01, 2023.05))
-    parsed_ranges <- list()
-    
-    for (i in seq_along(range_list_input)) {
-      range_vec <- range_list_input[[i]]
-      
-      if (length(range_vec) == 1) {
-        # Case: c(2022) or c(2022.01)
-        val <- range_vec[1]
-        year <- floor(val)
-        # Per user request, c(2022.01) is equivalent to c(2022) -> plot whole year
-        start_date <- as.Date(paste0(year, "-01-01"))
-        end_date <- as.Date(paste0(year, "-12-31"))
-        
-      } else if (length(range_vec) == 2) {
-        # Case: c(2022.01, 2022.11) or c(2022, 2023)
-        val_start <- range_vec[1]
-        val_end <- range_vec[2]
-        
-        year_start <- floor(val_start)
-        month_start <- round((val_start - year_start) * 100)
-        
-        year_end <- floor(val_end)
-        month_end <- round((val_end - year_end) * 100)
-        
-        if (month_start == 0) month_start <- 1 # 2022.0 -> 2022.01
-        if (month_end == 0) month_end <- 12   # 2022.0 -> 2022.12
-        
-        start_date <- as.Date(paste(year_start, month_start, 1, sep = "-"))
-        # Get last day of end month
-        end_date <- lubridate::ceiling_date(as.Date(paste(year_end, month_end, 1, sep = "-")), "month") - lubridate::days(1)
-        
-      } else {
-        warning(paste("Range element", i, "has", length(range_vec), "items. Expected 1 or 2. Skipping."))
-        next
-      }
-      parsed_ranges[[i]] <- data.frame(start = start_date, end = end_date)
-    }
-    
-    if (length(parsed_ranges) == 0) {
-      warning("No valid date ranges were parsed from `yearsToPlot`. No data will be plotted.")
-      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
-    }
-    
-    # Bind, sort, and merge overlapping ranges
-    all_ranges_df <- dplyr::bind_rows(parsed_ranges)
-    all_ranges_df <- all_ranges_df[order(all_ranges_df$start), ]
-    
-    merged_ranges_list <- list()
-    if (nrow(all_ranges_df) > 0) {
-      current_range <- all_ranges_df[1, ]
-      
-      if (nrow(all_ranges_df) > 1) {
-        for (j in 2:nrow(all_ranges_df)) {
-          next_range <- all_ranges_df[j, ]
-          
-          # Check for overlap or contiguity (gap <= 1 day)
-          if (next_range$start <= (current_range$end + lubridate::days(1))) {
-            # Merge
-            current_range$end <- max(current_range$end, next_range$end)
-          } else {
-            # Save old range, start new one
-            merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
-            current_range <- next_range
-          }
-        }
-      }
-      # Add the last range
-      merged_ranges_list[[length(merged_ranges_list) + 1]] <- current_range
-    }
-    
-    if (length(merged_ranges_list) == 0) {
-      warning("No valid date ranges remained after merging. No data will be plotted.")
-      return(data.table::data.table(date = all_available_dates, plot_group = NA_integer_))
-    }
-    
-    if (!silent) message(paste("Identified", length(merged_ranges_list), "non-continuous plot group(s)."))
-    
-    # Convert list to data.table for foverlaps
-    merged_dt <- data.table::as.data.table(dplyr::bind_rows(parsed_ranges))
-    merged_dt[, plot_group := .I] # Assign group IDs (1, 2, 3...)
-    
-    # Create data.table of all dates
-    all_dates_dt <- data.table::data.table(date_start = all_available_dates, date_end = all_available_dates)
-    
-    # Set keys for foverlaps
-    data.table::setkey(all_dates_dt, date_start, date_end)
-    data.table::setkey(merged_dt, start, end)
-    
-    # Find overlaps
-    date_group_mapping <- data.table::foverlaps(
-      all_dates_dt, 
-      merged_dt, 
-      by.x = c("date_start", "date_end"), 
-      by.y = c("start", "end"), 
-      nomatch = NA_integer_
-    )
-    
-    # Select and rename
-    final_mapping <- date_group_mapping[, .(date = date_start, plot_group)]
-    
-    return(final_mapping)
-  }
-  
-  # another helper function from musoEnsemblePlot to calculate axis Breaks 
-  calculate_axis_breaks <- function(date_vector, year_axis_interval_base = 2) {
-    
-    if (length(date_vector) == 0) {
-      return(list(breaks = "1 year", labels = "%Y"))
-    }
-    
-    min_date <- min(date_vector, na.rm = TRUE)
-    max_date <- max(date_vector, na.rm = TRUE)
-    num_days <- as.numeric(difftime(max_date, min_date, units = "days"))
-    
-    # ~1 year or less
-    if (num_days <= 400) {
-      if (!silent) message("Adjusting x-axis for single-year view: monthly breaks.")
-      x_axis_breaks <- "1 month"
-      x_axis_labels <- "%b %Y" # e.g., Jan 2022
-    } 
-    # ~1-3 years
-    else if (num_days <= (365 * 3 + 1)) {
-      if (!silent) message("Adjusting x-axis for 2-3 year view: quarterly breaks.")
-      x_axis_breaks <- "3 months"
-      x_axis_labels <- "%b %Y" # e.g., Jan 2022
-    } 
-    # More than 3 years
-    else {
-      if (!silent) message("Adjusting x-axis for long-term view: yearly breaks.")
-      
-      start_year <- lubridate::year(min_date)
-      end_year <- lubridate::year(max_date)
-      
-      # Adjust interval if range is too large
-      num_years <- end_year - start_year + 1
-      year_interval <- if (num_years > 20) floor(num_years / 10) else year_axis_interval_base
-      
-      x_axis_breaks <- seq.Date(
-        from = as.Date(paste0(start_year, "-01-01")),
-        to = as.Date(paste0(end_year, "-12-31")),
-        by = paste(year_interval, "years")
-      )
-      x_axis_labels <- "%Y"
-    }
-    
-    return(list(breaks = x_axis_breaks, labels = x_axis_labels))
-  }
-  
   if (is.null(modelResult)) {
     if (!silent) message("`modelResult` is NULL. Running model...")
     modelResult <- tryCatch({
@@ -1445,9 +1453,10 @@ musoPlotHarvestIndexBiomass <- function(
   all_available_dates <- plot_data$Date
   
   # Call the nested helper function
-  date_group_mapping <- parse_and_group_dates(
+  date_group_mapping <- musoParseAndGroupDates(
     years_to_plot = yearsToPlot, 
-    all_available_dates = all_available_dates
+    all_available_dates = all_available_dates,
+    silent = silent
   )
   
   # Merge the plot_group into plot_data
@@ -1569,7 +1578,7 @@ musoPlotHarvestIndexBiomass <- function(
          message(paste("Skipping plot group", current_group, " - no dates found.")) # Should be caught by above, but good safeguard
          next
     }
-    axis_params <- calculate_axis_breaks(all_group_dates, year_axis_interval_base = 2)
+    axis_params <- musoCalculateAxisBreaks(all_group_dates, year_axis_interval_base = 2, silent = silent)
     axis_limits <- c(min(all_group_dates, na.rm = TRUE), max(all_group_dates, na.rm = TRUE)) # Add na.rm
 
     plot_title_suffix <- if (num_plots > 1) paste(" - (Part", i, "of", num_plots, ")") else ""

@@ -52,6 +52,8 @@ musoPlotHarvestIndexBiomass(
 
 \item{height}{Height of the saved plot in inches. Default is 8.}
 
+\item{yAxisLim}{Numeric vector of length 2 specifying y-axis limits. Default is NULL (automatic scaling).}
+
 \item{yieldcColor}{Color for the yield carbon line. Default is "darkgoldenrod2".}
 
 \item{leafcColor}{Color for the leaf carbon line. Default is "#6fd76f"}
