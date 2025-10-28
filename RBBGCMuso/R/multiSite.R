@@ -139,6 +139,7 @@ multiSiteCalib <- function(measurements,
                            constraints=NULL, th = 10, treeControl=rpart.control()
                            ){
     future::plan(future::multisession)
+    #future::plan(future::sequential)
     # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
     # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
 
@@ -176,7 +177,7 @@ multiSiteCalib <- function(measurements,
                                }
 
                       , error = function(e){
-                          # browser()
+                          #browser()
                                             sink("error.txt")
                                             print(e)
                                             sink()
@@ -395,7 +396,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         }}
 
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
-    randVals <- musoRand(parameters = parameters,constraints = constraints, iterations = iterations)
+    randVals <- musoRand(parameters = parameters, iterations = iterations)
 
     origEpc <- readValuesFromFile(epcFile, randVals[[1]])
     partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 2)
