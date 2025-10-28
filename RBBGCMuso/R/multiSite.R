@@ -397,9 +397,9 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     randVals <- musoRand(parameters = parameters, iterations = iterations)
-    selectedEpc <- calTable$FILE[1] 
-    selectedEpc <- basename(epcFile)==basename(selectedEpc) 
-    origEpc <- readValuesFromFile(selectedEpc, randVals[[1]])
+    selectedEpc <- parameters$FILE[1]
+    selectedEpc <- basename(epcFile) == basename(selectedEpc)
+    origEpc <- readValuesFromFile(epcFile[selectedEpc], randVals[[1]])
     partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 2)
     colN <- randVals[[1]]
     colN[match(parameters[,2],randVals[[1]])] <- parameters[,1]
