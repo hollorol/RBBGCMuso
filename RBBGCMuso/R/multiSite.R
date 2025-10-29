@@ -373,14 +373,23 @@ multiSiteCalib <- function(measurements,
         return(NA)
     })
     saveRDS(res,"results.RDS")
-    png("calibRes.png")
-    opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
+ tryCatch({
+        png("calibRes.png")
+        opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
         with(data=res$comparison, {
+             
+             # Calculate plot range, removing NAs
+             plotRange <- c(min(c(measured,original,calibrated), na.rm = TRUE),
+                            max(c(measured,original,calibrated), na.rm = TRUE))
+             
+             # Check if range is finite (not Inf/-Inf, which happens if all are NA)
+             if (!all(is.finite(plotRange))) {
+                 stop("Cannot generate plot, data contains only NAs or non-finite values.")
+             }
+             
              plot(measured,original,
-                  ylim=c(min(c(measured,original,calibrated)),
-                         max(c(measured,original,calibrated))),
-                  xlim=c(min(c(measured,original,calibrated)),
-                         max(c(measured,original,calibrated))),
+                  ylim=plotRange,
+                  xlim=plotRange,
                   xlab=expression("measured "~(kg[DM]~m^-2)),
                   ylab=expression("simulated "~(kg[DM]~m^-2)),
                   cex.lab=1.3,
@@ -400,8 +409,13 @@ multiSiteCalib <- function(measurements,
                     xpd=TRUE
              )
         })
-    dev.off()
-    return(res)
+        dev.off()
+    }, error = function(e) {
+        warning(sprintf("Could not generate calibRes.png plot: %s", e$message))
+        if (names(dev.cur()) == "png") {
+            try(dev.off(), silent = TRUE) # Try to close it safely
+        }
+    })
 }
 
 #' multiSiteThread
