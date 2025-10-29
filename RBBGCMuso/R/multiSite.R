@@ -310,8 +310,29 @@ multiSiteCalib <- function(measurements,
 
     setwd("tmp/thread_1")
     aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
-    file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
-              "../../multiSiteOptim.epc", overwrite=TRUE)
+    
+    siteDir <- list.dirs(full.names=TRUE, recursive=FALSE)[1] 
+    allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
+
+    # Get the *template* EPC file name from the parameters data frame
+    templateEpcName <- parameters$FILE[1] 
+    
+    # Find the full path to that specific file
+    epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
+
+    # Add a check in case the file isn't found
+    if (length(epcToCopy) == 1) {
+        file.copy(epcToCopy, "../../multiSiteOptim.epc", overwrite=TRUE)
+    } else {
+        warning(sprintf("Could not find unique EPC file '%s' to copy. Found: %s. 'multiSiteOptim.epc' not created.", 
+                        templateEpcName, paste(epcToCopy, collapse=", ")))
+    }
+    
+    
+    # file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
+    #           "../../multiSiteOptim.epc", overwrite=TRUE)
+
+
     setwd("../../")
     #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
     nameGroupTable <- calTable 
