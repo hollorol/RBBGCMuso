@@ -453,12 +453,19 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             settings$outputLoc <- settings$inputLoc <- "./"
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
-            settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
             
+            # --- MODIFICATION 1: Absolute Path ---
+            # Use full path for the executable, just in case.
+            exec_name <- ifelse(Sys.info()[1]=="Linux", "muso", "muso.exe")
+            settings$executable <- file.path(getwd(), exec_name)
+            # --- END MODIFICATION 1 ---
+
             # --- MODIFIED tryCatch ---
             res <- tryCatch({
                 # The actual model call
-                calibMuso(settings=settings, parameters=origEpc, silent = TRUE, skipSpinup = TRUE)
+                # --- MODIFICATION 2: silent = FALSE ---
+                calibMuso(settings=settings, parameters=origEpc, silent = FALSE, skipSpinup = TRUE)
+                # --- END MODIFICATION 2 ---
             }, error = function(e) {
                 # More robust error logging
                 errMsg <- sprintf("--- ERROR START ---\nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nFILES_AT_ERROR: %s\n--- ERROR END ---\n\n",
@@ -475,7 +482,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                 # Return NA to maintain existing flow
                 return(NA)
             })
-            # --- END MODIFICATION ---
+            # --- END MODIFIED tryCatch ---
 
             # --- NEW DIAGNOSTICS (POST-RUN) ---
             tryCatch({
@@ -532,12 +539,18 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             settings$outputLoc <- settings$inputLoc <- "./"
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
-            settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
+            
+            # --- MODIFICATION 1: Absolute Path ---
+            exec_name <- ifelse(Sys.info()[1]=="Linux", "muso", "muso.exe")
+            settings$executable <- file.path(getwd(), exec_name)
+            # --- END MODIFICATION 1 ---
 
             # --- MODIFIED tryCatch ---
             res <- tryCatch({
                 # The actual model call
-                calibMuso(settings=settings, parameters=currentParams, silent = TRUE, skipSpinup = TRUE)
+                # --- MODIFICATION 2: silent = FALSE ---
+                calibMuso(settings=settings, parameters=currentParams, silent = FALSE, skipSpinup = TRUE)
+                # --- END MODIFICATION 2 ---
             }, error = function(e) {
                 # More robust error logging
                 errMsg <- sprintf("--- ERROR START ---\nTIMESTAMP: %s\nTYPE: Main Loop (Iteration %d)\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nFILES_AT_ERROR: %s\n--- ERROR END ---\n\n",
@@ -554,7 +567,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                 # Return NA to maintain existing flow
                 return(NA)
             })
-            # --- END MODIFICATION ---
+            # --- END MODIFIED tryCatch ---
             
             # --- NEW DIAGNOSTICS (POST-RUN) ---
             tryCatch({
@@ -763,9 +776,14 @@ spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
             settings$calibrationPar <- calibrationPar
-            settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
+            
+            # --- MODIFICATION 1: Absolute Path ---
+            exec_name <- ifelse(Sys.info()[1]=="Linux", "muso", "muso.exe")
+            settings$executable <- file.path(getwd(), exec_name)
+            # --- END MODIFICATION 1 ---
+            
             # Adding a basic tryCatch here as well
-            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = TRUE, skipSpinup = TRUE), 
+            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = FALSE, skipSpinup = TRUE), # MODIFICATION 2: silent = FALSE
                             error=function(e){
                                 write(sprintf("ERROR in spatialRun for site %s: %s\n", dirName, e$message), 
                                       file = "../spatial_run_error.txt", append=TRUE)
