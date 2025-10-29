@@ -353,12 +353,25 @@ multiSiteCalib <- function(measurements,
                                                                  nameGroupTable = nameGroupTable, mean)
     res[["likelihood"]] <- results[bestCase,ncol(results)-2]
     comp <- res$comparison
-    res[["originalMAE"]] <- mean(abs((comp[,1]-comp[,3])))
-    res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])))
-    res[["RMSE"]] <- results[bestCase,ncol(results)-2]
-    res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2))
-    res[["originalR2"]] <- summary(lm(measured ~ original,data=res$comparison))$r.squared
-    res[["R2"]] <- summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
+   res[["originalMAE"]] <- mean(abs((comp[,1]-comp[,3])), na.rm = TRUE)
+    res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])), na.rm = TRUE)
+    res[["RMSE"]] <- results[bestCase,ncol(results)-2] # This comes from 'results', should be safe
+    res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2, na.rm = TRUE))
+    
+    # Add tryCatch to prevent crash if lm fails
+    res[["originalR2"]] <- tryCatch({
+        summary(lm(measured ~ original, data=res$comparison))$r.squared
+    }, error = function(e) {
+        warning(sprintf("Could not calculate originalR2: %s", e$message))
+        return(NA)
+    })
+    
+    res[["R2"]] <- tryCatch({
+        summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
+    }, error = function(e) {
+        warning(sprintf("Could not calculate R2: %s", e$message))
+        return(NA)
+    })
     saveRDS(res,"results.RDS")
     png("calibRes.png")
     opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
