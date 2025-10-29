@@ -82,14 +82,39 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
                               executable = ifelse(Sys.info()[1]=="Linux", file.path(execPath, "muso"),
                                                                             file.path(execPath,"muso.exe"))){
     sapply(iniSource, function(x){
+        # Define the destination directory for this site
+        destDir <- file.path("tmp", paste0(thread_prefix,"_1"), tools::file_path_sans_ext(basename(x)), "")
+        
+        # flatMuso copies files referenced in the .ini
         flatMuso(x, execPath,
-                 directory=file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)),""), d =TRUE)
-        file.copy(executable,
-                  file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x))))
-        tryCatch(file.copy(file.path(execPath,"cygwin1.dll"),
-                   file.path("tmp", paste0(thread_prefix,"_1"),tools::file_path_sans_ext(basename(x)))),
+                 directory=destDir, d =TRUE)
+
+        # --- NEW FIX ---
+        # Manually copy all .plg files from the execPath to the destination directory
+        # This is a workaround because flatMuso might not parse them from the .mgm file.
+        tryCatch({
+            # Find all .plg files in the main executable path
+            plg_files <- list.files(path = execPath, pattern = "\\.plg$", full.names = TRUE)
+            if (length(plg_files) > 0) {
+                # Copy them to the new thread/site directory
+                file.copy(from = plg_files, to = destDir, overwrite = TRUE)
+            }
+        }, error = function(e){
+            # Log this error, but don't stop the process
+            write(sprintf("WARNING: Could not copy .plg files to %s. Error: %s\n", destDir, e$message), 
+                  file = file.path("tmp", "thread_error_log.txt"), append = TRUE)
+        })
+        # --- END FIX ---
+
+        # Copy the executable
+        file.copy(executable, destDir)
+        
+        # Copy cygwin1.dll if it exists
+        tryCatch(file.copy(file.path(execPath,"cygwin1.dll"), destDir),
                  error = function(e){"If you are in Windows..."})
     })
+    
+    # This part copies the entire thread_1 structure to other threads
     sapply(2:numCores,function(thread){
                dir.create(sprintf("tmp/%s_%s",thread_prefix,thread), showWarnings=FALSE)
                file.copy(list.files(sprintf("tmp/%s_1",thread_prefix),full.names = TRUE),sprintf("tmp/%s_%s/",thread_prefix,thread),
