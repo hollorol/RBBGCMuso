@@ -437,7 +437,19 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
-            res <- tryCatch(calibMuso(settings=settings,parameters =origEpc, silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+            res <- tryCatch(calibMuso(settings=settings,parameters =origEpc, silent = TRUE, skipSpinup = TRUE), error=function(e){
+
+                errMsg <- sprintf(" ERROR START \nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nERROR END \n\n",
+                                  Sys.time(),
+                                  dirName, 
+                                  paste(names(origEpc), origEpc, collapse=" | "), 
+                                  e$message)
+                
+                write(errMsg, file = "../thread_error_log.txt", append = TRUE) 
+
+                return(NA)
+
+            })
             setwd("../")
             res
         })
