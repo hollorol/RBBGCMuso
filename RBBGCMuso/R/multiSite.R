@@ -161,6 +161,7 @@ multiSiteCalib <- function(measurements,
                            copyThread = TRUE,
                            constraints=NULL, th = 10, treeControl=rpart.control()
                            ){
+    originalParametersDF <- parameters                       
     future::plan(future::multisession)
     #future::plan(future::sequential)
     # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
@@ -315,7 +316,9 @@ multiSiteCalib <- function(measurements,
     allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
 
     # Get the *template* EPC file name from the parameters data frame
-    templateEpcName <- parameters$FILE[1] 
+    # since parameters gets overwritten we need to use oroignal
+    #templateEpcName <- parameters$FILE[1] 
+    templateEpcName <- originalParametersDF$FILE[1]
     
     # Find the full path to that specific file
     epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
