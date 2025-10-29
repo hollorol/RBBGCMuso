@@ -155,6 +155,8 @@ multiSiteCalib <- function(measurements,
         print("copy skipped")
         file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
         file.remove(file.path(list.dirs("tmp", recursive=FALSE), "const_results.data"))
+        # Also remove old error logs
+        file.remove(file.path(list.dirs("tmp", recursive=FALSE), "thread_error_log.txt"))
     }
 
     #  ____                _   _                        _     
@@ -303,7 +305,7 @@ multiSiteCalib <- function(measurements,
                                                                  likelihoods = likelihood,
                                                                  alignIndexes = alignIndexes,
                                                                  musoCodeToIndex = musoCodeToIndex,
-                                                                 nameGroupTable = nameGroupTable, mean)
+                                                                 nameGgoupTable = nameGroupTable, mean)
     res[["likelihood"]] <- results[bestCase,ncol(results)-2]
     comp <- res$comparison
     res[["originalMAE"]] <- mean(abs((comp[,1]-comp[,3])))
@@ -379,7 +381,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
    defaultLikelihood <- which(is.na(likelihood))
    if(length(defaultLikelihood)>0){
         likelihoodFull[[defaultLikelihood]] <- (function(x, y){
-                                                       exp(-sqrt(mean((x-y)^2)))
+                                                       # Use na.rm=TRUE for robustness
+                                                       exp(-sqrt(mean((x-y)^2, na.rm = TRUE)))
                                                 })
    }
 
@@ -432,24 +435,59 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
         origModOut <- lapply(resIterate, function(i){
             dirName <- tools::file_path_sans_ext(basename(calTable[i,1]))
             setwd(dirName)
+            
+            # --- NEW DIAGNOSTICS ---
+            logFile <- "../thread_error_log.txt" # Define log file path
+            tryCatch({
+                # Log entry *before* attempting the run
+                preMsg <- sprintf("--- DIAGNOSTIC (PRE-RUN) ---\nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nCALLING_PWD: %s\nFILES_PRE_RUN: %s\n--- END DIAGNOSTIC ---\n\n",
+                                  Sys.time(),
+                                  dirName,
+                                  getwd(),
+                                  paste(list.files(), collapse=", "))
+                write(preMsg, file = logFile, append = TRUE)
+            }, error=function(e){}) # Don't let logging break things
+            # --- END NEW DIAGNOSTICS ---
+            
             settings <- settingsProto 
             settings$outputLoc <- settings$inputLoc <- "./"
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
-            res <- tryCatch(calibMuso(settings=settings,parameters =origEpc, silent = TRUE, skipSpinup = TRUE), error=function(e){
-
-                errMsg <- sprintf(" ERROR START \nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nERROR END \n\n",
+            
+            # --- MODIFIED tryCatch ---
+            res <- tryCatch({
+                # The actual model call
+                calibMuso(settings=settings, parameters=origEpc, silent = TRUE, skipSpinup = TRUE)
+            }, error = function(e) {
+                # More robust error logging
+                errMsg <- sprintf("--- ERROR START ---\nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nFILES_AT_ERROR: %s\n--- ERROR END ---\n\n",
                                   Sys.time(),
                                   dirName, 
                                   paste(names(origEpc), origEpc, collapse=" | "), 
-                                  e$message)
+                                  e$message,
+                                  paste(list.files(), collapse=", ")) # Add files at time of error
                 
-                write(errMsg, file = "../thread_error_log.txt", append = TRUE) 
-
+                # Write to a specific log file in the thread directory
+                # We are in tmp/thread_1/siteName, so ../thread_error_log.txt goes to tmp/thread_1/
+                write(errMsg, file = logFile, append = TRUE) 
+                
+                # Return NA to maintain existing flow
                 return(NA)
-
             })
+            # --- END MODIFICATION ---
+
+            # --- NEW DIAGNOSTICS (POST-RUN) ---
+            tryCatch({
+                postMsg <- sprintf("--- DIAGNOSTIC (POST-RUN) ---\nTIMESTAMP: %s\nTYPE: origModOut\nSITE: %s\nRESULT_IS_NA: %s\nFILES_POST_RUN: %s\n--- END DIAGNOSTIC ---\n\n",
+                                   Sys.time(),
+                                   dirName,
+                                   is.na(res)[1], # Use is.na(res)[1] to avoid error on list/vector
+                                   paste(list.files(), collapse=", "))
+                write(postMsg, file = logFile, append = TRUE)
+            }, error=function(e){})
+            # --- END NEW DIAGNOSTICS ---
+
             setwd("../")
             res
         })
@@ -468,16 +506,68 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     print("Running the model with the random epc values...", quote = FALSE)
     for(i in 2:(iterations+1)){
+        
+        currentParams <- randValues[(i-1),] # Store params for error logging
+        paramNames <- colnames(partialResult)[1:numParameters] # Get param names
+        
         tmp <- lapply(resIterate, function(siteI){
             dirName <- tools::file_path_sans_ext(basename(calTable[siteI,1]))
             setwd(dirName)
+
+            # --- NEW DIAGNOSTICS ---
+            logFile <- "../thread_error_log.txt" # Define log file path
+            tryCatch({
+                # Log entry *before* attempting the run
+                preMsg <- sprintf("--- DIAGNOSTIC (PRE-RUN) ---\nTIMESTAMP: %s\nTYPE: Main Loop (Iteration %d)\nSITE: %s\nCALLING_PWD: %s\nFILES_PRE_RUN: %s\n--- END DIAGNOSTIC ---\n\n",
+                                  Sys.time(),
+                                  i-1,
+                                  dirName,
+                                  getwd(),
+                                  paste(list.files(), collapse=", "))
+                write(preMsg, file = logFile, append = TRUE)
+            }, error=function(e){})
+            # --- END NEW DIAGNOSTICS ---
+
             settings <- settingsProto 
             settings$outputLoc <- settings$inputLoc <- "./"
             settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
             settings$outputNames <- rep(dirName,2)
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
 
-            res <- tryCatch(calibMuso(settings=settings,parameters=randValues[(i-1),], silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+            # --- MODIFIED tryCatch ---
+            res <- tryCatch({
+                # The actual model call
+                calibMuso(settings=settings, parameters=currentParams, silent = TRUE, skipSpinup = TRUE)
+            }, error = function(e) {
+                # More robust error logging
+                errMsg <- sprintf("--- ERROR START ---\nTIMESTAMP: %s\nTYPE: Main Loop (Iteration %d)\nSITE: %s\nPARAMETERS: %s\nERROR_MSG: %s\nFILES_AT_ERROR: %s\n--- ERROR END ---\n\n",
+                                  Sys.time(),
+                                  i-1,
+                                  dirName, 
+                                  paste(paramNames, currentParams, collapse=" | "), 
+                                  e$message,
+                                  paste(list.files(), collapse=", ")) # Add files at error
+                
+                # Write to a specific log file in the thread directory
+                write(errMsg, file = logFile, append = TRUE)
+                
+                # Return NA to maintain existing flow
+                return(NA)
+            })
+            # --- END MODIFICATION ---
+            
+            # --- NEW DIAGNOSTICS (POST-RUN) ---
+            tryCatch({
+                postMsg <- sprintf("--- DIAGNOSTIC (POST-RUN) ---\nTIMESTAMP: %s\nTYPE: Main Loop (Iteration %d)\nSITE: %s\nRESULT_IS_NA: %s\nFILES_POST_RUN: %s\n--- END DIAGNOSTIC ---\n\n",
+                                   Sys.time(),
+                                   i-1,
+                                   dirName,
+                                   is.na(res)[1], # Use is.na(res)[1] to avoid error on list/vector
+                                   paste(list.files(), collapse=", "))
+                write(postMsg, file = logFile, append = TRUE)
+            }, error=function(e){})
+            # --- END NEW DIAGNOSTICS ---
+            
             setwd("../")
             res
         })
@@ -534,10 +624,19 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
 
     if(!is.null(constraints)){
                          constRes<- sapply(mod,function(m){
+                            # Check if model output is NA (due to a failed run)
+                            if (is.null(m) || (is.logical(m) && is.na(m)[1]) || !is.data.frame(m)) {
+                                # Return a vector of 0s (fails) for all constraints
+                                return(rep(0, nrow(constraints)))
+                            }
                             compoVect(m,constraints)
                          })
 
                         failType <- constMatToDec(constRes)
+    } else {
+        # If no constraints, set defaults
+        constRes <- matrix(1, nrow=1, ncol=length(mod)) # Pass
+        failType <- 0 # No fail
     }
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
@@ -545,12 +644,14 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                            function(domain_id){
                                             apply(do.call(cbind,
                                                           lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                 function(site){
+                                                                    # Check for failed model run
+                                                                    if (is.null(mod[[site]]) || (is.logical(mod[[site]]) && is.na(mod[[site]])[1]) || !is.data.frame(mod[[site]])) {
+                                                                        # Return NAs of the same length as the model index
+                                                                        return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                                                    }
+                                                                    mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                                         })),1,groupFun)
-
-
-
-
                                         })))
 
 
@@ -559,18 +660,27 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
                measured <- measured[measured$var_id == key,]
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-measured$mean)^2))
-               )
+               
+               # Check if modelled has any valid numbers
+               if (all(is.na(modelled))) {
+                   lik <- -Inf # Use -Inf for log-likelihood
+                   rmse <- Inf # Worst RMSE
+               } else {
+                   lik <- likelihoods[[key]](modelled, measured)
+                   # Add na.rm=TRUE to RMSE calculation
+                   rmse <- sqrt(mean((modelled - measured$mean)^2, na.rm = TRUE))
+               }
+               
+               res <- c(lik, rmse)
 
-
-               print(abs(mean(modelled)-mean(measured$mean)))
+               print(abs(mean(modelled, na.rm=TRUE)-mean(measured$mean, na.rm=TRUE)))
                res
         })
 
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
-                    1,0), failType)
+             ifelse(is.null(constraints), 1, # Pass if no constraints
+             ifelse((100 * sum(apply(constRes, 2, prod), na.rm=TRUE) / ncol(constRes)) >= th,
+                    1,0)), failType)
     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
@@ -596,7 +706,7 @@ agroLikelihood <- function(modVector,measured){
     stdev <- measured[,grep("^sd", colnames(measured))]
     ndata <- nrow(measured)
     sum(sapply(1:ndata, function(x){
-                  dnorm(modVector, mu[x], stdev[x], log = TRUE)
+                  dnorm(modVector[x], mu[x], stdev[x], log = TRUE) # Corrected: was modVector, not modVector[x]
                }), na.rm=TRUE)
 }
 
@@ -614,6 +724,10 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                         apply(do.call(cbind,
                             lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                    function(site){
+                                       # Add NA check
+                                       if(is.null(modOld[[site]]) || (is.logical(modOld[[site]]) && is.na(modOld[[site]])[1])) {
+                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                       }
                                        modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                             })),1,groupFun)
                     })))
@@ -622,6 +736,10 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                         apply(do.call(cbind,
                             lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                    function(site){
+                                       # Add NA check
+                                       if(is.null(modNew[[site]]) || (is.logical(modNew[[site]]) && is.na(modNew[[site]])[1])) {
+                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                       }
                                        modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                             })),1,groupFun)
                     })))
@@ -646,9 +764,16 @@ spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
             settings$outputNames <- rep(dirName,2)
             settings$calibrationPar <- calibrationPar
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
-            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+            # Adding a basic tryCatch here as well
+            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = TRUE, skipSpinup = TRUE), 
+                            error=function(e){
+                                write(sprintf("ERROR in spatialRun for site %s: %s\n", dirName, e$message), 
+                                      file = "../spatial_run_error.txt", append=TRUE)
+                                NA
+                            })
             setwd("../")
             res
         })
     modOut
 }
+
