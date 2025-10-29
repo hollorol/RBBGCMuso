@@ -649,6 +649,10 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                         apply(do.call(cbind,
                             lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                    function(site){
+                                       if( !is.data.frame(modOld[[site]]) ) {
+                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                       }
+
                                        modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                             })),1,groupFun)
                     })))
@@ -657,6 +661,9 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                         apply(do.call(cbind,
                             lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                    function(site){
+                                       if( !is.data.frame(modNew[[site]]) ) {
+                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                       }
                                        modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                             })),1,groupFun)
                     })))
@@ -667,6 +674,7 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
     measured <- measured[measured$var_id == key,]
     return(data.frame(original = original, calibrated = calibrated,measured=measured$mean))
 }
+
 
 
 spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
