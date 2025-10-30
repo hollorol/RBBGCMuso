@@ -105,6 +105,17 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
                   file = file.path("tmp", "thread_error_log.txt"), append = TRUE)
         })
 
+
+        tryCatch({
+            EPC_files <- list.files(path = execPath, pattern = "\\.epc$", full.names = TRUE)
+            if (length(EPC_files) > 0) {
+                file.copy(from = EPC_files, to = destDir, overwrite = TRUE)
+            }
+        }, error = function(e){
+            write(sprintf("WARNING: Could not copy .epc files to %s. Error: %s\n", destDir, e$message), 
+                  file = file.path("tmp", "thread_error_log.txt"), append = TRUE)
+        })
+
         # Copy the executable
         file.copy(executable, destDir)
         
