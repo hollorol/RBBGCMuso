@@ -170,7 +170,7 @@ multiSiteCalib <- function(measurements,
                            pb = txtProgressBar(min=0, max=iterations, style=3),
                            pbUpdate = setTxtProgressBar,
                            copyThread = TRUE,
-                           constraints=NULL, th = 10, treeControl=rpart.control()
+                           constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL
                            ){
     originalParametersDF <- parameters                       
     future::plan(future::multisession)
@@ -206,7 +206,8 @@ multiSiteCalib <- function(measurements,
                                {
                                   result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                                    dataVar = dataVar, iterations = threadCount[i],
-                                                   likelihood = likelihood, threadNumber= i, constraints=constraints, th=th)
+                                                   likelihood = likelihood, threadNumber= i, constraints=constraints, th=th, fileToModify = fileToModify
+                                                   )
                                    # setwd("../../")
                                    # return(result)
                                }
@@ -329,8 +330,10 @@ multiSiteCalib <- function(measurements,
     # Get the *template* EPC file name from the parameters data frame
     # since parameters gets overwritten we need to use oroignal
     #templateEpcName <- parameters$FILE[1] 
-    templateEpcName <- originalParametersDF$FILE[1]
-    
+    #templateEpcName <- originalParametersDF$FILE[1]
+    templateEpcName <- fileToModify
+
+
     # Find the full path to that specific file
     epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
 
@@ -441,7 +444,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                      outVars = NULL, iterations = 300,
                      skipSpinup = TRUE, plotName = "calib.jpg",
                      modifyOriginal=TRUE, likelihood, uncertainity = NULL, burnin=NULL,
-                     naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10) {
+                     naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10, fileToModify = NULL
+                     ) {
 
     originalRun <- list()
     nameGroupTable <- calTable 
@@ -482,7 +486,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
     randVals <- musoRand(parameters = parameters, iterations = iterations)
-    selectedEpc <- parameters$FILE[1]
+    #selectedEpc <- parameters$FILE[1]
+    selectedEpc <- fileToModify
     selectedEpc <- basename(epcFile) == basename(selectedEpc)
     origEpc <- readValuesFromFile(epcFile[selectedEpc], randVals[[1]])
     partialResult <- matrix(ncol=length(randVals[[1]])+2*length(dataVar) + 2)
