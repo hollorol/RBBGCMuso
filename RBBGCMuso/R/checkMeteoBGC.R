@@ -49,9 +49,9 @@ checkMeteoBGC <- function(settings=NULL, skip = 4, numericReport = FALSE,type="n
    cat("Daily and yearly statistics of meteorological data for the time period of",
       timeFrame[1], "-", timeFrame[2], ":\n
       
-      PLEASE CHECK THE METEOROLOGY INPUT FILE AS THE PRECIPITATION MUST BE PROVIDED IN cm UNITS!
-      Long term mean temperature:", (mean(metTable$V3)+mean(metTable$V4))/2, "C
-      Long term annual precipitation:", mean(yearlyPrcpSum)*10, "mm\n
+PLEASE CHECK THE METEOROLOGY INPUT FILE AS THE PRECIPITATION MUST BE PROVIDED IN cm UNITS!
+      Long term mean temperature:", round((mean(metTable$V3)+mean(metTable$V4))/2,digits = 1), "C
+      Long term annual precipitation:", round(mean(yearlyPrcpSum)*10,digits = 0), "mm
       
       Precipitation data:
       Minimum and maximum of daily sums:",
@@ -63,14 +63,14 @@ checkMeteoBGC <- function(settings=NULL, skip = 4, numericReport = FALSE,type="n
       Lowest and highest daily temperatures (Tmin and Tmax):",
       intMin(metTable$V4), "C and", intMax(metTable$V3), "C.
       Minimum and maximum of yearly averages (based on Tday):",
-      intMin(yearlyTempAvg), "C and", intMax(yearlyTempAvg), "C.\n
+      intMin(yearlyTempAvg), "C and", intMax(yearlyTempAvg), "C.
 
       Solar radiation data:
       Minimum and maximum of daily values:",
       intMin(metTable$V8), "W m-2 and", intMax(metTable$V8), "W m-2.     
       Averages of the shortest and longest days:",
       sradAvgShortestDay(metTable$V8, metTable$V9),"W m-2 and",
-      sradAvgLongestDay(metTable$V8, metTable$V9), "W m-2.\n
+      sradAvgLongestDay(metTable$V8, metTable$V9), "W m-2.
        
       Vapour pressure deficit data:
       Minimum and maximum of daily values:",
