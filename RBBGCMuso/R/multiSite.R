@@ -604,6 +604,7 @@ prepareFromAgroMo <- function(fName){
     cbind.data.frame(dateCols, obs)
 }
 
+
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
@@ -667,6 +668,17 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                measured_df <- measured[measured$var_id == key,]
                measured_vals <- measured_df$mean
                
+               # --- START DEBUGGING ---
+               cat(sprintf("\n--- Debugging calcLikelihoodsForGroups (Key: %s) ---\n", key))
+               cat("Length of 'modelled':", length(modelled), "\n")
+               cat("Number of NAs in 'modelled':", sum(is.na(modelled)), "\n")
+               # cat("Modelled values (first 10):", paste(head(modelled, 10), collapse=", "), "\n")
+               
+               cat("Length of 'measured_vals':", length(measured_vals), "\n")
+               cat("Number of NAs in 'measured_vals':", sum(is.na(measured_vals)), "\n")
+               # cat("Measured values (first 10):", paste(head(measured_vals, 10), collapse=", "), "\n")
+               # --- END DEBUGGING ---
+               
                # --- START PATCH 2 ---
                # Find valid (non-NA, non-NaN) pairs in modelled and measured
                valid_indices <- !is.na(modelled) & !is.nan(modelled) & !is.na(measured_vals) & !is.nan(measured_vals)
@@ -674,6 +686,16 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                modelled_valid <- modelled[valid_indices]
                measured_valid_df <- measured_df[valid_indices, ] # Pass filtered df
                measured_valid_vals <- measured_vals[valid_indices]
+               
+               # --- START DEBUGGING ---
+               cat("Number of valid pairs found:", length(modelled_valid), "\n")
+               if(length(modelled_valid) == 0) {
+                   cat("Result: No valid pairs. Returning c(NA, NA).\n")
+               } else {
+                   cat("Result: Valid pairs found. Calculating likelihood.\n")
+               }
+               cat("--- End Debug ---\n")
+               # --- END DEBUGGING ---
                
                if(length(modelled_valid) == 0) {
                    # No valid data to compare, return NA
@@ -713,6 +735,7 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
+
 commonIndexes <- function (settings,measuredData) {
         # Have to fix for other starting points also
         modelDates <- seq(from= as.Date(sprintf("%s-01-01",settings$startYear)), 
