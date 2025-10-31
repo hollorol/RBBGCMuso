@@ -87,9 +87,10 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
         destDir <- file.path("tmp", paste0(thread_prefix,"_1"), tools::file_path_sans_ext(basename(x)), "")
         
         # flatMuso copies files referenced in the .ini
+        suppressWarnings(
         flatMuso(x, execPath,
                  directory=destDir, d =TRUE)
-
+        )
         # Manually copy all .plg files from the execPath to the destination directory
         # This is a workaround because flatMuso might not parse them from the .mgm file.
         tryCatch({
@@ -606,89 +607,57 @@ prepareFromAgroMo <- function(fName){
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
-                                     th = 10){
+                                     th = 10) {
     
-    failType <- 0 # Default to 0 (no fail)
-    constRes <- NULL # Default to NULL
-    
-    if(!is.null(constraints)){
-        # START PATCH FOR HANDLING NA MODEL RUNS   
-        # Patched code:
-        # We check if 'm' is a data.frame. If not (i.e., it's NA from a failed run),
-        # we return a vector of 0s (failures) for all constraints.
+    nSites <- length(mod)
+    if (!is.null(constraints)) {
         constRes <- sapply(mod, function(m) {
-            if (is.data.frame(m)) {
-                # This is a successful run, check constraints
-                tryCatch(compoVect(m, constraints),
-                         error = function(e) {
-                             # Constraint check itself failed, treat as constraint failure
-                             warning(paste("compoVect failed:", e$message))
-                             rep(0, nrow(constraints)) # Return all 0s
-                         })
-            } else {
-                # This is a failed run (m is NA), return all 0s
-                rep(0, nrow(constraints))
+            if (!is.data.frame(m) || all(is.na(m))) {  # Check for failed run
+                return(rep(0, nrow(constraints)))  # Treat as failed all constraints
             }
+            compoVect(m, constraints)
         })
-        # END PATCH 
-
         failType <- constMatToDec(constRes)
-    }
-
-    likelihoodRMSE <- sapply(names(dataVar),function(key){
-              modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                                           function(domain_id){
-                                            apply(do.call(cbind,
-                                                          lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){
-                                                                     # Add check for failed run (NA)
-                                                                     if (!is.data.frame(mod[[site]])) {
-                                                                         rep(NA, length(alignIndexes[[domain_id]]$model))
-                                                                     } else {
-                                                                         mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                                                                     }
-                                        })),1,groupFun)
-                                        })))
-
-
-               measuredGroups <- split(mes,mes$domain_id)
-               measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
-                                                    measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
-                                        }))
-               measured <- measured[measured$var_id == key,]
-               
-               # Check if modelled has NAs, if so, likelihood is NA
-               if(any(is.na(modelled))) {
-                   res <- c(NA, NA)
-               } else {
-                   res <- c(likelihoods[[key]](modelled, measured),
-                            sqrt(mean((modelled-measured$mean)^2))
-                   )
-                   print(abs(mean(modelled)-mean(measured$mean)))
-               }
-               res
-        })
-        
-    # Calculate constraint pass/fail
-    const_pass <- 0 # Default to 0 (fail)
-    if (!is.null(constRes)) {
-        # Check if any sites passed all constraints
-        # apply(constRes, 2, prod) gives 1 for pass, 0 for fail per site
-        if (any(apply(constRes, 2, prod) == 1)) {
-            if ((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th) {
-                const_pass <- 1
-            }
-        }
-        # If all runs failed (all NAs), constRes would be all 0s, sum is 0, const_pass remains 0. Correct.
     } else {
-        # If no constraints are defined, it's considered a "pass"
-        const_pass <- 1 
+        constRes <- matrix(1, nrow = nrow(constraints), ncol = nSites)  # Default pass if no constraints
+        failType <- 0  # No failures
     }
 
+    likelihoodRMSE <- sapply(names(dataVar), function(key) {
+        modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                            function(domain_id) {
+                                                siteOutputs <- lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
+                                                                      function(site) {
+                                                                          m <- mod[[site]]
+                                                                          if (!is.data.frame(m) || all(is.na(m))) {  # Handle failed run
+                                                                              return(rep(NA, nrow(alignIndexes[[domain_id]])))
+                                                                          }
+                                                                          m[alignIndexes[[domain_id]]$model, musoCodeToIndex[key]]
+                                                                      })
+                                                apply(do.call(cbind, siteOutputs), 1, groupFun, na.rm = TRUE)  # na.rm to ignore NA sites
+                                            })))
+        
+        measuredGroups <- split(mes, mes$domain_id)
+        measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id) {
+            measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
+        }))
+        measured <- measured[measured$var_id == key,]
+        
+        # If all modelled is NA (all sites failed), return NA likelihood/RMSE
+        if (all(is.na(modelled))) {
+            return(c(NA, NA))
+        }
+        
+        res <- c(likelihoods[[key]](modelled, measured),
+                 sqrt(mean((modelled - measured$mean)^2, na.rm = TRUE)))
+        print(abs(mean(modelled, na.rm = TRUE) - mean(measured$mean)))
+        res
+    })
+    
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             const_pass, failType)
-             
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",names(dataVar)), sprintf("%s_rmse",dataVar), "Const", "failType")
+                        ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th, 1, 0), 
+                        failType)
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood", dataVar), sprintf("%s_rmse", dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
 
