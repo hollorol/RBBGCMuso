@@ -187,7 +187,7 @@ multiSiteCalib <- function(measurements,
         unlink("tmp",recursive=TRUE)
         copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
     } else {
-        print("copy skipped")
+        #print("copy skipped")
         file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
         file.remove(file.path(list.dirs("tmp", recursive=FALSE), "const_results.data"))
     }
