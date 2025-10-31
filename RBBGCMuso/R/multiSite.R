@@ -607,67 +607,112 @@ prepareFromAgroMo <- function(fName){
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
-                                     th = 10) {
+                                     th = 10){
     
-    nSites <- length(mod)
-    if (!is.null(constraints)) {
+    failType <- 0 # Default to 0 (no fail)
+    constRes <- NULL # Default to NULL
+    
+    if(!is.null(constraints)){
+        # --- START PATCH ---
+        # Original code:
+        # constRes<- sapply(mod,function(m){
+        #    compoVect(m,constraints)
+        # })
+        
+        # Patched code:
+        # We check if 'm' is a data.frame. If not (i.e., it's NA from a failed run),
+        # we return a vector of 0s (failures) for all constraints.
         constRes <- sapply(mod, function(m) {
-            if (!is.data.frame(m) || all(is.na(m))) {  # Check for failed run
-                return(rep(0, nrow(constraints)))  # Treat as failed all constraints
+            if (is.data.frame(m)) {
+                # This is a successful run, check constraints
+                tryCatch(compoVect(m, constraints),
+                         error = function(e) {
+                             # Constraint check itself failed, treat as constraint failure
+                             warning(paste("compoVect failed:", e$message))
+                             rep(0, nrow(constraints)) # Return all 0s
+                         })
+            } else {
+                # This is a failed run (m is NA), return all 0s
+                rep(0, nrow(constraints))
             }
-            compoVect(m, constraints)
         })
+        # --- END PATCH ---
+
         failType <- constMatToDec(constRes)
-    } else {
-        constRes <- matrix(1, nrow = nrow(constraints), ncol = nSites)  # Default pass if no constraints
-        failType <- 0  # No failures
     }
 
-    likelihoodRMSE <- sapply(names(dataVar), function(key) {
-        modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                                            function(domain_id) {
-                                                siteOutputs <- lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                      function(site) {
-                                                                          m <- mod[[site]]
-                                                                          if (!is.data.frame(m) || all(is.na(m))) {  # Handle failed run
-                                                                              return(rep(NA, nrow(alignIndexes[[domain_id]])))
-                                                                          }
-                                                                          m[alignIndexes[[domain_id]]$model, musoCodeToIndex[key]]
-                                                                      })
-                                                apply(do.call(cbind, siteOutputs), 1, groupFun, na.rm = TRUE)  # na.rm to ignore NA sites
-                                            })))
+    likelihoodRMSE <- sapply(names(dataVar),function(key){
+              modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                           function(domain_id){
+                                            apply(do.call(cbind,
+                                                          lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
+                                                                 function(site){
+                                                                     # Add check for failed run (NA)
+                                                                     if (!is.data.frame(mod[[site]])) {
+                                                                         rep(NA, length(alignIndexes[[domain_id]]$model))
+                                                                     } else {
+                                                                         mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                     }
+                                        # --- START PATCH 1 ---
+                                        # Pass na.rm = TRUE to the grouping function
+                                        })),1, function(x) groupFun(x, na.rm = TRUE)) 
+                                        # --- END PATCH 1 ---
+                                        })))
+
+
+               measuredGroups <- split(mes,mes$domain_id)
+               measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
+                                                    measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
+                                        }))
+               measured_df <- measured[measured$var_id == key,]
+               measured_vals <- measured_df$mean
+               
+               # --- START PATCH 2 ---
+               # Find valid (non-NA, non-NaN) pairs in modelled and measured
+               valid_indices <- !is.na(modelled) & !is.nan(modelled) & !is.na(measured_vals) & !is.nan(measured_vals)
+               
+               modelled_valid <- modelled[valid_indices]
+               measured_valid_df <- measured_df[valid_indices, ] # Pass filtered df
+               measured_valid_vals <- measured_vals[valid_indices]
+               
+               if(length(modelled_valid) == 0) {
+                   # No valid data to compare, return NA
+                   res <- c(NA, NA)
+               } else {
+                   # Calculate likelihood and RMSE on the valid pairs
+                   res <- c(likelihoods[[key]](modelled_valid, measured_valid_df), 
+                            sqrt(mean((modelled_valid - measured_valid_vals)^2))
+                   )
+                   # Use na.rm=TRUE for mean calculation in print
+                   print(abs(mean(modelled_valid, na.rm=TRUE)-mean(measured_valid_vals, na.rm=TRUE)))
+               }
+               # --- END PATCH 2 ---
+               res
+        })
         
-        measuredGroups <- split(mes, mes$domain_id)
-        measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id) {
-            measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
-        }))
-        measured <- measured[measured$var_id == key,]
-        
-        # Filter non-finite values (NA/NaN) to avoid propagation
-        valid_idx <- is.finite(modelled)
-        if (all(!valid_idx)) {
-            return(c(NA, NA))  # No valid data points
+    # Calculate constraint pass/fail
+    const_pass <- 0 # Default to 0 (fail)
+    if (!is.null(constRes)) {
+        # Check if any sites passed all constraints
+        # apply(constRes, 2, prod) gives 1 for pass, 0 for fail per site
+        # Make sure constRes is a matrix before apply
+        if (is.matrix(constRes) && any(apply(constRes, 2, prod) == 1)) {
+            if ((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th) {
+                const_pass <- 1
+            }
         }
-        
-        mod_filt <- modelled[valid_idx]
-        meas_filt <- measured[valid_idx, ]  # Filter the full df, as likelihood may expect columns like 'mean', 'sd'
-        
-        # Compute likelihood (passes full filtered df) and RMSE
-        lik_val <- likelihoods[[key]](mod_filt, meas_filt)
-        rmse_val <- sqrt(mean((mod_filt - meas_filt$mean)^2))  # No na.rm needed after filter
-        
-        print(abs(mean(mod_filt) - mean(meas_filt$mean)))
-        
-        c(lik_val, rmse_val)
-    })
-    
+        # If all runs failed (all NAs), constRes would be all 0s, sum is 0, const_pass remains 0. Correct.
+    } else {
+        # If no constraints are defined, it's considered a "pass"
+        const_pass <- 1 
+    }
+
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-                        ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th, 1, 0), 
-                        failType)
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood", dataVar), sprintf("%s_rmse", dataVar), "Const", "failType")
+             const_pass, failType)
+             
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
-
 commonIndexes <- function (settings,measuredData) {
         # Have to fix for other starting points also
         modelDates <- seq(from= as.Date(sprintf("%s-01-01",settings$startYear)), 
