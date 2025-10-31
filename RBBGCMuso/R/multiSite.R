@@ -200,8 +200,8 @@ multiSiteCalib <- function(measurements,
                            constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL
 ){
   originalParametersDF <- parameters                       
-  #future::plan(future::multisession)
-  future::plan(future::sequential)
+  future::plan(future::multisession)
+  #future::plan(future::sequential)
   # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
   # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
   
@@ -924,5 +924,3 @@ spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
   })
   modOut
 }
-
-
