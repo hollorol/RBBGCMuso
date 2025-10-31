@@ -560,18 +560,16 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             res
         })
 
-        if(is.null(tmp)){
-           partialResult[,resultRange] <- NA
-        } else {
-            partialResult[,resultRange] <- calcLikelihoodsForGroups(dataVar=dataVar, 
-                                                                mod=tmp,
-                                                                mes=measuredData,
-                                                                likelihoods=likelihood,
-                                                                alignIndexes=alignIndexes,
-                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
-
-                
-                
+    if (all(sapply(tmp, function(x) !is.data.frame(x) || all(is.na(x))))) {
+        partialResult[, resultRange] <- c(rep(NA, length(dataVar) * 2), 0, max(2^seq_len(nrow(constraints)) - 1))  # NA for likelihood/RMSE, Const=0, failType=max possible
+    } else {
+        partialResult[, resultRange] <- calcLikelihoodsForGroups(dataVar=dataVar, 
+                                                            mod=tmp,
+                                                            mes=measuredData,
+                                                            likelihoods=likelihood,
+                                                            alignIndexes=alignIndexes,
+                                                            musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
+    }     
                 
                 
 
@@ -580,7 +578,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                     sep=",", col.names=FALSE)
         # write.csv(x=tmp, file=paste0(pretag, (i+1),".csv"))
         writeLines(as.character(i-1),"progress.txt") #UNCOMMENT IMPORTANT
-    }
+    
     }
 
     if(threadNumber == 1){
@@ -609,13 +607,32 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
                                      th = 10){
-
+    
+    failType <- 0 # Default to 0 (no fail)
+    constRes <- NULL # Default to NULL
+    
     if(!is.null(constraints)){
-                         constRes<- sapply(mod,function(m){
-                            compoVect(m,constraints)
+        # START PATCH FOR HANDLING NA MODEL RUNS   
+        # Patched code:
+        # We check if 'm' is a data.frame. If not (i.e., it's NA from a failed run),
+        # we return a vector of 0s (failures) for all constraints.
+        constRes <- sapply(mod, function(m) {
+            if (is.data.frame(m)) {
+                # This is a successful run, check constraints
+                tryCatch(compoVect(m, constraints),
+                         error = function(e) {
+                             # Constraint check itself failed, treat as constraint failure
+                             warning(paste("compoVect failed:", e$message))
+                             rep(0, nrow(constraints)) # Return all 0s
                          })
+            } else {
+                # This is a failed run (m is NA), return all 0s
+                rep(0, nrow(constraints))
+            }
+        })
+        # END PATCH 
 
-                        failType <- constMatToDec(constRes)
+        failType <- constMatToDec(constRes)
     }
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
@@ -623,12 +640,14 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                            function(domain_id){
                                             apply(do.call(cbind,
                                                           lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                 function(site){
+                                                                     # Add check for failed run (NA)
+                                                                     if (!is.data.frame(mod[[site]])) {
+                                                                         rep(NA, length(alignIndexes[[domain_id]]$model))
+                                                                     } else {
+                                                                         mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                     }
                                         })),1,groupFun)
-
-
-
-
                                         })))
 
 
@@ -637,19 +656,39 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
                measured <- measured[measured$var_id == key,]
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-measured$mean)^2))
-               )
-
-
-               print(abs(mean(modelled)-mean(measured$mean)))
+               
+               # Check if modelled has NAs, if so, likelihood is NA
+               if(any(is.na(modelled))) {
+                   res <- c(NA, NA)
+               } else {
+                   res <- c(likelihoods[[key]](modelled, measured),
+                            sqrt(mean((modelled-measured$mean)^2))
+                   )
+                   print(abs(mean(modelled)-mean(measured$mean)))
+               }
                res
         })
+        
+    # Calculate constraint pass/fail
+    const_pass <- 0 # Default to 0 (fail)
+    if (!is.null(constRes)) {
+        # Check if any sites passed all constraints
+        # apply(constRes, 2, prod) gives 1 for pass, 0 for fail per site
+        if (any(apply(constRes, 2, prod) == 1)) {
+            if ((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th) {
+                const_pass <- 1
+            }
+        }
+        # If all runs failed (all NAs), constRes would be all 0s, sum is 0, const_pass remains 0. Correct.
+    } else {
+        # If no constraints are defined, it's considered a "pass"
+        const_pass <- 1 
+    }
 
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
-                    1,0), failType)
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
+             const_pass, failType)
+             
+    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",names(dataVar)), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
 
