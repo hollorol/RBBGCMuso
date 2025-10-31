@@ -893,8 +893,6 @@ function wrapText(elementId, openTag, closeTag) {
             id = "plotPanel",
             uiOutput("dynamicPlots")
         ),
-
-        # Pop up window for the custom plots
           shinyjs::hidden(
                 div(
                 id = "popup_wrapper", # We will show/hide this wrapper div
@@ -1065,7 +1063,6 @@ tuneMusoServer <- function(input, output, session){
                 planting_data <- read.table(planting_file, header = FALSE, sep = "", stringsAsFactors = FALSE, fill = TRUE)[,c(1,6)]
                 colnames(planting_data) <- as.character(unlist(planting_data[1, ]))
                 planting_data <- planting_data[-1, ]
-                # in case they are not named this. I've done everything referring to these columns so yeah....
                 colnames(planting_data) <- c("DATE", "CROP(file)")
 
                 epc_files <- unique(unlist(strsplit(paste(planting_data$`CROP(file)`, collapse = " "), " +")))
@@ -1290,7 +1287,7 @@ tuneMusoServer <- function(input, output, session){
                 next # Move to the next duplicated date
             }
             
-            # 2. Check for MERGABLE duplicates (conflicting NAs, like your 1982 example)
+            # 2. Check for MERGABLE duplicates 
             # We can merge these if the user agrees.
             # The logic here is: for each column, if there's only one non-NA value, it's mergable.
             can_merge <- TRUE
@@ -1416,7 +1413,7 @@ tuneMusoServer <- function(input, output, session){
     })
 
 
-        # DUPLICATING CODE FOR THE SECOND MEASUREMENT READ BUTTON I KNOW IT'S HORRIBLE BUT I actually don't see a trivial way to do this, I'll edit it later when I can get my head around it
+        # DUPLICATING CODE FOR THE SECOND MEASUREMENT READ BUTTON I KNOW IT'S HORRIBLE BUT I actually don't see a trivial way to do this (cause the trivial way didn't work), I'll edit it later when I can get my head around it
        observeEvent(input$measurementFile2, {
         req(input$measurementFile2)
         files <- input$measurementFile2
@@ -1551,7 +1548,6 @@ tuneMusoServer <- function(input, output, session){
                 colsToRemove <- setdiff(colsToRemove, "Date")
                 
                 if (length(colsToRemove) > 0) {
-                    # --- New logic to update mappingRV ---
                     current_mappings <- isolate(mappingRV()) # Get current mappings
                     updated_mappings <- current_mappings
                     was_mapping_changed <- FALSE
@@ -3232,6 +3228,41 @@ tuneMusoServer <- function(input, output, session){
             return(interpolated_swc)
         }
 
+         depth_weighted_average <- function(values, min_depth, max_depth, layers) {
+            total_value <- 0
+            total_thickness <- 0
+
+            if (min_depth >= max_depth) {
+                return(NA) # Invalid range
+            }
+
+            for (i in 1:length(values)) {
+                layer <- layers[[i]]
+                value <- values[i]
+                
+                layer_start <- layer[1]
+                layer_end <- layer[2]
+
+                # Find the overlap
+                eff_start <- max(layer_start, min_depth)
+                eff_end <- min(layer_end, max_depth)
+
+                # Calculate thickness of the overlap
+                thickness <- eff_end - eff_start
+
+                if (thickness > 0) {
+                    total_value <- total_value + (value * thickness)
+                    total_thickness <- total_thickness + thickness
+                }
+            }
+
+            if (total_thickness > 0) {
+                return(total_value / total_thickness)
+            } else {
+                return(NA) # No overlap found
+            }
+        }
+
 
         # calc_midpoint_swc <- function(swc_values, min_depth, max_depth, layers) {
         #     midpoints <- get_midpoints(layers)
@@ -3307,6 +3338,8 @@ tuneMusoServer <- function(input, output, session){
 
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
+        copiedEPCs <- reactiveVal(list())
+        copiedSoil <- reactiveVal(FALSE)
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
@@ -3329,7 +3362,28 @@ tuneMusoServer <- function(input, output, session){
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
             }
             if (isTRUE(all.equal(paramVal, lastGoodValues$epc[[epc]]))) next # Skip writing if no changes
+            
+                # Check and create backup if first time writing to this EPC file
+                current_copied_epcs <- copiedEPCs()
+                if (is.null(current_copied_epcs[[epc]])) {
+                    current_copied_epcs[[epc]] <- FALSE
+                }
+                if (!current_copied_epcs[[epc]]) {
+                    timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+                    
+                    orig_file <- file.path(workdir, epc)
+                    base_name <- tools::file_path_sans_ext(epc)
+                    ext <- tools::file_ext(epc)
+                    backup_file <- file.path(workdir, paste0(base_name, "_", timestamp, "_ORIGINAL",".", ext))
+                    file.copy(orig_file, backup_file)
+                    current_copied_epcs[[epc]] <- TRUE
+                    copiedEPCs(current_copied_epcs)
+                    myShowNotification(paste0("Backup created for ", epc, " as ", basename(backup_file)), type = "message", duration = 7)
+                }
+            
+            
             settings$epcInput[["normal"]] <- epc
+                
             prettyChangeMuso(settings, paramVal, 
                     calibrationPar = parameters[, 2], 
                     fileToChange = "epc", 
@@ -3350,10 +3404,26 @@ tuneMusoServer <- function(input, output, session){
 
             #if (!identical(paramVal, lastGoodValues$soil)) {
             if(soilChanged){
+
+                if (!copiedSoil()) {
+                    timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+                    orig_file <- file.path(workdir, soil_file())
+                    base_name <- tools::file_path_sans_ext(soil_file())
+                    ext <- tools::file_ext(soil_file())
+                    backup_file <- file.path(workdir, paste0(base_name, "_", timestamp, "_ORIGINAL",".", ext))
+                    file.copy(orig_file, backup_file)
+                    copiedSoil(TRUE)
+                    myShowNotification(paste0("Backup created for ", soil_file(), " as ", basename(backup_file)), type = "message", duration = 7)
+                }
+
+
                 req(soil_file(), soil_parameters())
                 paramValChanged <- format(paramVal, scientific = FALSE, trim = TRUE)
-                prettyChangeMuso(settings, paramValChanged, calibrationPar = soil_parameters()[,2],
-                        fileToChange = "soil", fixAlloc = FALSE)
+                prettyChangeMuso(settings, 
+                                paramValChanged, 
+                                calibrationPar = soil_parameters()[,2],
+                                fileToChange = "soil", 
+                                fixAlloc = FALSE)
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
@@ -3429,10 +3499,6 @@ tuneMusoServer <- function(input, output, session){
         #print(vwc_cols)
 
         if (length(newVars$defs) > 0) {
-            # #dfs_orig <- as.data.frame(result)
-            #vwc_cols <- grep("^VWC\\[", names(dfs_orig), value = TRUE)
-            #vwc_indices <- as.numeric(gsub("VWC\\[|\\]", "", vwc_cols))
-            #current_layers <- layers[vwc_indices + 1]  # Adjust indexing
                 for (var_name in names(newVars$defs)) {
                     def <- newVars$defs[[var_name]]
                     pattern <- paste0("^", def$base_variable, "\\[")
@@ -3446,9 +3512,17 @@ tuneMusoServer <- function(input, output, session){
                     base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
                     current_layers <- layers[base_indices + 1]  
                     
-                   new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
-                        swc_vals <- as.numeric(r)
-                        midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
+                    # conditional calculation
+                    new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
+                        vals <- as.numeric(r)
+                        # Fallback for variables defined before this update
+                        calc_type <- ifelse(is.null(def$calc_type), "interpolate", def$calc_type) 
+                        
+                        if (calc_type == "average") {
+                            depth_weighted_average(vals, def$min_depth, def$max_depth, current_layers)
+                        } else { # Default to interpolation
+                            midpoint_trend_swc(vals, def$max_depth, current_layers)
+                        }
                     })
 
                     dfs_orig[[var_name]] <- new_val
@@ -4424,7 +4498,7 @@ tuneMusoServer <- function(input, output, session){
 
 
 
-        ## ---- Observers for Each Transformation ---- 
+        ##  Observers for Each Transformation  
         # NA Transformation
    observeEvent(input$apply_na_output, {
     req(model_output_processed(), input$col_to_na_output)
@@ -4503,7 +4577,7 @@ observeEvent(input$apply_arith_output, {
     new_vars_created <- FALSE
 
     if (isTRUE(input$interaction_newcol_arith)) {
-        # --- CREATE NEW VARIABLE ---
+        # CREATE NEW VARIABLE
         for (col in cols) {
             new_name <- input[[paste0("newName_", col)]]
             if (nzchar(new_name)) {
@@ -5097,10 +5171,21 @@ observeEvent(input$make_output, {
             id = "variable_info_overlay",
             style = "display:none; position:absolute; top:44px; right:10px; width:98%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
             tags$p(div(HTML("
-                <p><strong>Variable Creation Information</strong></p>
-                <p>This panel creates a new variable (currently for Soil Water Content or Soil Temperature) at a specified depth by interpolating values from model layers. It is useful if we want to quickly create a model variable that is comparable with measurements taken at a specific depth.</p>
-                <p><strong>Model Layers:</strong></p>
+            <p><strong>Variable Creation Information</strong></p>
+                <p>This panel creates a new variable (for Soil Water Content or Soil Temperature) from model results. You can choose one of two methods:</p>
+                <p><strong>1. Specific Depth Interpolation:</strong></p>
                 <ul>
+                    <li>Calculates the value at a single target depth (e.g., 50 cm).</li>
+                    <li>It does this by linearly interpolating between the midpoints of the two closest model layers.</li>
+                    <li>Uses only the 'Target Depth' field.</li>
+                </ul>
+                <p><strong>2. Profile Averaging:</strong></p>
+                <ul>
+                    <li>Calculates the depth-weighted average value over a soil profile (e.g., 0 cm to 50 cm).</li>
+                    <li>It weights the value of each model layer by how much of that layer's thickness falls within your specified 'Min Depth' and 'Max Depth' range.</li>
+                    <li>This is useful for comparing with measurements that cover a whole profile.</li>
+                </ul>
+                <p><strong>Model Layers (Midpoints):</strong></p>
                     <li>Layer 1 [0]: 0-3 cm (midpoint: 1.5 cm)</li>
                     <li>Layer 2 [1]: 3-10 cm (midpoint: 6.5 cm)</li>
                     <li>Layer 3 [2]: 10-30 cm (midpoint: 20 cm)</li>
@@ -5135,11 +5220,23 @@ observeEvent(input$make_output, {
                 </ul>
                 <p>Interpolated VWC = (0.8 * 0.25) + (0.2 * 0.30) = 0.2 + 0.06 = 0.26</p>
                 <p>Thus, the VWC at 50 cm is 0.26.</p>
-                <li>Note that currently 'Min Depth' is not used in the calculation. It will be needed for datas that measured the average values of multiple layers but that quick calculation option is not yet present. However you can manually make it in the <strong>'Edit Simulation Data'</strong> panel.</li>
             ")))
         ),
-        numericInput("min_depth", "Min Depth (cm)", value = 0, min = 0),
-        numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0),
+       # RadioButtons
+        radioButtons("calc_type", "Calculation Method:",
+                     choices = c("Specific Depth Interpolation" = "interpolate",
+                                 "Profile Averaging" = "average"),
+                     selected = "interpolate"),
+
+        # UConditional Min Depth
+        conditionalPanel(
+            condition = "input.calc_type == 'average'",
+            numericInput("min_depth", "Min Depth (cm)", value = 0, min = 0)
+        ),
+        
+        # U Dynamic UI for Max/Target Depth
+        uiOutput("depth_input_ui"), 
+
         textInput("variable_name", "Variable Name", value = "SWC_0_50"),
         selectInput("base_variable", "Base Variable",
                     choices = c("VWC", "Tsoil"),
@@ -5152,10 +5249,22 @@ observeEvent(input$make_output, {
     ))
 })
 
-# Toggle variable info overlay
-observeEvent(input$variable_info_btn, {
-    shinyjs::toggle("variable_info_overlay", anim = TRUE)
-})
+    output$depth_input_ui <- renderUI({
+        # Ensure input$calc_type is available
+        req(input$calc_type) 
+        
+        if (input$calc_type == "interpolate") {
+            numericInput("max_depth", "Target Depth (cm)", value = 50, min = 0)
+        } else {
+            numericInput("max_depth", "Max Depth (cm)", value = 50, min = 0)
+        }
+    })
+
+
+        # Toggle variable info overlay
+        observeEvent(input$variable_info_btn, {
+            shinyjs::toggle("variable_info_overlay", anim = TRUE)
+        })
 
         # to change the textinput if we switch to tsoil
         observeEvent(input$base_variable, {
@@ -5169,24 +5278,46 @@ observeEvent(input$variable_info_btn, {
 
 
 
-       
-    observeEvent(input$create_variable, {
-        req(input$min_depth, input$max_depth, input$variable_name, input$base_variable)
-        #  cat("BEFORE updating picker:\n")
-        #cat(" input$selected_vars is:", input$selected_vars, "\n")
-        #cat(" newVars$defs keys:", names(newVars$defs), "\n")
+      observeEvent(input$create_variable, {
+        req(input$max_depth, input$variable_name, input$base_variable, input$calc_type)
+        
+        # Min depth is only required for averaging
+        if (input$calc_type == "average") {
+            req(input$min_depth)
+            # Also check if min depth is less than max depth
+            if(input$min_depth >= input$max_depth) {
+                showNotification("Min Depth must be less than Max Depth.", type = "error")
+                return()
+            }
+        }
+        
         # Check for existing variable name
         if (input$variable_name %in% names(newVars$defs)) {
             showNotification("Variable name already exists. Choose a unique name.", type = "error")
             return()
         }
         
-        # Add new variable definition
+        #  If model output exists, check if base variable is present before adding
+        if (!is.null(outputList$nextVal)) {
+            dfs_check <- as.data.frame(outputList$nextVal, row.names = rownames(outputList$nextVal))
+            if(nrow(dfs_check) > 0) {
+                pattern <- paste0("^", input$base_variable, "\\[")
+                base_cols <- grep(pattern, names(dfs_check), value = TRUE)
+                
+                if (length(base_cols) == 0) {
+                    showNotification(paste("Cannot create variable:", input$variable_name, ". Base variable '", input$base_variable, "' not found in current model output."), type = "error", duration = 8)
+                    return() # Stop execution, do not add variable
+                }
+            }
+        }
+
+        # If we passed the check (or if model hasn't run), proceed to add the variable
         newVars$defs[[input$variable_name]] <- list(
-            min_depth = input$min_depth,
-            max_depth = input$max_depth,
+            min_depth = input$min_depth, # Will be 0 if hidden, but that's ok
+            max_depth = input$max_depth, # This is the key value (Target or Max)
             base_variable = input$base_variable,
-            variable_name = input$variable_name
+            variable_name = input$variable_name,
+            calc_type = input$calc_type # Store the calculation type
         )
         
         # If output exists, recompute all variables
@@ -5203,6 +5334,7 @@ observeEvent(input$variable_info_btn, {
                 pattern <- paste0("^", def$base_variable, "\\[")
                 base_cols <- grep(pattern, names(dfs), value = TRUE)
                 if (length(base_cols) == 0) {
+                    # This notification will still fire for *old* variables if base_cols are missing, which is correct.
                     showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
                     next
                 }
@@ -5211,12 +5343,17 @@ observeEvent(input$variable_info_btn, {
                 current_layers <- layers[base_indices + 1]  # Adjust for R's 1-based indexing
                 
                 
-
-                dfs_num <- dfs[, base_cols, drop = FALSE]
-
+                # UPDATED: Conditional calculation
                 new_val <- apply(dfs[, base_cols, drop = FALSE], 1, function(r) {
-                    swc_vals <- as.numeric(r)
-                    midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
+                    vals <- as.numeric(r)
+                    # Fallback for variables defined before this update
+                    calc_type <- ifelse(is.null(def$calc_type), "interpolate", def$calc_type) 
+                    
+                    if (calc_type == "average") {
+                        depth_weighted_average(vals, def$min_depth, def$max_depth, current_layers)
+                    } else { # Default to interpolation
+                        midpoint_trend_swc(vals, def$max_depth, current_layers)
+                    }
                 })
                 dfs[[var_name]] <- new_val
             }
@@ -5230,6 +5367,7 @@ observeEvent(input$variable_info_btn, {
             showNotification("Model hasn't been run yet. The new variable will be computed on the next model run.", type = "message")
         }
         
+        # This code block is now only reached if the new variable was successfully added
         # Update picker input
         new_row <- data.frame(
             index = max(rv$settings$dailyOutputTable$index) + 1,
@@ -5237,25 +5375,13 @@ observeEvent(input$variable_info_btn, {
             name = input$variable_name
         )
 
-        #   cat("DEBUG: ABOUT TO append new_row = ", new_row$name, "\n")
-        #cat("DEBUG: dailyOutputTable BEFORE appending:\n")
-        #print(settings$dailyOutputTable)
-
-
-
         rv$settings$dailyOutputTable <- rbind(rv$settings$dailyOutputTable, new_row)
-            #print(settings$dailyOutputTable)
 
         dailyOutputNames(rv$settings$dailyOutputTable$name)
         updatePickerInput(session, "selected_vars",
         choices  = rv$settings$dailyOutputTable$name,
         selected = input$selected_vars
-        #selected = unique(c(input$selected_vars, input$variable_name))
         )
-        #cat("AFTER updating picker - code ran\n")
-        # cat(" input$selected_vars is:", input$selected_vars, "\n")
-        #cat(" newVars$defs keys:", names(newVars$defs), "\n")
-        #print(settings$dailyOutputTable)
         showNotification(paste("New variable", input$variable_name, "has been added to the current output."))
 
         removeModal()
@@ -5791,7 +5917,7 @@ observeEvent(input$variable_info_btn, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.23.0</strong></p>
+                    <p><strong>Version 2.24.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -6943,10 +7069,10 @@ observeEvent(input$variable_info_btn, {
                   
                 })
                 
-                })
+        })
 
 
-
+    ##### SPECIAL PLOTS ###########
     # Special plots pop up window
     popup_visible <- reactiveVal(FALSE)
     has_checked_vars <- reactiveVal(FALSE)
@@ -7149,7 +7275,7 @@ observeEvent(input$variable_info_btn, {
             ), # end shinyjs::hidden
         
             # This is the original plot output
-            plotOutput("popup_plot", height = "350px")
+            plotOutput("popup_plot", height = "650px")
         )
     })
 
@@ -7319,6 +7445,7 @@ observeEvent(input$variable_info_btn, {
       
       showNotification("Plot saved!", type = "message", duration = 5)
     })
+
 
     observeEvent(input$getOriginalIni,{
                      updateTextAreaInput(session, "inifile", value=paste(readLines("bck/n.ini"),
