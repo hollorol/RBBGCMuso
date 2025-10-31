@@ -469,7 +469,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
    defaultLikelihood <- which(is.na(likelihood))
    if(length(defaultLikelihood)>0){
         likelihoodFull[[defaultLikelihood]] <- (function(x, y){
-                                                       exp(-sqrt(mean((x-y)^2)))
+                                                       exp(-sqrt(mean((x-y$mean)^2)))
                                                 })
    }
 
