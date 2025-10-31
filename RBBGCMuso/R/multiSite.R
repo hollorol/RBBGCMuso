@@ -671,9 +671,10 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                # --- START DEBUGGING ---
                # Create log message
                log_message <- sprintf(
-                 "\n--- Iteration: %d, Key: %s ---\nLength of 'modelled': %d\nNumber of NAs in 'modelled': %d\nLength of 'measured_vals': %d\nNumber of NAs in 'measured_vals': %d\n",
+                 "\n--- Iteration: %d, Key: %s ---\n'musoCodeToIndex[key]' value: %s\nLength of 'modelled': %d\nNumber of NAs in 'modelled': %d\nLength of 'measured_vals': %d\nNumber of NAs in 'measured_vals': %d\n",
                  iter_num,
                  key,
+                 as.character(musoCodeToIndex[key]), # <-- ADDED THIS
                  length(modelled),
                  sum(is.na(modelled)),
                  length(measured_vals),
