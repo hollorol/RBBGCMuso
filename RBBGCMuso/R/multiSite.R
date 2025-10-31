@@ -87,10 +87,9 @@ copyToThreadDirs2 <- function(iniSource, thread_prefix = "thread", numCores, exe
         destDir <- file.path("tmp", paste0(thread_prefix,"_1"), tools::file_path_sans_ext(basename(x)), "")
         
         # flatMuso copies files referenced in the .ini
-        suppressWarnings(
         flatMuso(x, execPath,
                  directory=destDir, d =TRUE)
-        )
+
         # Manually copy all .plg files from the execPath to the destination directory
         # This is a workaround because flatMuso might not parse them from the .mgm file.
         tryCatch({
@@ -469,7 +468,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
    defaultLikelihood <- which(is.na(likelihood))
    if(length(defaultLikelihood)>0){
         likelihoodFull[[defaultLikelihood]] <- (function(x, y){
-                                                       exp(-sqrt(mean((x-y$mean)^2)))
+                                                       exp(-sqrt(mean((x-y)^2)))
                                                 })
    }
 
@@ -561,16 +560,18 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             res
         })
 
-    if (all(sapply(tmp, function(x) !is.data.frame(x) || all(is.na(x))))) {
-        partialResult[, resultRange] <- c(rep(NA, length(dataVar) * 2), 0, max(2^seq_len(nrow(constraints)) - 1))  # NA for likelihood/RMSE, Const=0, failType=max possible
-    } else {
-        partialResult[, resultRange] <- calcLikelihoodsForGroups(dataVar=dataVar, 
-                                                            mod=tmp,
-                                                            mes=measuredData,
-                                                            likelihoods=likelihood,
-                                                            alignIndexes=alignIndexes,
-                                                            musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
-    }     
+        if(is.null(tmp)){
+           partialResult[,resultRange] <- NA
+        } else {
+            partialResult[,resultRange] <- calcLikelihoodsForGroups(dataVar=dataVar, 
+                                                                mod=tmp,
+                                                                mes=measuredData,
+                                                                likelihoods=likelihood,
+                                                                alignIndexes=alignIndexes,
+                                                                musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
+
+                
+                
                 
                 
 
@@ -579,7 +580,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                     sep=",", col.names=FALSE)
         # write.csv(x=tmp, file=paste0(pretag, (i+1),".csv"))
         writeLines(as.character(i-1),"progress.txt") #UNCOMMENT IMPORTANT
-    
+    }
     }
 
     if(threadNumber == 1){
@@ -604,42 +605,17 @@ prepareFromAgroMo <- function(fName){
     cbind.data.frame(dateCols, obs)
 }
 
-
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
-                                     th = 10, iter_num = 0){ # <-- ADDED iter_num
-    
-    failType <- 0 # Default to 0 (no fail)
-    constRes <- NULL # Default to NULL
-    
-    if(!is.null(constraints)){
-        # --- START PATCH ---
-        # Original code:
-        # constRes<- sapply(mod,function(m){
-        #    compoVect(m,constraints)
-        # })
-        
-        # Patched code:
-        # We check if 'm' is a data.frame. If not (i.e., it's NA from a failed run),
-        # we return a vector of 0s (failures) for all constraints.
-        constRes <- sapply(mod, function(m) {
-            if (is.data.frame(m)) {
-                # This is a successful run, check constraints
-                tryCatch(compoVect(m, constraints),
-                         error = function(e) {
-                             # Constraint check itself failed, treat as constraint failure
-                             warning(paste("compoVect failed:", e$message))
-                             rep(0, nrow(constraints)) # Return all 0s
-                         })
-            } else {
-                # This is a failed run (m is NA), return all 0s
-                rep(0, nrow(constraints))
-            }
-        })
-        # --- END PATCH ---
+                                     th = 10){
 
-        failType <- constMatToDec(constRes)
+    if(!is.null(constraints)){
+                         constRes<- sapply(mod,function(m){
+                            compoVect(m,constraints)
+                         })
+
+                        failType <- constMatToDec(constRes)
     }
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
@@ -647,17 +623,12 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                            function(domain_id){
                                             apply(do.call(cbind,
                                                           lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){
-                                                                     # Add check for failed run (NA)
-                                                                     if (!is.data.frame(mod[[site]])) {
-                                                                         rep(NA, length(alignIndexes[[domain_id]]$model))
-                                                                     } else {
-                                                                         mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                                                                     }
-                                        # --- START PATCH 1 ---
-                                        # Pass na.rm = TRUE to the grouping function
-                                        })),1, function(x) groupFun(x, na.rm = TRUE)) 
-                                        # --- END PATCH 1 ---
+                                                                 function(site){mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                        })),1,groupFun)
+
+
+
+
                                         })))
 
 
@@ -665,93 +636,19 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
-               measured_df <- measured[measured$var_id == key,]
-               measured_vals <- measured_df$mean
-               
-               # --- START DEBUGGING ---
-               # Create log message
-               log_message <- sprintf(
-                 "\n--- Iteration: %d, Key: %s ---\n'musoCodeToIndex[key]' value: %s\nLength of 'modelled': %d\nNumber of NAs in 'modelled': %d\nLength of 'measured_vals': %d\nNumber of NAs in 'measured_vals': %d\n",
-                 iter_num,
-                 key,
-                 as.character(musoCodeToIndex[key]), # <-- ADDED THIS
-                 length(modelled),
-                 sum(is.na(modelled)),
-                 length(measured_vals),
-                 sum(is.na(measured_vals))
+               measured <- measured[measured$var_id == key,]
+               res <- c(likelihoods[[key]](modelled, measured),
+                        sqrt(mean((modelled-measured$mean)^2))
                )
-               # cat(sprintf("\n--- Debugging calcLikelihoodsForGroups (Key: %s) ---\n", key)) # OLD
-               # cat("Length of 'modelled':", length(modelled), "\n") # OLD
-               # cat("Number of NAs in 'modelled':", sum(is.na(modelled)), "\n") # OLD
-               # cat("Modelled values (first 10):", paste(head(modelled, 10), collapse=", "), "\n")
-               
-               # cat("Length of 'measured_vals':", length(measured_vals), "\n") # OLD
-               # cat("Number of NAs in 'measured_vals':", sum(is.na(measured_vals)), "\n") # OLD
-               # cat("Measured values (first 10):", paste(head(measured_vals, 10), collapse=", "), "\n")
-               # --- END DEBUGGING ---
-               
-               # --- START PATCH 2 ---
-               # Find valid (non-NA, non-NaN) pairs in modelled and measured
-               valid_indices <- !is.na(modelled) & !is.nan(modelled) & !is.na(measured_vals) & !is.nan(measured_vals)
-               
-               modelled_valid <- modelled[valid_indices]
-               measured_valid_df <- measured_df[valid_indices, ] # Pass filtered df
-               measured_valid_vals <- measured_vals[valid_indices]
-               
-               # --- START DEBUGGING ---
-               # Add to log message
-               if(length(modelled_valid) == 0) {
-                   log_message <- paste0(log_message, "Number of valid pairs found: 0\nResult: No valid pairs. Returning c(NA, NA).\n--- End Debug ---\n")
-               } else {
-                   log_message <- paste0(log_message, "Number of valid pairs found: ", length(modelled_valid), "\nResult: Valid pairs found. Calculating likelihood.\n--- End Debug ---\n")
-               }
-               
-               # Write the complete message to the log file in the thread's directory
-               write(log_message, file = "calcLikelihoods.log", append = TRUE)
-               # cat("Number of valid pairs found:", length(modelled_valid), "\n") # OLD
-               # if(length(modelled_valid) == 0) { # OLD
-               #    cat("Result: No valid pairs. Returning c(NA, NA).\n") # OLD
-               # } else { # OLD
-               #    cat("Result: Valid pairs found. Calculating likelihood.\n") # OLD
-               # } # OLD
-               # cat("--- End Debug ---\n") # OLD
-               # --- END DEBUGGING ---
-               
-               if(length(modelled_valid) == 0) {
-                   # No valid data to compare, return NA
-                   res <- c(NA, NA)
-               } else {
-                   # Calculate likelihood and RMSE on the valid pairs
-                   res <- c(likelihoods[[key]](modelled_valid, measured_valid_df), 
-                            sqrt(mean((modelled_valid - measured_valid_vals)^2))
-                   )
-                   # Use na.rm=TRUE for mean calculation in print
-                   print(abs(mean(modelled_valid, na.rm=TRUE)-mean(measured_valid_vals, na.rm=TRUE)))
-               }
-               # --- END PATCH 2 ---
+
+
+               print(abs(mean(modelled)-mean(measured$mean)))
                res
         })
-        
-    # Calculate constraint pass/fail
-    const_pass <- 0 # Default to 0 (fail)
-    if (!is.null(constRes)) {
-        # Check if any sites passed all constraints
-        # apply(constRes, 2, prod) gives 1 for pass, 0 for fail per site
-        # Make sure constRes is a matrix before apply
-        if (is.matrix(constRes) && any(apply(constRes, 2, prod) == 1)) {
-            if ((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th) {
-                const_pass <- 1
-            }
-        }
-        # If all runs failed (all NAs), constRes would be all 0s, sum is 0, const_pass remains 0. Correct.
-    } else {
-        # If no constraints are defined, it's considered a "pass"
-        const_pass <- 1 
-    }
 
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             const_pass, failType)
-             
+             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
+                    1,0), failType)
     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
     return(likelihoodRMSE)
 }
