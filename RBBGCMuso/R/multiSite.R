@@ -608,7 +608,7 @@ prepareFromAgroMo <- function(fName){
 calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      likelihoods, alignIndexes, musoCodeToIndex,
                                      nameGroupTable, groupFun, constraints,
-                                     th = 10){
+                                     th = 10, iter_num = 0){ # <-- ADDED iter_num
     
     failType <- 0 # Default to 0 (no fail)
     constRes <- NULL # Default to NULL
@@ -669,13 +669,23 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                measured_vals <- measured_df$mean
                
                # --- START DEBUGGING ---
-               cat(sprintf("\n--- Debugging calcLikelihoodsForGroups (Key: %s) ---\n", key))
-               cat("Length of 'modelled':", length(modelled), "\n")
-               cat("Number of NAs in 'modelled':", sum(is.na(modelled)), "\n")
+               # Create log message
+               log_message <- sprintf(
+                 "\n--- Iteration: %d, Key: %s ---\nLength of 'modelled': %d\nNumber of NAs in 'modelled': %d\nLength of 'measured_vals': %d\nNumber of NAs in 'measured_vals': %d\n",
+                 iter_num,
+                 key,
+                 length(modelled),
+                 sum(is.na(modelled)),
+                 length(measured_vals),
+                 sum(is.na(measured_vals))
+               )
+               # cat(sprintf("\n--- Debugging calcLikelihoodsForGroups (Key: %s) ---\n", key)) # OLD
+               # cat("Length of 'modelled':", length(modelled), "\n") # OLD
+               # cat("Number of NAs in 'modelled':", sum(is.na(modelled)), "\n") # OLD
                # cat("Modelled values (first 10):", paste(head(modelled, 10), collapse=", "), "\n")
                
-               cat("Length of 'measured_vals':", length(measured_vals), "\n")
-               cat("Number of NAs in 'measured_vals':", sum(is.na(measured_vals)), "\n")
+               # cat("Length of 'measured_vals':", length(measured_vals), "\n") # OLD
+               # cat("Number of NAs in 'measured_vals':", sum(is.na(measured_vals)), "\n") # OLD
                # cat("Measured values (first 10):", paste(head(measured_vals, 10), collapse=", "), "\n")
                # --- END DEBUGGING ---
                
@@ -688,13 +698,22 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                measured_valid_vals <- measured_vals[valid_indices]
                
                # --- START DEBUGGING ---
-               cat("Number of valid pairs found:", length(modelled_valid), "\n")
+               # Add to log message
                if(length(modelled_valid) == 0) {
-                   cat("Result: No valid pairs. Returning c(NA, NA).\n")
+                   log_message <- paste0(log_message, "Number of valid pairs found: 0\nResult: No valid pairs. Returning c(NA, NA).\n--- End Debug ---\n")
                } else {
-                   cat("Result: Valid pairs found. Calculating likelihood.\n")
+                   log_message <- paste0(log_message, "Number of valid pairs found: ", length(modelled_valid), "\nResult: Valid pairs found. Calculating likelihood.\n--- End Debug ---\n")
                }
-               cat("--- End Debug ---\n")
+               
+               # Write the complete message to the log file in the thread's directory
+               write(log_message, file = "calcLikelihoods.log", append = TRUE)
+               # cat("Number of valid pairs found:", length(modelled_valid), "\n") # OLD
+               # if(length(modelled_valid) == 0) { # OLD
+               #    cat("Result: No valid pairs. Returning c(NA, NA).\n") # OLD
+               # } else { # OLD
+               #    cat("Result: Valid pairs found. Calculating likelihood.\n") # OLD
+               # } # OLD
+               # cat("--- End Debug ---\n") # OLD
                # --- END DEBUGGING ---
                
                if(length(modelled_valid) == 0) {
