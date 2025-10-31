@@ -643,15 +643,22 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
         }))
         measured <- measured[measured$var_id == key,]
         
-        # If all modelled is NA (all sites failed), return NA likelihood/RMSE
-        if (all(is.na(modelled))) {
-            return(c(NA, NA))
+        # Filter non-finite values (NA/NaN) to avoid propagation
+        valid_idx <- is.finite(modelled)
+        if (all(!valid_idx)) {
+            return(c(NA, NA))  # No valid data points
         }
         
-        res <- c(likelihoods[[key]](modelled, measured),
-                 sqrt(mean((modelled - measured$mean)^2, na.rm = TRUE)))
-        print(abs(mean(modelled, na.rm = TRUE) - mean(measured$mean)))
-        res
+        mod_filt <- modelled[valid_idx]
+        meas_filt <- measured[valid_idx, ]  # Filter the full df, as likelihood may expect columns like 'mean', 'sd'
+        
+        # Compute likelihood (passes full filtered df) and RMSE
+        lik_val <- likelihoods[[key]](mod_filt, meas_filt)
+        rmse_val <- sqrt(mean((mod_filt - meas_filt$mean)^2))  # No na.rm needed after filter
+        
+        print(abs(mean(mod_filt) - mean(meas_filt$mean)))
+        
+        c(lik_val, rmse_val)
     })
     
     likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
