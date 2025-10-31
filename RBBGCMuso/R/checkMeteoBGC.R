@@ -49,17 +49,21 @@ checkMeteoBGC <- function(settings=NULL, skip = 4, numericReport = FALSE,type="n
    cat("Daily and yearly statistics of meteorological data for the time period of",
       timeFrame[1], "-", timeFrame[2], ":\n
       
+      PLEASE CHECK THE METEOROLOGY INPUT FILE AS THE PRECIPITATION MUST BE PROVIDED IN cm UNITS!
+      Long term mean temperature:", (mean(metTable$V3)+mean(metTable$V4))/2, "C
+      Long term annual precipitation:", mean(yearlyPrcpSum)*10, "mm\n
+      
       Precipitation data:
       Minimum and maximum of daily sums:",
-      intMin(metTable$V6), "cm and", intMax(metTable$V6), "cm.
+      intMin(metTable$V6)*10, "mm and", intMax(metTable$V6)*10, "mm.
       Minimum and maximum of yearly sums:",
-      intMin(yearlyPrcpSum), "cm and", intMax(yearlyPrcpSum), "cm.\n
+      intMin(yearlyPrcpSum)*10, "mm and", intMax(yearlyPrcpSum)*10, "mm.
        
       Temperature data:
       Lowest and highest daily temperatures (Tmin and Tmax):",
-      intMin(metTable$V4), "deg C and", intMax(metTable$V3), "deg C.
+      intMin(metTable$V4), "C and", intMax(metTable$V3), "C.
       Minimum and maximum of yearly averages (based on Tday):",
-      intMin(yearlyTempAvg), "deg C and", intMax(yearlyTempAvg), "deg C.\n
+      intMin(yearlyTempAvg), "C and", intMax(yearlyTempAvg), "C.\n
 
       Solar radiation data:
       Minimum and maximum of daily values:",
