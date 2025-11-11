@@ -933,6 +933,17 @@ function wrapText(elementId, openTag, closeTag) {
                             #p("This content is dynamic and updates from the main page slider."),
                             uiOutput("dynamic_content_area")
                         ),
+
+                        # handle for the bottom dragging
+                        div(
+                            id = "popup_drag_handle_bottom",
+                            style = "height: 20px; 
+                                     cursor: move; 
+                                     border-top: 1px solid #ccc; 
+                                     background: #f0f0f0; 
+                                     border-radius: 0 0 8px 8px;
+                                     flex-shrink: 0;"
+                        ),
                         
                         # Styling
                         style = "
@@ -954,7 +965,7 @@ function wrapText(elementId, openTag, closeTag) {
                     ),
                     # jqui_draggable options
                     # using the ID of the new div as the handle
-                    options = list(handle = "#popup_drag_handle")
+                    options = list(handle = "#popup_drag_handle, #popup_drag_handle_bottom")
                 ),
                 
                 # apply the positioning to the outer wrapper
@@ -5917,7 +5928,7 @@ observeEvent(input$make_output, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.24.0</strong></p>
+                    <p><strong>Version 2.25.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -7275,7 +7286,7 @@ observeEvent(input$make_output, {
             ), # end shinyjs::hidden
         
             # This is the original plot output
-            plotOutput("popup_plot", height = "650px")
+            plotOutput("popup_plot", height = "380px")
         )
     })
 
