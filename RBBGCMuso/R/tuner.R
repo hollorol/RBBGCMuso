@@ -681,6 +681,21 @@ function wrapText(elementId, openTag, closeTag) {
                                             )
                                         )
                                     ),
+                                    div( style = "display: flex; align-items: center; gap: 5px;",
+                                        div(style = "width: 300px;",
+                                        selectInput("compare_files",
+                                        tags$span(style = "color: green;", "Compare EPC from different files"), 
+                                        choices = c("None"), 
+                                        selected = "None"),
+                                        ),    
+                                        div(style = "margin-top: 9.5px;",                               
+                                            actionButton("reset_compare", "", icon = icon("redo"), title = "Clear all bonds")
+                                        ),
+                                        div(style = "margin-top: 9.5px;",                               
+                                            actionButton("apply_bond_to_sliders", "", icon = icon("link"), title = "Apply bonded EPC values to current sliders")
+                                        )
+                                    
+                                    ),
                                     # Reset buttons
                                     tags$div(
                                         style = "display: flex; align-items: center; gap: 10px;",
@@ -1028,7 +1043,7 @@ tuneMusoServer <- function(input, output, session){
     #epcIni <- settings$epcInput[2]
     #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
-    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list())
 
 
 
@@ -3345,17 +3360,210 @@ tuneMusoServer <- function(input, output, session){
         runLogs <- reactiveVal(list())
 
 
-       
+
+        # Gathering all the rows in the epc file used in prettyChangeMuso and musoGetValues
+        rows_epc <- 131:142
+        cols_epc <- 0:6
+        col_rows_epc <- c(expand.grid(rows_epc, 60 + cols_epc)[, 2] / 100 + expand.grid(rows_epc, 60 + cols_epc)[, 1])
+        params_epc <- c(4:6, 9:77, 80:96, 99:113, 116:127, col_rows_epc)
+
+        # same for soil
+        rows_soil <- 88:104
+        cols_soil <- 0:9
+        col_rows_soil <- c(expand.grid(rows_soil, 60 + cols_soil)[, 2] / 100 + expand.grid(rows_soil, 60 + cols_soil)[, 1])
+        params_soil <- c(4:11, 14:40, 43:59, 62:76, 79:85, col_rows_soil)
+
+        # gather all the epc files in the working directory and exclude the ones used in the general pool
+        compare_epc <- reactive({
+            req(rv$epc_files)
+            all_epc_files <- list.files(pattern = "\\.epc$", full.names = FALSE)
+            setdiff(all_epc_files, rv$epc_files)
+        })
+
+        # gather all the soil files in the working directory and exclude the one used 
+        compare_soil <- reactive({
+            req(soil_file())
+            all_soil_files <- list.files(pattern = "\\.soil$", full.names = FALSE)
+            setdiff(all_soil_files, soil_file())
+        })    
+
+    # updating the bonds that are selected when switchin from main epc pool
+    observeEvent(input$selected_epc, {
+            req(input$selected_epc, compare_epc())
+            
+            # Get all possible comparison files
+            available_comps <- compare_epc()
+            
+            # Get the currently saved bond for this EPC
+            current_bonds <- rv$epc_bonds
+            selected_bond <- current_bonds[[input$selected_epc]]
+            
+            # If no bond is set, default to "None"
+            if (is.null(selected_bond)) {
+                selected_bond <- "None"
+            }
+            
+            # Update the UI
+            updateSelectInput(session, "compare_files",
+                choices = c("None", available_comps),
+                selected = selected_bond
+            )
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+
+    # updating the bonds when the user selects a different comparison file
+    observeEvent(input$compare_files, {
+        # We req both so we know *what* to bond and *which* file to bond it to
+        req(input$selected_epc, !is.null(input$compare_files))
+        
+        current_bonds <- rv$epc_bonds
+        
+        # Only update if the value is different, prevents loops
+        if (!identical(current_bonds[[input$selected_epc]], input$compare_files)) {
+            current_bonds[[input$selected_epc]] <- input$compare_files
+            rv$epc_bonds <- current_bonds
+            
+            # Optional: notify user that bond is set
+            if(input$compare_files != "None") {
+                myShowNotification(paste("Bond set:", input$selected_epc, "->", input$compare_files), 
+                                type = "message", duration = 4)
+            } else {
+                myShowNotification(paste("Bond removed for:", input$selected_epc), 
+                                type = "message", duration = 4)
+            }
+        }
+    
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+
+    # reset bonds
+    observeEvent(input$reset_compare, {
+        
+        # Reset the reactive value back to an empty list
+        rv$epc_bonds <- list()
+        
+        # Also update the currently displayed selectInput to "None"
+        updateSelectInput(session, "compare_files", selected = "None")
+        
+        myShowNotification("All EPC file bonds have been cleared.", 
+                         type = "message", 
+                         duration = 5)
+    })
+
+
+        observeEvent(input$apply_bond_to_sliders, {
+        req(input$selected_epc)
+        
+        current_bonds <- rv$epc_bonds
+        bond_file <- current_bonds[[input$selected_epc]]
+        
+        # Check that a bond exists
+        if (is.null(bond_file) || bond_file == "None") {
+            myShowNotification("No bond is set for the currently selected EPC.", type = "warning", duration = 7)
+            return()
+        }
+        
+        comp_epc_path <- file.path(workdir, bond_file)
+        
+        # Check that the bonded file exists
+        if (!file.exists(comp_epc_path)) {
+            myShowNotification(paste("Bonded file not found:", bond_file), type = "error", duration = 7)
+            return()
+        }
+
+        myShowNotification(paste("Applying slider values from", bond_file, "..."), type = "message", duration = 5)
+
+        tryCatch({
+            # Get Values from Bonded File 
+            # Get ONLY the parameter rows that correspond to sliders
+            param_rows_to_get <- parameters[, 2]
+            comp_values <- musoGetValues(comp_epc_path, param_rows_to_get)
+            
+            if (length(comp_values) != nrow(parameters)) {
+                myShowNotification("Parameter mismatch. Could not apply values.", type = "error", duration = 7)
+                return()
+            }
+
+            #  Update Stored Value (epcValues)
+            # Use <<- to update the global reactive list
+            epcValues[[input$selected_epc]] <<- comp_values
+            
+            # Update UI Sliders
+            # Loop through all parameters and update their corresponding UI inputs
+            
+            non_dep_indices <- which(is.na(parameters$group))
+            for (i in non_dep_indices) {
+                inputId <- paste0("param_", i)
+                # Assuming sliderInput; change to updateNumericInput if needed
+                updateSliderInput(session, inputId, value = comp_values[i])
+            }
+            
+            dep_indices <- which(!is.na(parameters$group))
+            for (i in dep_indices) {
+                inputId <- paste0("dep_", parameters$INDEX[i])
+                # Assuming sliderInput; change to updateNumericInput if needed
+                updateSliderInput(session, inputId, value = comp_values[i])
+            }
+            
+            myShowNotification(paste("Successfully applied values from", bond_file), type = "message", duration = 5)
+            
+        }, error = function(e) {
+            myShowNotification(paste("Error applying values:", e$message), type = "error", duration = 10)
+        })
+        
+    })
+
+    # Helper function to check a bond list for any *active* bonds, this will be used in plotting
+    hasActiveBonds <- function(bond_list) {
+        # Check if it's null or has no items
+        if (is.null(bond_list) || length(bond_list) == 0) {
+            return(FALSE)
+        }
+        
+        # Check if any value in the list is not "None"
+        # This will return TRUE if it finds even one active bond
+        any(sapply(bond_list, function(val) {
+            !is.null(val) && val != "None"
+        }))
+    }
+        
 
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
         copiedEPCs <- reactiveVal(list())
         copiedSoil <- reactiveVal(FALSE)
+        lastRunBonds <- reactiveVal(list())
+        bondsForPrevPlot <- reactiveVal(list())
+        bondsForCurrentPlot <- reactiveVal(list())
+
+
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
         #epc <- input$selected_epc
-        
+        original_epc_values <- list()
+        on.exit({
+            if (length(original_epc_values) > 0) {
+                #myShowNotification("Restoring EPC file values...", type = "message", duration = 5)
+                
+                # Use the correct `settings` object
+                restore_settings <- isolate(rv$settings) 
+                
+                for (epc_file in names(original_epc_values)) {
+                    try({
+                        restore_settings$epcInput[["normal"]] <- epc_file
+                        prettyChangeMuso(restore_settings, 
+                                         original_epc_values[[epc_file]], 
+                                         calibrationPar = params_epc, # Use the full params_epc
+                                         fileToChange = "epc", 
+                                         fixAlloc = FALSE)
+                        myShowNotification(paste("Restored original values for:", epc_file), type = "message", duration = 5)
+                    }, silent = TRUE) # Use try() so one failed restore doesn't stop others
+                }
+            }
+        }) # End of on.exit block
+
+
         # starting waiter animation
         w$show()
         # updating current epc values MIGHT BE OBSOLETE since we update epcValues on slider change anyway
@@ -3365,9 +3573,60 @@ tuneMusoServer <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
         runSpinup <- input$runSpinup
+
+        current_settings <- rv$settings
+        current_bonds <- rv$epc_bonds
+
+        previous_bonds <- lastRunBonds()
+        bondsChanged <- !isTRUE(all.equal(current_bonds, previous_bonds))
+
+        if (bondsChanged && !firstRun()) {
+            myShowNotification("Bond configuration changed, model will re-run.", type = "message", duration = 7)
+        }
         #print("Writing parameter values to file before model run:...")
         #myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
         for (epc in rv$epc_files) {
+            
+            bond_file <- current_bonds[[epc]]
+            if (!is.null(bond_file) && bond_file != "None") {
+                # Define file paths
+                epc_path <- file.path(workdir, epc)
+                comp_epc_path <- file.path(workdir, bond_file)
+                
+                if (!file.exists(comp_epc_path)) {
+                    myShowNotification(paste("Comparison file not found:", bond_file), type = "error", duration = 7)
+                    next # Skip this EPC
+                }
+
+                tryCatch({
+                    # 1. Get and save original values
+                    original_values <- musoGetValues(epc_path, params_epc)
+                    original_epc_values[[epc]] <- original_values
+                    
+                    # 2. Get comparison values
+                    paramVal <- musoGetValues(comp_epc_path, params_epc)
+                    
+                    # 3. Overwrite main EPC file
+                    current_settings$epcInput[["normal"]] <- epc
+                    prettyChangeMuso(current_settings, paramVal, 
+                            calibrationPar = params_epc, # Use params_epc for full overwrite
+                            fileToChange = "epc", 
+                            fixAlloc = FALSE)
+                            
+                    myShowNotification(paste(epc, "temporarily overwritten with", bond_file), type = "message", duration = 7)
+                    modifiedEpcList <- modifiedEpcList + 1
+
+                }, error = function(e) {
+                    myShowNotification(paste("Error processing comparison for", epc, ":", e$message), type = "error", duration = 10)
+                    # Remove from original_epc_values if we failed before writing
+                    if (!is.null(original_epc_values[[epc]])) {
+                        original_epc_values[[epc]] <- NULL
+                    }
+                })
+                
+            } # End of bond handling
+
+            else {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
@@ -3402,6 +3661,7 @@ tuneMusoServer <- function(input, output, session){
             #print(paste0("Written for: ", epc))
             myShowNotification(paste0(epc), " written", type = "message", duration = 7)
             modifiedEpcList <- modifiedEpcList + 1
+            }
         }
         if (modifiedEpcList == 0 && !firstRun()) {
             myShowNotification("No changes in EPC values detected since last good run, no files were written", type = "warning", duration = 7)
@@ -3442,8 +3702,8 @@ tuneMusoServer <- function(input, output, session){
             }
         }
 
-            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged))) {
-                myShowNotification("No changes in EPC and/or SOIL parameters detected since last good run. Not running the model", 
+            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+                myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
                                 type = "message", duration = 9)
                 w$hide()
                 return()  
@@ -3502,6 +3762,9 @@ tuneMusoServer <- function(input, output, session){
         #showNotification("Model ran successfully", type = "message")
         updatePrevGoodValues()
         updateLastGoodValues()
+        bondsForPrevPlot(isolate(bondsForCurrentPlot()))
+        bondsForCurrentPlot(isolate(rv$epc_bonds))
+        lastRunBonds(isolate(rv$epc_bonds))
 
         dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
         # Detect the VWC columns from the original output:
@@ -6311,7 +6574,10 @@ observeEvent(input$make_output, {
 
                     custom <- plotCustomizations[[var]]
 
-          
+                    previous_bonds_list <- bondsForPrevPlot()
+                    current_bonds_list <- bondsForCurrentPlot()
+                    was_prev_bonded <- hasActiveBonds(previous_bonds_list)
+                    is_current_bonded <- hasActiveBonds(current_bonds_list)
             #}          
             xaxis_options <- if (input$singleYear || length(selectedYears) == 1) {
                                     list(
@@ -6367,17 +6633,22 @@ observeEvent(input$make_output, {
                     #prevMetrics_df <- prevMetricsData()
                     #metric_labels_list <- list()
 
+                prev_legend_label <- ifelse(was_prev_bonded,paste0("Previous Comparison ", var, " Simulation"), paste0("Previous ", var, " Simulation"))
+                current_legend_label <- ifelse(is_current_bonded,paste0("Current Comparison ", var, " Simulation"), paste0("New ",var, " Simulation"))
+                current_legend_label_single <- ifelse(is_current_bonded,paste0("Comparison ", var, " Simulation"), paste0(var, ""))
+
                 if (length(mappedCols) > 0) {
                     if (input$plotType == "line") {
                            if (!is.null(filteredPrev) && input$lastRun) {
+
                         p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = prev_legend_label, line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = current_legend_label, line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = current_legend_label_single, line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
                     
               if (!is.null(custom$additional_vars)) {
@@ -6809,13 +7080,13 @@ observeEvent(input$make_output, {
                     else {
                             if (!is.null(filteredPrev) && input$lastRun) {
                            p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name =  prev_legend_label, line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
 
                         p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = current_legend_label, line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
                         } else {
                     p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scatter', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
+                                    type = 'scatter', mode = 'lines', name = current_legend_label_single, line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
                         }
 
                                       # Adding the epc labels on the x axis
