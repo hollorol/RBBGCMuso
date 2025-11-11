@@ -333,7 +333,7 @@
     "codes": 64,
     "names": "RADnet_per_plaishade",
     "units": "Wm-2",
-    "descriptions": "Daylight avg. net radiation flux sunlit proj. leaf area index"
+    "descriptions": "Daylight avg. net radiation flux sunshade proj. leaf area index"
   },
   {
     "codes": 65,
@@ -736,6 +736,12 @@
     "names": "soilwAVAIL[9]",
     "units": "kgH2Om-2",
     "descriptions": "Available soil water 10 (400 - 1000 cm)"
+  },
+  {
+    "codes": 132,
+    "names": "Wprec_snk",
+    "units": "kgH2Om-2",
+    "descriptions": "SUM of W lost to precision control"
   },
   {
     "codes": 150,
@@ -2721,6 +2727,12 @@
     "names": "MULsrc_C",
     "units": "kgCm-2",
     "descriptions": "C content of mulched material"
+  },
+  {
+    "codes": 574,
+    "names": "Cprec_snk",
+    "units": "kgH2Om-2",
+    "descriptions": "SUM of C lost to precision control"
   },
   {
     "codes": 600,
@@ -15071,6 +15083,24 @@
     "descriptions": "Total litter and cwdc N content"
   },
   {
+    "codes": 3125,
+    "names": "cumIMMOBflux_RZ",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative immobilization"
+  },
+  {
+    "codes": 3126,
+    "names": "cumNdemand",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative plant N demand"
+  },
+  {
+    "codes": 3127,
+    "names": "cumNflux",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative  sum of N2 flux"
+  },
+  {
     "codes": 3128,
     "names": "belowground_ratio",
     "units": "dimless",
@@ -15707,6 +15737,90 @@
     "descriptions": "orgN-recharge"
   },
   {
+    "codes": 3235,
+    "names": "cumGWdischarge_NH4",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of NH4 groundwater discharge"
+  },
+  {
+    "codes": 3236,
+    "names": "cumGWdischarge_NO3",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of NO3 groundwater discharge"
+  },
+  {
+    "codes": 3237,
+    "names": "cumGWdischarge_orgN",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of orgN groundwater discharge"
+  },
+  {
+    "codes": 3238,
+    "names": "cumGWrecharge_NH4",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of NH4 groundwater recharge"
+  },
+  {
+    "codes": 3239,
+    "names": "cumGWrecharge_NO3",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of NO3 groundwater recharge"
+  },
+  {
+    "codes": 3240,
+    "names": "cumGWrecharge_orgN",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of orgN groundwater recharge"
+  },
+  {
+    "codes": 3241,
+    "names": "cumGWbalance",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of groundwater balance"
+  },
+  {
+    "codes": 3242,
+    "names": "cumGWbalance_NH4",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative sum of NH4 groundwater balance"
+  },
+  {
+    "codes": 3243,
+    "names": "cumGWbalance_NO3",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative  sum of orgN  groundwater balance"
+  },
+  {
+    "codes": 3244,
+    "names": "cumGWbalance_orgN",
+    "units": "kgNm-2",
+    "descriptions": "Cumulative  sum of orgN  groundwater balance"
+  },
+  {
+    "codes": 3245,
+    "names": "GWbalance",
+    "units": "kgNm-2day-1",
+    "descriptions": "Groundwater balance (recharge-discharge)"
+  },
+  {
+    "codes": 3246,
+    "names": "GWbalance_NH4",
+    "units": "kgNm-2day-1",
+    "descriptions": "NH4-balance  (recharge-discharge)"
+  },
+  {
+    "codes": 3247,
+    "names": "GWbalance_NO3",
+    "units": "kgNm-2day-1",
+    "descriptions": "NO3-balance  (recharge-discharge)"
+  },
+  {
+    "codes": 3248,
+    "names": "GWbalance_orgN",
+    "units": "kgNm-2day-1",
+    "descriptions": "orgN groundwater balance  (recharge-discharge)"
+  },
+  {
     "codes": 3300,
     "names": "BD_top5",
     "units": "kgCm-3",
@@ -16263,5 +16377,65 @@
     "names": "DBARarray[11]",
     "units": "dimless",
     "descriptions": "Unlimited value of DBAR in diffusion calculation between last GW-layer and first noGW-layer"
+  },
+  {
+    "codes": 3560,
+    "names": "balance_UNSAT[0]",
+    "units": "dimless",
+    "descriptions": "Balance error of NH4 in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3561,
+    "names": "balance_UNSAT[1]",
+    "units": "dimless",
+    "descriptions": "Balance error of NO3 in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3562,
+    "names": "balance_UNSAT[2]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil1N in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3563,
+    "names": "balance_UNSAT[3]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil2N in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3564,
+    "names": "balance_UNSAT[4]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil3N in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3565,
+    "names": "balance_UNSAT[5]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil4N in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3566,
+    "names": "balance_UNSAT[6]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil1C in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3567,
+    "names": "balance_UNSAT[7]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil2C in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3568,
+    "names": "balance_UNSAT[8]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil3C in unsaturated part of groundwater layer"
+  },
+  {
+    "codes": 3569,
+    "names": "balance_UNSAT[9]",
+    "units": "dimless",
+    "descriptions": "Balance error of soil4C in unsaturated part of groundwater layer"
   }
 ]

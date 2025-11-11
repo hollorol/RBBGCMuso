@@ -10,6 +10,7 @@ RBBGCMuso/R/tags
 RBBGCMuso.Rcheck/*
 test/*
 RBBGCMuso/inst/data/varTable7test.json
+RBBGCMuso/inst/data/varTable7_omega.json
 RBBGCMuso/inst/data/textext.txt
 RBBGCMuso/inst/examples/klin
 RBBGCMuso/inst/data/epcConstMatrix7_wrong4someRizzon.json
