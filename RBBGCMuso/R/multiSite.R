@@ -171,265 +171,265 @@ multiSiteCalib <- function(measurements,
                            pbUpdate = setTxtProgressBar,
                            copyThread = TRUE,
                            constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL
-                           ){
-    originalParametersDF <- parameters                       
-    future::plan(future::multisession)
-    #future::plan(future::sequential)
-    # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
-    # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
-
-    #   ____                _         _   _                        _     
-    #  / ___|_ __ ___  __ _| |_ ___  | |_| |__  _ __ ___  __ _  __| |___ 
-    # | |   | '__/ _ \/ _` | __/ _ \ | __| '_ \| '__/ _ \/ _` |/ _` / __|
-    # | |___| | |  __/ (_| | ||  __/ | |_| | | | | |  __/ (_| | (_| \__ \
-    #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
-    if(copyThread){
-        unlink("tmp",recursive=TRUE)
-        copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
-    } else {
-        #print("copy skipped")
-        file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
-        file.remove(file.path(list.dirs("tmp", recursive=FALSE), "const_results.data"))
-    }
-
-    #  ____                _   _                        _     
-    # |  _ \ _   _ _ __   | |_| |__  _ __ ___  __ _  __| |___ 
-    # | |_) | | | | '_ \  | __| '_ \| '__/ _ \/ _` |/ _` / __|
-    # |  _ <| |_| | | | | | |_| | | | | |  __/ (_| | (_| \__ \
-    # |_| \_\\__,_|_| |_|  \__|_| |_|_|  \___|\__,_|\__,_|___/
-                                                            
-    threadCount <- distributeCores(iterations, numCores) 
-    fut <- lapply(1:numCores, function(i) {
-         future({
-                      tryCatch(
-
-                               {
-                                  result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
-                                                   dataVar = dataVar, iterations = threadCount[i],
-                                                   likelihood = likelihood, threadNumber= i, constraints=constraints, th=th, fileToModify = fileToModify
-                                                   )
-                                   # setwd("../../")
-                                   # return(result)
-                               }
-
-                      , error = function(e){
-                          #browser()
-                                            sink("error.txt")
-                                            print(e)
-                                            sink()
-                                            saveRDS(e,"error.RDS")
-                                            writeLines(as.character(iterations),"progress.txt")
-                                        })
-        })
-    })
-
-    #                _       _                                               
-    # __      ____ _| |_ ___| |__    _ __  _ __ ___   __ _ _ __ ___  ___ ___ 
-    # \ \ /\ / / _` | __/ __| '_ \  | '_ \| '__/ _ \ / _` | '__/ _ \/ __/ __|
-    #  \ V  V / (_| | || (__| | | | | |_) | | | (_) | (_| | | |  __/\__ \__ \
-    #   \_/\_/ \__,_|\__\___|_| |_| | .__/|_|  \___/ \__, |_|  \___||___/___/
-    #                               |_|              |___/                   
-
-    getProgress <- function(){
-        # threadfiles <- list.files(settings$inputLoc, pattern="progress.txt", recursive = TRUE)
-        threadfiles <- list.files(pattern="progress.txt", recursive = TRUE)
-        if(length(threadfiles)==0){
-            return(0)
-        } else {
-            sum(sapply(threadfiles, function(x){
-                           partRes <- readLines(x)
-                           if(length(partRes)==0){
-                               return(0)
-                           } else {
-                               return(as.numeric(partRes))
-                           }
-
-         }))
-
+){
+  originalParametersDF <- parameters                       
+  future::plan(future::multisession)
+  #future::plan(future::sequential)
+  # file.remove(list.files(path = "tmp", pattern="progress.txt", recursive = TRUE, full.names=TRUE))
+  # file.remove(list.files(path = "tmp", pattern="preservedCalib.csv", recursive = TRUE, full.names=TRUE))
+  
+  #   ____                _         _   _                        _     
+  #  / ___|_ __ ___  __ _| |_ ___  | |_| |__  _ __ ___  __ _  __| |___ 
+  # | |   | '__/ _ \/ _` | __/ _ \ | __| '_ \| '__/ _ \/ _` |/ _` / __|
+  # | |___| | |  __/ (_| | ||  __/ | |_| | | | | |  __/ (_| | (_| \__ \
+  #  \____|_|  \___|\__,_|\__\___|  \__|_| |_|_|  \___|\__,_|\__,_|___/
+  if(copyThread){
+    unlink("tmp",recursive=TRUE)
+    copyToThreadDirs2(iniSource=calTable$site_id, numCores=numCores, execPath=execPath)
+  } else {
+    #print("copy skipped")
+    file.remove(file.path(list.dirs("tmp",recursive=FALSE),"progress.txt"))
+    file.remove(file.path(list.dirs("tmp", recursive=FALSE), "const_results.data"))
+  }
+  
+  #  ____                _   _                        _     
+  # |  _ \ _   _ _ __   | |_| |__  _ __ ___  __ _  __| |___ 
+  # | |_) | | | | '_ \  | __| '_ \| '__/ _ \/ _` |/ _` / __|
+  # |  _ <| |_| | | | | | |_| | | | | |  __/ (_| | (_| \__ \
+  # |_| \_\\__,_|_| |_|  \__|_| |_|_|  \___|\__,_|\__,_|___/
+  
+  threadCount <- distributeCores(iterations, numCores) 
+  fut <- lapply(1:numCores, function(i) {
+    future({
+      tryCatch(
+        
+        {
+          result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
+                                    dataVar = dataVar, iterations = threadCount[i],
+                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th, fileToModify = fileToModify
+          )
+          # setwd("../../")
+          # return(result)
         }
-    }
-
-    progress <- 0
-    while(progress < iterations){
-        Sys.sleep(1)
-        progress <- tryCatch(getProgress(), error=function(e){progress})
-        if(is.null(pb)){
-            pbUpdate(as.numeric(progress))
-        } else {
-            pbUpdate(pb,as.numeric(progress))
-        }
-    }
-    if(!is.null(pb)){
-        close(pb)
-    }
-
-    #   ____                _     _            
-    #  / ___|___  _ __ ___ | |__ (_)_ __   ___ 
-    # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
-    # | |__| (_) | | | | | | |_) | | | | |  __/
-    #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
-    
-    if(!is.null(constraints)){
-        constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
-        constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
-        constRes <- do.call(rbind,constRes)
-        write.csv(constRes, "constRes.csv")
-    }
-    resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
-    res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
-    resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
-    # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
-    resultsSans0 <- lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
-    resultsSans0 <- do.call(rbind,resultsSans0)
-    colnames(resultsSans0) <- colnames(res0)
-    results <- (rbind(res0,resultsSans0))
-    write.csv(results,"result.csv")
-    calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
-    if(!is.null(constraints)){
-        tryCatch({
-            notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
-            notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
-            treeData <- results[,-notForTree]
-            treeData["failType"] <- as.factor(results$failType)
-            if(ncol(treeData) > 4){
-                rp <- rpart(failType ~ .,data=treeData,control=treeControl)
-                svg("treeplot.svg")
-                rpart.plot(rp)
-                dev.off()
-            }
-        }, error = function(e){
-            print(e)
+        
+        , error = function(e){
+          #browser()
+          sink("error.txt")
+          print(e)
+          sink()
+          saveRDS(e,"error.RDS")
+          writeLines(as.character(iterations),"progress.txt")
         })
-    }
-   origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
-    # Just single objective version TODO:Multiobjective
-    results <- results[results[,"Const"] == 1,]
-    if(nrow(results)==0){
-        stop("No simulation suitable for constraints\n Please see treeplot.png for explanation, if you have more than four parameters.")
-    }
-    bestCase <- which.max(results[,length(calibrationPar) + 1])
-    parameters <- results[bestCase,1:length(calibrationPar)] # the last two column is the (log) likelihood and the rmse
-    #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
-
-    firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
-    epcFile <- list.files(firstDir, pattern = "\\.epc",full.names=TRUE)
-    settingsProto <- setupMuso(inputLoc = firstDir,
-                               iniInput =rep(list.files(firstDir, pattern = "\\.ini",full.names=TRUE),2))
-    alignIndexes <- commonIndexes(settingsProto, measurements)
-    musoCodeToIndex  <- sapply(dataVar,function(musoCode){
-      settingsProto$dailyOutputTable[settingsProto$dailyOutputTable$code == musoCode,"index"]
     })
-
-
-    setwd("tmp/thread_1")
-    aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
-    
-    siteDir <- list.dirs(full.names=TRUE, recursive=FALSE)[1] 
-    allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
-
-    # Get the *template* EPC file name from the parameters data frame
-    # since parameters gets overwritten we need to use oroignal
-    #templateEpcName <- parameters$FILE[1] 
-    #templateEpcName <- originalParametersDF$FILE[1]
-    templateEpcName <- fileToModify
-
-
-    # Find the full path to that specific file
-    epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
-
-    # Add a check in case the file isn't found
-    if (length(epcToCopy) == 1) {
-        file.copy(epcToCopy, "../../multiSiteOptim.epc", overwrite=TRUE)
+  })
+  
+  #                _       _                                               
+  # __      ____ _| |_ ___| |__    _ __  _ __ ___   __ _ _ __ ___  ___ ___ 
+  # \ \ /\ / / _` | __/ __| '_ \  | '_ \| '__/ _ \ / _` | '__/ _ \/ __/ __|
+  #  \ V  V / (_| | || (__| | | | | |_) | | | (_) | (_| | | |  __/\__ \__ \
+  #   \_/\_/ \__,_|\__\___|_| |_| | .__/|_|  \___/ \__, |_|  \___||___/___/
+  #                               |_|              |___/                   
+  
+  getProgress <- function(){
+    # threadfiles <- list.files(settings$inputLoc, pattern="progress.txt", recursive = TRUE)
+    threadfiles <- list.files(pattern="progress.txt", recursive = TRUE)
+    if(length(threadfiles)==0){
+      return(0)
     } else {
-        warning(sprintf("Could not find unique EPC file '%s' to copy. Found: %s. 'multiSiteOptim.epc' not created.", 
-                        templateEpcName, paste(epcToCopy, collapse=", ")))
+      sum(sapply(threadfiles, function(x){
+        partRes <- readLines(x)
+        if(length(partRes)==0){
+          return(0)
+        } else {
+          return(as.numeric(partRes))
+        }
+        
+      }))
+      
     }
-    
-    
-    # file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
-    #           "../../multiSiteOptim.epc", overwrite=TRUE)
-
-
-    setwd("../../")
-    #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
-    nameGroupTable <- calTable 
-    nameGroupTable[,1] <- tools::file_path_sans_ext(basename(nameGroupTable[,1]))
-    res <- list()
-    
-    res[["calibrationPar"]] <- calibrationPar
-    res[["parameters"]] <- parameters
-    # browser()
-    res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar)[1], modOld=origModOut, modNew=aposteriori, mes=measurements,
-
-                                                                 likelihoods = likelihood,
-                                                                 alignIndexes = alignIndexes,
-                                                                 musoCodeToIndex = musoCodeToIndex,
-                                                                 nameGroupTable = nameGroupTable, mean)
-    res[["likelihood"]] <- results[bestCase,ncol(results)-2]
-    comp <- res$comparison
-   res[["originalMAE"]] <- mean(abs((comp[,1]-comp[,3])), na.rm = TRUE)
-    res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])), na.rm = TRUE)
-    res[["RMSE"]] <- results[bestCase,ncol(results)-2] # This comes from 'results', should be safe
-    res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2, na.rm = TRUE))
-    
-    # Add tryCatch to prevent crash if lm fails
-    res[["originalR2"]] <- tryCatch({
-        summary(lm(measured ~ original, data=res$comparison))$r.squared
-    }, error = function(e) {
-        warning(sprintf("Could not calculate originalR2: %s", e$message))
-        return(NA)
-    })
-    
-    res[["R2"]] <- tryCatch({
-        summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
-    }, error = function(e) {
-        warning(sprintf("Could not calculate R2: %s", e$message))
-        return(NA)
-    })
-    saveRDS(res,"results.RDS")
- tryCatch({
-        png("calibRes.png")
-        opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
-        with(data=res$comparison, {
-             
-             # Calculate plot range, removing NAs
-             plotRange <- c(min(c(measured,original,calibrated), na.rm = TRUE),
-                            max(c(measured,original,calibrated), na.rm = TRUE))
-             
-             # Check if range is finite (not Inf/-Inf, which happens if all are NA)
-             if (!all(is.finite(plotRange))) {
-                 stop("Cannot generate plot, data contains only NAs or non-finite values.")
-             }
-             
-             plot(measured,original,
-                  ylim=plotRange,
-                  xlim=plotRange,
-                  xlab=expression("measured "~(kg[DM]~m^-2)),
-                  ylab=expression("simulated "~(kg[DM]~m^-2)),
-                  cex.lab=1.3,
-                  col="red",
-                  pch=19,
-                  pty="s"
-             )
-             points(measured,calibrated, pch=19, col="blue")
-             abline(0,1)
-             legend(x="top",
-                    pch=c(19,19),
-                    col=c("red","blue"),
-                    inset=c(0,-0.1),
-                    legend=c("original","calibrated"),
-                    ncol=2,
-                    box.lty=0,
-                    xpd=TRUE
-             )
-        })
+  }
+  
+  progress <- 0
+  while(progress < iterations){
+    Sys.sleep(1)
+    progress <- tryCatch(getProgress(), error=function(e){progress})
+    if(is.null(pb)){
+      pbUpdate(as.numeric(progress))
+    } else {
+      pbUpdate(pb,as.numeric(progress))
+    }
+  }
+  if(!is.null(pb)){
+    close(pb)
+  }
+  
+  #   ____                _     _            
+  #  / ___|___  _ __ ___ | |__ (_)_ __   ___ 
+  # | |   / _ \| '_ ` _ \| '_ \| | '_ \ / _ \
+  # | |__| (_) | | | | | | |_) | | | | |  __/
+  #  \____\___/|_| |_| |_|_.__/|_|_| |_|\___|
+  
+  if(!is.null(constraints)){
+    constRes <- file.path(list.dirs("tmp", recursive=FALSE), "const_results.data")
+    constRes <- lapply(constRes, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+    constRes <- do.call(rbind,constRes)
+    write.csv(constRes, "constRes.csv")
+  }
+  resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
+  res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
+  resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
+  # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
+  resultsSans0 <- lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE, header=FALSE)})
+  resultsSans0 <- do.call(rbind,resultsSans0)
+  colnames(resultsSans0) <- colnames(res0)
+  results <- (rbind(res0,resultsSans0))
+  write.csv(results,"result.csv")
+  calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
+  if(!is.null(constraints)){
+    tryCatch({
+      notForTree <- c(seq(from = (length(calibrationPar)+1), length.out=3))
+      notForTree <- c(notForTree,which(sapply(seq_along(calibrationPar),function(i){sd(results[,i])==0})))
+      treeData <- results[,-notForTree]
+      treeData["failType"] <- as.factor(results$failType)
+      if(ncol(treeData) > 4){
+        rp <- rpart(failType ~ .,data=treeData,control=treeControl)
+        svg("treeplot.svg")
+        rpart.plot(rp)
         dev.off()
-    }, error = function(e) {
-        warning(sprintf("Could not generate calibRes.png plot: %s", e$message))
-        if (names(dev.cur()) == "png") {
-            try(dev.off(), silent = TRUE) # Try to close it safely
-        }
+      }
+    }, error = function(e){
+      print(e)
     })
+  }
+  origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
+  # Just single objective version TODO:Multiobjective
+  results <- results[results[,"Const"] == 1,]
+  if(nrow(results)==0){
+    stop("No simulation suitable for constraints\n Please see treeplot.png for explanation, if you have more than four parameters.")
+  }
+  bestCase <- which.max(results[,length(calibrationPar) + 1])
+  parameters <- results[bestCase,1:length(calibrationPar)] # the last two column is the (log) likelihood and the rmse
+  #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
+  
+  firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
+  epcFile <- list.files(firstDir, pattern = "\\.epc",full.names=TRUE)
+  settingsProto <- setupMuso(inputLoc = firstDir,
+                             iniInput =rep(list.files(firstDir, pattern = "\\.ini",full.names=TRUE),2))
+  alignIndexes <- commonIndexes(settingsProto, measurements)
+  musoCodeToIndex  <- sapply(dataVar,function(musoCode){
+    settingsProto$dailyOutputTable[settingsProto$dailyOutputTable$code == musoCode,"index"]
+  })
+  
+  
+  setwd("tmp/thread_1")
+  aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
+  
+  siteDir <- list.dirs(full.names=TRUE, recursive=FALSE)[1] 
+  allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
+  
+  # Get the *template* EPC file name from the parameters data frame
+  # since parameters gets overwritten we need to use oroignal
+  #templateEpcName <- parameters$FILE[1] 
+  #templateEpcName <- originalParametersDF$FILE[1]
+  templateEpcName <- fileToModify
+  
+  
+  # Find the full path to that specific file
+  epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
+  
+  # Add a check in case the file isn't found
+  if (length(epcToCopy) == 1) {
+    file.copy(epcToCopy, "../../multiSiteOptim.epc", overwrite=TRUE)
+  } else {
+    warning(sprintf("Could not find unique EPC file '%s' to copy. Found: %s. 'multiSiteOptim.epc' not created.", 
+                    templateEpcName, paste(epcToCopy, collapse=", ")))
+  }
+  
+  
+  # file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
+  #           "../../multiSiteOptim.epc", overwrite=TRUE)
+  
+  
+  setwd("../../")
+  #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
+  nameGroupTable <- calTable 
+  nameGroupTable[,1] <- tools::file_path_sans_ext(basename(nameGroupTable[,1]))
+  res <- list()
+  
+  res[["calibrationPar"]] <- calibrationPar
+  res[["parameters"]] <- parameters
+  # browser()
+  res[["comparison"]] <- compareCalibratedWithOriginal(key = names(dataVar)[1], modOld=origModOut, modNew=aposteriori, mes=measurements,
+                                                       
+                                                       likelihoods = likelihood,
+                                                       alignIndexes = alignIndexes,
+                                                       musoCodeToIndex = musoCodeToIndex,
+                                                       nameGroupTable = nameGroupTable, function(x) mean(x, na.rm=TRUE))
+  res[["likelihood"]] <- results[bestCase,ncol(results)-2]
+  comp <- res$comparison
+  res[["originalMAE"]] <- mean(abs((comp[,1]-comp[,3])), na.rm = TRUE)
+  res[["MAE"]] <- mean(abs((comp[,2]-comp[,3])), na.rm = TRUE)
+  res[["RMSE"]] <- results[bestCase,ncol(results)-2] # This comes from 'results', should be safe
+  res[["originalRMSE"]] <- sqrt(mean((comp[,1]-comp[,3])^2, na.rm = TRUE))
+  
+  # Add tryCatch to prevent crash if lm fails
+  res[["originalR2"]] <- tryCatch({
+    summary(lm(measured ~ original, data=res$comparison))$r.squared
+  }, error = function(e) {
+    warning(sprintf("Could not calculate originalR2: %s", e$message))
+    return(NA)
+  })
+  
+  res[["R2"]] <- tryCatch({
+    summary(lm(measured ~ calibrated, data=res$comparison))$r.squared
+  }, error = function(e) {
+    warning(sprintf("Could not calculate R2: %s", e$message))
+    return(NA)
+  })
+  saveRDS(res,"results.RDS")
+  tryCatch({
+    png("calibRes.png")
+    opar <- par(mar=c(5,5,4,2)+0.1, xpd=FALSE)
+    with(data=res$comparison, {
+      
+      # Calculate plot range, removing NAs
+      plotRange <- c(min(c(measured,original,calibrated), na.rm = TRUE),
+                     max(c(measured,original,calibrated), na.rm = TRUE))
+      
+      # Check if range is finite (not Inf/-Inf, which happens if all are NA)
+      if (!all(is.finite(plotRange))) {
+        stop("Cannot generate plot, data contains only NAs or non-finite values.")
+      }
+      
+      plot(measured,original,
+           ylim=plotRange,
+           xlim=plotRange,
+           xlab=expression("measured "~(kg[DM]~m^-2)),
+           ylab=expression("simulated "~(kg[DM]~m^-2)),
+           cex.lab=1.3,
+           col="red",
+           pch=19,
+           pty="s"
+      )
+      points(measured,calibrated, pch=19, col="blue")
+      abline(0,1)
+      legend(x="top",
+             pch=c(19,19),
+             col=c("red","blue"),
+             inset=c(0,-0.1),
+             legend=c("original","calibrated"),
+             ncol=2,
+             box.lty=0,
+             xpd=TRUE
+      )
+    })
+    dev.off()
+  }, error = function(e) {
+    warning(sprintf("Could not generate calibRes.png plot: %s", e$message))
+    if (names(dev.cur()) == "png") {
+      try(dev.off(), silent = TRUE) # Try to close it safely
+    }
+  })
 }
 
 #' multiSiteThread
@@ -633,7 +633,7 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                                  } else {
                                                                    mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                                                                  }
-                                                               })),1,groupFun)
+                                                               })),1,function(x) mean(x, na.rm=TRUE))
                                         })))
 
 
@@ -642,12 +642,17 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
       measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
     }))
     measured <- measured[measured$var_id == key,]
-    res <- c(likelihoods[[key]](modelled, measured),
-             sqrt(mean((modelled-measured$mean)^2))
-    )
+    diffs <- (modelled - measured$mean)^2
+    if(all(is.na(diffs))){
+      rmse <- Inf
+    } else {
+      rmse <- sqrt(mean(diffs, na.rm=TRUE))
+    }
+    lik <- likelihoods[[key]](modelled, measured)
+    res <- c(lik, rmse)
 
 
-    print(abs(mean(modelled)-mean(measured$mean)))
+    print(abs(mean(modelled, na.rm=TRUE)-mean(measured$mean, na.rm=TRUE)))
     res
   })
 
@@ -675,12 +680,15 @@ commonIndexes <- function (settings,measuredData) {
 } 
 
 agroLikelihood <- function(modVector,measured){
-    mu <- measured[,grep("mean", colnames(measured))]
-    stdev <- measured[,grep("^sd", colnames(measured))]
-    ndata <- nrow(measured)
-    sum(sapply(1:ndata, function(x){
-                  dnorm(modVector, mu[x], stdev[x], log = TRUE)
-               }), na.rm=TRUE)
+  mu <- measured[,grep("mean", colnames(measured))]
+  stdev <- measured[,grep("^sd", colnames(measured))]
+  ndata <- nrow(measured)
+  if(all(is.na(modVector))){
+    return(-Inf)
+  }
+  sum(sapply(1:ndata, function(x){
+    dnorm(modVector[x], mu[x], stdev[x], log = TRUE)
+  }), na.rm=TRUE)
 }
 
 
@@ -689,38 +697,38 @@ agroLikelihood <- function(modVector,measured){
 #' This functions compareses the likelihood and the RMSE values of the simulations and the measurements
 #' @param key keyword
 compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
-                             likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable,
-                             groupFun){
-
-    original <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                    function(domain_id){
-                        apply(do.call(cbind,
-                            lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
-                                   function(site){
-                                       if( !is.data.frame(modOld[[site]]) ) {
-                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
-                                       }
-
-                                       modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                            })),1,groupFun)
-                    })))
-    calibrated <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                    function(domain_id){
-                        apply(do.call(cbind,
-                            lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
-                                   function(site){
-                                       if( !is.data.frame(modNew[[site]]) ) {
-                                           return(rep(NA, length(alignIndexes[[domain_id]]$model)))
-                                       }
-                                       modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                            })),1,groupFun)
-                    })))
-    measuredGroups <- split(mes,mes$domain_id)
-    measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
-                                                    measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
-                                        }))
-    measured <- measured[measured$var_id == key,]
-    return(data.frame(original = original, calibrated = calibrated,measured=measured$mean))
+                                          likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable,
+                                          groupFun){
+  
+  original <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                      function(domain_id){
+                                        apply(do.call(cbind,
+                                                      lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
+                                                             function(site){
+                                                               if( !is.data.frame(modOld[[site]]) ) {
+                                                                 return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                                               }
+                                                               
+                                                               modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                             })),1,groupFun)
+                                      })))
+  calibrated <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                        function(domain_id){
+                                          apply(do.call(cbind,
+                                                        lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
+                                                               function(site){
+                                                                 if( !is.data.frame(modNew[[site]]) ) {
+                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                                                 }
+                                                                 modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                               })),1,groupFun)
+                                        })))
+  measuredGroups <- split(mes,mes$domain_id)
+  measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
+    measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
+  }))
+  measured <- measured[measured$var_id == key,]
+  return(data.frame(original = original, calibrated = calibrated,measured=measured$mean))
 }
 
 
