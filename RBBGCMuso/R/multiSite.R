@@ -47,40 +47,20 @@ compose <- function(expr){
 }
 
 compoVect <- function(mod, constrTable, fileToWrite = "const_results.data"){
-  
-  # --- START EDIT ---
-  # Check if mod is a valid dataframe from a successful run
-  if (!is.data.frame(mod)) {
-    # This is a failed run (mod is likely NA)
-    nexpr  <- nrow(constrTable)
-    vali <- rep(NA, nexpr) # NA for values
-    filtered <- rep(FALSE, nexpr) # FALSE for constraints (failed run fails constraints)
-    
-    write(paste(vali,collapse=","), fileToWrite, append=TRUE)
-    return(filtered)
-    
-  } else {
-  # --- END EDIT ---
-  
-    # This is a successful run, proceed as normal
     with(as.data.frame(mod), {
-      nexpr  <- nrow(constrTable)
-      filtered  <- numeric(nexpr)
-      vali <- numeric(nexpr) 
-      for(i in 1:nexpr){
-        val <- compose(constrTable[i,1])
-        filtered[i] <- (val <= constrTable[i,3]) &&
-          (val >= constrTable[i,2])
-        vali[i] <- val
-      }
-      
-      write(paste(vali,collapse=","), fileToWrite, append=TRUE)
-      filtered
+             nexpr  <- nrow(constrTable)
+             filtered  <- numeric(nexpr)
+             vali <- numeric(nexpr) 
+             for(i in 1:nexpr){
+                 val <- compose(constrTable[i,1])
+                 filtered[i] <- (val <= constrTable[i,3]) &&
+                             (val >= constrTable[i,2])
+                 vali[i] <- val
+             }
+
+             write(paste(vali,collapse=","), fileToWrite, append=TRUE)
+             filtered
     })
-    
-  # --- START EDIT ---
-  } # Close the new else block
-  # --- END EDIT ---
 }
 
 modCont <- function(expr, datf, interval, dumping_factor){
