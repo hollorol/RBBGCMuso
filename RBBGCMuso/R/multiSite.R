@@ -610,47 +610,52 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      nameGroupTable, groupFun, constraints,
                                      th = 10){
 
-    if(!is.null(constraints)){
-                         constRes<- sapply(mod,function(m){
-                            compoVect(m,constraints)
-                         })
+  if(!is.null(constraints)){
+    constRes<- sapply(mod,function(m){
+      if(!is.data.frame(m)) {
+        rep(0, nrow(constraints))
+      } else {
+        compoVect(m,constraints)
+      }
+    })
 
-                        failType <- constMatToDec(constRes)
-    }
+    failType <- constMatToDec(constRes)
+  }
 
-    likelihoodRMSE <- sapply(names(dataVar),function(key){
-              modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                                           function(domain_id){
-                                            apply(do.call(cbind,
-                                                          lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                                        })),1,groupFun)
-
-
-
-
+  likelihoodRMSE <- sapply(names(dataVar),function(key){
+    modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                        function(domain_id){
+                                          apply(do.call(cbind,
+                                                        lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
+                                                               function(site){
+                                                                 if(!is.data.frame(mod[[site]])) {
+                                                                   rep(NA, length(alignIndexes[[domain_id]]$model))
+                                                                 } else {
+                                                                   mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                 }
+                                                               })),1,groupFun)
                                         })))
 
 
-               measuredGroups <- split(mes,mes$domain_id)
-               measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
-                                                    measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
-                                        }))
-               measured <- measured[measured$var_id == key,]
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-measured$mean)^2))
-               )
+    measuredGroups <- split(mes,mes$domain_id)
+    measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
+      measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
+    }))
+    measured <- measured[measured$var_id == key,]
+    res <- c(likelihoods[[key]](modelled, measured),
+             sqrt(mean((modelled-measured$mean)^2))
+    )
 
 
-               print(abs(mean(modelled)-mean(measured$mean)))
-               res
-        })
+    print(abs(mean(modelled)-mean(measured$mean)))
+    res
+  })
 
-    likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
-                    1,0), failType)
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
-    return(likelihoodRMSE)
+  likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
+                      ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
+                             1,0), failType)
+  names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
+  return(likelihoodRMSE)
 }
 
 commonIndexes <- function (settings,measuredData) {
