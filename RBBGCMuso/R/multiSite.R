@@ -47,20 +47,49 @@ compose <- function(expr){
 }
 
 compoVect <- function(mod, constrTable, fileToWrite = "const_results.data"){
-    with(as.data.frame(mod), {
-             nexpr  <- nrow(constrTable)
-             filtered  <- numeric(nexpr)
-             vali <- numeric(nexpr) 
-             for(i in 1:nexpr){
-                 val <- compose(constrTable[i,1])
-                 filtered[i] <- (val <= constrTable[i,3]) &&
-                             (val >= constrTable[i,2])
-                 vali[i] <- val
-             }
-
-             write(paste(vali,collapse=","), fileToWrite, append=TRUE)
-             filtered
-    })
+  # <<< START EDIT
+  # Handle failed model runs (where mod is NA)
+  if (!is.data.frame(mod)) {
+    # Model run failed, write NAs and return 0s (all constraints fail)
+    nexpr <- nrow(constrTable)
+    vali <- rep(NA, nexpr)
+    filtered <- rep(0, nexpr) # 0 for FALSE
+    
+    # Try to write, but don't stop if it fails
+    try(write(paste(vali, collapse = ","), fileToWrite, append = TRUE), silent = TRUE)
+    return(filtered)
+  }
+  # <<< END EDIT
+  
+  with(as.data.frame(mod), {
+    nexpr  <- nrow(constrTable)
+    filtered  <- numeric(nexpr)
+    vali <- numeric(nexpr) 
+    for(i in 1:nexpr){
+      # <<< START EDIT
+      # Add tryCatch here in case expression fails even with data
+      val <- try(compose(constrTable[i,1]), silent = TRUE)
+      
+      if (inherits(val, "try-error")) {
+        filtered[i] <- 0 # Fail constraint
+        vali[i] <- NA
+      } else {
+        # Also check if val is NA or Inf (can happen from expressions)
+        if (is.na(val) || !is.finite(val)) {
+            filtered[i] <- 0 # Fail constraint
+            vali[i] <- val # Keep NA/Inf
+        } else {
+            filtered[i] <- (val <= constrTable[i,3]) &&
+              (val >= constrTable[i,2])
+            vali[i] <- val
+        }
+      }
+      # <<< END EDIT
+    }
+    
+    write(paste(vali,collapse=","), fileToWrite, append=TRUE)
+    filtered
+  })
 }
 
 modCont <- function(expr, datf, interval, dumping_factor){
@@ -546,6 +575,9 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
 
     print("Running the model with the random epc values...", quote = FALSE)
     for(i in 2:(iterations+1)){
+
+        crashed_run <- FALSE
+
         tmp <- lapply(resIterate, function(siteI){
             dirName <- tools::file_path_sans_ext(basename(calTable[siteI,1]))
             setwd(dirName)
@@ -555,7 +587,11 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
             settings$outputNames <- rep(dirName,2)
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
 
-            res <- tryCatch(calibMuso(settings=settings,parameters=randValues[(i-1),], silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+            res <- tryCatch(calibMuso(settings=settings,parameters=randValues[(i-1),], silent = TRUE, skipSpinup = TRUE), 
+                error=function(e){
+                    crashed_run <<- TRUE
+                    NA
+                })
             setwd("../")
             res
         })
@@ -571,9 +607,18 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                                                                 musoCodeToIndex = musoCodeToIndex,nameGroupTable = nameGroupTable, groupFun=mean, constraints = constraints, th=th)
 
                 
+    if (crashed_run) {
+        # Mark this run as a crash with a special failType
+        # This will be handled by tree_per_const_flexible
+        likelihood_results["failType"] <- -1 
+        likelihood_results["Const"] <- 0 # A crashed run is not a constrained run
+        
+        # Set likelihoods/RMSEs to NA
+        likelihood_results[grep("_likelihood", names(likelihood_results))] <- NA
+        likelihood_results[grep("_rmse", names(likelihood_results))] <- NA
+      } 
                 
-                
-                
+        partialResult[,resultRange] <- likelihood_results     
 
         partialResult[1:numParameters] <- randValues[(i-1),]
         write.table(x=partialResult, file="preservedCalib.csv", append=TRUE, row.names=FALSE,
@@ -610,25 +655,36 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      nameGroupTable, groupFun, constraints,
                                      th = 10){
 
-    if(!is.null(constraints)){
-                         constRes<- sapply(mod,function(m){
-                            compoVect(m,constraints)
-                         })
-
-                        failType <- constMatToDec(constRes)
-    }
+ if(!is.null(constraints)){
+    # <<< START EDIT
+    # compoVect is now robust to NA in 'mod'
+    constRes<- sapply(mod,function(m){
+      compoVect(m,constraints)
+    })
+    # <<< END EDIT
+    
+    failType <- constMatToDec(constRes)
+  }
 
     likelihoodRMSE <- sapply(names(dataVar),function(key){
-              modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
-                                           function(domain_id){
-                                            apply(do.call(cbind,
-                                                          lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
-                                                                 function(site){mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                                        })),1,groupFun)
-
-
-
-
+    modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
+                                        function(domain_id){
+                                          apply(do.call(cbind,
+                                                        lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
+                                                               function(site){
+                                                                 # <<< START EDIT
+                                                                 # Handle failed runs (mod[[site]] is NA)
+                                                                 if (!is.data.frame(mod[[site]])) {
+                                                                   # Return NAs matching the length of the model output
+                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
+                                                                 }
+                                                                 mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
+                                                                 # <<< END EDIT
+                                                               })),1,groupFun, na.rm = TRUE) # Add na.rm = TRUE
+                                          
+                                          
+                                          
+                                          
                                         })))
 
 
@@ -637,20 +693,36 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                                     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
                                         }))
                measured <- measured[measured$var_id == key,]
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-measured$mean)^2))
-               )
 
+
+                  if (all(is.na(modelled))) {
+                    res <- c(NA, NA) # Return NA for likelihood and RMSE
+                    } else {
+                    res <- c(likelihoods[[key]](modelled, measured), # Assume likelihood fn can handle NAs
+                            sqrt(mean((modelled-measured$mean)^2, na.rm = TRUE)) # Add na.rm = TRUE
+                    )
+                    }
 
                print(abs(mean(modelled)-mean(measured$mean)))
                res
         })
 
-    likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
-             ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
-                    1,0), failType)
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
-    return(likelihoodRMSE)
+          const_pass_percent <- if(!is.null(constraints)) {
+    (100 * sum(apply(constRes, 2, prod, na.rm = TRUE)) / ncol(constRes))
+  } else {
+    100 # If no constraints, 100% pass
+  }
+
+  if (is.null(constraints)) {
+    failType <- 0 # If no constraints, failType is 0
+  }
+
+  likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
+                      ifelse(const_pass_percent >= th, 1, 0), 
+                      failType)
+
+  names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
+  return(likelihoodRMSE)
 }
 
 commonIndexes <- function (settings,measuredData) {
@@ -697,7 +769,7 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                                        }
 
                                        modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                            })),1,groupFun)
+                            })),1,groupFun, na.rm = TRUE)
                     })))
     calibrated <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                     function(domain_id){
@@ -708,7 +780,7 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                                            return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                        }
                                        modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
-                            })),1,groupFun)
+                            })),1,groupFun, na.rm = TRUE)
                     })))
     measuredGroups <- split(mes,mes$domain_id)
     measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
