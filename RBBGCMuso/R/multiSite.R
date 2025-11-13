@@ -710,6 +710,9 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
   
   if(!is.null(constraints)){
     constRes<- sapply(mod,function(m){
+      if(length(m) == 1 && is.na(m)) {
+        return(rep(FALSE, nrow(constraints)))
+      }
       compoVect(m,constraints)
     })
     
@@ -730,8 +733,8 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                           site_data <- lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
                                                               function(site){
                                                                 cat("Site:", site, "\n")
-                                                                if(!is.data.frame(mod[[site]])) {
-                                                                  cat("mod[[site]] is not data.frame, returning NAs\n")
+                                                                if(length(mod[[site]]) == 1 && is.na(mod[[site]]) || (!is.data.frame(mod[[site]]) && !is.matrix(mod[[site]]))) {
+                                                                  cat("mod[[site]] is invalid, returning NAs\n")
                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                                 }
                                                                 mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
@@ -758,11 +761,11 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
     print(measured)
     
     res <- c(likelihoods[[key]](modelled, measured),
-             sqrt(mean((modelled-measured$mean)^2))
+             sqrt(mean((modelled-measured$mean)^2, na.rm = TRUE))
     )
     
     
-    print(abs(mean(modelled)-mean(measured$mean)))
+    print(abs(mean(modelled, na.rm = TRUE)-mean(measured$mean)))
     cat("res for key:", res, "\n")
     res
   })
@@ -842,8 +845,8 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                                         site_data <- lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                                             function(site){
                                                               cat("Site:", site, "\n")
-                                                              if( !is.data.frame(modOld[[site]]) ) {
-                                                                cat("modOld[[site]] not data.frame, returning NAs\n")
+                                                              if( length(modOld[[site]]) == 1 && is.na(modOld[[site]]) || (!is.data.frame(modOld[[site]]) && !is.matrix(modOld[[site]])) ) {
+                                                                cat("modOld[[site]] invalid, returning NAs\n")
                                                                 return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                               }
                                                               
@@ -866,8 +869,8 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                                           site_data <- lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                                               function(site){
                                                                 cat("Site:", site, "\n")
-                                                                if( !is.data.frame(modNew[[site]]) ) {
-                                                                  cat("modNew[[site]] not data.frame, returning NAs\n")
+                                                                if( length(modNew[[site]]) == 1 && is.na(modNew[[site]]) || (!is.data.frame(modNew[[site]]) && !is.matrix(modNew[[site]])) ) {
+                                                                  cat("modNew[[site]] invalid, returning NAs\n")
                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                                 }
                                                                 modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
