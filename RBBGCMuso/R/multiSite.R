@@ -172,10 +172,10 @@ multiSiteCalib <- function(measurements,
                            copyThread = TRUE,
                            constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL
 ){
-  debug_file <- "debug_multiSiteCalib.txt"
-  sink(debug_file, append = TRUE)
-  cat("Starting multiSiteCalib\n")
-  print(Sys.time())
+  #debug_file <- "debug_multiSiteCalib.txt"
+  #sink(debug_file, append = TRUE)
+  #cat("Starting multiSiteCalib\n")
+  #print(Sys.time())
   
   originalParametersDF <- parameters                       
   future::plan(future::multisession)
@@ -280,14 +280,14 @@ multiSiteCalib <- function(measurements,
     constRes <- do.call(rbind,constRes)
     write.csv(constRes, "constRes.csv")
     
-    cat("constRes:\n")
-    print(str(constRes))
+    #cat("constRes:\n")
+    #print(str(constRes))
   }
   resultFiles <- list.files(pattern="preservedCalib.*csv$",recursive=TRUE)
   res0 <- read.csv(grep("thread_1/",resultFiles, value=TRUE),stringsAsFactors=FALSE)
   
-  cat("res0:\n")
-  print(str(res0))
+  #cat("res0:\n")
+  #print(str(res0))
   
   resultFilesSans0 <- grep("thread_1/", resultFiles, value=TRUE, invert=TRUE)
   # results <- do.call(rbind,lapply(resultFilesSans0, function(f){read.csv(f, stringsAsFactors=FALSE)}))
@@ -297,13 +297,13 @@ multiSiteCalib <- function(measurements,
   results <- (rbind(res0,resultsSans0))
   write.csv(results,"result.csv")
   
-  cat("results:\n")
-  print(str(results))
+  #cat("results:\n")
+  #print(str(results))
   
   calibrationPar <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["calibrationPar"]]
   
-  cat("calibrationPar:\n")
-  print(calibrationPar)
+  #cat("calibrationPar:\n")
+  #print(calibrationPar)
   
   if(!is.null(constraints)){
     tryCatch({
@@ -323,8 +323,8 @@ multiSiteCalib <- function(measurements,
   }
   origModOut <- future::value(fut[[1]], stdout = FALSE, signal=FALSE)[["origModOut"]]
   
-  cat("origModOut:\n")
-  print(lapply(origModOut, str))
+  #cat("origModOut:\n")
+  #print(lapply(origModOut, str))
   
   # Just single objective version TODO:Multiobjective
   results <- results[results[,"Const"] == 1,]
@@ -348,8 +348,8 @@ multiSiteCalib <- function(measurements,
   setwd("tmp/thread_1")
   aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
   
-  cat("aposteriori:\n")
-  print(lapply(aposteriori, str))
+  #cat("aposteriori:\n")
+  #print(lapply(aposteriori, str))
   
   siteDir <- list.dirs(full.names=TRUE, recursive=FALSE)[1] 
   allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
@@ -393,8 +393,8 @@ multiSiteCalib <- function(measurements,
                                                        musoCodeToIndex = musoCodeToIndex,
                                                        nameGroupTable = nameGroupTable, mean)
   
-  cat("comparison:\n")
-  print(str(res[["comparison"]]))
+  #cat("comparison:\n")
+  #print(str(res[["comparison"]]))
   
   res[["likelihood"]] <- results[bestCase,ncol(results)-2]
   comp <- res$comparison
@@ -461,8 +461,8 @@ multiSiteCalib <- function(measurements,
       try(dev.off(), silent = TRUE) # Try to close it safely
     }
   })
-  cat("Ending multiSiteCalib\n")
-  sink()
+  #cat("Ending multiSiteCalib\n")
+  #sink()
 }
 
 #' multiSiteThread
@@ -479,10 +479,10 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                             naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10, fileToModify = NULL
 ) {
   
-  debug_file <- paste0("debug_thread_", threadNumber, ".txt")
-  sink(debug_file, append = TRUE)
-  cat("Starting multiSiteThread for thread", threadNumber, "\n")
-  print(Sys.time())
+  #debug_file <- paste0("debug_thread_", threadNumber, ".txt")
+  #sink(debug_file, append = TRUE)
+  #cat("Starting multiSiteThread for thread", threadNumber, "\n")
+  #print(Sys.time())
   
   originalRun <- list()
   nameGroupTable <- calTable 
@@ -493,8 +493,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
   settingsProto <- setupMuso(inputLoc = firstDir,
                              iniInput =rep(list.files(firstDir, pattern = "\\.ini",full.names=TRUE),2))
   
-  cat("settingsProto created\n")
-  print(str(settingsProto))
+  #cat("settingsProto created\n")
+  #print(str(settingsProto))
   
   # Exanding likelihood
   likelihoodFull <- as.list(rep(NA,length(dataVar)))
@@ -524,7 +524,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
       })
     }}
   
-  print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
+  #print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
   randVals <- musoRand(parameters = parameters, iterations = iterations)
   #selectedEpc <- parameters$FILE[1]
   selectedEpc <- fileToModify
@@ -544,8 +544,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
     settingsProto$dailyOutputTable[settingsProto$dailyOutputTable$code == musoCode,"index"]
   })
   
-  cat("musoCodeToIndex:\n")
-  print(musoCodeToIndex)
+  #cat("musoCodeToIndex:\n")
+  #print(musoCodeToIndex)
   
   resultRange <- (numParameters + 1):(ncol(partialResult))
   randValues <- randVals[[2]]
@@ -576,8 +576,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
     })
     originalRun[["origModOut"]] <- origModOut
     
-    cat("origModOut created\n")
-    print(lapply(origModOut, str))
+    #cat("origModOut created\n")
+    #print(lapply(origModOut, str))
     
     partialResult[,resultRange] <- calcLikelihoodsForGroups(dataVar=dataVar, 
                                                             mod=origModOut,
@@ -590,9 +590,9 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
     write.csv(x=partialResult, file="preservedCalib.csv",row.names=FALSE)
   }
   
-  print("Running the model with the random epc values...", quote = FALSE)
+  #print("Running the model with the random epc values...", quote = FALSE)
   for(i in 2:(iterations+1)){
-    cat("Iteration:", i, "\n")
+    #cat("Iteration:", i, "\n")
     
     tmp <- lapply(resIterate, function(siteI){
       dirName <- tools::file_path_sans_ext(basename(calTable[siteI,1]))
@@ -608,8 +608,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
       res
     })
     
-    cat("tmp for iteration", i, ":\n")
-    print(lapply(tmp, str))
+    #cat("tmp for iteration", i, ":\n")
+    #print(lapply(tmp, str))
     
     if(is.null(tmp)){
       partialResult[,resultRange] <- NA
@@ -636,13 +636,13 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
   }
   
   if(threadNumber == 1){
-    cat("Returning originalRun\n")
-    print(str(originalRun))
-    sink()
+    #cat("Returning originalRun\n")
+    #print(str(originalRun))
+    #sink()
     return(originalRun)
   }
   
-  sink()
+  #sink()
   return(0)
 }
 
@@ -668,25 +668,25 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
                                      nameGroupTable, groupFun, constraints,
                                      th = 10){
   
-  debug_file <- "debug_calcLikelihoods.txt"
-  sink(debug_file, append = TRUE)
-  cat("Starting calcLikelihoodsForGroups\n")
-  print(Sys.time())
+  #debug_file <- "debug_calcLikelihoods.txt"
+  #sink(debug_file, append = TRUE)
+  #cat("Starting calcLikelihoodsForGroups\n")
+  #print(Sys.time())
   
-  cat("Input mod structure:\n")
-  print(lapply(mod, str))
+  # cat("Input mod structure:\n")
+  # print(lapply(mod, str))
   
-  cat("mes structure:\n")
-  print(str(mes))
+  # cat("mes structure:\n")
+  # print(str(mes))
   
-  cat("alignIndexes:\n")
-  print(alignIndexes)
+  # cat("alignIndexes:\n")
+  # print(alignIndexes)
   
-  cat("musoCodeToIndex:\n")
-  print(musoCodeToIndex)
+  # cat("musoCodeToIndex:\n")
+  # print(musoCodeToIndex)
   
-  cat("nameGroupTable:\n")
-  print(nameGroupTable)
+  # cat("nameGroupTable:\n")
+  # print(nameGroupTable)
   
   if(!is.null(constraints)){
     constRes<- sapply(mod,function(m){
@@ -696,40 +696,40 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
       compoVect(m,constraints)
     })
     
-    cat("constRes:\n")
-    print(constRes)
+    #cat("constRes:\n")
+    #print(constRes)
     
     failType <- constMatToDec(constRes)
-    cat("failType:\n")
-    print(failType)
+    #cat("failType:\n")
+    #print(failType)
   }
   
   likelihoodRMSE <- sapply(names(dataVar),function(key){
-    cat("Processing key:", key, "\n")
+    #cat("Processing key:", key, "\n")
     
     modelled <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                                         function(domain_id){
-                                          cat("Domain:", domain_id, "\n")
+                                          #cat("Domain:", domain_id, "\n")
                                           site_data <- lapply(nameGroupTable[,1][nameGroupTable[,2] == domain_id],
                                                               function(site){
-                                                                cat("Site:", site, "\n")
+                                                                #cat("Site:", site, "\n")
                                                                 if(length(mod[[site]]) == 1 && is.na(mod[[site]]) || (!is.data.frame(mod[[site]]) && !is.matrix(mod[[site]]))) {
-                                                                  cat("mod[[site]] is invalid, returning NAs\n")
+                                                                  #cat("mod[[site]] is invalid, returning NAs\n")
                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                                 }
                                                                 mod[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                                                               })
-                                          cat("site_data:\n")
-                                          print(site_data)
+                                          #cat("site_data:\n")
+                                          #print(site_data)
                                           
                                           applied <- apply(do.call(cbind, site_data),1,groupFun)
-                                          cat("applied:\n")
-                                          print(applied)
+                                          #cat("applied:\n")
+                                          #print(applied)
                                           applied
                                         })))
     
-    cat("modelled:\n")
-    print(modelled)
+    #cat("modelled:\n")
+    #print(modelled)
     
     measuredGroups <- split(mes,mes$domain_id)
     measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
@@ -737,31 +737,31 @@ calcLikelihoodsForGroups <- function(dataVar, mod, mes,
     }))
     measured <- measured[measured$var_id == key,]
     
-    cat("measured:\n")
-    print(measured)
+    #cat("measured:\n")
+    #print(measured)
     
     res <- c(likelihoods[[key]](modelled, measured),
              sqrt(mean((modelled-measured$mean)^2, na.rm = TRUE))
     )
     
     
-    print(abs(mean(modelled, na.rm = TRUE)-mean(measured$mean)))
-    cat("res for key:", res, "\n")
+    #print(abs(mean(modelled, na.rm = TRUE)-mean(measured$mean)))
+    #cat("res for key:", res, "\n")
     res
   })
   
-  cat("likelihoodRMSE before reshape:\n")
-  print(likelihoodRMSE)
+  #cat("likelihoodRMSE before reshape:\n")
+  #print(likelihoodRMSE)
   
   likelihoodRMSE <- c(likelihoodRMSE[1,], likelihoodRMSE[2,],
                       ifelse((100 * sum(apply(constRes, 2, prod)) / ncol(constRes)) >= th,
                              1,0), failType)
   names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar), "Const", "failType")
   
-  cat("Final likelihoodRMSE:\n")
-  print(likelihoodRMSE)
+  #cat("Final likelihoodRMSE:\n")
+  #print(likelihoodRMSE)
   
-  sink()
+  #sink()
   return(likelihoodRMSE)
 }
 
@@ -799,82 +799,82 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
                                           likelihoods, alignIndexes, musoCodeToIndex, nameGroupTable,
                                           groupFun){
   
-  debug_file <- "debug_compareCalib.txt"
-  sink(debug_file, append = TRUE)
-  cat("Starting compareCalibratedWithOriginal for key:", key, "\n")
-  print(Sys.time())
+  # debug_file <- "debug_compareCalib.txt"
+  # sink(debug_file, append = TRUE)
+  # cat("Starting compareCalibratedWithOriginal for key:", key, "\n")
+  # print(Sys.time())
   
-  cat("modOld structure:\n")
-  print(lapply(modOld, str))
+  # cat("modOld structure:\n")
+  # print(lapply(modOld, str))
   
-  cat("modNew structure:\n")
-  print(lapply(modNew, str))
+  # cat("modNew structure:\n")
+  # print(lapply(modNew, str))
   
-  cat("mes structure:\n")
-  print(str(mes))
+  # cat("mes structure:\n")
+  # print(str(mes))
   
-  cat("alignIndexes:\n")
-  print(alignIndexes)
+  # cat("alignIndexes:\n")
+  # print(alignIndexes)
   
-  cat("nameGroupTable:\n")
-  print(nameGroupTable)
+  # cat("nameGroupTable:\n")
+  # print(nameGroupTable)
   
   original <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                                       function(domain_id){
-                                        cat("Processing original for domain:", domain_id, "\n")
+                                        #cat("Processing original for domain:", domain_id, "\n")
                                         site_data <- lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                                             function(site){
-                                                              cat("Site:", site, "\n")
+                                                              #cat("Site:", site, "\n")
                                                               if( length(modOld[[site]]) == 1 && is.na(modOld[[site]]) || (!is.data.frame(modOld[[site]]) && !is.matrix(modOld[[site]])) ) {
-                                                                cat("modOld[[site]] invalid, returning NAs\n")
+                                                                #cat("modOld[[site]] invalid, returning NAs\n")
                                                                 return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                               }
                                                               
                                                               modOld[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                                                             })
-                                        cat("site_data original:\n")
-                                        print(site_data)
+                                        #cat("site_data original:\n")
+                                        #print(site_data)
                                         
                                         applied <- apply(do.call(cbind, site_data),1,groupFun)
-                                        cat("applied original:\n")
-                                        print(applied)
+                                        #cat("applied original:\n")
+                                        #print(applied)
                                         applied
                                       })))
-  cat("original vector:\n")
-  print(original)
+  #cat("original vector:\n")
+  #print(original)
   
   calibrated <- as.vector(unlist(sapply(sort(names(alignIndexes)),
                                         function(domain_id){
-                                          cat("Processing calibrated for domain:", domain_id, "\n")
+                                          #cat("Processing calibrated for domain:", domain_id, "\n")
                                           site_data <- lapply(nameGroupTable$site_id[nameGroupTable$domain_id == domain_id],
                                                               function(site){
-                                                                cat("Site:", site, "\n")
+                                                                #cat("Site:", site, "\n")
                                                                 if( length(modNew[[site]]) == 1 && is.na(modNew[[site]]) || (!is.data.frame(modNew[[site]]) && !is.matrix(modNew[[site]])) ) {
-                                                                  cat("modNew[[site]] invalid, returning NAs\n")
+                                                                  #cat("modNew[[site]] invalid, returning NAs\n")
                                                                   return(rep(NA, length(alignIndexes[[domain_id]]$model)))
                                                                 }
                                                                 modNew[[site]][alignIndexes[[domain_id]]$model,musoCodeToIndex[key]]
                                                               })
-                                          cat("site_data calibrated:\n")
-                                          print(site_data)
+                                          #cat("site_data calibrated:\n")
+                                          #print(site_data)
                                           
                                           applied <- apply(do.call(cbind, site_data),1,groupFun)
-                                          cat("applied calibrated:\n")
-                                          print(applied)
+                                          #cat("applied calibrated:\n")
+                                          #print(applied)
                                           applied
                                         })))
-  cat("calibrated vector:\n")
-  print(calibrated)
+  #cat("calibrated vector:\n")
+  #print(calibrated)
   
   measuredGroups <- split(mes,mes$domain_id)
   measured <- do.call(rbind.data.frame, lapply(names(measuredGroups), function(domain_id){
     measuredGroups[[domain_id]][alignIndexes[[domain_id]]$meas,]
   }))
   measured <- measured[measured$var_id == key,]
-  cat("measured:\n")
-  print(measured)
+  #cat("measured:\n")
+  #print(measured)
   
-  sink()
+  #sink()
   return(data.frame(original = original, calibrated = calibrated,measured=measured$mean))
 
 }
