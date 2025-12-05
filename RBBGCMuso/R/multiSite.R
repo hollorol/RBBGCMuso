@@ -170,7 +170,7 @@ multiSiteCalib <- function(measurements,
                            pb = txtProgressBar(min=0, max=iterations, style=3),
                            pbUpdate = setTxtProgressBar,
                            copyThread = TRUE,
-                           constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL
+                           constraints=NULL, th = 10, treeControl=rpart.control(), fileToModify = NULL,fileToChange = "epc"
 ){
   #debug_file <- "debug_multiSiteCalib.txt"
   #sink(debug_file, append = TRUE)
@@ -211,7 +211,7 @@ multiSiteCalib <- function(measurements,
         {
           result <- multiSiteThread(measuredData = measurements, parameters = parameters, calTable=calTable, 
                                     dataVar = dataVar, iterations = threadCount[i],
-                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th, fileToModify = fileToModify
+                                    likelihood = likelihood, threadNumber= i, constraints=constraints, th=th, fileToModify = fileToModify, fileToChange = fileToChange
           )
           # setwd("../../")
           # return(result)
@@ -346,7 +346,7 @@ multiSiteCalib <- function(measurements,
   
   
   setwd("tmp/thread_1")
-  aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable)
+  aposteriori<- spatialRun(settingsProto, calibrationPar, parameters, calTable, fileToChange = fileToChange)
   
   #cat("aposteriori:\n")
   #print(lapply(aposteriori, str))
@@ -476,7 +476,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
                             outVars = NULL, iterations = 300,
                             skipSpinup = TRUE, plotName = "calib.jpg",
                             modifyOriginal=TRUE, likelihood, uncertainity = NULL, burnin=NULL,
-                            naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10, fileToModify = NULL
+                            naVal = NULL, postProcString = NULL, threadNumber, constraints=NULL,th=10, fileToModify = NULL, fileToChange = "epc"
 ) {
   
   #debug_file <- paste0("debug_thread_", threadNumber, ".txt")
@@ -525,7 +525,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
     }}
   
   #print("optiMuso is randomizing the epc parameters now...",quote = FALSE)
-  randVals <- musoRand(parameters = parameters, iterations = iterations)
+  randVals <- musoRand(parameters = parameters, iterations = iterations, fileType = fileToChange)
   #selectedEpc <- parameters$FILE[1]
   selectedEpc <- fileToModify
   selectedEpc <- basename(epcFile) == basename(selectedEpc)
@@ -570,7 +570,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
       settings$iniInput <- settings$inputFiles <- rep(paste0(dirName,".ini"),2)
       settings$outputNames <- rep(dirName,2)
       settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
-      res <- tryCatch(calibMuso(settings=settings,parameters =origEpc, silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+      res <- tryCatch(calibMuso(settings=settings,parameters =origEpc, silent = TRUE, skipSpinup = TRUE,fileToChange = fileToChange), error=function(e){NA})
       setwd("../")
       res
     })
@@ -603,7 +603,7 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
       settings$outputNames <- rep(dirName,2)
       settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
       
-      res <- tryCatch(calibMuso(settings=settings,parameters=randValues[(i-1),], silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+      res <- tryCatch(calibMuso(settings=settings,parameters=randValues[(i-1),], silent = TRUE, skipSpinup = TRUE, fileToChange = fileToChange), error=function(e){NA})
       setwd("../")
       res
     })
@@ -880,7 +880,7 @@ compareCalibratedWithOriginal <- function(key, modOld, modNew, mes,
 }
 
 
-spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
+spatialRun <- function(settingsProto,calibrationPar, parameters, calTable, fileToChange = "epc"){
     resIterate <- 1:nrow(calTable)
     names(resIterate) <- tools::file_path_sans_ext(basename(calTable[,1]))
     modOut <- lapply(resIterate, function(i){
@@ -892,7 +892,7 @@ spatialRun <- function(settingsProto,calibrationPar, parameters, calTable){
             settings$outputNames <- rep(dirName,2)
             settings$calibrationPar <- calibrationPar
             settings$executable <- ifelse(Sys.info()[1]=="Linux","./muso","./muso.exe") # set default exe option at start wold be better
-            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = TRUE, skipSpinup = TRUE), error=function(e){NA})
+            res <- tryCatch(calibMuso(settings=settings,parameters =parameters, silent = TRUE, skipSpinup = TRUE, fileToChange = fileToChange), error=function(e){NA})
             setwd("../")
             res
         })
