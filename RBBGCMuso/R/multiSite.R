@@ -336,7 +336,8 @@ multiSiteCalib <- function(measurements,
   #TODO: Have to put that before multiSiteThread, we should not have to calculate it at every iterations 
   
   firstDir <- list.dirs("tmp/thread_1",full.names=TRUE,recursive =FALSE)[1]
-  epcFile <- list.files(firstDir, pattern = "\\.epc",full.names=TRUE)
+  searchPattern <- if(fileToChange == "soil") "\\.soi" else "\\.epc"
+  epcFile <- list.files(firstDir, pattern = searchPattern,full.names=TRUE)
   settingsProto <- setupMuso(inputLoc = firstDir,
                              iniInput =rep(list.files(firstDir, pattern = "\\.ini",full.names=TRUE),2))
   alignIndexes <- commonIndexes(settingsProto, measurements)
@@ -352,7 +353,7 @@ multiSiteCalib <- function(measurements,
   #print(lapply(aposteriori, str))
   
   siteDir <- list.dirs(full.names=TRUE, recursive=FALSE)[1] 
-  allEpcFiles <- list.files(siteDir, pattern = "\\.epc", full.names = TRUE)
+  allEpcFiles <- list.files(siteDir, pattern = searchPattern, full.names = TRUE)
   
   # Get the *template* EPC file name from the parameters data frame
   # since parameters gets overwritten we need to use oroignal
@@ -365,12 +366,14 @@ multiSiteCalib <- function(measurements,
   epcToCopy <- allEpcFiles[basename(allEpcFiles) == basename(templateEpcName)]
   
   # Add a check in case the file isn't found
-  if (length(epcToCopy) == 1) {
-    file.copy(epcToCopy, "../../multiSiteOptim.epc", overwrite=TRUE)
+  if (length(targetToCopy) == 1) {
+    outputFilename <- if(fileToChange == "soil") "multiSiteOptim.soi" else "multiSiteOptim.epc"
+    file.copy(targetToCopy, file.path("../../", outputFilename), overwrite=TRUE)
   } else {
-    warning(sprintf("Could not find unique EPC file '%s' to copy. Found: %s. 'multiSiteOptim.epc' not created.", 
-                    templateEpcName, paste(epcToCopy, collapse=", ")))
+    warning(sprintf("Could not find unique target file '%s' to copy. Found: %s. Optimized file not created.", 
+                    templateTargetName, paste(targetToCopy, collapse=", ")))
   }
+  
   
   
   # file.copy(list.files(list.dirs(full.names=TRUE, recursive=FALSE)[1], pattern=".*\\.epc", full.names=TRUE),
@@ -489,7 +492,8 @@ multiSiteThread <- function(measuredData, parameters = NULL, startDate = NULL,
   nameGroupTable[,1] <- tools::file_path_sans_ext(basename(nameGroupTable[,1]))
   setwd(paste0("tmp/thread_",threadNumber))
   firstDir <- list.dirs(full.names=FALSE,recursive =FALSE)[1]
-  epcFile <- list.files(firstDir, pattern = "\\.epc",full.names=TRUE)
+  searchPattern <- if(fileToChange == "soil") "\\.soi" else "\\.epc"
+  epcFile <- list.files(firstDir, pattern = searchPattern,full.names=TRUE)
   settingsProto <- setupMuso(inputLoc = firstDir,
                              iniInput =rep(list.files(firstDir, pattern = "\\.ini",full.names=TRUE),2))
   
