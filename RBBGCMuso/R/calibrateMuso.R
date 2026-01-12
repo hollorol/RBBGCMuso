@@ -405,191 +405,192 @@ prepareFromAgroMo <- function(fName){
     cbind.data.frame(dateCols, obs)
 }
 
-# calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
-
-#      # Ensure 'mes' is a data frame
-#      mes <- as.data.frame(mes)
-
-#      # Iterate through the *names* provided in the dataVar argument
-#      likelihoodRMSE_list <- sapply(names(dataVar), function(key){
-
-#         # Find Modelled Column 
-#         modelColIndex <- NA # Default to invalid index
-
-#         #    Try using the pre-calculated index (derived from code in dataVar)
-#         #    Check if the key exists in the names derived from dataVar codes
-#         #    and if the corresponding index is valid for the 'mod' data frame
-#         if (key %in% names(musoCodeToIndex)) {
-#              idx_from_code <- musoCodeToIndex[[key]]
-#              if (length(idx_from_code) == 1 && !is.na(idx_from_code) &&
-#                  idx_from_code > 0 && idx_from_code <= ncol(mod)) {
-#                  modelColIndex <- idx_from_code
-#              }
-#         }
-
-#         #   If index from code wasn't found or valid, try matching column by name
-#         if (is.na(modelColIndex)) {
-#             idx_from_name <- match(key, colnames(mod))
-#             # Check if match found a valid index
-#             if (length(idx_from_name) == 1 && !is.na(idx_from_name) && idx_from_name > 0) {
-#                  modelColIndex <- idx_from_name
-             
-#             }
-#         }
-
-#         #   Check if we successfully found a column index for the model output
-#         if (is.na(modelColIndex)) {
-#             warning(paste("Could not find model output column for key:", key,
-#                           "(tried code lookup and name matching). Skipping likelihood calculation for this variable."),
-#                     call. = FALSE) # Avoid printing the call stack for clarity
-#             # Return NA for both likelihood and RMSE for this variable
-#             return(c(likelihood = NA, rmse = NA))
-#         }
-
-#         # Extract modelled data using the determined index
-#         # Ensure we handle potential errors if alignIndexes$mod is out of bounds
-#         modelled <- tryCatch({
-#              mod[alignIndexes$mod, modelColIndex]
-#              }, error = function(e) {
-#                   warning(paste("Error accessing modelled data for key:", key, "at index", modelColIndex, "-", e$message), call. = FALSE)
-#                   rep(NA, length(alignIndexes$mod)) # Return NA vector of correct expected length
-#              })
-#         # End Find Modelled Column
-
-
-#         # Find Measured Column(s)
-#         # Search for columns in 'mes' ending with the key
-#         selected_indices <- grep(sprintf("%s$", key), colnames(mes))
-
-#         if (length(selected_indices) == 0) {
-#              warning(paste("Could not find measurement column ending with key:", key,
-#                            "in measuredData. Skipping likelihood calculation for this variable."),
-#                      call. = FALSE)
-#              return(c(likelihood = NA, rmse = NA))
-#         }
-
-#         # Select the actual column(s) based on index/indices
-#         # Handle case where multiple columns match (_mean, _sd) - prefer single exact/mean match
-#         measured_col_data <- mes[alignIndexes$meas, selected_indices, drop = FALSE] # Use drop=FALSE to keep data frame structure
-
-#         # Determine the primary measurement column for RMSE ('m') and the data for likelihood ('measured_for_like')
-#         # Prioritize exact match, then mean, then first match
-#         measured_for_like <- measured_col_data # By default, use all matched columns for likelihood func
-#         m_col_index <- NULL
-#         exact_match_idx <- which(colnames(measured_col_data) == key)
-#         mean_match_idx <- grep(sprintf("^mean\\.%s$|^%s_mean$", key, key), colnames(measured_col_data))
-
-#         if(length(exact_match_idx) == 1) {
-#             m_col_index <- exact_match_idx
-#         } else if (length(mean_match_idx) == 1) {
-#             m_col_index <- mean_match_idx
-#         } else {
-#              # If no exact or mean match, use the first selected column for 'm'
-#              m_col_index <- 1
-#              if(ncol(measured_col_data) > 1) {
-#                   warning(paste("Multiple measurement columns found for key:", key,
-#                                 "- using '", colnames(measured_col_data)[m_col_index], "' for RMSE calculation."),
-#                           call. = FALSE)
-#              }
-#         }
-#          m <- measured_col_data[, m_col_index]
-#         # End Find Measured Column(s)
-
-
-#         # Alignment and NA Handling
-#         # Align modelled and measured data, removing rows where *either* is NA
-#         valid_indices <- !is.na(modelled) & !is.na(m)
-#         modelled_aligned <- modelled[valid_indices]
-#         m_aligned <- m[valid_indices]
-#         measured_for_like_aligned <- measured_for_like[valid_indices, , drop = FALSE] # Keep aligned subset
-
-#         # Check if any comparable data remains
-#         if (length(modelled_aligned) == 0) {
-#            warning(paste("No valid overlapping non-NA data points found for key:", key, "after alignment."),
-#                    call. = FALSE)
-#            return(c(likelihood = NA, rmse = NA))
-#         }
-#         # End Alignment and NA Handling
-
-
-#         # Calculate Likelihood and RMSE 
-#         # Get the appropriate likelihood function for this key
-#         currentLikelihoodFunc <- likelihoods[[key]]
-#         if (is.null(currentLikelihoodFunc) || !is.function(currentLikelihoodFunc)) {
-#              warning(paste("Likelihood function not found or invalid for key:", key), call. = FALSE)
-#              # Returning NA for now.
-#              likelihood_val <- NA
-#         } else {
-#              # Calculate likelihood 
-#              likelihood_val <- tryCatch({
-#                   currentLikelihoodFunc(modelled_aligned, m_aligned)
-#              }, error = function(e) {
-#                   warning(paste("Error calculating likelihood for key:", key, "-", e$message), call. = FALSE)
-#                   NA
-#              })
-#         }
-
-#         # Calculate RMSE using the primary measurement column ('m_aligned')
-#         rmse_val <- sqrt(mean((modelled_aligned - m_aligned)^2, na.rm = TRUE)) # na.rm is fallback
-
-#         res <- c(likelihood = likelihood_val, rmse = rmse_val)
-#         # End Calculate Likelihood and RMSE
-
-#         return(res) # Return named vector for this key
-
-#     }, simplify = FALSE) # Use simplify=FALSE initially to handle potential errors gracefully
-
-#     # Combine results into the final matrix/vector format expected
-#     # Handle cases where some variables failed (returned NA)
-#     final_likelihoods <- sapply(likelihoodRMSE_list, function(x) x['likelihood'])
-#     final_rmses <- sapply(likelihoodRMSE_list, function(x) x['rmse'])
-
-#     # Construct the final named vector/matrix as expected by the calling function
-#     likelihood_names <- sprintf("%s_likelihood", names(dataVar))
-#     rmse_names <- sprintf("%s_rmse", names(dataVar))
-#     final_results_vector <- c(final_likelihoods, final_rmses)
-#     names(final_results_vector) <- c(likelihood_names, rmse_names)
-
-#     # Return results in the format that musoSingleThread expects for partialResult[, resultRange]
-#     # Ensure the order matches: likelihoods first, then RMSEs
-#     return(final_results_vector)
-# }
-
-# old
+# new, works with custom variable (postProcString)
 calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
 
+     # Ensure 'mes' is a data frame
      mes <- as.data.frame(mes)
-    # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
-    likelihoodRMSE <- sapply(names(dataVar),function(key){
-               modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
-               selected <- grep(sprintf("%s$", key), colnames(mes))
-               # browser()
 
-               measured <- mes[alignIndexes$meas,selected]
+     # Iterate through the *names* provided in the dataVar argument
+     likelihoodRMSE_list <- sapply(names(dataVar), function(key){
 
-               if(is.null(dim(measured))){
-                   notNA <- !is.na(measured)             
-                   m <- measured <- measured[notNA]
-                    
-               } else {
-                   notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
-                   measured <- measured[notNA,]
-                   m <- measured[,grep("^mean", colnames(measured))]
-               }
-                   modelled <- modelled[notNA] 
+        # Find Modelled Column 
+        modelColIndex <- NA # Default to invalid index
 
-               # uncert   <-   uncert[!is.na(measured)]
+        #    Try using the pre-calculated index (derived from code in dataVar)
+        #    Check if the key exists in the names derived from dataVar codes
+        #    and if the corresponding index is valid for the 'mod' data frame
+        if (key %in% names(musoCodeToIndex)) {
+             idx_from_code <- musoCodeToIndex[[key]]
+             if (length(idx_from_code) == 1 && !is.na(idx_from_code) &&
+                 idx_from_code > 0 && idx_from_code <= ncol(mod)) {
+                 modelColIndex <- idx_from_code
+             }
+        }
 
-               # measured <- measured[!is.na(measured)] 
-               res <- c(likelihoods[[key]](modelled, measured),
-                        sqrt(mean((modelled-m)^2))
-               )
-               # browser()
-               res
-        })
-    names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
-    return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+        #   If index from code wasn't found or valid, try matching column by name
+        if (is.na(modelColIndex)) {
+            idx_from_name <- match(key, colnames(mod))
+            # Check if match found a valid index
+            if (length(idx_from_name) == 1 && !is.na(idx_from_name) && idx_from_name > 0) {
+                 modelColIndex <- idx_from_name
+             
+            }
+        }
+
+        #   Check if we successfully found a column index for the model output
+        if (is.na(modelColIndex)) {
+            warning(paste("Could not find model output column for key:", key,
+                          "(tried code lookup and name matching). Skipping likelihood calculation for this variable."),
+                    call. = FALSE) # Avoid printing the call stack for clarity
+            # Return NA for both likelihood and RMSE for this variable
+            return(c(likelihood = NA, rmse = NA))
+        }
+
+        # Extract modelled data using the determined index
+        # Ensure we handle potential errors if alignIndexes$mod is out of bounds
+        modelled <- tryCatch({
+             mod[alignIndexes$mod, modelColIndex]
+             }, error = function(e) {
+                  warning(paste("Error accessing modelled data for key:", key, "at index", modelColIndex, "-", e$message), call. = FALSE)
+                  rep(NA, length(alignIndexes$mod)) # Return NA vector of correct expected length
+             })
+        # End Find Modelled Column
+
+
+        # Find Measured Column(s)
+        # Search for columns in 'mes' ending with the key
+        selected_indices <- grep(sprintf("%s$", key), colnames(mes))
+
+        if (length(selected_indices) == 0) {
+             warning(paste("Could not find measurement column ending with key:", key,
+                           "in measuredData. Skipping likelihood calculation for this variable."),
+                     call. = FALSE)
+             return(c(likelihood = NA, rmse = NA))
+        }
+
+        # Select the actual column(s) based on index/indices
+        # Handle case where multiple columns match (_mean, _sd) - prefer single exact/mean match
+        measured_col_data <- mes[alignIndexes$meas, selected_indices, drop = FALSE] # Use drop=FALSE to keep data frame structure
+
+        # Determine the primary measurement column for RMSE ('m') and the data for likelihood ('measured_for_like')
+        # Prioritize exact match, then mean, then first match
+        measured_for_like <- measured_col_data # By default, use all matched columns for likelihood func
+        m_col_index <- NULL
+        exact_match_idx <- which(colnames(measured_col_data) == key)
+        mean_match_idx <- grep(sprintf("^mean\\.%s$|^%s_mean$", key, key), colnames(measured_col_data))
+
+        if(length(exact_match_idx) == 1) {
+            m_col_index <- exact_match_idx
+        } else if (length(mean_match_idx) == 1) {
+            m_col_index <- mean_match_idx
+        } else {
+             # If no exact or mean match, use the first selected column for 'm'
+             m_col_index <- 1
+             if(ncol(measured_col_data) > 1) {
+                  warning(paste("Multiple measurement columns found for key:", key,
+                                "- using '", colnames(measured_col_data)[m_col_index], "' for RMSE calculation."),
+                          call. = FALSE)
+             }
+        }
+         m <- measured_col_data[, m_col_index]
+        # End Find Measured Column(s)
+
+
+        # Alignment and NA Handling
+        # Align modelled and measured data, removing rows where *either* is NA
+        valid_indices <- !is.na(modelled) & !is.na(m)
+        modelled_aligned <- modelled[valid_indices]
+        m_aligned <- m[valid_indices]
+        measured_for_like_aligned <- measured_for_like[valid_indices, , drop = FALSE] # Keep aligned subset
+
+        # Check if any comparable data remains
+        if (length(modelled_aligned) == 0) {
+           warning(paste("No valid overlapping non-NA data points found for key:", key, "after alignment."),
+                   call. = FALSE)
+           return(c(likelihood = NA, rmse = NA))
+        }
+        # End Alignment and NA Handling
+
+
+        # Calculate Likelihood and RMSE 
+        # Get the appropriate likelihood function for this key
+        currentLikelihoodFunc <- likelihoods[[key]]
+        if (is.null(currentLikelihoodFunc) || !is.function(currentLikelihoodFunc)) {
+             warning(paste("Likelihood function not found or invalid for key:", key), call. = FALSE)
+             # Returning NA for now.
+             likelihood_val <- NA
+        } else {
+             # Calculate likelihood 
+             likelihood_val <- tryCatch({
+                  currentLikelihoodFunc(modelled_aligned, m_aligned)
+             }, error = function(e) {
+                  warning(paste("Error calculating likelihood for key:", key, "-", e$message), call. = FALSE)
+                  NA
+             })
+        }
+
+        # Calculate RMSE using the primary measurement column ('m_aligned')
+        rmse_val <- sqrt(mean((modelled_aligned - m_aligned)^2, na.rm = TRUE)) # na.rm is fallback
+
+        res <- c(likelihood = likelihood_val, rmse = rmse_val)
+        # End Calculate Likelihood and RMSE
+
+        return(res) # Return named vector for this key
+
+    }, simplify = FALSE) # Use simplify=FALSE initially to handle potential errors gracefully
+
+    # Combine results into the final matrix/vector format expected
+    # Handle cases where some variables failed (returned NA)
+    final_likelihoods <- sapply(likelihoodRMSE_list, function(x) x['likelihood'])
+    final_rmses <- sapply(likelihoodRMSE_list, function(x) x['rmse'])
+
+    # Construct the final named vector/matrix as expected by the calling function
+    likelihood_names <- sprintf("%s_likelihood", names(dataVar))
+    rmse_names <- sprintf("%s_rmse", names(dataVar))
+    final_results_vector <- c(final_likelihoods, final_rmses)
+    names(final_results_vector) <- c(likelihood_names, rmse_names)
+
+    # Return results in the format that musoSingleThread expects for partialResult[, resultRange]
+    # Ensure the order matches: likelihoods first, then RMSEs
+    return(final_results_vector)
 }
+
+# old
+# calcLikelihoodsAndRMSE <- function(dataVar, mod, mes, likelihoods, alignIndexes, musoCodeToIndex, uncert){
+
+#      mes <- as.data.frame(mes)
+#     # NOT COMPATIBLE WITH OLD  MEASUREMENT DATA, mes have to be a matrix
+#     likelihoodRMSE <- sapply(names(dataVar),function(key){
+#                modelled <- mod[alignIndexes$mod,musoCodeToIndex[key]]
+#                selected <- grep(sprintf("%s$", key), colnames(mes))
+#                # browser()
+
+#                measured <- mes[alignIndexes$meas,selected]
+
+#                if(is.null(dim(measured))){
+#                    notNA <- !is.na(measured)             
+#                    m <- measured <- measured[notNA]
+                    
+#                } else {
+#                    notNA <- sapply(1:nrow(measured), function(x){!any(is.na(measured[x,]))})
+#                    measured <- measured[notNA,]
+#                    m <- measured[,grep("^mean", colnames(measured))]
+#                }
+#                    modelled <- modelled[notNA] 
+
+#                # uncert   <-   uncert[!is.na(measured)]
+
+#                # measured <- measured[!is.na(measured)] 
+#                res <- c(likelihoods[[key]](modelled, measured),
+#                         sqrt(mean((modelled-m)^2))
+#                )
+#                # browser()
+#                res
+#         })
+#     names(likelihoodRMSE) <- c(sprintf("%s_likelihood",dataVar), sprintf("%s_rmse",dataVar))
+#     return(c(likelihoodRMSE[1,],likelihoodRMSE[2,]))
+# }
 
 agroLikelihood <- function(modVector,measured){
     mu <- measured[,grep("mean", colnames(measured))]
