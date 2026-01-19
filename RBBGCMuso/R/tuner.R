@@ -758,6 +758,7 @@ function wrapText(elementId, openTag, closeTag) {
                                                 uiOutput("yearRangeMeas"),
                                                 checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
                                                 checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE),
+                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = FALSE)
 
                                         ),
                                             
@@ -1745,61 +1746,69 @@ tuneMusoServer <- function(input, output, session){
         
     })
 
-        # exporting our data frame
-        output$exportData <- downloadHandler(
-            filename = function() {
-                paste("tuneMusoExport_measurementData-", Sys.Date(), ".txt", sep = "")
-            },
-            content = function(file) {
-                # Make a copy for export
-                export_df <- measurementData()
+    # exporting our data frame
+    output$exportData <- downloadHandler(
+        filename = function() {
+            paste("tuneMusoExport_measurementData-", Sys.Date(), ".txt", sep = "")
+        },
+        content = function(file) {
+            export_df <- measurementData()
+            
+            # Filter data based on selected year range
+            req(input$yearRangeMeasurement)
+            min_year <- input$yearRangeMeasurement[1]
+            max_year <- input$yearRangeMeasurement[2]
+            
+            export_df <- export_df[lubridate::year(export_df$Date) >= min_year & lubridate::year(export_df$Date) <= max_year, ]
+            
+            # Filter empty rows if checkbox is selected
+            if (isTRUE(input$saveValid)) {
+                # Identify measurement columns,everything currently in export_df that isn't "Date" is a measurement
+                meas_cols <- setdiff(names(export_df), "Date")
                 
-                # Filter data based on selected year range
-                req(input$yearRangeMeasurement)
-                min_year <- input$yearRangeMeasurement[1]
-                max_year <- input$yearRangeMeasurement[2]
-                # export_df <- export_df[format(export_df$Date, "%Y") >= min_year & 
-                #                     format(export_df$Date, "%Y") <= max_year, ]
-
-                # using lubridate's year instead of format (for performance)
-                export_df <- export_df[lubridate::year(export_df$Date) >= min_year & lubridate::year(export_df$Date) <= max_year, ]
+                if (length(meas_cols) > 0) {
+                    # rowSums(!is.na(...)) counts how many non-NA values exist in that row.We keep rows where this count is > 0
+                    # drop = FALSE ensures this works even if there is only 1 measurement column.
+                    has_valid_data <- rowSums(!is.na(export_df[, meas_cols, drop = FALSE])) > 0
+                    export_df <- export_df[has_valid_data, ]
+                }
+            }
+            
+            # Create Year, Month, and Day columns from the Date column
+            export_df$Year  <- format(export_df$Date, "%Y")
+            export_df$Month <- format(export_df$Date, "%m")
+            export_df$Day   <- format(export_df$Date, "%d")
+            
+            # Add mapping columns if mapping export button is pressed
+            if (input$keepMapping) {
+                mapping <- mappingRV()
+                var_mapping <- list()
                 
-                # Create Year, Month, and Day columns from the Date column
-                export_df$Year  <- format(export_df$Date, "%Y")
-                export_df$Month <- format(export_df$Date, "%m")
-                export_df$Day   <- format(export_df$Date, "%d")
-                
-                # Add mapping columns if mapping export button is pressed
-                if (input$keepMapping) {
-                    mapping <- mappingRV()
-                    var_mapping <- list()
-                    
-                    # Create inverse mapping (output var -> measurement cols)
-                    for (meas_col in names(mapping)) {
-                        output_var <- mapping[[meas_col]]
-                        if (output_var != "None") {
-                            var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
-                        }
-                    }
-                    
-                    for (output_var in names(var_mapping)) {
-                        export_df[[paste0(output_var, "_MAPPING")]] <- 
-                            paste(var_mapping[[output_var]], collapse = ",")
+                # Create inverse mapping (output var -> measurement cols)
+                for (meas_col in names(mapping)) {
+                    output_var <- mapping[[meas_col]]
+                    if (output_var != "None") {
+                        var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
                     }
                 }
                 
-                # Reorder columns to match required format
-                other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
-                export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
-                
-                # Replace NA values with -9999 for export
-                export_df[is.na(export_df)] <- -9999
-                
-                # Write to file
-                fwrite(export_df, file, row.names = FALSE, sep = "\t")
+                for (output_var in names(var_mapping)) {
+                    export_df[[paste0(output_var, "_MAPPING")]] <- 
+                        paste(var_mapping[[output_var]], collapse = ",")
+                }
             }
-        )
-
+            
+            # Reorder columns to match required format
+            other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
+            export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
+            
+            # Replace NA values with -9999 for export
+            export_df[is.na(export_df)] <- -9999
+            
+            # Write to file
+            fwrite(export_df, file, row.names = FALSE, sep = "\t")
+        }
+    )
 
 
 
