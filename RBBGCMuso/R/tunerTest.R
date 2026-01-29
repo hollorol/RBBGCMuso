@@ -17,11 +17,11 @@
 #' @importFrom shinyWidgets pickerInput updatePickerInput confirmSweetAlert
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom plotly plotlyOutput renderPlotly layout add_trace add_annotations 
-#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput onFlushed stopApp
+#' @importFrom ggplot2 ggplot geom_line geom_point scale_x_date theme element_text element_blank labs ggtitle scale_y_continuous coord_cartesian annotate
+#' @importFrom shiny tags actionButton numericInput HTML checkboxInput titlePanel radioButtons textAreaInput fluidPage sidebarLayout sidebarPanel mainPanel getShinyOption tabsetPanel tabPanel tagList selectInput sliderInput renderUI div fileInput uiOutput updateSliderInput observe observeEvent validate need showNotification icon textInput isRunning reactiveVal reactiveValues isolate debounce bindEvent fluidRow column checkboxGroupInput showModal modalDialog modalButton removeModal h4 downloadButton downloadHandler verbatimTextOutput onFlushed stopApp renderPlot
 #' @usage ...
 #' @export 
-tuneMusoUITest <- function(parameterFile = NULL, ...) {
+tuneMusoUI2 <- function(parameterFile = NULL, ...) {
     setwd(getShinyOption("musoRoot"))
     workdir <- getwd()
     dir.create("bck", showWarnings = FALSE)
@@ -681,6 +681,21 @@ function wrapText(elementId, openTag, closeTag) {
                                             )
                                         )
                                     ),
+                                    div( style = "display: flex; align-items: center; gap: 5px;",
+                                        div(style = "width: 300px;",
+                                        selectInput("compare_files",
+                                        tags$span(style = "color: green;", "Compare EPC from different files"), 
+                                        choices = c("None"), 
+                                        selected = "None"),
+                                        ),    
+                                        div(style = "margin-top: 9.5px;",                               
+                                            actionButton("reset_compare", "", icon = icon("redo"), title = "Clear all bonds")
+                                        ),
+                                        div(style = "margin-top: 9.5px;",                               
+                                            actionButton("apply_bond_to_sliders", "", icon = icon("link"), title = "Apply bonded EPC values to current sliders")
+                                        )
+                                    
+                                    ),
                                     # Reset buttons
                                     tags$div(
                                         style = "display: flex; align-items: center; gap: 10px;",
@@ -743,6 +758,7 @@ function wrapText(elementId, openTag, closeTag) {
                                                 uiOutput("yearRangeMeas"),
                                                 checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
                                                 checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE),
+                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = FALSE)
 
                                         ),
                                             
@@ -933,6 +949,17 @@ function wrapText(elementId, openTag, closeTag) {
                             #p("This content is dynamic and updates from the main page slider."),
                             uiOutput("dynamic_content_area")
                         ),
+
+                        # handle for the bottom dragging
+                        div(
+                            id = "popup_drag_handle_bottom",
+                            style = "height: 20px; 
+                                     cursor: move; 
+                                     border-top: 1px solid #ccc; 
+                                     background: #f0f0f0; 
+                                     border-radius: 0 0 8px 8px;
+                                     flex-shrink: 0;"
+                        ),
                         
                         # Styling
                         style = "
@@ -954,7 +981,7 @@ function wrapText(elementId, openTag, closeTag) {
                     ),
                     # jqui_draggable options
                     # using the ID of the new div as the handle
-                    options = list(handle = "#popup_drag_handle")
+                    options = list(handle = "#popup_drag_handle, #popup_drag_handle_bottom")
                 ),
                 
                 # apply the positioning to the outer wrapper
@@ -983,7 +1010,7 @@ function wrapText(elementId, openTag, closeTag) {
 #' @usage ...
 #' @export 
 
-tuneMusoServerTest <- function(input, output, session){
+tuneMusoServer2 <- function(input, output, session){
     workdir <- getwd()
     
     # startup animation, waiting for observers to stop calculating before allowing actions
@@ -1017,7 +1044,7 @@ tuneMusoServerTest <- function(input, output, session){
     #epcIni <- settings$epcInput[2]
     #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
-    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0))
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list())
 
 
 
@@ -1719,61 +1746,69 @@ tuneMusoServerTest <- function(input, output, session){
         
     })
 
-        # exporting our data frame
-        output$exportData <- downloadHandler(
-            filename = function() {
-                paste("tuneMusoExport_measurementData-", Sys.Date(), ".txt", sep = "")
-            },
-            content = function(file) {
-                # Make a copy for export
-                export_df <- measurementData()
+    # exporting our data frame
+    output$exportData <- downloadHandler(
+        filename = function() {
+            paste("tuneMusoExport_measurementData-", Sys.Date(), ".txt", sep = "")
+        },
+        content = function(file) {
+            export_df <- measurementData()
+            
+            # Filter data based on selected year range
+            req(input$yearRangeMeasurement)
+            min_year <- input$yearRangeMeasurement[1]
+            max_year <- input$yearRangeMeasurement[2]
+            
+            export_df <- export_df[lubridate::year(export_df$Date) >= min_year & lubridate::year(export_df$Date) <= max_year, ]
+            
+            # Filter empty rows if checkbox is selected
+            if (isTRUE(input$saveValid)) {
+                # Identify measurement columns,everything currently in export_df that isn't "Date" is a measurement
+                meas_cols <- setdiff(names(export_df), "Date")
                 
-                # Filter data based on selected year range
-                req(input$yearRangeMeasurement)
-                min_year <- input$yearRangeMeasurement[1]
-                max_year <- input$yearRangeMeasurement[2]
-                # export_df <- export_df[format(export_df$Date, "%Y") >= min_year & 
-                #                     format(export_df$Date, "%Y") <= max_year, ]
-
-                # using lubridate's year instead of format (for performance)
-                export_df <- export_df[lubridate::year(export_df$Date) >= min_year & lubridate::year(export_df$Date) <= max_year, ]
+                if (length(meas_cols) > 0) {
+                    # rowSums(!is.na(...)) counts how many non-NA values exist in that row.We keep rows where this count is > 0
+                    # drop = FALSE ensures this works even if there is only 1 measurement column.
+                    has_valid_data <- rowSums(!is.na(export_df[, meas_cols, drop = FALSE])) > 0
+                    export_df <- export_df[has_valid_data, ]
+                }
+            }
+            
+            # Create Year, Month, and Day columns from the Date column
+            export_df$Year  <- format(export_df$Date, "%Y")
+            export_df$Month <- format(export_df$Date, "%m")
+            export_df$Day   <- format(export_df$Date, "%d")
+            
+            # Add mapping columns if mapping export button is pressed
+            if (input$keepMapping) {
+                mapping <- mappingRV()
+                var_mapping <- list()
                 
-                # Create Year, Month, and Day columns from the Date column
-                export_df$Year  <- format(export_df$Date, "%Y")
-                export_df$Month <- format(export_df$Date, "%m")
-                export_df$Day   <- format(export_df$Date, "%d")
-                
-                # Add mapping columns if mapping export button is pressed
-                if (input$keepMapping) {
-                    mapping <- mappingRV()
-                    var_mapping <- list()
-                    
-                    # Create inverse mapping (output var -> measurement cols)
-                    for (meas_col in names(mapping)) {
-                        output_var <- mapping[[meas_col]]
-                        if (output_var != "None") {
-                            var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
-                        }
-                    }
-                    
-                    for (output_var in names(var_mapping)) {
-                        export_df[[paste0(output_var, "_MAPPING")]] <- 
-                            paste(var_mapping[[output_var]], collapse = ",")
+                # Create inverse mapping (output var -> measurement cols)
+                for (meas_col in names(mapping)) {
+                    output_var <- mapping[[meas_col]]
+                    if (output_var != "None") {
+                        var_mapping[[output_var]] <- c(var_mapping[[output_var]], meas_col)
                     }
                 }
                 
-                # Reorder columns to match required format
-                other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
-                export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
-                
-                # Replace NA values with -9999 for export
-                export_df[is.na(export_df)] <- -9999
-                
-                # Write to file
-                fwrite(export_df, file, row.names = FALSE, sep = "\t")
+                for (output_var in names(var_mapping)) {
+                    export_df[[paste0(output_var, "_MAPPING")]] <- 
+                        paste(var_mapping[[output_var]], collapse = ",")
+                }
             }
-        )
-
+            
+            # Reorder columns to match required format
+            other_cols <- setdiff(colnames(export_df), c("Date", "Year", "Month", "Day"))
+            export_df <- export_df[, c("Year", "Month", "Day", other_cols)]
+            
+            # Replace NA values with -9999 for export
+            export_df[is.na(export_df)] <- -9999
+            
+            # Write to file
+            fwrite(export_df, file, row.names = FALSE, sep = "\t")
+        }
+    )
 
 
 
@@ -3334,17 +3369,210 @@ tuneMusoServerTest <- function(input, output, session){
         runLogs <- reactiveVal(list())
 
 
-       
+
+        # Gathering all the rows in the epc file used in prettyChangeMuso and musoGetValues
+        rows_epc <- 131:142
+        cols_epc <- 0:6
+        col_rows_epc <- c(expand.grid(rows_epc, 60 + cols_epc)[, 2] / 100 + expand.grid(rows_epc, 60 + cols_epc)[, 1])
+        params_epc <- c(4:6, 9:77, 80:96, 99:113, 116:127, col_rows_epc)
+
+        # same for soil
+        rows_soil <- 88:104
+        cols_soil <- 0:9
+        col_rows_soil <- c(expand.grid(rows_soil, 60 + cols_soil)[, 2] / 100 + expand.grid(rows_soil, 60 + cols_soil)[, 1])
+        params_soil <- c(4:11, 14:40, 43:59, 62:76, 79:85, col_rows_soil)
+
+        # gather all the epc files in the working directory and exclude the ones used in the general pool
+        compare_epc <- reactive({
+            req(rv$epc_files)
+            all_epc_files <- list.files(pattern = "\\.epc$", full.names = FALSE)
+            setdiff(all_epc_files, rv$epc_files)
+        })
+
+        # gather all the soil files in the working directory and exclude the one used 
+        compare_soil <- reactive({
+            req(soil_file())
+            all_soil_files <- list.files(pattern = "\\.soil$", full.names = FALSE)
+            setdiff(all_soil_files, soil_file())
+        })    
+
+    # updating the bonds that are selected when switchin from main epc pool
+    observeEvent(input$selected_epc, {
+            req(input$selected_epc, compare_epc())
+            
+            # Get all possible comparison files
+            available_comps <- compare_epc()
+            
+            # Get the currently saved bond for this EPC
+            current_bonds <- rv$epc_bonds
+            selected_bond <- current_bonds[[input$selected_epc]]
+            
+            # If no bond is set, default to "None"
+            if (is.null(selected_bond)) {
+                selected_bond <- "None"
+            }
+            
+            # Update the UI
+            updateSelectInput(session, "compare_files",
+                choices = c("None", available_comps),
+                selected = selected_bond
+            )
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+
+    # updating the bonds when the user selects a different comparison file
+    observeEvent(input$compare_files, {
+        # We req both so we know *what* to bond and *which* file to bond it to
+        req(input$selected_epc, !is.null(input$compare_files))
+        
+        current_bonds <- rv$epc_bonds
+        
+        # Only update if the value is different, prevents loops
+        if (!identical(current_bonds[[input$selected_epc]], input$compare_files)) {
+            current_bonds[[input$selected_epc]] <- input$compare_files
+            rv$epc_bonds <- current_bonds
+            
+            # Optional: notify user that bond is set
+            if(input$compare_files != "None") {
+                myShowNotification(paste("Bond set:", input$selected_epc, "->", input$compare_files), 
+                                type = "message", duration = 4)
+            } else {
+                myShowNotification(paste("Bond removed for:", input$selected_epc), 
+                                type = "message", duration = 4)
+            }
+        }
+    
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
+
+
+    # reset bonds
+    observeEvent(input$reset_compare, {
+        
+        # Reset the reactive value back to an empty list
+        rv$epc_bonds <- list()
+        
+        # Also update the currently displayed selectInput to "None"
+        updateSelectInput(session, "compare_files", selected = "None")
+        
+        myShowNotification("All EPC file bonds have been cleared.", 
+                         type = "message", 
+                         duration = 5)
+    })
+
+
+        observeEvent(input$apply_bond_to_sliders, {
+        req(input$selected_epc)
+        
+        current_bonds <- rv$epc_bonds
+        bond_file <- current_bonds[[input$selected_epc]]
+        
+        # Check that a bond exists
+        if (is.null(bond_file) || bond_file == "None") {
+            myShowNotification("No bond is set for the currently selected EPC.", type = "warning", duration = 7)
+            return()
+        }
+        
+        comp_epc_path <- file.path(workdir, bond_file)
+        
+        # Check that the bonded file exists
+        if (!file.exists(comp_epc_path)) {
+            myShowNotification(paste("Bonded file not found:", bond_file), type = "error", duration = 7)
+            return()
+        }
+
+        myShowNotification(paste("Applying slider values from", bond_file, "..."), type = "message", duration = 5)
+
+        tryCatch({
+            # Get Values from Bonded File 
+            # Get ONLY the parameter rows that correspond to sliders
+            param_rows_to_get <- parameters[, 2]
+            comp_values <- musoGetValues(comp_epc_path, param_rows_to_get)
+            
+            if (length(comp_values) != nrow(parameters)) {
+                myShowNotification("Parameter mismatch. Could not apply values.", type = "error", duration = 7)
+                return()
+            }
+
+            #  Update Stored Value (epcValues)
+            # Use <<- to update the global reactive list
+            epcValues[[input$selected_epc]] <<- comp_values
+            
+            # Update UI Sliders
+            # Loop through all parameters and update their corresponding UI inputs
+            
+            non_dep_indices <- which(is.na(parameters$group))
+            for (i in non_dep_indices) {
+                inputId <- paste0("param_", i)
+                # Assuming sliderInput; change to updateNumericInput if needed
+                updateSliderInput(session, inputId, value = comp_values[i])
+            }
+            
+            dep_indices <- which(!is.na(parameters$group))
+            for (i in dep_indices) {
+                inputId <- paste0("dep_", parameters$INDEX[i])
+                # Assuming sliderInput; change to updateNumericInput if needed
+                updateSliderInput(session, inputId, value = comp_values[i])
+            }
+            
+            myShowNotification(paste("Successfully applied values from", bond_file), type = "message", duration = 5)
+            
+        }, error = function(e) {
+            myShowNotification(paste("Error applying values:", e$message), type = "error", duration = 10)
+        })
+        
+    })
+
+    # Helper function to check a bond list for any *active* bonds, this will be used in plotting
+    hasActiveBonds <- function(bond_list) {
+        # Check if it's null or has no items
+        if (is.null(bond_list) || length(bond_list) == 0) {
+            return(FALSE)
+        }
+        
+        # Check if any value in the list is not "None"
+        # This will return TRUE if it finds even one active bond
+        any(sapply(bond_list, function(val) {
+            !is.null(val) && val != "None"
+        }))
+    }
+        
 
         modelCrashed <- reactiveVal(FALSE)
         firstRun <- reactiveVal(TRUE)
         copiedEPCs <- reactiveVal(list())
         copiedSoil <- reactiveVal(FALSE)
+        lastRunBonds <- reactiveVal(list())
+        bondsForPrevPlot <- reactiveVal(list())
+        bondsForCurrentPlot <- reactiveVal(list())
+
+
         #### MODEL RUN ####
     observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
         #epc <- input$selected_epc
-        
+        original_epc_values <- list()
+        on.exit({
+            if (length(original_epc_values) > 0) {
+                #myShowNotification("Restoring EPC file values...", type = "message", duration = 5)
+                
+                # Use the correct `settings` object
+                restore_settings <- isolate(rv$settings) 
+                
+                for (epc_file in names(original_epc_values)) {
+                    try({
+                        restore_settings$epcInput[["normal"]] <- epc_file
+                        prettyChangeMuso(restore_settings, 
+                                         original_epc_values[[epc_file]], 
+                                         calibrationPar = params_epc, # Use the full params_epc
+                                         fileToChange = "epc", 
+                                         fixAlloc = FALSE)
+                        myShowNotification(paste("Restored original values for:", epc_file), type = "message", duration = 5)
+                    }, silent = TRUE) # Use try() so one failed restore doesn't stop others
+                }
+            }
+        }) # End of on.exit block
+
+
         # starting waiter animation
         w$show()
         # updating current epc values MIGHT BE OBSOLETE since we update epcValues on slider change anyway
@@ -3354,9 +3582,60 @@ tuneMusoServerTest <- function(input, output, session){
         session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
         modifiedEpcList <- 0
         runSpinup <- input$runSpinup
+
+        current_settings <- rv$settings
+        current_bonds <- rv$epc_bonds
+
+        previous_bonds <- lastRunBonds()
+        bondsChanged <- !isTRUE(all.equal(current_bonds, previous_bonds))
+
+        if (bondsChanged && !firstRun()) {
+            myShowNotification("Bond configuration changed, model will re-run.", type = "message", duration = 7)
+        }
         #print("Writing parameter values to file before model run:...")
         #myShowNotification(paste0("Parameter slider values written into modified EPC files:"), type = "default", duration = 7)
         for (epc in rv$epc_files) {
+            
+            bond_file <- current_bonds[[epc]]
+            if (!is.null(bond_file) && bond_file != "None") {
+                # Define file paths
+                epc_path <- file.path(workdir, epc)
+                comp_epc_path <- file.path(workdir, bond_file)
+                
+                if (!file.exists(comp_epc_path)) {
+                    myShowNotification(paste("Comparison file not found:", bond_file), type = "error", duration = 7)
+                    next # Skip this EPC
+                }
+
+                tryCatch({
+                    # 1. Get and save original values
+                    original_values <- musoGetValues(epc_path, params_epc)
+                    original_epc_values[[epc]] <- original_values
+                    
+                    # 2. Get comparison values
+                    paramVal <- musoGetValues(comp_epc_path, params_epc)
+                    
+                    # 3. Overwrite main EPC file
+                    current_settings$epcInput[["normal"]] <- epc
+                    prettyChangeMuso(current_settings, paramVal, 
+                            calibrationPar = params_epc, # Use params_epc for full overwrite
+                            fileToChange = "epc", 
+                            fixAlloc = FALSE)
+                            
+                    myShowNotification(paste(epc, "temporarily overwritten with", bond_file), type = "message", duration = 7)
+                    modifiedEpcList <- modifiedEpcList + 1
+
+                }, error = function(e) {
+                    myShowNotification(paste("Error processing comparison for", epc, ":", e$message), type = "error", duration = 10)
+                    # Remove from original_epc_values if we failed before writing
+                    if (!is.null(original_epc_values[[epc]])) {
+                        original_epc_values[[epc]] <- NULL
+                    }
+                })
+                
+            } # End of bond handling
+
+            else {
             paramVal <- epcValues[[epc]]
             if (is.null(paramVal)) {
                 paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
@@ -3391,6 +3670,7 @@ tuneMusoServerTest <- function(input, output, session){
             #print(paste0("Written for: ", epc))
             myShowNotification(paste0(epc), " written", type = "message", duration = 7)
             modifiedEpcList <- modifiedEpcList + 1
+            }
         }
         if (modifiedEpcList == 0 && !firstRun()) {
             myShowNotification("No changes in EPC values detected since last good run, no files were written", type = "warning", duration = 7)
@@ -3431,8 +3711,8 @@ tuneMusoServerTest <- function(input, output, session){
             }
         }
 
-            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged))) {
-                myShowNotification("No changes in EPC and/or SOIL parameters detected since last good run. Not running the model", 
+            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+                myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
                                 type = "message", duration = 9)
                 w$hide()
                 return()  
@@ -3491,6 +3771,9 @@ tuneMusoServerTest <- function(input, output, session){
         #showNotification("Model ran successfully", type = "message")
         updatePrevGoodValues()
         updateLastGoodValues()
+        bondsForPrevPlot(isolate(bondsForCurrentPlot()))
+        bondsForCurrentPlot(isolate(rv$epc_bonds))
+        lastRunBonds(isolate(rv$epc_bonds))
 
         dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
         # Detect the VWC columns from the original output:
@@ -5917,7 +6200,7 @@ observeEvent(input$make_output, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.24.0</strong></p>
+                    <p><strong>Version 2.25.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -6027,10 +6310,19 @@ observeEvent(input$make_output, {
         }
 
         
-  # Main customizations that affect plots
-    plotCustomizations <- reactiveValues()
+ plotCustomizations <- reactiveValues()
     # Staging area for pending changes
     pendingCustomizations <- reactiveValues()
+    
+    # Helper to convert legacy Plotly linetypes to ggplot2
+    fix_linetype <- function(lt) {
+      if (is.null(lt)) return("solid")
+      switch(lt,
+             "dash" = "dashed",
+             "dot" = "dotted",
+             "dashdot" = "dotdash",
+             lt)
+    }
 
     # Update selectInput choices and initialize defaults
     observeEvent(input$selected_vars, {
@@ -6047,12 +6339,12 @@ observeEvent(input$make_output, {
                     y_title = var,
                     line_type = "solid",
                     line_color = "red",
-                    line_width = 2,
+                    line_width = 1,
                     title_font_size = exportSettings$ytitlefont,
                     show_legend = TRUE,
-                    meas_marker_type = "circle",
+                    meas_marker_type = 16, # Default to filled circle (16)
                     meas_marker_color = "#047704",
-                    meas_marker_size = 7,
+                    meas_marker_size = 3, # Adjusted default size for ggplot
                     additional_vars = NULL,
                     additional_vars_settings = list(),
                     selected_additional_var = "",
@@ -6078,9 +6370,12 @@ observeEvent(input$make_output, {
                        options = list(`actions-box` = TRUE)),
             numericInput("y_min", "Y Min", value = custom$y_min, step = 0.1),
             numericInput("y_max", "Y Max", value = custom$y_max, step = 0.1),
+            
+            # UPDATED: ggplot2 compatible line types
             selectInput(paste0("line_type"), "Line Type",
-                        choices = c("Solid" = "solid", "Dash" = "dash", "Dot" = "dot", "Dash-Dot" = "dashdot"),
-                        selected = custom$line_type),
+                        choices = c("Solid" = "solid", "Dashed" = "dashed", "Dotted" = "dotted", "Dot-Dash" = "dotdash"),
+                        selected = fix_linetype(custom$line_type)),
+                        
             colourInput("line_color", "Line Color", value = custom$line_color, allowTransparent = TRUE),
             numericInput("line_width", "Line Width", value = custom$line_width, min = 0.5, max = 10, step = 0.5),
             textInput("y_title", "Y Title", value = custom$y_title),
@@ -6089,17 +6384,19 @@ observeEvent(input$make_output, {
                 style = "margin-bottom: 10px;",
                 tags$button(id = "bold_btn", title = "Bold", tags$i(class = "fas fa-bold")),
                 tags$button(id = "italic_btn", title = "Italic", tags$i(class = "fas fa-italic")),
-                #tags$button(id = "underline_btn", title = "Underline", tags$i(class = "fas fa-underline")),
                 tags$button(id = "sup_btn", title = "Superscript", tags$i(class = "fas fa-superscript")),
                 tags$button(id = "sub_btn", title = "Subscript", tags$i(class = "fas fa-subscript"))
             ),
             numericInput("title_size", "Y Title Size", value = custom$title_font_size, min = 8, max = 24, step = 1),
             checkboxInput("show_legend", "Show Legend (not functional, use the top right button)", value = custom$show_legend),
             checkboxInput("show_measurements", "Show Measurements", value = custom$show_measurements),
+            
+            # UPDATED: ggplot2 compatible shapes (Integers)
             selectInput("meas_marker_type", "Measurement Marker Type", 
-                       choices = c("Circle" = "circle", "Triangle" = "triangle-up", "X" = "x", 
-                                  "Square" = "square", "Diamond" = "diamond"), 
+                       choices = c("Circle" = 16, "Triangle" = 17, "X" = 4, 
+                                  "Square" = 15, "Diamond" = 18), 
                        selected = custom$meas_marker_type),
+                       
             colourInput("meas_marker_color", "Measurement Marker Color", value = custom$meas_marker_color,allowTransparent = TRUE),
             numericInput("meas_marker_size", "Measurement Marker Size", value = custom$meas_marker_size, min = 1, max = 20, step = 1),
             tags$hr(style = "border-top: 5px solid #ccc; margin-top: 30px; margin-bottom: 30px;"),
@@ -6124,10 +6421,10 @@ observeEvent(input$make_output, {
             custom$additional_vars_settings[[add_var]] <- list(
             line_type = "solid",
             line_color = "green",
-            line_width = 2,
-            meas_marker_type = "circle",  # Default marker settings
+            line_width = 1,
+            meas_marker_type = 16,  # Default ggplot shape (16 = filled circle)
             meas_marker_color = "#047704",
-            meas_marker_size = 7,
+            meas_marker_size = 3,
             show_measurements = FALSE
             )
         }
@@ -6136,19 +6433,20 @@ observeEvent(input$make_output, {
         mapping <- mappingRV()
         mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == add_var] else character(0)
         has_measurements <- length(mappedCols) > 0
-        # INSERT THE SHOW MEASUREMENTS TRUE VALUE HERE
+        
         tagList(
             selectInput(paste0("line_type_", add_var), "Line Type",
-                        choices = c("Solid" = "solid", "Dash" = "dash", "Dot" = "dot", "Dash-Dot" = "dashdot"),
-                        selected = add_custom$line_type),
+                        choices = c("Solid" = "solid", "Dashed" = "dashed", "Dotted" = "dotted", "Dot-Dash" = "dotdash"),
+                        selected = fix_linetype(add_custom$line_type)),
             colourInput(paste0("line_color_", add_var), "Line Color", value = add_custom$line_color,allowTransparent = TRUE),
             numericInput(paste0("line_width_", add_var), "Line Width", value = add_custom$line_width, min = 0.5, max = 10, step = 0.5),
             if (has_measurements) {
                 tagList(
                     checkboxInput(paste0("show_measurements_", add_var), "Show Measurements", value = add_custom$show_measurements),
+                    # UPDATED: ggplot2 shapes here as well
                     selectInput(paste0("meas_marker_type_", add_var), "Measurement Marker Type",
-                                choices = c("Circle" = "circle", "Triangle" = "triangle-up", "X" = "x", 
-                                            "Square" = "square", "Diamond" = "diamond"),
+                                choices = c("Circle" = 16, "Triangle" = 17, "X" = 4, 
+                                            "Square" = 15, "Diamond" = 18),
                                 selected = add_custom$meas_marker_type),
                     colourInput(paste0("meas_marker_color_", add_var), "Measurement Marker Color", 
                                 value = add_custom$meas_marker_color,allowTransparent = TRUE),
@@ -6159,11 +6457,6 @@ observeEvent(input$make_output, {
             }
         )
     })
-
-    # observeEvent(input$customize_var, {
-    #     req(input$customize_var)
-    #     session$sendCustomMessage("attachContextMenu", list())
-    # })
 
     # Apply button: Move pending changes to main customizations
     observeEvent(input$apply_custom, {
@@ -6178,7 +6471,7 @@ observeEvent(input$make_output, {
             line_width = input$line_width,
             title_font_size = input$title_size,
             show_legend = input$show_legend,
-            meas_marker_type = input$meas_marker_type,
+            meas_marker_type = as.integer(input$meas_marker_type), # Ensure integer
             meas_marker_color = input$meas_marker_color,
             meas_marker_size = input$meas_marker_size,
             additional_vars = input$additional_vars,
@@ -6194,7 +6487,7 @@ observeEvent(input$make_output, {
             line_type = input[[paste0("line_type_", add_var)]],
             line_color = input[[paste0("line_color_", add_var)]],
             line_width = input[[paste0("line_width_", add_var)]],
-            meas_marker_type = input[[paste0("meas_marker_type_", add_var)]],
+            meas_marker_type = as.integer(input[[paste0("meas_marker_type_", add_var)]]), # Ensure integer
             meas_marker_color = input[[paste0("meas_marker_color_", add_var)]],
             meas_marker_size = input[[paste0("meas_marker_size_", add_var)]],
             show_measurements = input[[paste0("show_measurements_", add_var)]]
@@ -6211,12 +6504,12 @@ observeEvent(input$make_output, {
             y_title = input$customize_var,
             line_type = "solid",
             line_color = "red",
-            line_width = 2,
+            line_width = 1,
             title_font_size = exportSettings$ytitlefont,
             show_legend = TRUE,
-            meas_marker_type = "circle",
+            meas_marker_type = 16,
             meas_marker_color = "#047704",
-            meas_marker_size = 7,
+            meas_marker_size = 3,
             additional_vars = NULL,
             additional_vars_settings = list(),
             selected_additional_var = "",
@@ -6238,839 +6531,468 @@ observeEvent(input$make_output, {
         updatePickerInput(session, "additional_vars", selected = NULL)
         updateCheckboxInput(session, "show_measurements", value = TRUE)
     })
-            ################ PLOTTING ###############
-                output$dynamicPlots <- renderUI({
-                req(input$selected_vars)
-                session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-               plot_outputs <- lapply(input$selected_vars, function(var) {
-       
-                # Plot output
-               
-            plotlyOutput(paste0("plot_", var), height = "400px")
         
-            
-        
-                    })
-                    do.call(tagList, plot_outputs)
-                })
-
-                
-                observe({
-                #req(input$selected_vars, length(outputList$nextVal) != 0)
-                req(input$selected_vars, outputData())
-                #vary <- outputData()
-                
-                # intersect needed when a custom variable is deleted so plotly won't complain
-                #lapply(intersect(input$selected_vars, colnames(vary)), function(var) { STILL COMPLAINING
-                lapply(input$selected_vars, function(var) {
-                    output[[paste0("plot_", var)]] <- renderPlotly({
-
-            #future({    
-                    # giving condition to check to avoid warning messages
-                if (isTRUE(input$singleYear)) {
-                    validate(
-                        need(is.finite(input$yearRange), "Year not available yet")
-                    )
-                    selectedYears <- input$yearRange  # single value
-                } else {
-                    validate(
-                        need(length(input$yearRange) == 2 &&
-                            is.finite(input$yearRange[1]) &&
-                            is.finite(input$yearRange[2]),
-                            "Year range not available yet")
-                    )
-                    selectedYears <- seq(input$yearRange[1], input$yearRange[2])
-                }
-                                        
-                    #selectedYears <- if (input$singleYear) input$yearRange else seq(input$yearRange[1], input$yearRange[2])
-                    filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
-                    
-                    # Get simulation data
-                    filteredPrev <- if (length(outputList$prev) != 0) {
-                        outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    } else NULL
-                    #filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-           
-                    
-                    p <- plot_ly()
-                 
-                 # for alignment issues when measurements are applied (the legend would still screw the alignment but it can be toggled off!)
-                    common_x_range <- range(filteredDates, na.rm = TRUE)
-
-                    custom <- plotCustomizations[[var]]
-
-          
-            #}          
-            xaxis_options <- if (input$singleYear || length(selectedYears) == 1) {
-                                    list(
-                                        type = "date",
-                                        range = common_x_range,
-                                        tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M1",  
-                                        tickformat = "%b %Y",
-                                        hoverformat = "%Y-%m-%d"  
-                                    )
-                                } 
-                                else if (length(selectedYears) <= 3) {
-                                    list(
-                                        type = "date",
-                                        range = common_x_range,
-                                        tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M2",  
-                                        tickformat = "%b %Y",
-                                        hoverformat = "%Y-%m-%d" 
-                                    )
-                                }
-
-                                else {
-                                    list(
-                                        type = "date",
-                                        range = common_x_range,
-                                        tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M12", 
-                                        tickformat = "%Y",
-                                        hoverformat = "%Y-%m-%d"  
-                                    )
-                                }
-
-                legend_options <- if (exportSettings$allowLegendMovement) {
-                    list( font = list(size = exportSettings$legendfont),
-                            x = exportSettings$legendxanchor,   
-                            y = exportSettings$legendyanchor,
-                            xanchor = "right",
-                            yanchor = "top")
-                }
-                else {
-                    list(font = list(size = exportSettings$legendfont))
-                }
-              
-                    # adding measurements for the current variable (var)
-                    mapping <- mappingRV()
-                    df <- measurementData()
-                    # Filter data by selected years
-                    df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
-
-                    metrics_df <- metricsData()
-                    mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == var] else character(0)
-                    #prevMetrics_df <- prevMetricsData()
-                    #metric_labels_list <- list()
-
-                if (length(mappedCols) > 0) {
-                    if (input$plotType == "line") {
-                           if (!is.null(filteredPrev) && input$lastRun) {
-                        p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
-
-                        p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
-                        } else {
-                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
-                        }
-                    
-              if (!is.null(custom$additional_vars)) {
-                    #color_palette <- c("#754803", "green", "purple", "orange", "pink")
-                    #for (i in seq_along(custom$additional_vars)) {
-                    for (add_var in custom$additional_vars){
-                        #add_var <- custom$additional_vars[i]
-                        if (add_var != var && add_var %in% colnames(filteredNext)) {
-                            #add_custom <- plotCustomizations[[add_var]]
-                            add_custom <- custom$additional_vars_settings[[add_var]]
-                            if (is.null(add_custom)) {
-                                add_custom <- list(
-                                    line_type = "solid",
-                                    line_color = "blue",
-                                    line_width = custom$line_width,
-                                    show_measurements = FALSE
-                                )
-                            }
-                            p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
-                                          type = "scattergl", mode = "lines", name = add_var,
-                                          line = list(
-                                              color = add_custom$line_color,
-                                              width = add_custom$line_width,
-                                              dash = add_custom$line_type
-                                          ))
-                            if (!is.null(filteredPrev) && input$lastRun) {
-                                p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
-                                              type = "scattergl", mode = "lines", name = paste0(add_var, " (Prev)"),
-                                              line = list(
-                                                  color = scales::alpha(add_custom$line_color, 0.5),
-                                                  width = add_custom$line_width,
-                                                  dash = add_custom$line_type
-                                              ))
-                            }
-                            #if (is.null(add_custom$show_measurements) || is.na(add_custom$show_measurements)) {
-                            #    add_custom$show_measurements <- FALSE
-                            #}
-                            if(isTRUE(add_custom$show_measurements)) {
-                                add_mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == add_var] else character(0)
-                                if (length(add_mappedCols) > 0) {
-                                    for (col in add_mappedCols) {
-                                        yData <- df_filtered[[col]]
-                                        
-                                        #if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
-                                           if(input$avoid_negative){
-                                                if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
-                                            }
-                                        m_row <- metrics_df[metrics_df$Measurement == col, ]
-                                        rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
-                                        bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
-                                        corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
-                                        metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-                                        
-                                        p <- add_trace(p, x = df_filtered$Date, y = yData, type = 'scattergl', mode = 'markers',
-                                                    name = paste0(col, " Measurement\n", metric_label),
-                                                    marker = list(symbol = add_custom$meas_marker_type, size = add_custom$meas_marker_size, color = add_custom$meas_marker_color))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                            
-                            p <- p %>% plotly::layout(
-                            xaxis = xaxis_options,
-                            yaxis = list(
-                                title = list(text = custom$y_title, font = list(size = custom$title_font_size)),
-                                tickfont = list(size = exportSettings$tickfonty),
-                                range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
-                                        c(custom$y_min, custom$y_max) 
-                                        else NULL
-                               
-                            ),
-                            legend = legend_options,
-                            showlegend = legendVisible()
-                        )
-
-                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-                # Adding the epc labels on the x axis
-            #if (file.exists(planting_file)) {
-                planting_dates <- rv$epc_dates
-                #print(planting_dates)
-                if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-                selected_planting <- planting_dates %>%
-                dplyr::filter(lubridate::year(DATE) %in% selectedYears)
-
-            #print(paste0("Selected planting dates: ", selected_planting))
-                if (nrow(selected_planting) > 0) {
-                            # adding invisible markers for epc legend
-                            p <- p %>% add_trace(
-                                x = selected_planting$DATE[1],  
-                                y = 0,  
-                                type = 'scattergl',
-                                mode = 'markers',
-                                marker = list(symbol = "triangle-down", color = "green", size = 10),
-                                name = "Planting Dates",
-                                visible = "legendonly" 
-                            )
-
-                    for (i in 1:nrow(selected_planting)) {
-                        current_date <- selected_planting$DATE[i]
-                        current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
-                        if (input$singleYear || length(selectedYears) <= 3) {
-                              
-                                epc_labels <- sapply(current_epcs, function(epc) {
-                                    idx <- which(rv$epc_files == epc)
-                                    if (length(idx) > 0) rv$epc_labels[idx] else epc
-                                })
-                                label <- paste(unique(epc_labels), collapse = ", ")
-                        }
-                        else {
-                        epc_numbers <- sapply(current_epcs, function(epc) {
-                            idx <- which(rv$epc_files == epc)
-                            if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                        })
-                        label <- paste(unique(epc_numbers), collapse = ", ")
-                        }
-
-                        p <- p %>% add_annotations(
-                            x = current_date,
-                            y = 0,                  
-                            xref = "x",
-                            yref = "paper",
-                            text = "▼",          
-                            showarrow = FALSE,
-                            font = list(color = "green", size = 14)
-                        ) %>% #epc labels
-                        add_annotations(
-                                x = current_date,
-                                y = 0,               
-                                xref = "x",
-                                yref = "paper",
-                                text = label,
-                                showarrow = FALSE,
-                                yshift = -7,         # shift label down
-                                font = list(color = "green", size = 10)
-                        )
-                        
-                         } 
-
-                  
-                }
-
-                if(input$showHarvest) {
-                       if ("HarvestDates" %in% names(rv$epc_dates)) {
-                              selected_harvest <- planting_dates %>%
-                                    dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
 
 
-                        if (nrow(selected_harvest) > 0) {
-                             p <- p %>% add_trace(
-                                x = selected_harvest$HarvestDates[1],  
-                                y = 0,  
-                                type = 'scattergl',
-                                mode = 'markers',
-                                marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
-                                name = "Harvest Dates",
-                                visible = "legendonly" 
-                            )
-                            
+################ PLOTTING ###############
 
-                      for (i in 1:nrow(selected_harvest)) {
-                        current_date <- selected_harvest$HarvestDates[i]
-                        
-                        
-                        current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
-                       # if (input$singleYear || length(selectedYears) <= 3) {
-                       #     epc_labels <- sapply(current_epcs, function(epc) {
-                       #     idx <- which(rv$epc_files == epc)
-                       #     if (length(idx) > 0) rv$epc_labels[idx] else epc
-                       #     })
-                       #     label <- paste(unique(epc_labels), collapse = ", ")
-                       # } else {
-                            epc_numbers <- sapply(current_epcs, function(epc) {
-                            idx <- which(rv$epc_files == epc)
-                            if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                            })
-                            label <- paste(unique(epc_numbers), collapse = ", ")
-                        #}
-
-                         p <- p %>% add_annotations(
-                            x = current_date,
-                            y = 0,                  
-                            xref = "x",
-                            yref = "paper",
-                            text = "▲", 
-                            showarrow = FALSE,
-                            font = list(color = "#6c4a00", size = 14)
-                        ) %>%
-                        add_annotations(
-                            x = current_date,
-                            y = 0,               
-                            xref = "x",
-                            yref = "paper",
-                            text = label,
-                            showarrow = FALSE,
-                            yshift = -7,         # Shift label down
-                            font = list(color = "#6c4a00", size = 10)
-                        )
-                        
-                         } 
-
-                         }
-                    }
-                }
-        }
-            
-                                     if(input$showPheno) {
-                                            if("n_actphen" %in% colnames(outputData())){
-                                            sim_df <- outputData()
-                                            sim_df <- sim_df %>%
-                                                dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
-                                                        phase_change = n_actphen != prev_phase) %>%
-                                                dplyr::filter(phase_change) %>%
-                                                dplyr::select(Date, n_actphen)
-
-                                        transition_df <- sim_df %>%
-                                        dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
-
-                                                p <- p %>% layout(
-                                                    shapes = lapply(1:nrow(transition_df), function(i) {
-                                                        list(
-                                                        type = "line",
-                                                        x0 = transition_df$Date[i],
-                                                        x1 = transition_df$Date[i],
-                                                        y0 = 0.05,
-                                                        y1 = 1,
-                                                        xref = "x",
-                                                        yref = "paper",   # relative to the entire plot area
-                                                        line = list(color = "#047704", dash = "dot" , width = 0.5)
-                                                        )
-                                                    })
-                                                )
-                                                p <- p %>% layout(
-                                                    annotations = lapply(1:nrow(transition_df), function(i) {
-                                                        list(
-                                                        x = transition_df$Date[i],
-                                                        y = 1,  # top of the plot (yref = "paper")
-                                                        xref = "x",
-                                                        yref = "paper",
-                                                        text = paste0(transition_df$n_actphen[i]),
-                                                        showarrow = FALSE,
-                                                        xanchor = "center",
-                                                        yanchor = "bottom"
-                                                        )
-                                                    })
-                                                )
-
-                                                    # Add a dummy trace to show a legend entry for "Phenophases"
-                                                    p <- p %>% add_trace(
-                                                    x = c(NA), 
-                                                    y = c(NA), 
-                                                    type = "scattergl",
-                                                    mode = "lines",
-                                                    line = list(color = "#047704", dash = "dot"),
-                                                    name = "Phenophases",
-                                                    showlegend = TRUE
-                                                    )
-                                        
-                                            }
-                                            else {
-                                                myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
-                                            }
-                                        }
-                
-
-                        n_meas <- length(mappedCols)
-                        meas_colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Greens")[4:9]))(n_meas)
-                        if(isTRUE(custom$show_measurements)){
-                            # Add each mapped measurement column
-                            for (i in seq_along(mappedCols)) {
-                                col <- mappedCols[i]
-                                yData <- df_filtered[[col]]
-                                
-                                # Convert negatives to NA for GPP and TR for plotting if desired
-                                if(input$avoid_negative){
-                                    if (var %in% c("GPP", "TR")) {
-                                        yData[yData < 0] <- NA
-                                    }
-                                }
-                                
-                              m_row <- metrics_df[metrics_df$Measurement == col, ]
-                                rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) {
-                                    sprintf("RMSE: %.2f", m_row$RMSE)
-                                } else {
-                                    "RMSE: NA"
-                                }
-                                bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) {
-                                    sprintf("Bias: %.2f", m_row$BIAS)
-                                } else {
-                                    "Bias: NA"
-                                }
-                               corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) {
-                                    sprintf("R<sup>2</sup>: %.2f", m_row$Correlation)  # R² formatted
-                                } else {
-                                    "R<sup>2</sup>: NA"
-                                }
-
-                                metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-                                #metric_labels_list[[col]] <- metric_label
-                                p <- add_trace(p,
-                                            x = df_filtered$Date,
-                                            y = yData,
-                                            type = 'scattergl',
-                                            mode = 'markers',
-                                            #name = paste0(col, " Measurement<br>", metric_label),
-                                            name = paste0(col, " Measurement\n", metric_label),
-                                            #marker = list(symbol = "circle", size = 7, color =meas_colors[i])
-                                            marker = list(
-                                                              symbol = custom$meas_marker_type,
-                                                              size = custom$meas_marker_size,
-                                                              color = custom$meas_marker_color
-                                                          )
-                                )
-                                
-                                    
-                            }
-                        }
-                    }
-                   
-                
-                    else {
- 
+output$dynamicPlots <- renderUI({
+  req(input$selected_vars)
+  session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
   
-                            if (!is.null(mapping)) {
-                                mappedCols <- names(mapping)[mapping == var]
-                                
-                                n_meas <- length(mappedCols)
-                                    global_abs_min <- Inf
-                                    global_abs_max <- -Inf
-                            
-                                    # Loop over measurement columns to determine global limits
-                                    for (col in mappedCols) {
-                                        sim_data <- data.frame(Date = filteredDates, sim = filteredNext[, var])
-                                        meas_data <- df_filtered[, c("Date", col)]
-                                        common_data <- merge(sim_data, meas_data, by = "Date")
-                                        local_min <- min(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
-                                        local_max <- max(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
-                                        global_abs_min <- min(global_abs_min, local_min)
-                                        global_abs_max <- max(global_abs_max, local_max)
-                                    }
-                                    
-                                     
-                                    desired_ticks <- 8
-                                    #dtick_value <- (global_abs_max - global_abs_min) / (desired_ticks - 1)
-                                    
-                                    breaks <- pretty(c(global_abs_min, global_abs_max), n = desired_ticks)
-                                    min_tick <- min(breaks)
-                                    max_tick <- max(breaks)
-                                    dtick_value <- diff(breaks)[1] 
-                                    
-                                    for (i in seq_along(mappedCols)) {
-                                    col <- mappedCols[i]
-                                    m_row <- metrics_df[metrics_df$Measurement == col, ]
-                                    rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
-                                    bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
-                                    corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
-                                    metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-                                    
-                                    
-                                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
-                                    # Add the scattergl trace using measurement values on the x-axis and simulation on the y-axis
-                                    p <- add_trace(p,
-                                                x = common_data[[col]],   # measurement values
-                                                y = common_data$sim,        # simulation output values
-                                                text = common_data$Date,   # to get the dates to show as well on hover
-                                                hovertemplate = paste(
-                                                " Date: %{text}<br>",
-                                                "Measured: %{x:.2f}<br>",       # .2f (show up to 2 decimal points)
-                                                "Simulated: %{y:.2f}<extra></extra>" 
-                                                ),
-                                                type = 'scattergl',
-                                                mode = 'markers',
-                                                name = paste0(col, " Metrics\n", metric_label),
-                                                marker = list(symbol = "circle", size = 7, color = "#d99820"))
-                                    
-                                    # Update layout to enforce a square aspect and add the 1:1 diagonal line.
-                                    p <- p %>% layout(
-                                    xaxis = list(
-                                        automargin = TRUE,
-                                        title = list( 
-                                            text = paste0("Measured ", col),
-                                            standoff = 0, font = list(size = exportSettings$xtitlefont)),
-                                        range =  c(min_tick, max_tick),
-                                        showline = TRUE,
-                                        linecolor = "black",
-                                        linewidth = 2,
-                                        mirror = FALSE,
-                                        zeroline = FALSE,
-                                        scaleanchor = "y",
-                                        constrain = "domain",
-                                        tickmode = "linear",
-                                        dtick = dtick_value,
-                                        tickfont = list(size = exportSettings$tickfontx)
-                                        
-                                    ),
-                                    yaxis = list(
-                                        title = list( text = paste0("Simulated ", var), 
-                                                      font = list(size = exportSettings$ytitlefont)),
-                                        range =  c(min_tick, max_tick),
-                                        showline = TRUE,
-                                        linecolor = "black",
-                                        linewidth = 2,
-                                        mirror = FALSE,
-                                        zeroline = FALSE,
-                                        constrain = "domain",
-                                        tickmode = "linear",
-                                        dtick = dtick_value,
-                                        tickfont = list(size = exportSettings$tickfonty)
-                                    ),
-                                    legend = legend_options,
-                                    shapes = list(
-                                        list(
-                                        type = "line",
-                                        x0 = min_tick, y0 = min_tick,
-                                        x1 = max_tick, y1 = max_tick,
-                                        line = list(color = "blue", dash = "dash", width = 2)
-                                        )
-                                    ), showlegend = legendVisible()
-                                    )
-                                }
-                                
-                            }
-                            }
-                        }
+  plot_outputs <- lapply(input$selected_vars, function(var) {
+    plotOutput(paste0("plot_", var), height = "400px")
+  })
+  do.call(tagList, plot_outputs)
+})
 
-                    else {
-                            if (!is.null(filteredPrev) && input$lastRun) {
-                           p <- add_trace(p, x = filteredDates, y = filteredPrev[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("Previous ", var, " Simulation"), line = list(color = "#2b2bf8ef", width = custom$line_width, dash = custom$line_type))
+observe({
+  req(input$selected_vars, outputData())
 
-                        p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0("New ",var, " Simulation"), line = list(color = custom$line_color, width = custom$line_width,dash = custom$line_type))
-                        } else {
-                    p <- add_trace(p, x = filteredDates, y = filteredNext[, var], 
-                                    type = 'scattergl', mode = 'lines', name = paste0(var, ""), line = list(color = custom$line_color, width = custom$line_width, dash = custom$line_type))
-                        }
-
-                                      # Adding the epc labels on the x axis
-                                    #if (file.exists(planting_file)) {
-                                        planting_dates <- rv$epc_dates
-                                        #print(planting_dates)
-                                if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-                                        selected_planting <- planting_dates %>%
-                                        dplyr::filter(lubridate::year(DATE) %in% selectedYears)
-
-                                    #print(paste0("Selected planting dates: ", selected_planting))
-                                        if (nrow(selected_planting) > 0) {
-                                                    # adding invisible markers for epc legend
-                                                    p <- p %>% add_trace(
-                                                        x = selected_planting$DATE[1],  
-                                                        y = 0,  
-                                                        type = 'scattergl',
-                                                        mode = 'markers',
-                                                        marker = list(symbol = "triangle-down", color = "green", size = 10),
-                                                        name = "Planting Dates",
-                                                        visible = "legendonly" 
-                                                    )
-
-                                            for (i in 1:nrow(selected_planting)) {
-                                                current_date <- selected_planting$DATE[i]
-                                                current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
-                                                if (input$singleYear || length(selectedYears) <= 3) {
-                                                    
-                                                        epc_labels <- sapply(current_epcs, function(epc) {
-                                                            idx <- which(rv$epc_files == epc)
-                                                            if (length(idx) > 0) rv$epc_labels[idx] else epc
-                                                        })
-                                                        label <- paste(unique(epc_labels), collapse = ", ")
-                                                }
-                                                else {
-                                                epc_numbers <- sapply(current_epcs, function(epc) {
-                                                    idx <- which(rv$epc_files == epc)
-                                                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                                                })
-                                                label <- paste(unique(epc_numbers), collapse = ", ")
-                                                }
-
-                                                p <- p %>% add_annotations(
-                                                    x = current_date,
-                                                    y = 0,                  
-                                                    xref = "x",
-                                                    yref = "paper",
-                                                    text = "▼",          
-                                                    showarrow = FALSE,
-                                                    font = list(color = "green", size = 14)
-                                                ) %>% #epc labels
-                                                add_annotations(
-                                                        x = current_date,
-                                                        y = 0,               
-                                                        xref = "x",
-                                                        yref = "paper",
-                                                        text = label,
-                                                        showarrow = FALSE,
-                                                        yshift = -7,         # shift label down
-                                                        font = list(color = "green", size = 10)
-                                                )
-                                                
-                                                } 
-
-                                        }
-                                     if(input$showHarvest) {
-                                          if ("HarvestDates" %in% names(rv$epc_dates)) {
-                                                    selected_harvest <- planting_dates %>%
-                                                            dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
-                                                if (nrow(selected_harvest) > 0) {
-                                                    p <- p %>% add_trace(
-                                                        x = selected_harvest$HarvestDates[1],  
-                                                        y = 0,  
-                                                        type = 'scattergl',
-                                                        mode = 'markers',
-                                                        marker = list(symbol = "triangle-up", color = "#6c4a00", size = 10),
-                                                        name = "Harvest Dates",
-                                                        visible = "legendonly" 
-                                                    )
-
-                                            for (i in 1:nrow(selected_harvest)) {
-                                                current_date <- selected_harvest$HarvestDates[i]
-                                                
-                                                
-                                                current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
-                                                #if (input$singleYear || length(selectedYears) <= 3) {
-                                                #    epc_labels <- sapply(current_epcs, function(epc) {
-                                                #    idx <- which(rv$epc_files == epc)
-                                                #    if (length(idx) > 0) rv$epc_labels[idx] else epc
-                                                #    })
-                                               #     label <- paste(unique(epc_labels), collapse = ", ")
-                                                #} else {
-                                                    epc_numbers <- sapply(current_epcs, function(epc) {
-                                                    idx <- which(rv$epc_files == epc)
-                                                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                                                    })
-                                                    label <- paste(unique(epc_numbers), collapse = ", ")
-                                                #}
-
-                                                p <- p %>% add_annotations(
-                                                    x = current_date,
-                                                    y = 0,                  
-                                                    xref = "x",
-                                                    yref = "paper",
-                                                    text = "▲", 
-                                                    showarrow = FALSE,
-                                                    font = list(color = "#6c4a00", size = 14)
-                                                ) %>%
-                                                add_annotations(
-                                                    x = current_date,
-                                                    y = 0,               
-                                                    xref = "x",
-                                                    yref = "paper",
-                                                    text = label,
-                                                    showarrow = FALSE,
-                                                    yshift = -7,         # Shift label down
-                                                    font = list(color = "#6c4a00", size = 10)
-                                                )
-                                                
-                                                } 
-                                                }
-                                            }
-                                        }
-                                }
-                                        if(input$showPheno) {
-                                            if("n_actphen" %in% colnames(outputData())){
-                                                #browser()
-                                            sim_df <- outputData()
-                                            sim_df <- sim_df %>%
-                                                dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
-                                                        phase_change = n_actphen != prev_phase) %>%
-                                                dplyr::filter(phase_change) %>%
-                                                dplyr::select(Date, n_actphen)
-
-                                        transition_df <- sim_df %>%
-                                        dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
-
-                                                p <- p %>% layout(
-                                                    shapes = lapply(1:nrow(transition_df), function(i) {
-                                                        list(
-                                                        type = "line",
-                                                        x0 = transition_df$Date[i],
-                                                        x1 = transition_df$Date[i],
-                                                        y0 = 0.05,
-                                                        y1 = 1,
-                                                        xref = "x",
-                                                        yref = "paper",   # relative to the entire plot area
-                                                        line = list(color = "#047704", dash = "dot" , width = 0.5)
-                                                        )
-                                                    })
-                                                )
-                                                p <- p %>% layout(
-                                                    annotations = lapply(1:nrow(transition_df), function(i) {
-                                                        list(
-                                                        x = transition_df$Date[i],
-                                                        y = 1,  # top of the plot (yref = "paper")
-                                                        xref = "x",
-                                                        yref = "paper",
-                                                        text = paste0(transition_df$n_actphen[i]),
-                                                        showarrow = FALSE,
-                                                        xanchor = "center",
-                                                        yanchor = "bottom"
-                                                        )
-                                                    })
-                                                )
-
-                                                    # Add a dummy trace to show a legend entry for "Phenophases"
-                                                    p <- p %>% add_trace(
-                                                    x = c(NA), 
-                                                    y = c(NA), 
-                                                    type = "scattergl",
-                                                    mode = "lines",
-                                                    line = list(color = "#047704", dash = "dot"),
-                                                    name = "Phenophases",
-                                                    showlegend = TRUE
-                                                    )
-                                        
-                                            }
-                                            else {
-                                                myShowNotification("Variable n_actphen (parameter code: 2502) not found in the output data (ini file output variables)", type = "error", duration = 10)
-                                            }
-                                        }
-                                
-
-                if (!is.null(custom$additional_vars)) {
-                    #color_palette <- c("#754803", "green", "purple", "orange", "pink")
-                    #for (i in seq_along(custom$additional_vars)) {
-                    for (add_var in custom$additional_vars){
-                        #add_var <- custom$additional_vars[i]
-                        if (add_var != var && add_var %in% colnames(filteredNext)) {
-                            #add_custom <- plotCustomizations[[add_var]]
-                            add_custom <- custom$additional_vars_settings[[add_var]]
-                            if (is.null(add_custom)) {
-                                add_custom <- list(
-                                    line_type = "solid",
-                                    line_color = "blue",
-                                    line_width = custom$line_width
-                                )
-                            }
-                            p <- add_trace(p, x = filteredDates, y = filteredNext[, add_var],
-                                          type = "scattergl", mode = "lines", name = add_var,
-                                          line = list(
-                                              color = add_custom$line_color,
-                                              width = add_custom$line_width,
-                                              dash = add_custom$line_type
-                                          ))
-                            if (!is.null(filteredPrev) && input$lastRun) {
-                                p <- add_trace(p, x = filteredDates, y = filteredPrev[, add_var],
-                                              type = "scattergl", mode = "lines", name = paste0(add_var, " (Prev)"),
-                                              line = list(
-                                                  color = scales::alpha(add_custom$line_color, 0.5),
-                                                  width = add_custom$line_width,
-                                                  dash = add_custom$line_type
-                                              ))
-                            }
-                        }
-                    }
-                }
-                    #range <- if(!is.null(custom$y_min) && !is.null(custom$y_max)){
-                    #    c(custom$y_min, custom$y_max)
-                    #}
-                        p <- p %>% plotly::layout(
-                            xaxis = xaxis_options,
-                            yaxis = list(
-                                title = list(text = custom$y_title, font = list(size = custom$title_font_size)),
-                                tickfont = list(size = exportSettings$tickfonty),
-                                range = if (!is.null(custom$y_min) && !is.null(custom$y_max)) 
-                                        c(custom$y_min, custom$y_max) 
-                                        else NULL
-                               # autorange = if (is.null(custom$y_min) || is.null(custom$y_max)) 
-                               #         TRUE 
-                               #         else FALSE
-                            ),
-                            legend = legend_options,
-                            showlegend = legendVisible()
-                        )
-
-
-                        }
-               
-                           
-                    #currentMetricLabels(metric_labels_list)
-                #p <- p %>% plotly::layout(
-                        #title = list(text = paste("Plot of", var),
-                        #    font = list(size = 16, color = "black")),
-                        #xaxis = list(title = "Date"),
-                   #     yaxis = list(title = var)
-                   #     )
-
-                 
-                    p <- p %>% plotly::config(toImageButtonOptions = list(
-                    format = exportSettings$format, 
-                    width = exportSettings$width, 
-                    height = exportSettings$height, 
-                    scale = exportSettings$scale))
-                    
-                    p
-    #}) %...>% return()
-
-                    })
-                  
-                })
+  lapply(input$selected_vars, function(var) {
+    
+    output[[paste0("plot_", var)]] <- renderPlot({
+      
+      # --- Data Preparation ---
+      
+      if (isTRUE(input$singleYear)) {
+        validate(need(is.finite(input$yearRange), "Year not available yet"))
+        selectedYears <- input$yearRange 
+      } else {
+        validate(
+          need(length(input$yearRange) == 2 &&
+                 is.finite(input$yearRange[1]) &&
+                 is.finite(input$yearRange[2]),
+               "Year range not available yet")
+        )
+        selectedYears <- seq(input$yearRange[1], input$yearRange[2])
+      }
+      
+      # Filter dates
+      filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
+      
+      # Get simulation data
+      filteredPrev <- if (length(outputList$prev) != 0) {
+        outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+      } else NULL
+      
+      filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+      
+      # Custom settings
+      custom <- plotCustomizations[[var]]
+      
+      # Bond logic
+      previous_bonds_list <- bondsForPrevPlot()
+      current_bonds_list <- bondsForCurrentPlot()
+      was_prev_bonded <- hasActiveBonds(previous_bonds_list)
+      is_current_bonded <- hasActiveBonds(current_bonds_list)
+      
+      # Measurement Data
+      mapping <- mappingRV()
+      df <- measurementData()
+      df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
+      metrics_df <- metricsData()
+      mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == var] else character(0)
+      
+      # Legend Labels
+      prev_legend_label <- ifelse(was_prev_bonded, 
+                                  paste0("Previous Comparison ", var), 
+                                  paste0("Previous ", var))
+      current_legend_label <- ifelse(is_current_bonded, 
+                                     paste0("Current Comparison ", var), 
+                                     paste0("New ", var))
+      current_legend_label_single <- ifelse(is_current_bonded, 
+                                            paste0("Comparison ", var), 
+                                            paste0(var, ""))
+      
+      # --- Initialize Vectors for Manual Scales ---
+      # Using named vectors to ensure strict mapping
+      manual_colors <- c()
+      manual_linetypes <- c()
+      manual_shapes <- c() 
+      
+      # --- Logic Branching: Scatter vs Line Plot ---
+      
+      is_scatter_metrics <- (length(mappedCols) > 0 && input$plotType != "line")
+      
+      # Check Legend Visibility
+      show_legend <- if(exists("legendVisible") && is.function(legendVisible)) legendVisible() else TRUE
+      
+      # Initialize ggplot
+      # CHANGE 1: Set base_family to "sans" (Arial/Helvetica) for a cleaner look
+      p <- ggplot() + theme_bw(base_family = "sans") + 
+        theme(
+          text = element_text(size = 12, family = "sans"), # Ensure text elements use the font
+          axis.text.x = element_text(size = exportSettings$tickfontx),
+          axis.text.y = element_text(size = exportSettings$tickfonty),
+          legend.text = element_text(size = exportSettings$legendfont),
+          axis.title.y = element_text(margin = margin(t = 0, r = -20, b = 0, l = 0)),
+          # Adjusted margin (removed specific axis padding since title is gone)
+          plot.margin = margin(10, 10, 35, 10), 
+          # Legend Position: Top
+          legend.position = if (show_legend) "top" else "none",
+          legend.direction = "horizontal",
+          legend.box = "vertical",
+          # CHANGE: Increased spacing between the plot and the legend to avoid collision
+          legend.box.spacing = unit(0.5, "cm")
+        )
+      
+      # Helper to pad y-axis labels to fixed width for alignment
+      pad_labels <- function(x) {
+        format(x, trim = FALSE, width = 10, justify = "right") 
+      }
+      
+      if (is_scatter_metrics) {
+        # --- SCATTER PLOT ---
+        
+        global_abs_min <- Inf
+        global_abs_max <- -Inf
+        
+        for (col in mappedCols) {
+          sim_vals <- filteredNext[, var]
+          meas_vals <- df_filtered[[col]]
+          sim_data <- data.frame(Date = filteredDates, sim = sim_vals)
+          meas_data <- df_filtered[, c("Date", col)]
+          common_data <- merge(sim_data, meas_data, by = "Date")
+          
+          local_min <- min(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
+          local_max <- max(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
+          global_abs_min <- min(global_abs_min, local_min)
+          global_abs_max <- max(global_abs_max, local_max)
+        }
+        
+        breaks <- pretty(c(global_abs_min, global_abs_max), n = 8)
+        min_tick <- min(breaks)
+        max_tick <- max(breaks)
+        
+        for (i in seq_along(mappedCols)) {
+          col <- mappedCols[i]
+          m_row <- metrics_df[metrics_df$Measurement == col, ]
+          rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
+          bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
+          corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R2: %.2f", m_row$Correlation) else "R2: NA"
+          metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
+          label_name <- paste0(col, " Metrics\n", metric_label)
+          
+          sim_data <- data.frame(Date = filteredDates, sim = filteredNext[, var])
+          meas_data <- df_filtered[, c("Date", col)]
+          plot_data <- merge(sim_data, meas_data, by = "Date")
+          colnames(plot_data)[3] <- "measured" 
+          
+          # Map all aesthetics to ensure correct guide generation if needed later
+          p <- p + geom_point(data = plot_data, 
+                              aes(x = measured, y = sim, color = label_name, shape = label_name),
+                              size = 2)
+          
+          manual_colors[label_name] <- "#d99820"
+          manual_linetypes[label_name] <- "blank"
+          manual_shapes[label_name] <- 16
+        }
+        
+        p <- p + geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "blue", linewidth = 0.8) +
+          coord_fixed(ratio = 1, xlim = c(min_tick, max_tick), ylim = c(min_tick, max_tick)) +
+          labs(x = paste0("Measured ", paste(mappedCols, collapse=", ")), y = paste0("Simulated ", var))
+        
+      } else {
+        # --- TIME SERIES PLOT ---
+        
+        # 1. Previous Run Line
+        if (!is.null(filteredPrev) && input$lastRun) {
+          prev_df <- data.frame(Date = filteredDates, Value = filteredPrev[, var])
+          p <- p + geom_line(data = prev_df, 
+                             aes(x = Date, y = Value, color = prev_legend_label, linetype = prev_legend_label),
+                             linewidth = custom$line_width)
+          
+          manual_colors[prev_legend_label] <- "#2b2bf8ef"
+          manual_linetypes[prev_legend_label] <- fix_linetype(custom$line_type)
+          manual_shapes[prev_legend_label] <- NA # Lines don't have shapes
+        }
+        
+        # 2. Current Run Line
+        curr_df <- data.frame(Date = filteredDates, Value = filteredNext[, var])
+        curr_lbl <- if(!is.null(filteredPrev) && input$lastRun) current_legend_label else current_legend_label_single
+        
+        p <- p + geom_line(data = curr_df, 
+                           aes(x = Date, y = Value, color = curr_lbl, linetype = curr_lbl),
+                           linewidth = custom$line_width)
+        
+        manual_colors[curr_lbl] <- custom$line_color
+        manual_linetypes[curr_lbl] <- fix_linetype(custom$line_type)
+        manual_shapes[curr_lbl] <- NA
+        
+        # 3. Additional Variables
+        if (!is.null(custom$additional_vars)) {
+          for (add_var in custom$additional_vars){
+            if (add_var != var && add_var %in% colnames(filteredNext)) {
+              add_custom <- custom$additional_vars_settings[[add_var]]
+              if (is.null(add_custom)) {
+                add_custom <- list(line_type = "solid", line_color = "blue", line_width = custom$line_width, show_measurements = FALSE)
+              }
+              
+              add_df <- data.frame(Date = filteredDates, Value = filteredNext[, add_var])
+              p <- p + geom_line(data = add_df, 
+                                 aes(x = Date, y = Value, color = add_var, linetype = add_var),
+                                 linewidth = add_custom$line_width)
+              
+              manual_colors[add_var] <- add_custom$line_color
+              manual_linetypes[add_var] <- fix_linetype(add_custom$line_type)
+              manual_shapes[add_var] <- NA
+              
+              if (!is.null(filteredPrev) && input$lastRun) {
+                prev_add_df <- data.frame(Date = filteredDates, Value = filteredPrev[, add_var])
+                prev_lbl <- paste0(add_var, " (Prev)")
+                p <- p + geom_line(data = prev_add_df, 
+                                   aes(x = Date, y = Value, color = prev_lbl, linetype = prev_lbl),
+                                   linewidth = add_custom$line_width)
                 
-        })
+                manual_colors[prev_lbl] <- alpha(add_custom$line_color, 0.5)
+                manual_linetypes[prev_lbl] <- fix_linetype(add_custom$line_type)
+                manual_shapes[prev_lbl] <- NA
+              }
+              
+              if(isTRUE(add_custom$show_measurements)) {
+                add_mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == add_var] else character(0)
+                if (length(add_mappedCols) > 0) {
+                  for (col in add_mappedCols) {
+                    yData <- df_filtered[[col]]
+                    if(input$avoid_negative){
+                      if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
+                    }
+                    
+                    m_row <- metrics_df[metrics_df$Measurement == col, ]
+                    rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
+                    bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
+                    corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R2: %.2f", m_row$Correlation) else "R2: NA"
+                    metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
+                    meas_lbl <- paste0(col, " Meas\n", metric_label)
+                    
+                    meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
+                    
+                    # Ensure shape is mapped correctly
+                    current_shape <- as.integer(add_custom$meas_marker_type)
+                    if (is.na(current_shape)) current_shape <- 16
+                    
+                    # Map both color and shape. DO NOT map linetype for points.
+                    p <- p + geom_point(data = meas_df,
+                                        aes(x = Date, y = Value, color = meas_lbl, shape = meas_lbl),
+                                        size = add_custom$meas_marker_size)
+                    
+                    manual_colors[meas_lbl] <- add_custom$meas_marker_color
+                    manual_linetypes[meas_lbl] <- "blank" # Use blank so line key is invisible for points
+                    manual_shapes[meas_lbl] <- current_shape
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        # 4. Primary Measurements
+        if (length(mappedCols) > 0 && isTRUE(custom$show_measurements)) {
+          for (col in mappedCols) {
+            yData <- df_filtered[[col]]
+            
+            if(input$avoid_negative){
+              if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
+            }
+            
+            m_row <- metrics_df[metrics_df$Measurement == col, ]
+            rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
+            bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
+            corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R2: %.2f", m_row$Correlation) else "R2: NA"
+            metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
+            meas_lbl <- paste0(col, " Meas\n", metric_label)
+            
+            meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
+            
+            # Use integer shape
+            current_shape <- as.integer(custom$meas_marker_type)
+            if (is.na(current_shape)) current_shape <- 16
+            
+            # Map both color and shape. DO NOT map linetype for points.
+            p <- p + geom_point(data = meas_df,
+                                aes(x = Date, y = Value, color = meas_lbl, shape = meas_lbl),
+                                size = custom$meas_marker_size)
+            
+            manual_colors[meas_lbl] <- custom$meas_marker_color
+            manual_linetypes[meas_lbl] <- "blank" 
+            manual_shapes[meas_lbl] <- current_shape
+          }
+        }
+        
+        # 5. Planting Dates
+        planting_dates <- rv$epc_dates
+        if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
+          selected_planting <- planting_dates %>%
+            dplyr::filter(lubridate::year(DATE) %in% selectedYears)
+          
+          if (nrow(selected_planting) > 0) {
+            labels_df <- data.frame(Date = selected_planting$DATE, Label = "", StringsAsFactors = FALSE)
+            for (i in 1:nrow(selected_planting)) {
+              current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
+              if (input$singleYear || length(selectedYears) <= 3) {
+                epc_labels <- sapply(current_epcs, function(epc) {
+                  idx <- which(rv$epc_files == epc)
+                  if (length(idx) > 0) rv$epc_labels[idx] else epc
+                })
+                labels_df$Label[i] <- paste(unique(epc_labels), collapse = ", ")
+              } else {
+                epc_numbers <- sapply(current_epcs, function(epc) {
+                  idx <- which(rv$epc_files == epc)
+                  if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                })
+                labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
+              }
+            }
+            
+            # CHANGE 2: Increased size for Planting Labels (was 3, now 5)
+            p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
+                                shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
+              geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
+                        vjust = 2.5, color = "#047704", size = 5) 
+              #geom_text(data = labels_df, aes(x = Date, y = -Inf, label = "▼"),
+              #          vjust = -0.2, color = "#047704", size = 4)
+            p <- p + coord_cartesian(clip = "off") 
+          }
+        }
+        
+        # 6. Harvest Dates
+        if(input$showHarvest) {
+          if ("HarvestDates" %in% names(rv$epc_dates)) {
+            selected_harvest <- planting_dates %>%
+              dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
+            
+            if (nrow(selected_harvest) > 0) {
+              h_labels_df <- data.frame(Date = selected_harvest$HarvestDates, Label = "", StringsAsFactors = FALSE)
+              for (i in 1:nrow(selected_harvest)) {
+                 current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
+                 epc_numbers <- sapply(current_epcs, function(epc) {
+                   idx <- which(rv$epc_files == epc)
+                   if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                 })
+                 h_labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
+              }
+              
+              # CHANGE 2: Increased size for Harvest Labels (was 3, now 5)
+              p <- p + geom_point(data = h_labels_df, aes(x = Date, y = -Inf), 
+                                  shape = 24, fill = "#6c4a00", color = "black", size = 3, stroke = 0.5) +
+                geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = Label),
+                          vjust = 2.5, color = "#6c4a00", size = 5) 
+                # geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = "▲"),
+                #          vjust = -0.2, color = "#6c4a00", size = 4)
+            }
+          }
+        }
+        
+        # 7. Phenophases
+        if(input$showPheno) {
+          if("n_actphen" %in% colnames(outputData())){
+            sim_df <- outputData()
+            sim_df <- sim_df %>%
+              dplyr::arrange(Date) %>% 
+              dplyr::mutate(prev_phase = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
+                            phase_change = n_actphen != prev_phase) %>%
+              dplyr::filter(phase_change) %>%
+              dplyr::select(Date, n_actphen)
+            
+            transition_df <- sim_df %>%
+              dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
+            
+            if(nrow(transition_df) > 0){
+              # CHANGE 3: Changed vjust to -1 (moves text higher up, outside plot) 
+              # and increased size to 5
+              p <- p + geom_vline(data = transition_df, aes(xintercept = Date),
+                                  linetype = "dotted", color = "#047704", linewidth = 0.5) +
+                geom_text(data = transition_df, aes(x = Date, y = Inf, label = n_actphen),
+                          vjust = -0.2, color = "#047704", size = 5) 
+            }
+          } else {
+            myShowNotification("Variable n_actphen not found", type = "error")
+          }
+        }
 
+        # Apply Formatting
+        date_format_str <- "%Y-%m-%d"
+        date_break_str <- "1 year"
+        if (input$singleYear || length(selectedYears) == 1) {
+          date_format_str <- "%b %Y"; date_break_str <- "1 month"
+        } else if (length(selectedYears) <= 3) {
+          date_format_str <- "%b %Y"; date_break_str <- "2 months"
+        } else {
+          date_format_str <- "%Y"
+          # 2) Dynamic date breaks for long time series
+          n_years <- length(selectedYears)
+          if(n_years > 30) {
+             date_break_str <- "5 years"
+          } else if (n_years > 15) {
+             date_break_str <- "2 years"
+          } else {
+             date_break_str <- "1 year"
+          }
+        }
+        
+        p <- p + scale_x_date(date_labels = date_format_str, 
+                              date_breaks = date_break_str, 
+                              limits = range(filteredDates, na.rm=TRUE),
+                              expand = c(0, 0)) +
+          # Remove X axis titles
+          labs(y = var, x = NULL) +
+          # 1) Use padded labels to ensure alignment on left side
+          scale_y_continuous(labels = pad_labels)
+        
+        if (!is.null(custom$y_min) && !is.null(custom$y_max)) {
+           p <- p + coord_cartesian(ylim = c(custom$y_min, custom$y_max), clip = "off") 
+        } else {
+           p <- p + coord_cartesian(clip = "off") 
+        }
+
+      } 
+      
+      # --- CRITICAL FIX FOR MANUAL SCALES ---
+      if (length(manual_colors) > 0) {
+        # Debugging Output to Console
+        # print("--- Debugging Plot Scales ---")
+        # print("Manual Colors:")
+        # print(manual_colors)
+        # print("Manual Linetypes:")
+        # print(manual_linetypes)
+        # print("Manual Shapes:")
+        # print(manual_shapes)
+        
+        # 1. Define strictly unique ordered labels based on what was collected
+        ordered_labels <- names(manual_colors)
+        
+        # 2. Extract strictly matching vectors for overrides
+        #    Using unname() prevents label mismatches in the guide construction
+        override_linetypes <- unname(manual_linetypes[ordered_labels])
+        override_shapes    <- unname(manual_shapes[ordered_labels])
+        
+        # 3. Create a single robust guide object attached ONLY to color
+        #    We hide the other guides to prevent merging conflicts
+        unified_guide <- guide_legend(
+          override.aes = list(
+            linetype = override_linetypes,
+            shape = override_shapes,
+            color = unname(manual_colors[ordered_labels]) # Explicitly set color too
+          ),
+          nrow = 1,
+          order = 1
+        )
+        
+        # 4. Apply scales with specific guide settings
+        #    We set guide = "none" for linetype and shape so ggplot doesn't create separate legends
+        #    or try to merge them incorrectly. We use the color guide as the "Master" legend.
+        p <- p + 
+          scale_color_manual(values = manual_colors, breaks = ordered_labels, name = "", guide = unified_guide) +
+          scale_linetype_manual(values = manual_linetypes, breaks = ordered_labels, name = "", guide = "none") +
+          scale_shape_manual(values = manual_shapes, breaks = ordered_labels, name = "", na.value = NA, guide = "none")
+      }
+
+      return(p)
+      
+    }) 
+  })
+})
 
     ##### SPECIAL PLOTS ###########
     # Special plots pop up window
@@ -7275,7 +7197,7 @@ observeEvent(input$make_output, {
             ), # end shinyjs::hidden
         
             # This is the original plot output
-            plotOutput("popup_plot", height = "650px")
+            plotOutput("popup_plot", height = "380px")
         )
     })
 
@@ -7561,19 +7483,20 @@ observeEvent(input$make_output, {
 
 
 
+
 #' tuneMusoTest
 #'
 #' launchApp launch the shiny app
 #' @param ... Other parameters for shinyApp function
 #' @importFrom shiny shinyApp shinyOptions
 #' @export
-tuneMusoTest <- function(directory = NULL, ...){ 
+tuneMuso2 <- function(directory = NULL, ...){ 
     shinyOptions(workdir = getwd())
     if(is.null(directory)){
         shinyOptions(musoRoot = ".")
     } else {
         shinyOptions(musoRoot = normalizePath(directory))
     }
-    shinyApp(ui = tuneMusoUITest(), server = tuneMusoServerTest, options = c(list(launch.browser = TRUE), list(...)))
+    shinyApp(ui = tuneMusoUI2(), server = tuneMusoServer2, options = c(list(launch.browser = TRUE), list(...)))
     #shinyApp(ui = tuneMusoUI(), server = tuneMusoServer, options = list(...))
 }
