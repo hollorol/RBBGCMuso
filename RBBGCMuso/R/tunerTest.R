@@ -647,8 +647,9 @@ function wrapText(elementId, openTag, closeTag) {
                                                             inline = TRUE)
                                             ),
                                             actionButton("show_popup", "View Special Plots"),
-                                            checkboxInput(
-                                                "lastRun", "Show Previous Model Run", value = FALSE
+                                            div(style = "display: flex; align-items: center; gap: 0px;",
+                                                checkboxInput("lastRun", "Show Previous Model Run", value = FALSE),
+                                                checkboxInput("showPlanting","Show Planting Dates",value = TRUE)
                                             ),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                                 checkboxInput("showPheno", "Show Phenophases", value = FALSE),
@@ -6849,39 +6850,41 @@ observe({
         }
         
         # 5. Planting Dates
-        planting_dates <- rv$epc_dates
+         
+            planting_dates <- rv$epc_dates
         if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-          selected_planting <- planting_dates %>%
-            dplyr::filter(lubridate::year(DATE) %in% selectedYears)
-          
-          if (nrow(selected_planting) > 0) {
-            labels_df <- data.frame(Date = selected_planting$DATE, Label = "", StringsAsFactors = FALSE)
-            for (i in 1:nrow(selected_planting)) {
-              current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
-              if (input$singleYear || length(selectedYears) <= 3) {
-                epc_labels <- sapply(current_epcs, function(epc) {
-                  idx <- which(rv$epc_files == epc)
-                  if (length(idx) > 0) rv$epc_labels[idx] else epc
-                })
-                labels_df$Label[i] <- paste(unique(epc_labels), collapse = ", ")
-              } else {
-                epc_numbers <- sapply(current_epcs, function(epc) {
-                  idx <- which(rv$epc_files == epc)
-                  if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                })
-                labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
-              }
-            }
+            selected_planting <- planting_dates %>%
+                dplyr::filter(lubridate::year(DATE) %in% selectedYears)
             
-            # CHANGE 2: Increased size for Planting Labels (was 3, now 5)
-            p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
-                                shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
-              geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
-                        vjust = 2.5, color = "#047704", size = 5) 
-              #geom_text(data = labels_df, aes(x = Date, y = -Inf, label = "▼"),
-              #          vjust = -0.2, color = "#047704", size = 4)
-            p <- p + coord_cartesian(clip = "off") 
-          }
+            if (nrow(selected_planting) > 0) {
+                labels_df <- data.frame(Date = selected_planting$DATE, Label = "", StringsAsFactors = FALSE)
+                for (i in 1:nrow(selected_planting)) {
+                current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
+                if (input$singleYear || length(selectedYears) <= 3) {
+                    epc_labels <- sapply(current_epcs, function(epc) {
+                    idx <- which(rv$epc_files == epc)
+                    if (length(idx) > 0) rv$epc_labels[idx] else epc
+                    })
+                    labels_df$Label[i] <- paste(unique(epc_labels), collapse = ", ")
+                } else {
+                    epc_numbers <- sapply(current_epcs, function(epc) {
+                    idx <- which(rv$epc_files == epc)
+                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                    })
+                    labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
+                }
+                }
+                if(input$showPlanting) {
+                # CHANGE 2: Increased size for Planting Labels (was 3, now 5)
+                p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
+                                    shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
+                geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
+                            vjust = 2.5, color = "#047704", size = 5) 
+                #geom_text(data = labels_df, aes(x = Date, y = -Inf, label = "▼"),
+                #          vjust = -0.2, color = "#047704", size = 4)
+                p <- p + coord_cartesian(clip = "off") 
+                }
+            }
         }
         
         # 6. Harvest Dates
@@ -6950,9 +6953,13 @@ observe({
           date_format_str <- "%Y"
           # 2) Dynamic date breaks for long time series
           n_years <- length(selectedYears)
-          if(n_years > 30) {
+          if(n_years > 120) {
+             date_break_str <- "8 years"
+          } 
+          else if (n_years > 30) {
              date_break_str <- "5 years"
-          } else if (n_years > 15) {
+          }
+          else if (n_years > 15) {
              date_break_str <- "2 years"
           } else {
              date_break_str <- "1 year"
