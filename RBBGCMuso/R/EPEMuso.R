@@ -54,7 +54,7 @@ EPEui <- function() {
     
     fluidRow(
       column(4,
-             fileInput("file_input", "Upload Binary Endpoint File (.rst)", accept = ".rst", width = "100%")
+             fileInput("file_input", "Upload Binary Endpoint File", accept = c(".rst",".endpoint"), width = "100%")
       ),
       column(8,
              uiOutput("variable_selector_ui") 

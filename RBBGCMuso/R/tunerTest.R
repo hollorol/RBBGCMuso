@@ -5184,6 +5184,34 @@ observeEvent(input$autoMulti, {
     }
 })
 
+
+
+        observeEvent(input$AppendSim, {
+            req(measurementData(), outputData(), input$exportCols)
+            
+            # Extract Date and the selected simulation columns from outputData()
+            sim_subset <- outputData()[, c("Date", input$exportCols), drop = FALSE]
+            
+            # If the checkbox is checked, rename the selected columns to add the "_sim" suffix
+            if (isTRUE(input$appendSimSuffix)) {
+                # Create new names for the selected columns
+                new_names <- paste0(input$exportCols, "_sim")
+                # Rename only the non-Date columns
+                names(sim_subset)[names(sim_subset) %in% input$exportCols] <- new_names
+            }
+            
+            # Get the current measurement data
+            meas_df <- measurementData()
+            
+            # Merge by "Date" (since both data frames have a Date column, left_join will not duplicate it)
+            new_meas_df <- dplyr::left_join(meas_df, sim_subset, by = "Date")
+            
+            # Update the measurement data reactive value
+            measurementData(new_meas_df)
+            
+            showNotification("Selected simulation columns appended to measurement data.", type = "message")
+        })
+
         
     ######## METRICS CALCULATION #########
 
@@ -6764,7 +6792,7 @@ observe({
                     bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
                     corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R2: %.2f", m_row$Correlation) else "R2: NA"
                     metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-                    meas_lbl <- paste0(col, " Meas\n", metric_label)
+                    meas_lbl <- paste0(col, " Measurement\n", metric_label)
                     
                     meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
                     
@@ -6801,7 +6829,7 @@ observe({
             bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
             corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R2: %.2f", m_row$Correlation) else "R2: NA"
             metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-            meas_lbl <- paste0(col, " Meas\n", metric_label)
+            meas_lbl <- paste0(col, " Measurement\n", metric_label)
             
             meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
             
