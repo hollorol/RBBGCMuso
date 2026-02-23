@@ -6108,10 +6108,10 @@ observeEvent(input$make_output, {
             # ),
             HTML(paste0(
                 "<strong>Current Working Directory:</strong><br>",
-                "<strong>", workdir, "</strong>"
+                "<strong>", workdir, "</strong><br><br>"
             )),
             selectInput("export_format", "Image Export Format",
-                        choices = c("png","jpeg","webp","svg"),
+                        choices = c("png","jpeg","tiff","webp","svg","pdf"), 
                         selected = exportSettings$format
             ),
             # Inputs for resolution settings
@@ -6654,7 +6654,7 @@ observe({
           axis.text.y = element_text(size = exportSettings$tickfonty),
           legend.text = element_text(size = exportSettings$legendfont),
           axis.title.y = element_text(margin = margin(t = 0, r = -20, b = 0, l = 0), size = exportSettings$ytitlefont),
-          plot.margin = margin(5, 10, 10, 10), 
+          plot.margin = margin(5, 10, 12, 10), 
           legend.position = if (show_legend) "top" else "none",
           legend.direction = "horizontal",
           legend.box = "vertical",
@@ -6849,7 +6849,7 @@ observe({
               p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
                                   shape = 25, fill = "#29bb29", color = "black", size = 2.5, stroke = 0.5) +
                 geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
-                          vjust = 2.5, color = "#29bb29", size = 5) 
+                          vjust = 2.5, color = "#1da11d", size = 5) 
               p <- p + coord_cartesian(clip = "off") 
             }
           }
