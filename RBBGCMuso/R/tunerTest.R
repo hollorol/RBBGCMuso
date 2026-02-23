@@ -6238,7 +6238,6 @@ observeEvent(input$make_output, {
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
-                        <li>When deleting a custom variable via reset, plotly will complain it cannot find it (if it was previously plotted), but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
                         <li>Sometimes there will be a notification for an epc modification (in crop rotation) even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
                         <li>In the logger the visible decimals are limited to 3. So when viewing differences anything below 0.001 change will not be visible. It's only a visual issue, the exact values of the run can still be applied. Will make a dynamic function to show the decimals beyond for such cases</li>
                     </ul>
@@ -6848,9 +6847,9 @@ observe({
             }
             if(input$showPlanting) {
               p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
-                                  shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
+                                  shape = 25, fill = "#29bb29", color = "black", size = 2.5, stroke = 0.5) +
                 geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
-                          vjust = 2.5, color = "#047704", size = 5) 
+                          vjust = 2.5, color = "#29bb29", size = 5) 
               p <- p + coord_cartesian(clip = "off") 
             }
           }
@@ -6871,7 +6870,7 @@ observe({
                 h_labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
               }
               p <- p + geom_point(data = h_labels_df, aes(x = Date, y = -Inf), 
-                                  shape = 24, fill = "#6c4a00", color = "black", size = 3, stroke = 0.5) +
+                                  shape = 24, fill = "#6c4a00", color = "black", size = 2.5, stroke = 0.5) +
                 geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = Label),
                           vjust = 2.5, color = "#6c4a00", size = 5) 
             }
