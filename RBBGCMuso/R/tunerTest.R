@@ -561,6 +561,7 @@ function wrapText(elementId, openTag, closeTag) {
             tags$span("RBBGCMuso Parameter Tuner", style = "font-size: 24px; font-weight: bold; margin-right: 20px;"),
             tags$span(paste0(workdir), style = "font-size: 14px; color: #666;")
         )
+   
     ),
     # Floating toggle button to collapse/restore the control panel
     div(
@@ -574,7 +575,7 @@ function wrapText(elementId, openTag, closeTag) {
         actionButton("calib", label = "Calibrate"),
         actionButton("settings_btn", label = NULL, icon = icon("cog")),
         actionButton("toggle_plot_field", "Hide Plot Area"),
-        actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash")),
+        #actionButton("toggle_legend", "Hide Legend", icon = icon("eye-slash")),
         actionButton("exit", "Exit", 
                style = "background-color: red; color: white; border-color: darkred; 
                         font-weight: bold; font-size: 16px; 
@@ -759,7 +760,7 @@ function wrapText(elementId, openTag, closeTag) {
                                                 uiOutput("yearRangeMeas"),
                                                 checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
                                                 checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE),
-                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = FALSE)
+                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = TRUE)
 
                                         ),
                                             
@@ -5914,11 +5915,11 @@ observeEvent(input$make_output, {
             legendVisible <- reactiveVal(TRUE)  # Default: legend is shown
 
             # Toggle legend state when button is clicked
-            observeEvent(input$toggle_legend, {
-                new_state <- !legendVisible()
-                legendVisible(new_state)
-                updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
-            })
+            # observeEvent(input$toggle_legend, {
+            #     new_state <- !legendVisible()
+            #     legendVisible(new_state)
+            #     updateActionButton(session, "toggle_legend", label = ifelse(legendVisible(), "Hide Legend", "Show Legend"),icon = icon(ifelse(new_state, "eye-slash", "eye")))
+            # })
 
     #modalVisible <- reactiveVal(FALSE)
     observeEvent(input$calib, {
@@ -6095,16 +6096,20 @@ observeEvent(input$make_output, {
 
 
         # Settings (so far only for resolution)
-        exportSettings <- reactiveValues(width = 900, height = 500, format = "png",scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
-        defaultExportSettings <- list(width = 900, height = 500, format = "png",scale = 2, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 14, legendxanchor = 1.2, legendyanchor = 1)
-        
+        exportSettings <- reactiveValues(width = 3000, height = 2000, format = "png", dpi = 300, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 12, legendxanchor = 1.2, legendyanchor = 1, allowLegendMovement = FALSE)
+        defaultExportSettings <- list(width = 3000, height = 2000, format = "png", dpi = 300, auto_reset = FALSE, muteNotif = FALSE, tickfontx = 12, tickfonty = 12, legendfont = 12, xtitlefont = 14, ytitlefont = 12, legendxanchor = 1.2, legendyanchor = 1)
+
 
           observeEvent(input$settings_btn, {
             showModal(modalDialog(
             title = "Settings",
-            div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
-                    paste("Current Working Directory:", workdir)
-            ),
+            # div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
+            #         paste("Current Working Directory:\n", workdir)
+            # ),
+            HTML(paste0(
+                "<strong>Current Working Directory:</strong><br>",
+                "<strong>", workdir, "</strong>"
+            )),
             selectInput("export_format", "Image Export Format",
                         choices = c("png","jpeg","webp","svg"),
                         selected = exportSettings$format
@@ -6129,14 +6134,14 @@ observeEvent(input$make_output, {
                     )
             ),
             div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("export_scale", "Image Export Scale:", value = exportSettings$scale, min = 1),
-                actionButton("reset_export_scale", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-
+                numericInput("export_dpi", "Image Export DPI:", value = exportSettings$dpi, min = 72),
+                actionButton("reset_export_dpi", 
+                            label = NULL, 
+                            icon = icon("undo"), 
+                            style = "margin-top: 10px;",
+                            title = "Reset to default"
+                )
+                
             ),
             div(style = "display: flex; align-items: center; gap: 5px;",  
                 numericInput("tickfontx", "X-Axis Tick Font Size:", value = exportSettings$tickfontx, min = 1),
@@ -6229,7 +6234,7 @@ observeEvent(input$make_output, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.25.0</strong></p>
+                    <p><strong>Version b2.26.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
@@ -6269,7 +6274,7 @@ observeEvent(input$make_output, {
         observeEvent(input$apply_settings, {
             exportSettings$width <- input$export_width
             exportSettings$height <- input$export_height
-            exportSettings$scale <- input$export_scale
+            exportSettings$dpi <- input$export_dpi  
             exportSettings$auto_reset <- input$auto_reset
             exportSettings$muteNotif <- input$mute_notif
             exportSettings$tickfontx <- input$tickfontx
@@ -6298,8 +6303,8 @@ observeEvent(input$make_output, {
             updateNumericInput(session, "export_height", value = defaultExportSettings$height)
         })
 
-        observeEvent(input$reset_export_scale, {
-            updateNumericInput(session, "export_scale", value = defaultExportSettings$scale)
+        observeEvent(input$reset_export_dpi, {
+            updateNumericInput(session, "export_dpi", value = defaultExportSettings$dpi)
         })
 
         observeEvent(input$reset_tickfontx, {
@@ -6339,7 +6344,7 @@ observeEvent(input$make_output, {
         }
 
         
- plotCustomizations <- reactiveValues()
+    plotCustomizations <- reactiveValues()
     # Staging area for pending changes
     pendingCustomizations <- reactiveValues()
     
@@ -6565,25 +6570,39 @@ observeEvent(input$make_output, {
 
 ################ PLOTTING ###############
 
+    
 output$dynamicPlots <- renderUI({
   req(input$selected_vars)
   session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
   
   plot_outputs <- lapply(input$selected_vars, function(var) {
-    plotOutput(paste0("plot_", var), height = "400px")
+    # Wrapped in a relative div to allow absolute positioning of the download button without extra spacing/borders
+    div(style = "position: relative; margin-bottom: 0px;",
+        if (!firstRun()) {
+          downloadButton(
+            outputId = paste0("download_", var), 
+            label = NULL, 
+            icon = icon("download"),
+            title = paste("Export", var, "Plot"),
+            # Adjusted top value to 15px to lower the button
+            style = "position: absolute; top: 10px; right: 10px; z-index: 10; padding: 4px 8px;"
+          )
+        },
+        plotOutput(paste0("plot_", var), height = "400px")
+    )
   })
   do.call(tagList, plot_outputs)
 })
 
 observe({
   req(input$selected_vars, outputData())
-
+  
   lapply(input$selected_vars, function(var) {
     
-    output[[paste0("plot_", var)]] <- renderPlot({
+    # --- HELPER FUNCTION: Extracts plot building logic so we can reuse it for the download button ---
+    build_plot <- function() {
       
       # --- Data Preparation ---
-      
       if (isTRUE(input$singleYear)) {
         validate(need(is.finite(input$yearRange), "Year not available yet"))
         selectedYears <- input$yearRange 
@@ -6597,83 +6616,58 @@ observe({
         selectedYears <- seq(input$yearRange[1], input$yearRange[2])
       }
       
-      # Filter dates
       filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
       
-      # Get simulation data
       filteredPrev <- if (length(outputList$prev) != 0) {
         outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
       } else NULL
       
       filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
       
-      # Custom settings
       custom <- plotCustomizations[[var]]
       
-      # Bond logic
       previous_bonds_list <- bondsForPrevPlot()
       current_bonds_list <- bondsForCurrentPlot()
       was_prev_bonded <- hasActiveBonds(previous_bonds_list)
       is_current_bonded <- hasActiveBonds(current_bonds_list)
       
-      # Measurement Data
       mapping <- mappingRV()
       df <- measurementData()
       df_filtered <- df[format(df$Date, "%Y") %in% selectedYears, ]
       metrics_df <- metricsData()
       mappedCols <- if (!is.null(mapping)) names(mapping)[mapping == var] else character(0)
       
-      # Legend Labels
-      prev_legend_label <- ifelse(was_prev_bonded, 
-                                  paste0("Previous Comparison ", var), 
-                                  paste0("Previous ", var))
-      current_legend_label <- ifelse(is_current_bonded, 
-                                     paste0("Current Comparison ", var), 
-                                     paste0("New ", var))
-      current_legend_label_single <- ifelse(is_current_bonded, 
-                                            paste0("Comparison ", var), 
-                                            paste0(var, ""))
+      prev_legend_label <- ifelse(was_prev_bonded, paste0("Previous Comparison ", var), paste0("Previous ", var))
+      current_legend_label <- ifelse(is_current_bonded, paste0("Current Comparison ", var), paste0("New ", var))
+      current_legend_label_single <- ifelse(is_current_bonded, paste0("Comparison ", var), paste0(var, ""))
       
-      # --- Initialize Vectors for Manual Scales ---
-      # Using named vectors to ensure strict mapping
       manual_colors <- c()
       manual_linetypes <- c()
       manual_shapes <- c() 
       
-      # --- Logic Branching: Scatter vs Line Plot ---
-      
       is_scatter_metrics <- (length(mappedCols) > 0 && input$plotType != "line")
-      
-      # Check Legend Visibility
       show_legend <- if(exists("legendVisible") && is.function(legendVisible)) legendVisible() else TRUE
       
-      # Initialize ggplot
-      # CHANGE 1: Set base_family to "sans" (Arial/Helvetica) for a cleaner look
       p <- ggplot() + theme_bw(base_family = "sans") + 
         theme(
-          text = element_text(size = 12, family = "sans"), # Ensure text elements use the font
+          text = element_text(size = 12, family = "sans"),
           axis.text.x = element_text(size = exportSettings$tickfontx),
           axis.text.y = element_text(size = exportSettings$tickfonty),
           legend.text = element_text(size = exportSettings$legendfont),
-          axis.title.y = element_text(margin = margin(t = 0, r = -20, b = 0, l = 0)),
-          # Adjusted margin (removed specific axis padding since title is gone)
-          plot.margin = margin(10, 10, 35, 10), 
-          # Legend Position: Top
+          axis.title.y = element_text(margin = margin(t = 0, r = -20, b = 0, l = 0), size = exportSettings$ytitlefont),
+          plot.margin = margin(5, 10, 10, 10), 
           legend.position = if (show_legend) "top" else "none",
           legend.direction = "horizontal",
           legend.box = "vertical",
-          # CHANGE: Increased spacing between the plot and the legend to avoid collision
-          legend.box.spacing = unit(0.5, "cm")
+          legend.box.spacing = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent", color = NA),
+          legend.key = element_rect(fill = "transparent", color = NA)
         )
       
-      # Helper to pad y-axis labels to fixed width for alignment
-      pad_labels <- function(x) {
-        format(x, trim = FALSE, width = 10, justify = "right") 
-      }
+      pad_labels <- function(x) { format(x, trim = FALSE, width = 10, justify = "right") }
       
       if (is_scatter_metrics) {
         # --- SCATTER PLOT ---
-        
         global_abs_min <- Inf
         global_abs_max <- -Inf
         
@@ -6708,7 +6702,6 @@ observe({
           plot_data <- merge(sim_data, meas_data, by = "Date")
           colnames(plot_data)[3] <- "measured" 
           
-          # Map all aesthetics to ensure correct guide generation if needed later
           p <- p + geom_point(data = plot_data, 
                               aes(x = measured, y = sim, color = label_name, shape = label_name),
                               size = 2)
@@ -6724,20 +6717,16 @@ observe({
         
       } else {
         # --- TIME SERIES PLOT ---
-        
-        # 1. Previous Run Line
         if (!is.null(filteredPrev) && input$lastRun) {
           prev_df <- data.frame(Date = filteredDates, Value = filteredPrev[, var])
           p <- p + geom_line(data = prev_df, 
                              aes(x = Date, y = Value, color = prev_legend_label, linetype = prev_legend_label),
                              linewidth = custom$line_width)
-          
           manual_colors[prev_legend_label] <- "#2b2bf8ef"
           manual_linetypes[prev_legend_label] <- fix_linetype(custom$line_type)
-          manual_shapes[prev_legend_label] <- NA # Lines don't have shapes
+          manual_shapes[prev_legend_label] <- NA 
         }
         
-        # 2. Current Run Line
         curr_df <- data.frame(Date = filteredDates, Value = filteredNext[, var])
         curr_lbl <- if(!is.null(filteredPrev) && input$lastRun) current_legend_label else current_legend_label_single
         
@@ -6749,7 +6738,6 @@ observe({
         manual_linetypes[curr_lbl] <- fix_linetype(custom$line_type)
         manual_shapes[curr_lbl] <- NA
         
-        # 3. Additional Variables
         if (!is.null(custom$additional_vars)) {
           for (add_var in custom$additional_vars){
             if (add_var != var && add_var %in% colnames(filteredNext)) {
@@ -6773,7 +6761,6 @@ observe({
                 p <- p + geom_line(data = prev_add_df, 
                                    aes(x = Date, y = Value, color = prev_lbl, linetype = prev_lbl),
                                    linewidth = add_custom$line_width)
-                
                 manual_colors[prev_lbl] <- alpha(add_custom$line_color, 0.5)
                 manual_linetypes[prev_lbl] <- fix_linetype(add_custom$line_type)
                 manual_shapes[prev_lbl] <- NA
@@ -6787,7 +6774,6 @@ observe({
                     if(input$avoid_negative){
                       if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
                     }
-                    
                     m_row <- metrics_df[metrics_df$Measurement == col, ]
                     rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
                     bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
@@ -6796,18 +6782,14 @@ observe({
                     meas_lbl <- paste0(col, " Measurement\n", metric_label)
                     
                     meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
-                    
-                    # Ensure shape is mapped correctly
                     current_shape <- as.integer(add_custom$meas_marker_type)
                     if (is.na(current_shape)) current_shape <- 16
                     
-                    # Map both color and shape. DO NOT map linetype for points.
                     p <- p + geom_point(data = meas_df,
                                         aes(x = Date, y = Value, color = meas_lbl, shape = meas_lbl),
                                         size = add_custom$meas_marker_size)
-                    
                     manual_colors[meas_lbl] <- add_custom$meas_marker_color
-                    manual_linetypes[meas_lbl] <- "blank" # Use blank so line key is invisible for points
+                    manual_linetypes[meas_lbl] <- "blank" 
                     manual_shapes[meas_lbl] <- current_shape
                   }
                 }
@@ -6816,15 +6798,12 @@ observe({
           }
         }
         
-        # 4. Primary Measurements
         if (length(mappedCols) > 0 && isTRUE(custom$show_measurements)) {
           for (col in mappedCols) {
             yData <- df_filtered[[col]]
-            
             if(input$avoid_negative){
               if (var %in% c("GPP", "TR")) yData[yData < 0] <- NA
             }
-            
             m_row <- metrics_df[metrics_df$Measurement == col, ]
             rmse_str <- if (nrow(m_row) > 0 && !is.na(m_row$RMSE)) sprintf("RMSE: %.2f", m_row$RMSE) else "RMSE: NA"
             bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
@@ -6833,89 +6812,72 @@ observe({
             meas_lbl <- paste0(col, " Measurement\n", metric_label)
             
             meas_df <- data.frame(Date = df_filtered$Date, Value = yData)
-            
-            # Use integer shape
             current_shape <- as.integer(custom$meas_marker_type)
             if (is.na(current_shape)) current_shape <- 16
             
-            # Map both color and shape. DO NOT map linetype for points.
             p <- p + geom_point(data = meas_df,
                                 aes(x = Date, y = Value, color = meas_lbl, shape = meas_lbl),
                                 size = custom$meas_marker_size)
-            
             manual_colors[meas_lbl] <- custom$meas_marker_color
             manual_linetypes[meas_lbl] <- "blank" 
             manual_shapes[meas_lbl] <- current_shape
           }
         }
         
-        # 5. Planting Dates
-         
-            planting_dates <- rv$epc_dates
+        planting_dates <- rv$epc_dates
         if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-            selected_planting <- planting_dates %>%
-                dplyr::filter(lubridate::year(DATE) %in% selectedYears)
-            
-            if (nrow(selected_planting) > 0) {
-                labels_df <- data.frame(Date = selected_planting$DATE, Label = "", StringsAsFactors = FALSE)
-                for (i in 1:nrow(selected_planting)) {
-                current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
-                if (input$singleYear || length(selectedYears) <= 3) {
-                    epc_labels <- sapply(current_epcs, function(epc) {
-                    idx <- which(rv$epc_files == epc)
-                    if (length(idx) > 0) rv$epc_labels[idx] else epc
-                    })
-                    labels_df$Label[i] <- paste(unique(epc_labels), collapse = ", ")
-                } else {
-                    epc_numbers <- sapply(current_epcs, function(epc) {
-                    idx <- which(rv$epc_files == epc)
-                    if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                    })
-                    labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
-                }
-                }
-                if(input$showPlanting) {
-                # CHANGE 2: Increased size for Planting Labels (was 3, now 5)
-                p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
-                                    shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
-                geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
-                            vjust = 2.5, color = "#047704", size = 5) 
-                #geom_text(data = labels_df, aes(x = Date, y = -Inf, label = "▼"),
-                #          vjust = -0.2, color = "#047704", size = 4)
-                p <- p + coord_cartesian(clip = "off") 
-                }
-            }
-        }
-        
-        # 6. Harvest Dates
-        if(input$showHarvest) {
-          if ("HarvestDates" %in% names(rv$epc_dates)) {
-            selected_harvest <- planting_dates %>%
-              dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
-            
-            if (nrow(selected_harvest) > 0) {
-              h_labels_df <- data.frame(Date = selected_harvest$HarvestDates, Label = "", StringsAsFactors = FALSE)
-              for (i in 1:nrow(selected_harvest)) {
-                 current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
-                 epc_numbers <- sapply(current_epcs, function(epc) {
-                   idx <- which(rv$epc_files == epc)
-                   if (length(idx) > 0) rv$epc_num_labels[idx] else epc
-                 })
-                 h_labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
+          selected_planting <- planting_dates %>%
+            dplyr::filter(lubridate::year(DATE) %in% selectedYears)
+          if (nrow(selected_planting) > 0) {
+            labels_df <- data.frame(Date = selected_planting$DATE, Label = "", StringsAsFactors = FALSE)
+            for (i in 1:nrow(selected_planting)) {
+              current_epcs <- unlist(strsplit(selected_planting$`CROP(file)`[i], " +"))
+              if (input$singleYear || length(selectedYears) <= 3) {
+                epc_labels <- sapply(current_epcs, function(epc) {
+                  idx <- which(rv$epc_files == epc)
+                  if (length(idx) > 0) rv$epc_labels[idx] else epc
+                })
+                labels_df$Label[i] <- paste(unique(epc_labels), collapse = ", ")
+              } else {
+                epc_numbers <- sapply(current_epcs, function(epc) {
+                  idx <- which(rv$epc_files == epc)
+                  if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                })
+                labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
               }
-              
-              # CHANGE 2: Increased size for Harvest Labels (was 3, now 5)
-              p <- p + geom_point(data = h_labels_df, aes(x = Date, y = -Inf), 
-                                  shape = 24, fill = "#6c4a00", color = "black", size = 3, stroke = 0.5) +
-                geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = Label),
-                          vjust = 2.5, color = "#6c4a00", size = 5) 
-                # geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = "▲"),
-                #          vjust = -0.2, color = "#6c4a00", size = 4)
+            }
+            if(input$showPlanting) {
+              p <- p + geom_point(data = labels_df, aes(x = Date, y = -Inf), 
+                                  shape = 25, fill = "#047704", color = "black", size = 3, stroke = 0.5) +
+                geom_text(data = labels_df, aes(x = Date, y = -Inf, label = Label),
+                          vjust = 2.5, color = "#047704", size = 5) 
+              p <- p + coord_cartesian(clip = "off") 
             }
           }
         }
         
-        # 7. Phenophases
+        if(input$showHarvest) {
+          if ("HarvestDates" %in% names(rv$epc_dates)) {
+            selected_harvest <- planting_dates %>%
+              dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
+            if (nrow(selected_harvest) > 0) {
+              h_labels_df <- data.frame(Date = selected_harvest$HarvestDates, Label = "", StringsAsFactors = FALSE)
+              for (i in 1:nrow(selected_harvest)) {
+                current_epcs <- unlist(strsplit(selected_harvest$`CROP(file)`[i], " +"))
+                epc_numbers <- sapply(current_epcs, function(epc) {
+                  idx <- which(rv$epc_files == epc)
+                  if (length(idx) > 0) rv$epc_num_labels[idx] else epc
+                })
+                h_labels_df$Label[i] <- paste(unique(epc_numbers), collapse = ", ")
+              }
+              p <- p + geom_point(data = h_labels_df, aes(x = Date, y = -Inf), 
+                                  shape = 24, fill = "#6c4a00", color = "black", size = 3, stroke = 0.5) +
+                geom_text(data = h_labels_df, aes(x = Date, y = -Inf, label = Label),
+                          vjust = 2.5, color = "#6c4a00", size = 5) 
+            }
+          }
+        }
+        
         if(input$showPheno) {
           if("n_actphen" %in% colnames(outputData())){
             sim_df <- outputData()
@@ -6930,8 +6892,6 @@ observe({
               dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
             
             if(nrow(transition_df) > 0){
-              # CHANGE 3: Changed vjust to -1 (moves text higher up, outside plot) 
-              # and increased size to 5
               p <- p + geom_vline(data = transition_df, aes(xintercept = Date),
                                   linetype = "dotted", color = "#047704", linewidth = 0.5) +
                 geom_text(data = transition_df, aes(x = Date, y = Inf, label = n_actphen),
@@ -6941,8 +6901,7 @@ observe({
             myShowNotification("Variable n_actphen not found", type = "error")
           }
         }
-
-        # Apply Formatting
+        
         date_format_str <- "%Y-%m-%d"
         date_break_str <- "1 year"
         if (input$singleYear || length(selectedYears) == 1) {
@@ -6951,81 +6910,79 @@ observe({
           date_format_str <- "%b %Y"; date_break_str <- "2 months"
         } else {
           date_format_str <- "%Y"
-          # 2) Dynamic date breaks for long time series
           n_years <- length(selectedYears)
-          if(n_years > 120) {
-             date_break_str <- "8 years"
-          } 
-          else if (n_years > 30) {
-             date_break_str <- "5 years"
-          }
-          else if (n_years > 15) {
-             date_break_str <- "2 years"
-          } else {
-             date_break_str <- "1 year"
-          }
+          if(n_years > 120) { date_break_str <- "8 years" } 
+          else if (n_years > 30) { date_break_str <- "5 years" }
+          else if (n_years > 15) { date_break_str <- "2 years" } 
+          else { date_break_str <- "1 year" }
         }
         
         p <- p + scale_x_date(date_labels = date_format_str, 
                               date_breaks = date_break_str, 
                               limits = range(filteredDates, na.rm=TRUE),
                               expand = c(0, 0)) +
-          # Remove X axis titles
           labs(y = var, x = NULL) +
-          # 1) Use padded labels to ensure alignment on left side
           scale_y_continuous(labels = pad_labels)
         
         if (!is.null(custom$y_min) && !is.null(custom$y_max)) {
-           p <- p + coord_cartesian(ylim = c(custom$y_min, custom$y_max), clip = "off") 
+          p <- p + coord_cartesian(ylim = c(custom$y_min, custom$y_max), clip = "off") 
         } else {
-           p <- p + coord_cartesian(clip = "off") 
+          p <- p + coord_cartesian(clip = "off") 
         }
-
       } 
       
-      # --- CRITICAL FIX FOR MANUAL SCALES ---
       if (length(manual_colors) > 0) {
-        # Debugging Output to Console
-        # print("--- Debugging Plot Scales ---")
-        # print("Manual Colors:")
-        # print(manual_colors)
-        # print("Manual Linetypes:")
-        # print(manual_linetypes)
-        # print("Manual Shapes:")
-        # print(manual_shapes)
-        
-        # 1. Define strictly unique ordered labels based on what was collected
         ordered_labels <- names(manual_colors)
-        
-        # 2. Extract strictly matching vectors for overrides
-        #    Using unname() prevents label mismatches in the guide construction
         override_linetypes <- unname(manual_linetypes[ordered_labels])
         override_shapes    <- unname(manual_shapes[ordered_labels])
         
-        # 3. Create a single robust guide object attached ONLY to color
-        #    We hide the other guides to prevent merging conflicts
         unified_guide <- guide_legend(
           override.aes = list(
             linetype = override_linetypes,
             shape = override_shapes,
-            color = unname(manual_colors[ordered_labels]) # Explicitly set color too
+            color = unname(manual_colors[ordered_labels])
           ),
           nrow = 1,
           order = 1
         )
-        
-        # 4. Apply scales with specific guide settings
-        #    We set guide = "none" for linetype and shape so ggplot doesn't create separate legends
-        #    or try to merge them incorrectly. We use the color guide as the "Master" legend.
         p <- p + 
           scale_color_manual(values = manual_colors, breaks = ordered_labels, name = "", guide = unified_guide) +
           scale_linetype_manual(values = manual_linetypes, breaks = ordered_labels, name = "", guide = "none") +
           scale_shape_manual(values = manual_shapes, breaks = ordered_labels, name = "", na.value = NA, guide = "none")
       }
-
-      return(p)
       
+      return(p)
+    } 
+    # --- END HELPER FUNCTION ---
+    
+    # Render the plot into the UI
+    output[[paste0("plot_", var)]] <- renderPlot({
+      build_plot()
     }) 
+    
+    # Handle the download event using the dynamically retrieved settings
+    output[[paste0("download_", var)]] <- downloadHandler(
+      filename = function() {
+        paste0("Plot_", var, ".", exportSettings$format)
+      },
+      content = function(file) {
+        # Build identical plot locally
+        p_out <- build_plot()
+        
+        # Save plot referencing user settings.
+        ggsave(
+          filename = file,
+          plot = p_out,
+          device = exportSettings$format,
+          width = exportSettings$width,
+          height = exportSettings$height,
+          units = "px",     # 'px' is supported in recent versions of ggplot2
+          dpi = exportSettings$dpi,
+          bg = "white"      # Ensuring png/jpeg has solid bg
+        )
+      }
+    )
+    
   })
 })
 
