@@ -584,11 +584,19 @@ function wrapText(elementId, openTag, closeTag) {
     ),
 
     
-    # Default keyboard shortcut for running the model
+    # Default keyboard shortcut for running the model and force run 
     tags$script(HTML("
       $(document).on('keydown', function(event) {
-          if (event.ctrlKey && event.key === 'Enter') {
+          //  Force Run Shortcut (Ctrl + Shift + Enter)
+          if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
+              Shiny.setInputValue('forceRunFlag', Math.random());
+              $('#runModel').click(); 
+              event.preventDefault();
+          } 
+          // Normal Run Shortcut (Ctrl + Enter)
+          else if (event.ctrlKey && !event.shiftKey && event.key === 'Enter') {
               $('#runModel').click();
+              event.preventDefault();
           }
       });
     ")),
@@ -1046,7 +1054,7 @@ tuneMusoServer2 <- function(input, output, session){
     #epcIni <- settings$epcInput[2]
     #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
-    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list())
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list(), last_force_run = NULL)
 
 
 
@@ -1527,45 +1535,54 @@ tuneMusoServer2 <- function(input, output, session){
 
 
 
-            observe({
+        observe({
             req(measurementData())
             # Get all column names except Date
             cols <- setdiff(colnames(measurementData()), "Date")
             updateCheckboxGroupInput(session, "colsToDelete", choices = cols, selected = character(0))
-            })
+        })
 
             
-            output$measurementTable <- DT::renderDataTable({
-                req(measurementData())
-                df <- measurementData()     
-                df_display <- df
-                
-
-
-                cols_to_rename <- setdiff(names(df), "Date")
+        output$measurementTable <- DT::renderDataTable({
+            req(measurementData())
+            df <- measurementData()     
+            df_display <- df
             
-                numeric_cols <- sapply(df_display, is.numeric)
-                df_display[numeric_cols] <- lapply(df_display[numeric_cols], round, digits = 5)
-                df_display[is.na(df_display)] <- "NA"
-                
-      DT::datatable(df_display,
+            # FILTERING LOGIC
+            # Identify measurement columns (everything except "Date")
+            meas_cols <- setdiff(names(df_display), "Date")
+            
+            # Keep rows where the count of non-NA measurement values is > 0
+            if (length(meas_cols) > 0) {
+                has_valid_data <- rowSums(!is.na(df_display[, meas_cols, drop = FALSE])) > 0
+                df_display <- df_display[has_valid_data, ]
+            }
+            # -----------------------------------
+
+            cols_to_rename <- setdiff(names(df_display), "Date")
+        
+            numeric_cols <- sapply(df_display, is.numeric)
+            df_display[numeric_cols] <- lapply(df_display[numeric_cols], round, digits = 5)
+            
+            # Replace remaining NA values with the string "NA" for display
+            df_display[is.na(df_display)] <- "NA"
+            
+            DT::datatable(df_display,
                 editable = FALSE,
                 options = list(
-                  pageLength = 50,
-                  scrollX = FALSE,          # Enables horizontal scrolling, disabled though because for some reason the data table gets small
-                  lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
-                                    c("10", "25", "50", "100", "500", "1000")),
-                  scrollY = "400px",
-                  autoWidth = TRUE,
-                  stateSave = TRUE
+                    pageLength = 50,
+                    scrollX = FALSE,          # Would enable horizontal scrolling, disabled though because for some reason the data table gets small and inconsistent
+                    lengthMenu = list(c(10, 25, 50, 100, 500, 1000),
+                                      c("10", "25", "50", "100", "500", "1000")),
+                    scrollY = "400px",
+                    autoWidth = TRUE,
+                    stateSave = TRUE
                 ),
                 rownames = FALSE)
-
-        
         })
         
 
-            # When the user clicks the delete button, remove the selected columns
+        # When the user clicks the delete button, remove the selected columns
         observeEvent(input$deleteCols, {
             req(measurementData()) # Ensure measurementData is not NULL before proceeding
             
@@ -3549,8 +3566,22 @@ tuneMusoServer2 <- function(input, output, session){
 
 
         #### MODEL RUN ####
-    observeEvent(list(input$runModel, input$runMusoExtra), {
+    
+ observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
+        
+        # Determine if this execution was triggered by a Force Run 
+        is_force_run <- FALSE
+        current_force <- input$forceRunFlag
+        last_force <- isolate(rv$last_force_run)
+        
+        if (!is.null(current_force)) {
+            if (is.null(last_force) || current_force != last_force) {
+                is_force_run <- TRUE
+                rv$last_force_run <- current_force
+            }
+        }
+
         #epc <- input$selected_epc
         original_epc_values <- list()
         on.exit({
@@ -3709,16 +3740,20 @@ tuneMusoServer2 <- function(input, output, session){
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
-                myShowNotification("No changes in SOIL parameters detected since last good run, soil file wasn't written", type = "warning", duration = 8)
+                myShowNotification("No changes in SOIL parameters detected since last good run, soil file wasn't written", type = "warning", duration = 7)
             }
         }
 
-            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
-                myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
-                                type = "message", duration = 9)
-                w$hide()
-                return()  
-            }
+        # Conditionally bypass parameter change checks if is_force_run is TRUE
+        if (!is_force_run && !firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+            myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
+                            type = "message", duration = 9)
+            w$hide()
+            return()  
+        } else if (is_force_run && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+            # Provide feedback that a Force Run took place despite no changes
+            showNotification("Force Run triggered: Running the model anyway", type = "message", duration = 5)
+        }
 
         if(runSpinup){
             showNotification("Running the model with SPINUP run...", type = "message", duration = 5)
@@ -5726,132 +5761,7 @@ observeEvent(input$make_output, {
         }
     })
 
-    # auto update function
-    # observe({
-    #     req(input$autoupdate, sliderDebounce())
-
-    #        if (isRunning()) return()
-    #         isRunning(TRUE)
-    #         on.exit(isRunning(FALSE))
-
-    #     isolate({
-    #         updateCurrentEPCValues()
-    #         #epc <- input$selected_epc
-            
-    #         for (epc in rv$epc_files) {
-    #             paramVal <- epcValues[[epc]]
-    #         if (is.null(paramVal)) {
-    #             paramVal <- InitialDefaults[[epc]]  # Fallback to initial defaults if needed
-    #         }
-    #         if (identical(paramVal, InitialDefaults[[epc]])) next # Skip writing if no changes
-    #         settings$epcInput[["normal"]] <- epc
-    #         prettyChangeMuso(settings, paramVal, 
-    #                 calibrationPar = parameters[, 2], 
-    #                 fileToChange = "epc", 
-    #                 fixAlloc = FALSE)
-    #         #print(paste0("Written for: ", epc))
-    #         myShowNotification(paste0(epc), type = "message", duration = 5)
-            
-    #     }
-
-    #     if (!is.null(soil_parameters())){
-    #         updateCurrentSoilValues()
-    #         paramVal <- soilValues$values
-    #         if (!identical(paramVal, InitialDefaultsSoil$values)) {
-    #             req(soil_file(), soil_parameters())
-    #             prettyChangeMuso(settings, paramVal, calibrationPar = soil_parameters()[,2],
-    #                     fileToChange = "soil", fixAlloc = FALSE)
-    #             #myShowNotification(paste0("Parameter slider values written into the soil file."), type = "message", duration = 7)
-    #         }
-    #     }
-
-    #     })
-             
-
-    #     isolate({
-    #         if(input$destination == "auto") {
-    #             outputList$prev <- outputList$nextVal
-    #                model_future <- future({
-    #             calibMuso(settings = settings, silent = TRUE)
-    #         })
-
-    #         result <- tryCatch({
-    #             value(model_future)
-    #             }, error = function(e) {
-    #                 modelCrashed(TRUE)
-    #             # If there's an error (model crash), trigger a non-intrusive toast confirmation
-    #             if(isTRUE(exportSettings$auto_reset)){
-    #                 resetToLastGoodValues()
-    #                 #showNotification(paste("Model error:", e$message, "\nResetting to last good values..."), type = "error")
-    #             }
-    #             else {
-    #                 confirmSweetAlert(
-    #                     session = session,
-    #                     inputId = "resetConfirm",
-    #                     title = "Model Crash!",
-    #                     text = "The model crashed. Would you like to reset parameters to the last good values?",
-    #                     type = "warning",
-    #                     btn_labels = c("No", "Yes"),
-    #                     closeOnClickOutside = TRUE,
-    #                     timer = 0,         # No auto-dismiss
-    #                     toast = TRUE,      # Makes it a non-blocking toast-style popup
-    #                     position = "top-right"
-    #                 )
-    #             }
-    #                 return(NULL)
-    #             })
-
-    #     if (length(result) == 0) {
-    #         myShowNotification("Model did not return results! The parameters chosen are likely causing instability in the model!", type = "error", duration = 10)
-    #          if(isTRUE(exportSettings$auto_reset)) myShowNotification("Resetting to last good values...", type = "message", duration = 8)
-    #     } else {
-    #     modelCrashed(FALSE)
-    #     print("Model ran successfully")
-    #     #showNotification("Model ran successfully", type = "message")
-        
-    #     updateLastGoodValues()
-
-    #     dfs_orig <- as.data.frame(result, check.names = FALSE)  # 'result' is the simulation output matrix
     
-
-    #     if (length(newVars$defs) > 0) {
-          
-    #             for (var_name in names(newVars$defs)) {
-    #                 def <- newVars$defs[[var_name]]
-    #                 pattern <- paste0("^", def$base_variable, "\\[")
-    #                 base_cols <- grep(pattern, names(dfs_orig), value = TRUE)
-                     
-    #                 if (length(base_cols) == 0) {
-    #                     showNotification(paste("No columns found for base variable", def$base_variable), type = "error")
-    #                     next
-    #                 }
-    #                 pattern_ind <- paste0(def$base_variable, "\\[|\\]")
-    #                 base_indices <- as.numeric(gsub(pattern_ind, "", base_cols))
-    #                 current_layers <- layers[base_indices + 1]  
-                    
-    #                 new_val <- apply(dfs_orig[, base_cols, drop = FALSE], 1, function(r) {
-    #                 swc_vals <- as.numeric(r)
-    #                 midpoint_trend_swc(swc_vals, def$max_depth, current_layers)
-    #                 })
-    #                 dfs_orig[[var_name]] <- new_val
-    #             }
-    #         result <- as.matrix(dfs_orig)
-    #     }
-    #     outputList$nextVal <- result
-
-    #         }}
-            
-            
-    #          else {
-    #             outputList[[input$destination]] <- calibMuso(
-    #                 settings = settings,
-    #                 silent = TRUE
-    #             )
-    #         }
-    #     })
-            
-        
-    # }) %>% bindEvent(sliderDebounce()) #triggering the event upon slider change
 
 
         # hotkey insertions
@@ -6598,10 +6508,10 @@ observe({
   
   lapply(input$selected_vars, function(var) {
     
-    # --- HELPER FUNCTION: Extracts plot building logic so we can reuse it for the download button ---
+    # HELPER FUNCTION: Extracts plot building logic so we can reuse it for the download button 
     build_plot <- function() {
       
-      # --- Data Preparation ---
+      # Data Preparation
       if (isTRUE(input$singleYear)) {
         validate(need(is.finite(input$yearRange), "Year not available yet"))
         selectedYears <- input$yearRange 
@@ -6653,7 +6563,7 @@ observe({
           axis.text.x = element_text(size = exportSettings$tickfontx),
           axis.text.y = element_text(size = exportSettings$tickfonty),
           legend.text = element_text(size = exportSettings$legendfont),
-          axis.title.y = element_text(margin = margin(t = 0, r = -20, b = 0, l = 0), size = exportSettings$ytitlefont),
+          axis.title.y = element_text(margin = margin(t = 0, r = -14, b = 0, l = 0), size = exportSettings$ytitlefont),
           plot.margin = margin(5, 10, 12, 10), 
           legend.position = if (show_legend) "top" else "none",
           legend.direction = "horizontal",
@@ -6720,7 +6630,7 @@ observe({
           prev_df <- data.frame(Date = filteredDates, Value = filteredPrev[, var])
           p <- p + geom_line(data = prev_df, 
                              aes(x = Date, y = Value, color = prev_legend_label, linetype = prev_legend_label),
-                             linewidth = custom$line_width)
+                             linewidth = custom$line_width+0.5)
           manual_colors[prev_legend_label] <- "#2b2bf8ef"
           manual_linetypes[prev_legend_label] <- fix_linetype(custom$line_type)
           manual_shapes[prev_legend_label] <- NA 
@@ -6906,7 +6816,7 @@ observe({
         if (input$singleYear || length(selectedYears) == 1) {
           date_format_str <- "%b %Y"; date_break_str <- "1 month"
         } else if (length(selectedYears) <= 3) {
-          date_format_str <- "%b %Y"; date_break_str <- "2 months"
+          date_format_str <- "%b %Y"; date_break_str <- "3 months"
         } else {
           date_format_str <- "%Y"
           n_years <- length(selectedYears)
@@ -6952,7 +6862,7 @@ observe({
       
       return(p)
     } 
-    # --- END HELPER FUNCTION ---
+    # END HELPER FUNCTION 
     
     # Render the plot into the UI
     output[[paste0("plot_", var)]] <- renderPlot({
@@ -6975,7 +6885,7 @@ observe({
           device = exportSettings$format,
           width = exportSettings$width,
           height = exportSettings$height,
-          units = "px",     # 'px' is supported in recent versions of ggplot2
+          units = "px",     
           dpi = exportSettings$dpi,
           bg = "white"      # Ensuring png/jpeg has solid bg
         )

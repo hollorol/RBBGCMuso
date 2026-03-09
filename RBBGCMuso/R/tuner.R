@@ -586,8 +586,16 @@ function wrapText(elementId, openTag, closeTag) {
     # Default keyboard shortcut for running the model
     tags$script(HTML("
       $(document).on('keydown', function(event) {
-          if (event.ctrlKey && event.key === 'Enter') {
+          //  Force Run Shortcut (Ctrl + Shift + Enter)
+          if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
+              Shiny.setInputValue('forceRunFlag', Math.random());
+              $('#runModel').click(); 
+              event.preventDefault();
+          } 
+          // Normal Run Shortcut (Ctrl + Enter)
+          else if (event.ctrlKey && !event.shiftKey && event.key === 'Enter') {
               $('#runModel').click();
+              event.preventDefault();
           }
       });
     ")),
@@ -1044,7 +1052,7 @@ tuneMusoServer <- function(input, output, session){
     #epcIni <- settings$epcInput[2]
     #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
-    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list())
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list(), last_force_run = NULL)
 
 
 
@@ -3547,8 +3555,22 @@ tuneMusoServer <- function(input, output, session){
 
 
         #### MODEL RUN ####
-    observeEvent(list(input$runModel, input$runMusoExtra), {
+   
+ observeEvent(list(input$runModel, input$runMusoExtra), {
         req(input$selected_epc)
+        
+        # Determine if this execution was triggered by a Force Run 
+        is_force_run <- FALSE
+        current_force <- input$forceRunFlag
+        last_force <- isolate(rv$last_force_run)
+        
+        if (!is.null(current_force)) {
+            if (is.null(last_force) || current_force != last_force) {
+                is_force_run <- TRUE
+                rv$last_force_run <- current_force
+            }
+        }
+
         #epc <- input$selected_epc
         original_epc_values <- list()
         on.exit({
@@ -3707,16 +3729,20 @@ tuneMusoServer <- function(input, output, session){
                 myShowNotification(paste0(soil_file(), " written"), type = "message", duration = 7)
             }
             else if (!firstRun()){
-                myShowNotification("No changes in SOIL parameters detected since last good run, soil file wasn't written", type = "warning", duration = 8)
+                myShowNotification("No changes in SOIL parameters detected since last good run, soil file wasn't written", type = "warning", duration = 7)
             }
         }
 
-            if (!firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
-                myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
-                                type = "message", duration = 9)
-                w$hide()
-                return()  
-            }
+        # Conditionally bypass parameter change checks if is_force_run is TRUE
+        if (!is_force_run && !firstRun() && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+            myShowNotification("No changes in EPC and/or SOIL parameters or comparison bonds detected since last good run. Not running the model", 
+                            type = "message", duration = 9)
+            w$hide()
+            return()  
+        } else if (is_force_run && (modifiedEpcList == 0 && (is.null(soil_parameters()) || !soilChanged) && !bondsChanged)) {
+            # Provide feedback that a Force Run took place despite no changes
+            showNotification("Force Run triggered: Running the model anyway", type = "message", duration = 5)
+        }
 
         if(runSpinup){
             showNotification("Running the model with SPINUP run...", type = "message", duration = 5)
@@ -6100,9 +6126,13 @@ observeEvent(input$make_output, {
           observeEvent(input$settings_btn, {
             showModal(modalDialog(
             title = "Settings",
-            div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
-                    paste("Current Working Directory:", workdir)
-            ),
+            # div(style = "font-weight: bold; color: #333; margin-bottom: 10px;",
+            #         paste("Current Working Directory:", workdir)
+            # ),
+            HTML(paste0(
+                "<strong>Current Working Directory:</strong><br>",
+                "<strong>", workdir, "</strong><br><br>"
+            )),
             selectInput("export_format", "Image Export Format",
                         choices = c("png","jpeg","webp","svg"),
                         selected = exportSettings$format
