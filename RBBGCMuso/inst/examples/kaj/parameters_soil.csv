@@ -1,0 +1,7 @@
+ABREVIATION,INDEX,min,max     
+SoilDepth,4,0.2,5
+RateConstantLabileLitter,49,0.01,0.7
+LimitOfFirstStEv,62,0,6
+SoiEvapLimit1,63,0.05,1.
+SoilEvapLimit1,64,1,10.
+MulchEvapReduction,76,0.1,5.

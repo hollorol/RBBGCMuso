@@ -1,0 +1,41 @@
+MANAGEMENT_INFORMATION MuSo7
+-------------------------------------------------------------------------------------------------------------------
+PLANTING
+1                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+kajaszo.plt
+-------------------------------------------------------------------------------------------------------------------
+THINNING
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+MOWING
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+GRAZING
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+HARVESTING
+1                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+kajaszo.hrv
+-------------------------------------------------------------------------------------------------------------------
+PLOUGHING
+1                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+kajaszo.plg
+-------------------------------------------------------------------------------------------------------------------
+FERTILIZING
+1                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+kajaszo.frz
+-------------------------------------------------------------------------------------------------------------------
+IRRIGATING
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+MULCHING
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
+-------------------------------------------------------------------------------------------------------------------
+CWD-EXTRACT
+0                                (flag) flag of management action: 0 - no MGM, 1 - MGM information from file below 
+none
