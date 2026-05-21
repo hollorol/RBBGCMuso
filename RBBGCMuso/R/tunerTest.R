@@ -2195,7 +2195,7 @@ tuneMusoServer2 <- function(input, output, session){
     # year range refresh delay
     debounced_yearRange <- reactive({
         input$yearRange
-    }) %>% debounce(500)
+    }) %>% debounce(1200)
 
     # Year range sliders
     output$yearRangeUI <- renderUI({
