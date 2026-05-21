@@ -766,7 +766,7 @@ function wrapText(elementId, openTag, closeTag) {
                                                 uiOutput("yearRangeMeas"),
                                                 checkboxInput("avoid_negative", "Hide negative measurement values on the plot for GPP and TR", value = TRUE),
                                                 checkboxInput("keepMapping", "Keep mapping upon export", value = TRUE),
-                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = FALSE)
+                                                checkboxInput("saveValid","Keep only valid measurement dates upon export", value = TRUE)
 
                                         ),
                                             
