@@ -1084,12 +1084,12 @@ tuneMusoServer <- function(input, output, session){
 
     # looking for the planting file if there is any, else use the epc file within the ini file
     observe({
-        req(file.exists(settings$iniInput[2]))  # Ensure the INI file exists before reading
-        iniContent <- readLines(settings$iniInput[2])
-        management_file <- searchBellow(iniContent, "MANAGEMENT_FILE", stringP = TRUE, n = 1)
+        req(file.exists(settings$iniInput[2]))
+        # iniContent, management_file, and managementContent are already read once above at startup
+        # (the if-block just before this observer) and live in the server function's scope.
+        # Re-reading the same files here was pure waste — reuse the cached values instead.
 
         if (file.exists(management_file)) {
-            managementContent <- readLines(management_file)
             planting_file <- searchBellow(managementContent, "PLANTING", stringP = TRUE, n = 2)
             harvest_file <- searchBellow(managementContent,"HARVESTING", stringP = TRUE, n = 2)
 
@@ -1209,30 +1209,32 @@ tuneMusoServer <- function(input, output, session){
     dep_groups <- unique(parameters$group[!is.na(parameters$group)])
 
 
-    # Loop over each dependent group and check for each required main index to see if any of the 4 dependent rows are missing
+    # Collect all missing allocation rows into a list, then bind once.
+    # The old approach called rbind() inside the loop, copying the full data frame on every
+    # iteration — O(n²) in the number of missing rows. Collecting first and binding once is O(n).
+    new_rows <- list()
     for (g in dep_groups) {
         for (m in required_main) {
-            # Construct the expected INDEX value 
-            expected_index <- paste0(m, ".", g)
+            expected_index     <- paste0(m, ".", g)
             expected_index_num <- as.numeric(expected_index)
 
-            # Check if this expected_index is present in the parameters data frame
             if (!(expected_index_num %in% parameters$INDEX)) {
-            # The row is missing, we will append a new row
-            
-            new_row <- data.frame(
-                ABREVIATION = paste("Missing", allocationNames[as.character(m)]),
-                INDEX = as.numeric(expected_index),
-                min = 0,   
-                max = 1,    
-                group = g,
-                stringsAsFactors = FALSE
-            )
-            parameters <- rbind(parameters, new_row)
-           message("Added missing parameter row for ", expected_index, " (", allocationNames[as.character(m)], ") since it was not found in parameters.csv")
+                message("Added missing parameter row for ", expected_index,
+                        " (", allocationNames[as.character(m)], ") since it was not found in parameters.csv")
+                new_rows[[length(new_rows) + 1]] <- data.frame(
+                    ABREVIATION      = paste("Missing", allocationNames[as.character(m)]),
+                    INDEX            = expected_index_num,
+                    min              = 0,
+                    max              = 1,
+                    group            = g,
+                    stringsAsFactors = FALSE
+                )
             }
         }
-        }
+    }
+    if (length(new_rows) > 0) {
+        parameters <- rbind(parameters, do.call(rbind, new_rows))
+    }
 
         sliderRanges <- reactiveValues(epcmin = parameters[,3], epcmax = parameters[,4], soimin = NULL, soimax = NULL)
 
@@ -1242,7 +1244,7 @@ tuneMusoServer <- function(input, output, session){
 
         observe({
             req(settings$iniInput[2])
-            iniContent <- readLines(settings$iniInput[2])
+            # iniContent already in server scope from the startup read above — no need to re-read
             sf <- searchBellow(iniContent, "SOIL_FILE", stringP=TRUE, n=1)
             soil_file(sf)
             
@@ -1875,11 +1877,8 @@ tuneMusoServer <- function(input, output, session){
     # Track if a model run is already in progress (needed for auto-update loop bug fix which doesn't work yet)
     isRunning <- reactiveVal(FALSE)
 
-    # Debounced trigger for slider changes
-    sliderDebounce <- reactive({
-        lapply(1:nrow(parameters), function(x) input[[paste0("param_", x)]])
-        TRUE
-    }) %>% debounce(500)  # Debounce time (500ms (0.5 sec)), how long to wait after the last change before triggering the event
+    # sliderDebounce removed — it tracked all slider inputs but always returned TRUE and was
+    # never consumed anywhere, creating O(n) useless reactive dependencies on every slider move.
 
     # making a storage for the previous epc file
     prevEPC <- reactiveVal(NULL)
@@ -2181,11 +2180,6 @@ tuneMusoServer <- function(input, output, session){
     #})
 
 
-    # year range refresh delay
-    debounced_yearRange <- reactive({
-        input$yearRange
-    }) %>% debounce(500)
-
     # Year range sliders
     output$yearRangeUI <- renderUI({
         req(settings)
@@ -2249,12 +2243,16 @@ tuneMusoServer <- function(input, output, session){
         output$param_sliders <- renderUI({
             #wSlider$show()
             if(currentMode() == "epc"){
-            req(input$selected_epc)
-            epc <- input$selected_epc
+            # Depend on rv$epc_files (not input$selected_epc) so the full UI only rebuilds
+            # when the list of files changes (once at startup) or the mode changes.
+            # EPC value updates on file-switch are handled by observeEvent below.
+            req(length(rv$epc_files) > 0)
+            epc <- isolate(input$selected_epc)
+            if (is.null(epc)) epc <- rv$epc_files[1]
             #vals <- currentValues()
-            vals <-  isolate(epcValues[[epc]])
-            if(length(vals) < nrow(parameters) || any(is.na(vals))) {
-                vals <- InitialDefaults[[epc]]
+            vals <- isolate(epcValues[[epc]])
+            if (is.null(vals) || length(vals) < nrow(parameters) || any(is.na(vals))) {
+                vals <- isolate(InitialDefaults[[epc]])
             }
             
             dep_indices <- which(!is.na(parameters$group))
@@ -2450,7 +2448,27 @@ tuneMusoServer <- function(input, output, session){
                 autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
             }, ignoreInit = TRUE)
         })
-    
+
+        # When switching between EPC files, only push new values into the existing sliders.
+        # The full renderUI above no longer depends on input$selected_epc, so this avoids
+        # the expensive DOM teardown/rebuild that happened on every EPC switch.
+        observeEvent(input$selected_epc, {
+            req(input$selected_epc, currentMode() == "epc")
+            epc <- input$selected_epc
+            vals <- isolate(epcValues[[epc]])
+            if (is.null(vals) || length(vals) < nrow(parameters) || any(is.na(vals))) {
+                vals <- isolate(InitialDefaults[[epc]])
+            }
+            non_dep_indices <- which(is.na(parameters$group))
+            for (i in non_dep_indices) {
+                updateSliderInput(session, paste0("param_", i), value = vals[i])
+            }
+            dep_indices <- which(!is.na(parameters$group))
+            for (i in dep_indices) {
+                updateSliderInput(session, paste0("dep_", parameters$INDEX[i]), value = vals[i])
+            }
+        }, ignoreNULL = TRUE)
+
      sliderHistory <- reactiveValues()
 
 # Set time threshold for oscillation detection
@@ -2516,8 +2534,8 @@ tuneMusoServer <- function(input, output, session){
 
     
         # saving the slider values as we move them for the soilValues
-        observe({
-            req(soil_parameters())
+        # once=TRUE ensures observers are registered only once, not re-accumulated on every reactive flush
+        observeEvent(soil_parameters(), {
             lapply(seq_len(nrow(soil_parameters())), function(i) {
                 observeEvent(input[[paste0("soil_param_", i)]], {
                 isolate({
@@ -2527,40 +2545,35 @@ tuneMusoServer <- function(input, output, session){
                 })
                 }, ignoreInit = TRUE)
             })
-        })
+        }, once = TRUE)
 
         # same as the above but for epcValues
-        observe({
-            req(input$selected_epc, parameters)
-            
-            lapply(seq_len(nrow(parameters)), function(i) {
-                # Non-dependent sliders
-                 if (is.na(parameters$group[i])) {
-                    sliderValsDebounced <- reactive({ 
-                            input[[paste0("param_", i)]]
-                        }) %>% debounce(200)
+        # Registered once at server startup (not inside observe) so switching EPC files
+        # does not accumulate additional handler copies on every reactive flush
+        lapply(seq_len(nrow(parameters)), function(i) {
+            # Non-dependent sliders
+            if (is.na(parameters$group[i])) {
+                sliderValsDebounced <- reactive({
+                        input[[paste0("param_", i)]]
+                    }) %>% debounce(200)
 
                 observeEvent(sliderValsDebounced(), {
                     isolate({
-                    
-                    current <- epcValues[[input$selected_epc]]
-                   
-                    current[i] <- input[[paste0("param_", i)]]
-                   
-                    epcValues[[input$selected_epc]] <- current
+                        current <- epcValues[[input$selected_epc]]
+                        current[i] <- input[[paste0("param_", i)]]
+                        epcValues[[input$selected_epc]] <- current
                     })
                 }, ignoreInit = TRUE)
-                } else {
+            } else {
                 # dependent sliders
                 observeEvent(input[[paste0("dep_", parameters$INDEX[i])]], {
                     isolate({
-                    current <- epcValues[[input$selected_epc]]
-                    current[i] <- input[[paste0("dep_", parameters$INDEX[i])]]
-                    epcValues[[input$selected_epc]] <- current
+                        current <- epcValues[[input$selected_epc]]
+                        current[i] <- input[[paste0("dep_", parameters$INDEX[i])]]
+                        epcValues[[input$selected_epc]] <- current
                     })
                 }, ignoreInit = TRUE)
-               }
-            })
+            }
         })
 
         lastSelectedEPC <- reactiveVal(NULL)
@@ -2662,166 +2675,167 @@ tuneMusoServer <- function(input, output, session){
         
 
         ##### sum to 1 counter for allocation ######
-        
-        observe({
-             #wSlider$show()
-            req(input$selected_epc)
-            
-            tol <- 1e-6  # small tolerance to avoid oscillation
-            
-            # Get the unique groups
-            dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-            
-            lapply(dep_groups, function(g) {
+        # Registered once at server startup. The previous pattern (observe wrapping lapply of
+        # observeEvent) re-registered all handlers on every EPC switch, causing accumulation.
+        #
+        # Per-slider programmatic flags replace the old per-group groupUpdatingFlags boolean.
+        # Root cause of oscillation: groupUpdating(FALSE) was reset synchronously at the end of
+        # the observer, but updateSliderInput is async — the secondary slider's debounced reactive
+        # fires 500ms+ later, long after the flag was cleared. The per-slider approach marks each
+        # slider we're about to update programmatically; when that slider's observer fires it sees
+        # the mark, clears it, and returns — no timing assumptions needed.
 
-                # For group g, get the rows and slider IDs
-                group_rows <- which(!is.na(parameters$group) &
-                                    parameters$group == g &
-                                    as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
-                group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
-                ids <- paste0("dep_", parameters$INDEX[group_rows])
-                
-                observeEvent(input[[paste0("autoCalc_", g)]], {
-                    autoCalcStates[[g]] <- input[[paste0("autoCalc_", g)]]
-                })
-                # A flag to prevent recursive updates
-                groupUpdating <- reactiveVal(FALSE)
-                
-                for(i in seq_along(ids)) {
-                local({
-                    j <- i
-                    slider_id <- ids[j]
-                    debouncedSliderVal <- reactive({ input[[slider_id]] }) %>% debounce(500)
-                    
-                    observeEvent(debouncedSliderVal(), {
-                        if (groupUpdating()) return()
-                        groupUpdating(TRUE)
-                        
-                        # Only auto-calc if the auto-calc checkbox is checked for this group
-                        if (isTRUE(isolate(autoCalcStates[[g]]))) {
-                            # Compute total locked for the whole group
-                            locked_vals <- unlist(lapply(ids, function(x) {
-                            if (isTRUE(lockStates[[x]])) {
-                                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                            } else 0
-                            }))
-                            L <- sum(locked_vals)
-                            available_total <- 1 - L
-                            
-                            new_val <- as.numeric(debouncedSliderVal())
-                            # Clamp if new_val exceeds available_total
-                            if (new_val >= available_total - tol) {
-                            new_val <- available_total
-                            updateSliderInput(session, slider_id, value = new_val)
-                            # Set all other unlocked sliders to 0
-                            for (other in ids[-j]) {
-                                if (!isTRUE(lockStates[[other]]))
-                                updateSliderInput(session, other, value = 0)
-                            }
-                            } else {
-                            # Distribute the remaining available among the other unlocked sliders
-                            remaining_available <- available_total - new_val
-                            other_ids <- ids[-j][ !sapply(ids[-j], function(x) isTRUE(lockStates[[x]])) ]
-                            current_unlocked <- unlist(lapply(other_ids, function(x) {
-                                if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                            }))
-                            total_unlocked <- sum(current_unlocked)
-                            if (length(other_ids) > 0) {
-                                if (total_unlocked == 0) {
-                                new_unlocked <- rep(remaining_available / length(other_ids), length(other_ids))
-                                } else {
-                                new_unlocked <- unname(remaining_available * (current_unlocked / total_unlocked))
-                                }
-                                for (k in seq_along(other_ids)) {
-                                updateSliderInput(session, other_ids[k], value = new_unlocked[k])
-                                }
-                        }
-                        }
-                    }
-                    groupUpdating(FALSE)
-                    }, ignoreInit = TRUE)
-                })
-                }
-            })
-            #wSlider$hide()
-        })
-        
-        
+        tol <- 1e-6  # small tolerance to avoid floating-point edge cases
 
-    # immediately recalculate when user presses the auto-calc button
-   observe({
-        req(input$selected_epc)
+        # Build the full list of dep slider IDs across all groups upfront
+        all_dep_slider_ids <- unlist(lapply(dep_groups, function(g) {
+            gr <- which(!is.na(parameters$group) &
+                        parameters$group == g &
+                        as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
+            paste0("dep_", parameters$INDEX[gr])
+        }))
 
-        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
+        # One reactiveVal(FALSE) per slider: TRUE = "this update was programmatic, skip it"
+        programmaticSliders <- setNames(
+            lapply(all_dep_slider_ids, function(id) reactiveVal(FALSE)),
+            all_dep_slider_ids
+        )
 
         lapply(dep_groups, function(g) {
-            observeEvent(input[[paste0("autoCalc_", g)]], {
-                # When autoCalc is toggled ON, INSTANTLY perform a recalculation for group g 
-                if (isTRUE(isolate(autoCalcStates[[g]]))) {
-                    group_rows <- which(!is.na(parameters$group) & parameters$group == g)
-                    ids <- paste0("dep_", parameters$INDEX[group_rows])
-
-                    # Calculate total locked and available for unlocked sliders
-                    locked_vals <- unlist(lapply(ids, function(x) {
-                        if (isTRUE(lockStates[[x]])) {
-                            if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                    } else 0
-                    }))
-                    L <- sum(locked_vals)
-                    available_total <- 1 - L
-
-                    # Identify unlocked sliders
-                    unlocked_ids <- ids[!sapply(ids, function(x) isTRUE(lockStates[[x]]))]
-                    current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
-                        if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
-                    }))
-                    total_unlocked <- sum(current_unlocked)
-
-                    if (length(unlocked_ids) > 0) {
-                        new_unlocked <- if (total_unlocked == 0) {
-                            rep(available_total / length(unlocked_ids), length(unlocked_ids))
-                        } else {
-                            unname(available_total * (current_unlocked / total_unlocked))
-                        }
-                        
-                        for (x in seq_along(unlocked_ids)) {
-                            updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
-                        }
-                    }
-                }
-            }, ignoreInit = TRUE)
-        })
-    })
-
-        # sum counter viusalization
-    observe({
-           
-        req(input$selected_epc)
-        dep_groups <- unique(parameters$group[!is.na(parameters$group)])
-        lapply(dep_groups, function(g) {
+            # For group g, get the rows and slider IDs
             group_rows <- which(!is.na(parameters$group) &
                                 parameters$group == g &
                                 as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
             group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
             ids <- paste0("dep_", parameters$INDEX[group_rows])
-            
-            output[[paste0("sumCounter_", g)]] <- renderText({
+
+            for(i in seq_along(ids)) {
+                local({
+                    j <- i
+                    slider_id <- ids[j]
+                    debouncedSliderVal <- reactive({ input[[slider_id]] }) %>% debounce(500)
+
+                    observeEvent(debouncedSliderVal(), {
+                        # If this fire was caused by a programmatic updateSliderInput, absorb it
+                        if (programmaticSliders[[slider_id]]()) {
+                            programmaticSliders[[slider_id]](FALSE)
+                            return()
+                        }
+
+                        # Only auto-calc if the auto-calc checkbox is checked for this group
+                        if (isTRUE(isolate(autoCalcStates[[g]]))) {
+                            # Compute total locked for the whole group
+                            locked_vals <- unlist(lapply(ids, function(x) {
+                                if (isTRUE(lockStates[[x]])) {
+                                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                                } else 0
+                            }))
+                            L <- sum(locked_vals)
+                            available_total <- 1 - L
+
+                            new_val <- as.numeric(debouncedSliderVal())
+                            # Clamp if new_val exceeds available_total
+                            if (new_val >= available_total - tol) {
+                                new_val <- available_total
+                                # Mark self before clamping update (value may change)
+                                programmaticSliders[[slider_id]](TRUE)
+                                updateSliderInput(session, slider_id, value = new_val)
+                                # Set all other unlocked sliders to 0
+                                for (other in ids[-j]) {
+                                    if (!isTRUE(lockStates[[other]])) {
+                                        programmaticSliders[[other]](TRUE)
+                                        updateSliderInput(session, other, value = 0)
+                                    }
+                                }
+                            } else {
+                                # Distribute the remaining available among the other unlocked sliders
+                                remaining_available <- available_total - new_val
+                                other_ids <- ids[-j][!sapply(ids[-j], function(x) isTRUE(lockStates[[x]]))]
+                                current_unlocked <- unlist(lapply(other_ids, function(x) {
+                                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                                }))
+                                total_unlocked <- sum(current_unlocked)
+                                if (length(other_ids) > 0) {
+                                    if (total_unlocked == 0) {
+                                        new_unlocked <- rep(remaining_available / length(other_ids), length(other_ids))
+                                    } else {
+                                        new_unlocked <- unname(remaining_available * (current_unlocked / total_unlocked))
+                                    }
+                                    for (k in seq_along(other_ids)) {
+                                        programmaticSliders[[other_ids[k]]](TRUE)
+                                        updateSliderInput(session, other_ids[k], value = new_unlocked[k])
+                                    }
+                                }
+                            }
+                        }
+                    }, ignoreInit = TRUE)
+                })
+            }
+        })
+        
+        
+
+    # immediately recalculate when user presses the auto-calc button
+    # Registered once at startup — same fix as the sum-to-1 block above
+    lapply(dep_groups, function(g) {
+        observeEvent(input[[paste0("autoCalc_", g)]], {
+            # When autoCalc is toggled ON, INSTANTLY perform a recalculation for group g
+            if (isTRUE(isolate(autoCalcStates[[g]]))) {
+                group_rows <- which(!is.na(parameters$group) & parameters$group == g)
+                ids <- paste0("dep_", parameters$INDEX[group_rows])
+
+                # Calculate total locked and available for unlocked sliders
+                locked_vals <- unlist(lapply(ids, function(x) {
+                    if (isTRUE(lockStates[[x]])) {
+                        if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                    } else 0
+                }))
+                L <- sum(locked_vals)
+                available_total <- 1 - L
+
+                # Identify unlocked sliders
+                unlocked_ids <- ids[!sapply(ids, function(x) isTRUE(lockStates[[x]]))]
+                current_unlocked <- unlist(lapply(unlocked_ids, function(x) {
+                    if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
+                }))
+                total_unlocked <- sum(current_unlocked)
+
+                if (length(unlocked_ids) > 0) {
+                    new_unlocked <- if (total_unlocked == 0) {
+                        rep(available_total / length(unlocked_ids), length(unlocked_ids))
+                    } else {
+                        unname(available_total * (current_unlocked / total_unlocked))
+                    }
+
+                    for (x in seq_along(unlocked_ids)) {
+                        updateSliderInput(session, unlocked_ids[x], value = new_unlocked[x])
+                    }
+                }
+            }
+        }, ignoreInit = TRUE)
+    })
+
+        # sum counter visualization — registered once at startup
+    lapply(dep_groups, function(g) {
+        group_rows <- which(!is.na(parameters$group) &
+                            parameters$group == g &
+                            as.numeric(sub("\\..*", "", parameters$INDEX)) %in% main_indices)
+        group_rows <- group_rows[order(as.numeric(sub("\\..*", "", parameters$INDEX[group_rows])))]
+        ids <- paste0("dep_", parameters$INDEX[group_rows])
+
+        output[[paste0("sumCounter_", g)]] <- renderText({
             vals <- unlist(lapply(ids, function(x) {
                 if (is.null(input[[x]])) 0 else as.numeric(input[[x]])
             }))
             total <- sum(vals)
             if (total > 1) {
                 paste0("Total sum: ", round(total, 2), " (Warning: Sum > 1!)")
-            } 
-            else if (total < 1){
-                paste0("Total sum: ",round(total, 2), " (Warning: Sum < 1!)")
-            }
-            else {
+            } else if (total < 1) {
+                paste0("Total sum: ", round(total, 2), " (Warning: Sum < 1!)")
+            } else {
                 paste0("Total sum: ", round(total, 2))
             }
-            })
         })
-        
     })
     
 
@@ -4640,10 +4654,12 @@ tuneMusoServer <- function(input, output, session){
         processed <- model_output_processed()
         snapshots <- snapshot_storage()
 
-        # If there are snapshots, merge them with the main data by Date.
+        # If there are snapshots, join them with the main data by Date.
+        # left_join is used instead of merge(): merge() sorts both inputs internally (O(n log n))
+        # even when the data is already date-ordered. left_join skips that sort, which matters
+        # here because outputData() is re-evaluated on every plot refresh.
         if (!is.null(snapshots) && ncol(snapshots) > 1) {
-            # all.x = TRUE ensures we keep all rows from the main model data.
-            merge(processed, snapshots, by = "Date", all.x = TRUE)
+            dplyr::left_join(processed, snapshots, by = "Date")
         } else {
             processed
         }
@@ -6260,7 +6276,6 @@ observeEvent(input$make_output, {
                     <p><strong>Version 2.25.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
-                        <li>Auto-calculation for allocation can make the sliders oscillate between two values due to some latency bugs. If that happens, turn off auto-calc if they can't find values within a few seconds.</li>
                         <li>When deleting a custom variable via reset, plotly will complain it cannot find it (if it was previously plotted), but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
                         <li>Sometimes there will be a notification for an epc modification (in crop rotation) even if we didn't move any of its sliders. In that case, don't worry it didn't change any of its values, it's a type issue probably, will be fixed</li>
                         <li>In the logger the visible decimals are limited to 3. So when viewing differences anything below 0.001 change will not be visible. It's only a visual issue, the exact values of the run can still be applied. Will make a dynamic function to show the decimals beyond for such cases</li>
@@ -6578,6 +6593,54 @@ observeEvent(input$make_output, {
         updatePickerInput(session, "additional_vars", selected = NULL)
         updateCheckboxInput(session, "show_measurements", value = TRUE)
     })
+            # --- Debounced inputs: plots wait 1s after user stops sliding/selecting ---
+            yearInputDebounced <- reactive({
+                list(range = input$yearRange, single = input$singleYear)
+            }) %>% debounce(1000)
+
+            selectedVarsDebounced <- reactive({
+                input$selected_vars
+            }) %>% debounce(1000)
+
+            # --- Shared plot data reactive: year mask computed once for all plots ---
+            filteredPlotData <- reactive({
+                req(outputData())
+                yr <- yearInputDebounced()
+                if (isTRUE(yr$single)) {
+                    validate(need(is.finite(yr$range), "Year not available yet"))
+                    selectedYears <- yr$range
+                } else {
+                    validate(need(
+                        length(yr$range) == 2 &&
+                            is.finite(yr$range[1]) &&
+                            is.finite(yr$range[2]),
+                        "Year range not available yet"
+                    ))
+                    selectedYears <- seq(yr$range[1], yr$range[2])
+                }
+                yearMask <- as.numeric(format(dates, "%Y")) %in% selectedYears
+                list(
+                    data          = outputData()[yearMask, ],
+                    dates         = dates[yearMask],
+                    prev          = if (length(outputList$prev) != 0) outputList$prev[yearMask, ] else NULL,
+                    selectedYears = selectedYears
+                )
+            })
+
+            # --- Phenophase transitions computed once for all plots ---
+            phenoTransitions <- reactive({
+                local_data <- outputData()
+                if (!"n_actphen" %in% colnames(local_data)) return(NULL)
+                local_data %>%
+                    dplyr::arrange(Date) %>%
+                    dplyr::mutate(
+                        prev_phase   = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
+                        phase_change = n_actphen != prev_phase
+                    ) %>%
+                    dplyr::filter(phase_change) %>%
+                    dplyr::select(Date, n_actphen)
+            })
+
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
@@ -6597,40 +6660,21 @@ observeEvent(input$make_output, {
                 
                 observe({
                 #req(input$selected_vars, length(outputList$nextVal) != 0)
-                req(input$selected_vars, outputData())
+                req(selectedVarsDebounced())
                 #vary <- outputData()
-                
+
                 # intersect needed when a custom variable is deleted so plotly won't complain
                 #lapply(intersect(input$selected_vars, colnames(vary)), function(var) { STILL COMPLAINING
-                lapply(input$selected_vars, function(var) {
+                lapply(selectedVarsDebounced(), function(var) {
                     output[[paste0("plot_", var)]] <- renderPlotly({
 
-            #future({    
-                    # giving condition to check to avoid warning messages
-                if (isTRUE(input$singleYear)) {
-                    validate(
-                        need(is.finite(input$yearRange), "Year not available yet")
-                    )
-                    selectedYears <- input$yearRange  # single value
-                } else {
-                    validate(
-                        need(length(input$yearRange) == 2 &&
-                            is.finite(input$yearRange[1]) &&
-                            is.finite(input$yearRange[2]),
-                            "Year range not available yet")
-                    )
-                    selectedYears <- seq(input$yearRange[1], input$yearRange[2])
-                }
-                                        
-                    #selectedYears <- if (input$singleYear) input$yearRange else seq(input$yearRange[1], input$yearRange[2])
-                    filteredDates <- dates[as.numeric(format(dates, "%Y")) %in% selectedYears]
-                    
-                    # Get simulation data
-                    filteredPrev <- if (length(outputList$prev) != 0) {
-                        outputList$prev[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    } else NULL
-                    #filteredNext <- outputList$nextVal[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
-                    filteredNext <- outputData()[as.numeric(format(dates, "%Y")) %in% selectedYears, ]
+            #future({
+                    # Use shared filtered data — year mask computed once for all plots
+                    .fd           <- filteredPlotData()
+                    selectedYears <- .fd$selectedYears
+                    filteredDates <- .fd$dates
+                    filteredNext  <- .fd$data
+                    filteredPrev  <- .fd$prev
            
                     
                     p <- plot_ly()
@@ -6793,7 +6837,6 @@ observeEvent(input$make_output, {
                             showlegend = legendVisible()
                         )
 
-                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
                 # Adding the epc labels on the x axis
             #if (file.exists(planting_file)) {
                 planting_dates <- rv$epc_dates
@@ -6924,16 +6967,9 @@ observeEvent(input$make_output, {
         }
             
                                      if(input$showPheno) {
-                                            if("n_actphen" %in% colnames(outputData())){
-                                            sim_df <- outputData()
-                                            sim_df <- sim_df %>%
-                                                dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
-                                                        phase_change = n_actphen != prev_phase) %>%
-                                                dplyr::filter(phase_change) %>%
-                                                dplyr::select(Date, n_actphen)
-
-                                        transition_df <- sim_df %>%
+                                            pheno_all <- phenoTransitions()
+                                            if(!is.null(pheno_all)){
+                                        transition_df <- pheno_all %>%
                                         dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
 
                                                 p <- p %>% layout(
@@ -7052,7 +7088,7 @@ observeEvent(input$make_output, {
                                     for (col in mappedCols) {
                                         sim_data <- data.frame(Date = filteredDates, sim = filteredNext[, var])
                                         meas_data <- df_filtered[, c("Date", col)]
-                                        common_data <- merge(sim_data, meas_data, by = "Date")
+                                        common_data <- dplyr::inner_join(sim_data, meas_data, by = "Date")
                                         local_min <- min(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
                                         local_max <- max(c(common_data$sim, common_data[[col]]), na.rm = TRUE)
                                         global_abs_min <- min(global_abs_min, local_min)
@@ -7075,9 +7111,8 @@ observeEvent(input$make_output, {
                                     bias_str <- if (nrow(m_row) > 0 && !is.na(m_row$BIAS)) sprintf("Bias: %.2f", m_row$BIAS) else "Bias: NA"
                                     corr_str <- if (nrow(m_row) > 0 && !is.na(m_row$Correlation)) sprintf("R<sup>2</sup>: %.2f", m_row$Correlation) else "R<sup>2</sup>: NA"
                                     metric_label <- paste(rmse_str, bias_str, corr_str, sep = " | ")
-                                    
-                                    
-                                    session$sendCustomMessage("save_scroll", list(id = "plotPanel"))
+
+
                                     # Add the scatter trace using measurement values on the x-axis and simulation on the y-axis
                                     p <- add_trace(p,
                                                 x = common_data[[col]],   # measurement values
@@ -7278,17 +7313,9 @@ observeEvent(input$make_output, {
                                         }
                                 }
                                         if(input$showPheno) {
-                                            if("n_actphen" %in% colnames(outputData())){
-                                                #browser()
-                                            sim_df <- outputData()
-                                            sim_df <- sim_df %>%
-                                                dplyr::arrange(Date) %>% 
-                                                dplyr::mutate(prev_phase = dplyr::lag(n_actphen, default = dplyr::first(n_actphen)),
-                                                        phase_change = n_actphen != prev_phase) %>%
-                                                dplyr::filter(phase_change) %>%
-                                                dplyr::select(Date, n_actphen)
-
-                                        transition_df <- sim_df %>%
+                                            pheno_all <- phenoTransitions()
+                                            if(!is.null(pheno_all)){
+                                        transition_df <- pheno_all %>%
                                         dplyr::filter(lubridate::year(Date) %in% selectedYears, n_actphen != 0)
 
                                                 p <- p %>% layout(
