@@ -657,12 +657,38 @@ function wrapText(elementId, openTag, closeTag) {
                                             actionButton("show_popup", "View Special Plots"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                                 checkboxInput("lastRun", "Show Previous Model Run", value = FALSE),
-                                                checkboxInput("showPlanting", "Show Planting Dates", value = TRUE)
+                                                checkboxInput("showPheno", "Show Phenophases", value = FALSE)
                                             ),
-                                            div(style = "display: flex; align-items: center; gap: 0px;",
-                                                checkboxInput("showPheno", "Show Phenophases", value = FALSE),
-                                                checkboxInput("showHarvest", "Show Harvest Dates", value = TRUE)
+                                            div(style = "display: flex; align-items: flex-start; gap: 5px;",
+                                                div(style = "flex: 1; min-width: 0;",
+                                                    pickerInput(
+                                                        inputId  = "mgm_show",
+                                                        label    = tags$span(style = "color: #228B22; font-weight: bold;", "Management Events:"),
+                                                        choices  = c("Planting", "Harvest"),
+                                                        selected = c("Planting", "Harvest"),
+                                                        multiple = TRUE,
+                                                        width    = "100%",
+                                                        options  = list(`actions-box` = TRUE, `none-selected-text` = "None")
+                                                    )
+                                                ),
+                                                div(style = "margin-top: 24px;",
+                                                    actionButton("mgm_table_toggle", label = NULL,
+                                                                 icon = icon("binoculars"),
+                                                                 style = paste(
+                                                                     "height:34px; width:38px; padding:0;",
+                                                                     "background:#f0f7f0; color:#228B22;",
+                                                                     "border:1.5px solid #a8d5a8; border-radius:8px;",
+                                                                     "box-shadow:0 1px 3px rgba(0,0,0,.10);",
+                                                                     "transition:background .15s,box-shadow .15s;",
+                                                                     "font-size:15px;"
+                                                                 ),
+                                                                 title = "Show/hide management sequence",
+                                                                 onmouseover = "this.style.background='#d6ecd6';this.style.boxShadow='0 2px 6px rgba(0,0,0,.18)'",
+                                                                 onmouseout  = "this.style.background='#f0f7f0';this.style.boxShadow='0 1px 3px rgba(0,0,0,.10)'"
+                                                                 )
+                                                )
                                             ),
+                                            uiOutput("mgm_table_ui"),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                                 checkboxInput("singleYear", "Single year mode", value = FALSE),
                                                 checkboxInput("auto_epc_selection", "Auto EPC selection in single year mode", value = TRUE)
@@ -1036,12 +1062,35 @@ tuneMusoServer <- function(input, output, session){
     plan(multisession)
     #for some reason it can't find this function from setupMuso even though it's exported and within namespace, will check later why
     searchBellow <- function(inFile, key, stringP = TRUE,  n=1, management = FALSE){
-        
+
             if(stringP){
                 unlist(strsplit(inFile[grep(key,inFile, perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1]
             } else {
                 as.numeric(unlist(strsplit(inFile[grep(key,inFile,perl=TRUE)+n],split = "\\s+", useBytes = TRUE))[1])
             }
+    }
+
+    # Helper: extract dates AND an info column from a management sub-file.
+    # Uses a regex token scan — robust to inconsistent header/column layouts.
+    # info_offset: how many tokens *after* each date token holds the desired value.
+    #   ploughing (.plg)  : 1  (depth is the immediate next token)
+    #   mowing    (.mow)  : 1  (LAI-after is the immediate next token)
+    #   fertilizing (.frz): 2  (layout is date / type / amount — skip type)
+    read_mgm_file <- function(filepath, info_offset = 1) {
+        if (!file.exists(filepath)) return(NULL)
+        lines     <- readLines(filepath, warn = FALSE)
+        tokens    <- unlist(strsplit(paste(lines, collapse = " "), "\\s+"))
+        tokens    <- tokens[nchar(tokens) > 0]          # drop empty strings
+        date_idx  <- grep("^\\d{4}\\.\\d{2}\\.\\d{2}$", tokens)
+        if (length(date_idx) == 0) return(NULL)
+        # Guard: discard entries where info token would be out of bounds
+        valid    <- (date_idx + info_offset) <= length(tokens)
+        date_idx <- date_idx[valid]
+        if (length(date_idx) == 0) return(NULL)
+        list(
+            dates     = as.Date(tokens[date_idx], format = "%Y.%m.%d"),
+            info_vals = tokens[date_idx + info_offset]
+        )
     }
 
     
@@ -1053,7 +1102,7 @@ tuneMusoServer <- function(input, output, session){
     #epcIni <- settings$epcInput[2]
     #dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE)) 
     dates <- as.Date(musoDate(settings$startYear, numYears=settings$numYears, leapYearHandling = TRUE), "%d.%m.%Y")
-    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list(), last_force_run = NULL)
+    rv <- reactiveValues(settings = setupMuso(), epc_files = character(0), epc_labels = character(0), epc_dates = data.frame(), epc_num_labels = character(0), epc_bonds = list(), last_force_run = NULL, mgm_dates = list(), mgm_info = list())
 
 
 
@@ -1135,10 +1184,50 @@ tuneMusoServer <- function(input, output, session){
 
                     rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
                     rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
-                    #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
+                    #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]
                     rv$epc_dates <- NULL
                 })
             }
+
+            # Load extra management event dates — independent of whether a planting file exists.
+            # Only load types whose flag == 1 in the mgm file.
+            fert_flag <- searchBellow(managementContent, "FERTILIZING", stringP = FALSE, n = 1)
+            plou_flag <- searchBellow(managementContent, "PLOUGHING",   stringP = FALSE, n = 1)
+            mow_flag  <- searchBellow(managementContent, "MOWING",      stringP = FALSE, n = 1)
+
+            fert_file <- searchBellow(managementContent, "FERTILIZING", stringP = TRUE, n = 2)
+            plou_file <- searchBellow(managementContent, "PLOUGHING",   stringP = TRUE, n = 2)
+            mow_file  <- searchBellow(managementContent, "MOWING",      stringP = TRUE, n = 2)
+
+            fert_data <- if (isTRUE(fert_flag == 1)) read_mgm_file(fert_file, info_offset = 2) else NULL
+            plou_data <- if (isTRUE(plou_flag == 1)) read_mgm_file(plou_file, info_offset = 1) else NULL
+            mow_data  <- if (isTRUE(mow_flag  == 1)) read_mgm_file(mow_file,  info_offset = 1) else NULL
+
+            isolate({
+                rv$mgm_dates <- list(
+                    Fertilizing = if (!is.null(fert_data)) fert_data$dates     else NULL,
+                    Ploughing   = if (!is.null(plou_data)) plou_data$dates     else NULL,
+                    Mowing      = if (!is.null(mow_data))  mow_data$dates      else NULL
+                )
+                rv$mgm_info <- list(
+                    Fertilizing = if (!is.null(fert_data)) fert_data$info_vals else NULL,
+                    Ploughing   = if (!is.null(plou_data)) plou_data$info_vals else NULL,
+                    Mowing      = if (!is.null(mow_data))  mow_data$info_vals  else NULL
+                )
+            })
+
+            # Build the list of actually-active types and push it to the picker
+            active_mgm <- character(0)
+            if (file.exists(planting_file))                              active_mgm <- c(active_mgm, "Planting")
+            if (file.exists(planting_file) && file.exists(harvest_file)) active_mgm <- c(active_mgm, "Harvest")
+            if (!is.null(fert_data)) active_mgm <- c(active_mgm, "Fertilizing")
+            if (!is.null(plou_data)) active_mgm <- c(active_mgm, "Ploughing")
+            if (!is.null(mow_data))  active_mgm <- c(active_mgm, "Mowing")
+
+            updatePickerInput(session, "mgm_show",
+                choices  = active_mgm,
+                selected = intersect(c("Planting", "Harvest"), active_mgm)
+            )
         } else {
             warning("Management file not found: ", management_file)
             isolate({
@@ -1149,9 +1238,12 @@ tuneMusoServer <- function(input, output, session){
                 #rv$woody_flag <- as.numeric(searchBellow(single_epc_dat, "FLAG",n=1))
                 rv$epc_labels <- paste0(seq_along(rv$epc_files), ") ", rv$epc_files)
                 rv$epc_num_labels <- paste0(seq_along(rv$epc_files), ")")
-                #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]   
+                #rv$epc_dates <- as.Date(musoDate(settings$startYear, numYears=1),"%d.%m.%Y")[1]
                 rv$epc_dates <- NULL
+                rv$mgm_dates <- list()
+                rv$mgm_info  <- list()
             })
+            updatePickerInput(session, "mgm_show", choices = character(0), selected = character(0))
         }
     })
 
@@ -6274,7 +6366,7 @@ observeEvent(input$make_output, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.26.0</strong></p>
+                    <p><strong>Version 2.27.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>When deleting a custom variable via reset, plotly will complain it cannot find it (if it was previously plotted), but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
@@ -6676,6 +6768,113 @@ observeEvent(input$make_output, {
                     dplyr::select(Date, n_actphen)
             })
 
+            # --- Management sequence table ---
+            mgm_table_visible <- reactiveVal(FALSE)
+
+            observeEvent(input$mgm_table_toggle, {
+                mgm_table_visible(!mgm_table_visible())
+            })
+
+            output$mgm_table_ui <- renderUI({
+                if (!mgm_table_visible()) return(NULL)
+
+                # ── helper: build a data.frame for one management type ──────────
+                make_rows <- function(dates, info_vals, type_name, fmt_fn) {
+                    if (is.null(dates) || length(dates) == 0) return(NULL)
+                    data.frame(Date = as.character(dates),
+                               Type = type_name,
+                               Info = fmt_fn(info_vals),
+                               stringsAsFactors = FALSE)
+                }
+
+                # ── collect all rows ─────────────────────────────────────────────
+                rows <- list()
+                epc_d <- rv$epc_dates
+                if (!is.null(epc_d) && is.data.frame(epc_d) && nrow(epc_d) > 0) {
+                    rows[[length(rows)+1]] <- data.frame(
+                        Date = as.character(epc_d$DATE), Type = "Planting",
+                        Info = paste0("Planted: ", epc_d$`CROP(file)`), stringsAsFactors = FALSE)
+                    if ("HarvestDates" %in% names(epc_d))
+                        rows[[length(rows)+1]] <- data.frame(
+                            Date = as.character(epc_d$HarvestDates), Type = "Harvest",
+                            Info = paste0("Harvested: ", epc_d$`CROP(file)`), stringsAsFactors = FALSE)
+                }
+                rows[[length(rows)+1]] <- make_rows(rv$mgm_dates$Fertilizing, rv$mgm_info$Fertilizing,
+                    "Fertilizing", function(v) paste0("Amount: ",          v, " kg/ha"))
+                rows[[length(rows)+1]] <- make_rows(rv$mgm_dates$Ploughing,   rv$mgm_info$Ploughing,
+                    "Ploughing",   function(v) paste0("Ploughing depth: ", v, " m"))
+                rows[[length(rows)+1]] <- make_rows(rv$mgm_dates$Mowing,      rv$mgm_info$Mowing,
+                    "Mowing",      function(v) paste0("LAI after: ",       v, " m²/m²"))
+
+                rows <- Filter(Negate(is.null), rows)
+                if (length(rows) == 0)
+                    return(div(style = "padding:14px; color:#888; text-align:center; font-style:italic;",
+                               "No management events loaded."))
+
+                result <- dplyr::bind_rows(rows)
+                result$Date <- as.Date(result$Date)
+                result <- result[order(result$Date), ]
+
+                # ── per-type badge styling (matches plot marker colours) ─────────
+                badge_styles <- list(
+                    Planting    = "background:#e8f5e9; color:#1b5e20; border-color:#4caf50;",
+                    Harvest     = "background:#fdf3e8; color:#6c4a00; border-color:#a0522d;",
+                    Fertilizing = "background:#fff3e0; color:#bf4000; border-color:#ff9800;",
+                    Ploughing   = "background:#e3f0fb; color:#1565c0; border-color:#2266cc;",
+                    Mowing      = "background:#f3e5f5; color:#6a1b9a; border-color:#882299;"
+                )
+                row_accent <- list(
+                    Planting    = "#f1faf2",
+                    Harvest     = "#fdf6ee",
+                    Fertilizing = "#fffaf0",
+                    Ploughing   = "#f0f6fd",
+                    Mowing      = "#faf4fc"
+                )
+
+                # ── build <tr> HTML for every row ───────────────────────────────
+                tr_html <- mapply(function(date, type, info, i) {
+                    bs  <- badge_styles[[type]] %||% "background:#eee; color:#333; border-color:#999;"
+                    bg  <- row_accent[[type]] %||% "#fafafa"
+                    sprintf(
+                        '<tr style="border-bottom:1px solid #ebebeb; background:%s; transition:background .15s;"
+                              onmouseover="this.style.filter=\'brightness(0.96)\'"
+                              onmouseout="this.style.filter=\'\'">
+                           <td style="padding:7px 13px; font-family:monospace; font-size:12px; font-weight:700; color:#333; white-space:nowrap;">%s</td>
+                           <td style="padding:7px 13px;">
+                             <span style="display:inline-block; border:1px solid; border-radius:20px; padding:2px 10px;
+                                          font-size:11px; font-weight:700; letter-spacing:.3px; %s">%s</span>
+                           </td>
+                           <td style="padding:7px 13px; font-size:13px; color:#333;">%s</td>
+                         </tr>',
+                        bg, format(date, "%Y-%m-%d"), bs, type, info)
+                }, result$Date, result$Type, result$Info, seq_len(nrow(result)), SIMPLIFY = FALSE)
+
+                # ── assemble full table widget ───────────────────────────────────
+                HTML(paste0(
+                    '<div style="margin-top:8px; border-radius:10px; overflow:hidden;
+                                 box-shadow:0 3px 14px rgba(0,0,0,.13); font-family:\'Segoe UI\',Arial,sans-serif;">',
+                    # header bar with event count
+                    sprintf('<div style="background:#2c3e50; color:#ecf0f1; padding:8px 14px;
+                                         font-size:12px; font-weight:600; letter-spacing:.5px;">
+                               ■ MANAGEMENT SEQUENCE &nbsp;&middot;&nbsp;
+                               <span style="font-weight:400; opacity:.8;">%d events</span>
+                             </div>', nrow(result)),
+                    # scrollable body
+                    '<div style="max-height:320px; overflow-y:auto;">',
+                    '<table style="width:100%; border-collapse:collapse;">',
+                    '<thead><tr style="background:#f7f8fa; border-bottom:2px solid #dde3ea;">',
+                    '<th style="padding:8px 13px; text-align:left; font-size:11px; color:#7f8c8d;
+                                font-weight:700; letter-spacing:.8px; width:105px;">DATE</th>',
+                    '<th style="padding:8px 13px; text-align:left; font-size:11px; color:#7f8c8d;
+                                font-weight:700; letter-spacing:.8px; width:140px;">TYPE</th>',
+                    '<th style="padding:8px 13px; text-align:left; font-size:11px; color:#7f8c8d;
+                                font-weight:700; letter-spacing:.8px;">DETAILS</th>',
+                    '</tr></thead>',
+                    '<tbody>', paste(tr_html, collapse = ""), '</tbody>',
+                    '</table></div></div>'
+                ))
+            })
+
             ################ PLOTTING ###############
                 output$dynamicPlots <- renderUI({
                 req(input$selected_vars)
@@ -6909,7 +7108,7 @@ observeEvent(input$make_output, {
                 # Adding the epc labels on the x axis
             #if (file.exists(planting_file)) {
                 planting_dates <- rv$epc_dates  # also used by showHarvest block below
-                if(input$showPlanting) {
+                if("Planting" %in% input$mgm_show) {
                 if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
                 selected_planting <- planting_dates %>%
                 dplyr::filter(lubridate::year(DATE) %in% selectedYears)
@@ -6970,9 +7169,9 @@ observeEvent(input$make_output, {
 
 
                 }
-                } # end if(input$showPlanting)
+                } # end if("Planting" %in% input$mgm_show)
 
-                if(input$showHarvest) {
+                if("Harvest" %in% input$mgm_show) {
                        if ("HarvestDates" %in% names(rv$epc_dates)) {
                               selected_harvest <- planting_dates %>%
                                     dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
@@ -7029,13 +7228,73 @@ observeEvent(input$make_output, {
                             font = list(color = "#6c4a00", size = 10)
                         )
                         
-                         } 
+                         }
 
                          }
                     }
                 }
         }
-            
+
+                # --- Fertilizing events ---
+                if ("Fertilizing" %in% input$mgm_show) {
+                    fert_sel <- rv$mgm_dates$Fertilizing
+                    if (!is.null(fert_sel)) {
+                        fert_sel <- fert_sel[lubridate::year(fert_sel) %in% selectedYears]
+                        if (length(fert_sel) > 0) {
+                            p <- p %>% add_trace(
+                                x = fert_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                marker = list(symbol = "circle", color = "orange", size = 10),
+                                name = "Fertilizing", visible = "legendonly"
+                            )
+                            p <- p %>% add_annotations(
+                                x = fert_sel, y = 0, xref = "x", yref = "paper",
+                                text = rep("●", length(fert_sel)),
+                                showarrow = FALSE, font = list(color = "orange", size = 14)
+                            )
+                        }
+                    }
+                }
+
+                # --- Ploughing events ---
+                if ("Ploughing" %in% input$mgm_show) {
+                    plou_sel <- rv$mgm_dates$Ploughing
+                    if (!is.null(plou_sel)) {
+                        plou_sel <- plou_sel[lubridate::year(plou_sel) %in% selectedYears]
+                        if (length(plou_sel) > 0) {
+                            p <- p %>% add_trace(
+                                x = plou_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                marker = list(symbol = "square", color = "#2266cc", size = 10),
+                                name = "Ploughing", visible = "legendonly"
+                            )
+                            p <- p %>% add_annotations(
+                                x = plou_sel, y = 0, xref = "x", yref = "paper",
+                                text = rep("■", length(plou_sel)),
+                                showarrow = FALSE, font = list(color = "#2266cc", size = 14)
+                            )
+                        }
+                    }
+                }
+
+                # --- Mowing events ---
+                if ("Mowing" %in% input$mgm_show) {
+                    mow_sel <- rv$mgm_dates$Mowing
+                    if (!is.null(mow_sel)) {
+                        mow_sel <- mow_sel[lubridate::year(mow_sel) %in% selectedYears]
+                        if (length(mow_sel) > 0) {
+                            p <- p %>% add_trace(
+                                x = mow_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                marker = list(symbol = "diamond", color = "#882299", size = 10),
+                                name = "Mowing", visible = "legendonly"
+                            )
+                            p <- p %>% add_annotations(
+                                x = mow_sel, y = 0, xref = "x", yref = "paper",
+                                text = rep("◆", length(mow_sel)),
+                                showarrow = FALSE, font = list(color = "#882299", size = 14)
+                            )
+                        }
+                    }
+                }
+
                                      if(input$showPheno) {
                                             pheno_all <- phenoTransitions()
                                             if(!is.null(pheno_all)){
@@ -7264,7 +7523,7 @@ observeEvent(input$make_output, {
                                     #if (file.exists(planting_file)) {
                                         planting_dates <- rv$epc_dates  # also used by showHarvest block below
                                 if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
-                                        if(input$showPlanting) {
+                                        if("Planting" %in% input$mgm_show) {
                                         selected_planting <- planting_dates %>%
                                         dplyr::filter(lubridate::year(DATE) %in% selectedYears)
 
@@ -7323,8 +7582,8 @@ observeEvent(input$make_output, {
                                                 }
 
                                         }
-                                        } # end if(input$showPlanting)
-                                     if(input$showHarvest) {
+                                        } # end if("Planting" %in% input$mgm_show)
+                                     if("Harvest" %in% input$mgm_show) {
                                           if ("HarvestDates" %in% names(rv$epc_dates)) {
                                                     selected_harvest <- planting_dates %>%
                                                             dplyr::filter(lubridate::year(HarvestDates) %in% selectedYears)
@@ -7378,11 +7637,72 @@ observeEvent(input$make_output, {
                                                     font = list(color = "#6c4a00", size = 10)
                                                 )
                                                 
-                                                } 
+                                                }
                                                 }
                                             }
                                         }
                                 }
+
+                                # --- Fertilizing events ---
+                                if ("Fertilizing" %in% input$mgm_show) {
+                                    fert_sel <- rv$mgm_dates$Fertilizing
+                                    if (!is.null(fert_sel)) {
+                                        fert_sel <- fert_sel[lubridate::year(fert_sel) %in% selectedYears]
+                                        if (length(fert_sel) > 0) {
+                                            p <- p %>% add_trace(
+                                                x = fert_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                                marker = list(symbol = "circle", color = "orange", size = 10),
+                                                name = "Fertilizing", visible = "legendonly"
+                                            )
+                                            p <- p %>% add_annotations(
+                                                x = fert_sel, y = 0, xref = "x", yref = "paper",
+                                                text = rep("●", length(fert_sel)),
+                                                showarrow = FALSE, font = list(color = "orange", size = 14)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                # --- Ploughing events ---
+                                if ("Ploughing" %in% input$mgm_show) {
+                                    plou_sel <- rv$mgm_dates$Ploughing
+                                    if (!is.null(plou_sel)) {
+                                        plou_sel <- plou_sel[lubridate::year(plou_sel) %in% selectedYears]
+                                        if (length(plou_sel) > 0) {
+                                            p <- p %>% add_trace(
+                                                x = plou_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                                marker = list(symbol = "square", color = "#2266cc", size = 10),
+                                                name = "Ploughing", visible = "legendonly"
+                                            )
+                                            p <- p %>% add_annotations(
+                                                x = plou_sel, y = 0, xref = "x", yref = "paper",
+                                                text = rep("■", length(plou_sel)),
+                                                showarrow = FALSE, font = list(color = "#2266cc", size = 14)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                # --- Mowing events ---
+                                if ("Mowing" %in% input$mgm_show) {
+                                    mow_sel <- rv$mgm_dates$Mowing
+                                    if (!is.null(mow_sel)) {
+                                        mow_sel <- mow_sel[lubridate::year(mow_sel) %in% selectedYears]
+                                        if (length(mow_sel) > 0) {
+                                            p <- p %>% add_trace(
+                                                x = mow_sel[1], y = 0, type = 'scatter', mode = 'markers',
+                                                marker = list(symbol = "diamond", color = "#882299", size = 10),
+                                                name = "Mowing", visible = "legendonly"
+                                            )
+                                            p <- p %>% add_annotations(
+                                                x = mow_sel, y = 0, xref = "x", yref = "paper",
+                                                text = rep("◆", length(mow_sel)),
+                                                showarrow = FALSE, font = list(color = "#882299", size = 14)
+                                            )
+                                        }
+                                    }
+                                }
+
                                         if(input$showPheno) {
                                             pheno_all <- phenoTransitions()
                                             if(!is.null(pheno_all)){
