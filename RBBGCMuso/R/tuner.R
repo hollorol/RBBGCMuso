@@ -6273,7 +6273,7 @@ observeEvent(input$make_output, {
                 id = "info_overlay",
                 style = "display:none; position:absolute; top:44px; left:0; width:100%; background:#f9f9f9; border:1px solid #ccc; padding:10px; z-index:1050;",
                 tags$p(div(HTML("
-                    <p><strong>Version 2.25.0</strong></p>
+                    <p><strong>Version 2.26.0</strong></p>
                     <p>Current known bugs/problems:</p>
                     <ul>
                         <li>When deleting a custom variable via reset, plotly will complain it cannot find it (if it was previously plotted), but just ignore it, it's fine (will be fixed so plotly won't complain)</li>
