@@ -655,8 +655,9 @@ function wrapText(elementId, openTag, closeTag) {
                                                             inline = TRUE)
                                             ),
                                             actionButton("show_popup", "View Special Plots"),
-                                            checkboxInput(
-                                                "lastRun", "Show Previous Model Run", value = FALSE
+                                            div(style = "display: flex; align-items: center; gap: 0px;",
+                                                checkboxInput("lastRun", "Show Previous Model Run", value = FALSE),
+                                                checkboxInput("showPlanting", "Show Planting Dates", value = TRUE)
                                             ),
                                             div(style = "display: flex; align-items: center; gap: 0px;",
                                                 checkboxInput("showPheno", "Show Phenophases", value = FALSE),
@@ -6618,12 +6619,46 @@ observeEvent(input$make_output, {
                     ))
                     selectedYears <- seq(yr$range[1], yr$range[2])
                 }
-                yearMask <- as.numeric(format(dates, "%Y")) %in% selectedYears
+                yearMask  <- as.numeric(format(dates, "%Y")) %in% selectedYears
+                raw_data  <- outputData()[yearMask, ]
+                raw_dates <- dates[yearMask]
+                raw_prev  <- if (length(outputList$prev) != 0) outputList$prev[yearMask, ] else NULL
+
+                # For 20+ year views aggregate daily data to monthly means.
+                # ~18 000 rows (50 yrs daily) → ~600 rows, dramatically reducing Plotly render time.
+                # Measurement overlays are already sparse and are left unaggregated.
+                aggregated <- length(selectedYears) >= 20
+                if (aggregated) {
+                    month_key <- lubridate::floor_date(raw_dates, "month")
+
+                    agg_df <- function(df, keys) {
+                        num_cols <- names(df)[sapply(df, is.numeric)]
+                        dplyr::mutate(df, .mk = keys) %>%
+                            dplyr::group_by(.mk) %>%
+                            dplyr::summarise(
+                                Date = dplyr::first(.mk),
+                                dplyr::across(dplyr::all_of(num_cols), ~mean(.x, na.rm = TRUE)),
+                                .groups = "drop"
+                            ) %>%
+                            dplyr::select(-.mk) %>%
+                            as.data.frame()
+                    }
+
+                    plot_data  <- agg_df(raw_data, month_key)
+                    plot_dates <- plot_data$Date
+                    plot_prev  <- if (!is.null(raw_prev)) agg_df(raw_prev, month_key) else NULL
+                } else {
+                    plot_data  <- raw_data
+                    plot_dates <- raw_dates
+                    plot_prev  <- raw_prev
+                }
+
                 list(
-                    data          = outputData()[yearMask, ],
-                    dates         = dates[yearMask],
-                    prev          = if (length(outputList$prev) != 0) outputList$prev[yearMask, ] else NULL,
-                    selectedYears = selectedYears
+                    data          = plot_data,
+                    dates         = plot_dates,
+                    prev          = plot_prev,
+                    selectedYears = selectedYears,
+                    aggregated    = aggregated
                 )
             })
 
@@ -6675,6 +6710,7 @@ observeEvent(input$make_output, {
                     filteredDates <- .fd$dates
                     filteredNext  <- .fd$data
                     filteredPrev  <- .fd$prev
+                    .aggregated   <- isTRUE(.fd$aggregated)   # TRUE when monthly means are shown
            
                     
                     p <- plot_ly()
@@ -6690,34 +6726,67 @@ observeEvent(input$make_output, {
                     is_current_bonded <- hasActiveBonds(current_bonds_list)
             #}          
             xaxis_options <- if (input$singleYear || length(selectedYears) == 1) {
+                                    # Single year: monthly ticks labelled as "Jan 2001"
                                     list(
                                         type = "date",
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M1",  
+                                        dtick = "M1",
                                         tickformat = "%b %Y",
-                                        hoverformat = "%Y-%m-%d"  
+                                        hoverformat = "%Y-%m-%d"
                                     )
-                                } 
-                                else if (length(selectedYears) <= 3) {
+                                } else if (length(selectedYears) <= 3) {
+                                    # 2–3 years: bi-monthly ticks
                                     list(
                                         type = "date",
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M2",  
+                                        dtick = "M2",
                                         tickformat = "%b %Y",
-                                        hoverformat = "%Y-%m-%d" 
+                                        hoverformat = "%Y-%m-%d"
                                     )
-                                }
-
-                                else {
+                                } else if (length(selectedYears) <= 10) {
+                                    # 4–10 years: one tick per year
                                     list(
                                         type = "date",
                                         range = common_x_range,
                                         tickfont = list(size = exportSettings$tickfontx),
-                                        dtick = "M12", 
+                                        dtick = "M12",
                                         tickformat = "%Y",
-                                        hoverformat = "%Y-%m-%d"  
+                                        hoverformat = "%Y-%m-%d"
+                                    )
+                                } else if (length(selectedYears) <= 20) {
+                                    # 11–20 years: one tick every 2 years
+                                    # Data is monthly-aggregated — hover shows month+year
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M24",
+                                        tickformat = "%Y",
+                                        hoverformat = "%b %Y"
+                                    )
+                                } else if (length(selectedYears) <= 50) {
+                                    # 21–50 years: one tick every 5 years
+                                    # Data is monthly-aggregated — hover shows month+year
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M60",
+                                        tickformat = "%Y",
+                                        hoverformat = "%b %Y"
+                                    )
+                                } else {
+                                    # 51+ years: one tick every 10 years
+                                    # Data is monthly-aggregated — hover shows month+year
+                                    list(
+                                        type = "date",
+                                        range = common_x_range,
+                                        tickfont = list(size = exportSettings$tickfontx),
+                                        dtick = "M120",
+                                        tickformat = "%Y",
+                                        hoverformat = "%b %Y"
                                     )
                                 }
 
@@ -6839,8 +6908,8 @@ observeEvent(input$make_output, {
 
                 # Adding the epc labels on the x axis
             #if (file.exists(planting_file)) {
-                planting_dates <- rv$epc_dates
-                #print(planting_dates)
+                planting_dates <- rv$epc_dates  # also used by showHarvest block below
+                if(input$showPlanting) {
                 if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
                 selected_planting <- planting_dates %>%
                 dplyr::filter(lubridate::year(DATE) %in% selectedYears)
@@ -6897,10 +6966,11 @@ observeEvent(input$make_output, {
                                 font = list(color = "green", size = 10)
                         )
                         
-                         } 
+                         }
 
-                  
+
                 }
+                } # end if(input$showPlanting)
 
                 if(input$showHarvest) {
                        if ("HarvestDates" %in% names(rv$epc_dates)) {
@@ -7192,9 +7262,9 @@ observeEvent(input$make_output, {
 
                                       # Adding the epc labels on the x axis
                                     #if (file.exists(planting_file)) {
-                                        planting_dates <- rv$epc_dates
-                                        #print(planting_dates)
+                                        planting_dates <- rv$epc_dates  # also used by showHarvest block below
                                 if (!is.null(planting_dates) && nrow(planting_dates) > 0) {
+                                        if(input$showPlanting) {
                                         selected_planting <- planting_dates %>%
                                         dplyr::filter(lubridate::year(DATE) %in% selectedYears)
 
@@ -7250,9 +7320,10 @@ observeEvent(input$make_output, {
                                                         font = list(color = "green", size = 10)
                                                 )
                                                 
-                                                } 
+                                                }
 
                                         }
+                                        } # end if(input$showPlanting)
                                      if(input$showHarvest) {
                                           if ("HarvestDates" %in% names(rv$epc_dates)) {
                                                     selected_harvest <- planting_dates %>%
