@@ -6275,73 +6275,6 @@ observeEvent(input$make_output, {
                     )
 
             ),
-            div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("tickfontx", "X-Axis Tick Font Size:", value = exportSettings$tickfontx, min = 1),
-                actionButton("reset_tickfontx", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-
-            div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("tickfonty", "Y-Axis Tick Font Size:", value = exportSettings$tickfonty, min = 1),
-                actionButton("reset_tickfonty", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-            div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("xtitlefont", "X-Axis Title Font Size:", value = exportSettings$xtitlefont, min = 1),
-                actionButton("reset_xtitlefont", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-            div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("ytitlefont", "Y-Axis Title Font Size:", value = exportSettings$ytitlefont, min = 1),
-                actionButton("reset_ytitlefont", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-            div(style = "display: flex; align-items: center; gap: 5px;",  
-                numericInput("legendfont", "Legend Font Size:", value = exportSettings$legendfont, min = 1),
-                actionButton("reset_legendfont", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-            checkboxInput(
-                "allowLegendDisplacement", "Allow custom legend position", value = exportSettings$allowLegendMovement
-            ),
-            div(style = "display: flex; align-items: center; gap: 5px;",
-                numericInput("legendxanchor", "Legend x position:", value = exportSettings$legendxanchor),
-                actionButton("reset_legendxanchor", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
-            div(style = "display: flex; align-items: center; gap: 5px;",
-                numericInput("legendyanchor", "Legend y position:", value = exportSettings$legendyanchor),
-                actionButton("reset_legendyanchor", 
-                    label = NULL, 
-                    icon = icon("undo"), 
-                    style = "margin-top: 10px;",
-                    title = "Reset to default"
-                    )
-            ),
             checkboxInput("auto_reset", "Auto Reset Sliders Upon Model Crash To Last Successful Values", value = exportSettings$auto_reset),
             checkboxInput("mute_notif", "Mute Common Notifications", value = exportSettings$muteNotif),
             textAreaInput("feedback_message", "Feedback", placeholder = "Report a bug or request a feature."),
@@ -6408,14 +6341,6 @@ observeEvent(input$make_output, {
             exportSettings$scale <- input$export_scale
             exportSettings$auto_reset <- input$auto_reset
             exportSettings$muteNotif <- input$mute_notif
-            exportSettings$tickfontx <- input$tickfontx
-            exportSettings$tickfonty <- input$tickfonty
-            exportSettings$xtitlefont <- input$xtitlefont
-            exportSettings$ytitlefont <- input$ytitlefont
-            exportSettings$legendfont <- input$legendfont
-            exportSettings$allowLegendMovement <- input$allowLegendDisplacement
-            exportSettings$legendxanchor <- input$legendxanchor
-            exportSettings$legendyanchor <- input$legendyanchor
             exportSettings$format <- input$export_format
             
             removeModal()
@@ -6438,33 +6363,6 @@ observeEvent(input$make_output, {
             updateNumericInput(session, "export_scale", value = defaultExportSettings$scale)
         })
 
-        observeEvent(input$reset_tickfontx, {
-            updateNumericInput(session, "tickfontx", value = defaultExportSettings$tickfontx)
-        })
-
-        observeEvent(input$reset_tickfonty, {
-            updateNumericInput(session, "tickfonty", value = defaultExportSettings$tickfonty)
-        })
-
-        observeEvent(input$reset_xtitlefont, {
-            updateNumericInput(session, "xtitlefont", value = defaultExportSettings$xtitlefont)
-        })
-
-        observeEvent(input$reset_ytitlefont, {
-            updateNumericInput(session, "ytitlefont", value = defaultExportSettings$ytitlefont)
-        })
-
-        observeEvent(input$reset_legendfont, {
-            updateNumericInput(session, "legendfont", value = defaultExportSettings$legendfont)
-        })
-
-        observeEvent(input$reset_legendxanchor, {
-            updateNumericInput(session, "legendxanchor", value = defaultExportSettings$legendxanchor)
-        })
-
-        observeEvent(input$reset_legendyanchor, {
-            updateNumericInput(session, "legendyanchor", value = defaultExportSettings$legendyanchor)
-        })
 
 
 
@@ -6497,6 +6395,13 @@ observeEvent(input$make_output, {
                     line_color = "red",
                     line_width = 2,
                     title_font_size = exportSettings$ytitlefont,
+                    tickfontx = exportSettings$tickfontx,
+                    tickfonty = exportSettings$tickfonty,
+                    xtitlefont = exportSettings$xtitlefont,
+                    legendfont = exportSettings$legendfont,
+                    allowLegendMovement = FALSE,
+                    legendxanchor = exportSettings$legendxanchor,
+                    legendyanchor = exportSettings$legendyanchor,
                     show_legend = TRUE,
                     meas_marker_type = "circle",
                     meas_marker_color = "#047704",
@@ -6541,7 +6446,18 @@ observeEvent(input$make_output, {
                 tags$button(id = "sup_btn", title = "Superscript", tags$i(class = "fas fa-superscript")),
                 tags$button(id = "sub_btn", title = "Subscript", tags$i(class = "fas fa-subscript"))
             ),
-            numericInput("title_size", "Y Title Size", value = custom$title_font_size, min = 8, max = 24, step = 1),
+            numericInput("title_size", "Y Title Size", value = custom$title_font_size, min = 8, max = 40, step = 1),
+            numericInput("tickfontx",  "X-Axis Tick Font", value = custom$tickfontx %||% exportSettings$tickfontx,   min = 1, max = 40, step = 1),
+            numericInput("tickfonty",  "Y-Axis Tick Font", value = custom$tickfonty %||% exportSettings$tickfonty,   min = 1, max = 40, step = 1),
+            numericInput("xtitlefont", "X-Axis Title Font", value = custom$xtitlefont %||% exportSettings$xtitlefont, min = 1, max = 40, step = 1),
+            numericInput("legendfont", "Legend Font", value = custom$legendfont %||% exportSettings$legendfont,      min = 1, max = 40, step = 1),
+            div(style = "display: flex; align-items: center; gap: 12px;",
+                checkboxInput("allowLegendDisplacement", "Allow custom legend position",
+                              value = custom$allowLegendMovement %||% FALSE),
+                checkboxInput("applyLegendGlobally", "Apply globally", value = FALSE)
+            ),
+            numericInput("legendxanchor", "Legend X position", value = custom$legendxanchor %||% exportSettings$legendxanchor),
+            numericInput("legendyanchor", "Legend Y position", value = custom$legendyanchor %||% exportSettings$legendyanchor),
             checkboxInput("show_legend", "Show Legend (not functional, use the top right button)", value = custom$show_legend),
             checkboxInput("show_measurements", "Show Measurements", value = custom$show_measurements),
             selectInput("meas_marker_type", "Measurement Marker Type", 
@@ -6625,6 +6541,13 @@ observeEvent(input$make_output, {
             line_color = input$line_color,
             line_width = input$line_width,
             title_font_size = input$title_size,
+            tickfontx = input$tickfontx,
+            tickfonty = input$tickfonty,
+            xtitlefont = input$xtitlefont,
+            legendfont = input$legendfont,
+            allowLegendMovement = input$allowLegendDisplacement,
+            legendxanchor = input$legendxanchor,
+            legendyanchor = input$legendyanchor,
             show_legend = input$show_legend,
             meas_marker_type = input$meas_marker_type,
             meas_marker_color = input$meas_marker_color,
@@ -6633,8 +6556,26 @@ observeEvent(input$make_output, {
             additional_vars_settings = custom$additional_vars_settings,
             selected_additional_var = input$customize_additional_var,
             show_measurements = input$show_measurements
-
         )
+
+        # Push font/legend values to exportSettings so the active plot re-renders
+        exportSettings$tickfontx          <- input$tickfontx
+        exportSettings$tickfonty          <- input$tickfonty
+        exportSettings$xtitlefont         <- input$xtitlefont
+        exportSettings$legendfont         <- input$legendfont
+        exportSettings$allowLegendMovement <- input$allowLegendDisplacement
+        exportSettings$legendxanchor      <- input$legendxanchor
+        exportSettings$legendyanchor      <- input$legendyanchor
+
+        # Apply legend position to all variables if requested
+        if (isTRUE(input$applyLegendGlobally)) {
+            for (v in names(plotCustomizations)) {
+                plotCustomizations[[v]]$allowLegendMovement <- input$allowLegendDisplacement
+                plotCustomizations[[v]]$legendxanchor       <- input$legendxanchor
+                plotCustomizations[[v]]$legendyanchor       <- input$legendyanchor
+            }
+        }
+
 
         if (!is.null(input$customize_additional_var) && input$customize_additional_var != "") {
             add_var <- input$customize_additional_var
@@ -6661,6 +6602,13 @@ observeEvent(input$make_output, {
             line_color = "red",
             line_width = 2,
             title_font_size = exportSettings$ytitlefont,
+            tickfontx = exportSettings$tickfontx,
+            tickfonty = exportSettings$tickfonty,
+            xtitlefont = exportSettings$xtitlefont,
+            legendfont = exportSettings$legendfont,
+            allowLegendMovement = FALSE,
+            legendxanchor = exportSettings$legendxanchor,
+            legendyanchor = exportSettings$legendyanchor,
             show_legend = TRUE,
             meas_marker_type = "circle",
             meas_marker_color = "#047704",
@@ -6669,7 +6617,6 @@ observeEvent(input$make_output, {
             additional_vars_settings = list(),
             selected_additional_var = "",
             show_measurements = TRUE
-
         )
         custom <- plotCustomizations[[input$customize_var]]
         updateTextInput(session, "y_title", value = custom$y_title)
@@ -6679,6 +6626,13 @@ observeEvent(input$make_output, {
         updateColourInput(session, "line_color", value = custom$line_color)
         updateNumericInput(session, "line_width", value = custom$line_width)
         updateNumericInput(session, "title_size", value = custom$title_font_size)
+        updateNumericInput(session, "tickfontx",  value = custom$tickfontx)
+        updateNumericInput(session, "tickfonty",  value = custom$tickfonty)
+        updateNumericInput(session, "xtitlefont", value = custom$xtitlefont)
+        updateNumericInput(session, "legendfont", value = custom$legendfont)
+        updateCheckboxInput(session, "allowLegendDisplacement", value = custom$allowLegendMovement)
+        updateNumericInput(session, "legendxanchor", value = custom$legendxanchor)
+        updateNumericInput(session, "legendyanchor", value = custom$legendyanchor)
         updateCheckboxInput(session, "show_legend", value = custom$show_legend)
         updateSelectInput(session, "meas_marker_type", selected = custom$meas_marker_type)
         updateColourInput(session, "meas_marker_color", value = custom$meas_marker_color)
@@ -7996,16 +7950,6 @@ observeEvent(input$make_output, {
                     ),
                     hr(),
                     
-                    # Text Sizes
-                    h5("Text Sizes"),
-                    fluidRow(
-                        column(4, numericInput("xaxisTextSize", "X-Axis", value = plot_settings$xaxisTextSize, min=0.1, max=3, step=0.1)),
-                        column(4, numericInput("yaxisTitleSize", "Y-Title", value = plot_settings$yaxisTitleSize, min=0.1, max=3, step=0.1)),
-                        column(4, numericInput("yaxisTextSize", "Y-Axis", value = plot_settings$yaxisTextSize, min=0.1, max=3, step=0.1)),
-                        column(6, numericInput("legendTextSize", "Legend Text", value = plot_settings$legendTextSize, min=0.1, max=3, step=0.1)),
-                        column(6, numericInput("legendTitleSize", "Legend Title", value = plot_settings$legendTitleSize, min=0.1, max=3, step=0.1))
-                    ),
-                    hr(),
                     h5("Y-Axis Range"),
                     fluidRow(
                         column(12, checkboxInput("yAxisLimToggle", "Set Custom Y-Axis Range", value = plot_settings$yAxisLimToggle))
@@ -8090,16 +8034,11 @@ observeEvent(input$make_output, {
         plot_settings$softstemcLinetype <- input$softstemcLinetype
         plot_settings$stdbmassLinetype <- input$stdbmassLinetype
         
-        plot_settings$xaxisTextSize <- input$xaxisTextSize
-        plot_settings$yaxisTitleSize <- input$yaxisTitleSize
-        plot_settings$yaxisTextSize <- input$yaxisTextSize
-        plot_settings$legendTextSize <- input$legendTextSize
-        plot_settings$legendTitleSize <- input$legendTitleSize
-
         plot_settings$yAxisLimToggle <- input$yAxisLimToggle
         plot_settings$yAxisLimMin <- input$yAxisLimMin
         plot_settings$yAxisLimMax <- input$yAxisLimMax
     })
+
 
    output$popup_plot <- renderPlot({
       
