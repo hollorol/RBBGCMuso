@@ -1248,8 +1248,25 @@ tuneMusoServer <- function(input, output, session){
     })
 
     parameters <- read.csv("parameters.csv", stringsAsFactors=FALSE)
-   
-    
+
+    # Check for duplicate INDEX values — these cause silent mis-behaviour
+    local({
+        dup_idx <- parameters$INDEX[duplicated(parameters$INDEX)]
+        if (length(dup_idx) > 0) {
+            showNotification(
+                ui = tags$span(
+                    tags$strong("⚠ Duplicate INDEX values in parameters.csv: "),
+                    paste(unique(dup_idx), collapse = ", "),
+                    tags$br(),
+                    "Please fix the CSV before running the model — duplicates can cause unpredictable results."
+                ),
+                type = "warning",
+                duration = NULL,
+                closeButton = TRUE,
+                id = "dup_index_warning"
+            )
+        }
+    })
 
 
     herbaceous_main <- c(132, 133, 134, 135)
@@ -1277,7 +1294,7 @@ tuneMusoServer <- function(input, output, session){
     allocation_pattern <- "^(132|133|134|135)\\."
 
 
-      parametersFixed <- sprintf("%.2f", parameters$INDEX)
+      parametersFixed <- sprintf("%.3f", parameters$INDEX)
         woody_rows <- grepl("^(136|137|138|139)\\.", parametersFixed)
         if(any(woody_rows)) {
             warning("Biome type flag is non-woody, the following parameters.csv lines are not included: ",
@@ -1289,7 +1306,7 @@ tuneMusoServer <- function(input, output, session){
     parameters <- parameters[!is.na(parameters$ABREVIATION) & parameters$ABREVIATION != "", ]
 
     ## Format the INDEX values to preserve trailing zeros for extraction
-    parametersFixed <- sprintf("%.2f", parameters$INDEX)
+    parametersFixed <- sprintf("%.3f", parameters$INDEX)
 
     ## Compute the group (i.e. the digits after the decimal) only for the relevant indices:
     parameters$group <- ifelse(grepl(allocation_pattern, parametersFixed),
@@ -2387,7 +2404,7 @@ tuneMusoServer <- function(input, output, session){
                     min     = 0,
                     max     = 1,
                     value   = safe_value,
-                    step    = 0.01
+                    step    = 0.001
                     ),
                     actionButton(lock_btn_id, label = NULL, icon = icon("unlock"), class = "btn lock-btn unlocked",
                                 style = "margin-top: -10px; margin-bottom: 10px;")
@@ -2922,11 +2939,11 @@ tuneMusoServer <- function(input, output, session){
             }))
             total <- sum(vals)
             if (total > 1) {
-                paste0("Total sum: ", round(total, 2), " (Warning: Sum > 1!)")
+                paste0("Total sum: ", round(total, 3), " (Warning: Sum > 1!)")
             } else if (total < 1) {
-                paste0("Total sum: ", round(total, 2), " (Warning: Sum < 1!)")
+                paste0("Total sum: ", round(total, 3), " (Warning: Sum < 1!)")
             } else {
-                paste0("Total sum: ", round(total, 2))
+                paste0("Total sum: ", round(total, 3))
             }
         })
     })
@@ -3857,6 +3874,11 @@ tuneMusoServer <- function(input, output, session){
         else{
             showNotification("Running the model...", type = "message", duration = 5)
         }
+
+        # Delete the stale output file before running so a model crash doesn't leave
+        # old data behind (which would cause the app to treat the crash as a success).
+        dayout_file <- if (runSpinup) settings$outputNames[1] else settings$outputNames[2]
+        if (file.exists(dayout_file)) file.remove(dayout_file)
 
         #result <- calibMuso(settings = settings, calibrationPar = parameters[,2], parameters = paramVal, silent = TRUE)
             model_future <- future({
