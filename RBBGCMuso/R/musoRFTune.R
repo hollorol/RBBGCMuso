@@ -41,6 +41,23 @@
 #' rescue an undersized design, which is why \code{musoRFTune} also reports an
 #' adequacy verdict and a target iteration count.
 #'
+#' @section How much each knob is worth:
+#' Decomposing the total gain shows that mtry does nearly all the work, and
+#' increasingly so as the design grows:
+#'
+#' \tabular{rrrrr}{
+#'   n   \tab p  \tab default R2 \tab mtry alone \tab mtry + min.node.size \cr
+#'   30  \tab 15 \tab 0.365 \tab 0.573 (76\%) \tab 0.639 \cr
+#'   120 \tab 15 \tab 0.649 \tab 0.880 (94\%) \tab 0.896 \cr
+#'   500 \tab 40 \tab 0.717 \tab 0.940 (99\%) \tab 0.941 \cr
+#' }
+#'
+#' This matters because Boruta 10.0.0 switched its default importance backend
+#' to \pkg{fru}, which fixes its leaf-size threshold and cannot accept
+#' \code{min.node.size}. The table above says that costs almost nothing on
+#' realistic designs, so \code{musoSensi} keeps the faster fru backend rather
+#' than forcing ranger to regain a knob worth ~1\%.
+#'
 #' @param n Number of Monte Carlo samples (rows).
 #' @param p Number of parameters (columns).
 #' @param X Optional parameter matrix/data frame. Required for OOB refinement.
