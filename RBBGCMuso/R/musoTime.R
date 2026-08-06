@@ -27,7 +27,7 @@ musoDate <- function(startYear, endYears = NULL, numYears,
     dates <- seq(from = as.Date(paste0(startYear, "-01-01")),
                  to   = as.Date(paste0(endYear, "-12-31")),
                  by   = "day")
-    
+    # maybe this could be automaticly true, the leapYearHandling so we don't have to check for it
     if (leapYearHandling) {
         # For each leap year, remove December 31
         years <- as.numeric(format(dates, "%Y"))

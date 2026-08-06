@@ -43,8 +43,69 @@
 #'   auto-detects constraints and chooses LHS or MCMC accordingly.
 #' @param borutaMaxRuns Maximum number of Boruta iterations (default 100).
 #' @param borutaDoTrace Verbosity level for Boruta (0 = silent).
-#' @importFrom ggplot2 geom_bar ggplot aes theme element_text xlab ylab ggtitle ggsave scale_y_continuous scale_fill_manual
+#' @param shap If TRUE, SHAP (SHapley Additive exPlanations) values are computed
+#'   in addition to the Boruta decisions. Requires the \pkg{ranger} and
+#'   \pkg{fastshap} packages. Ignored when \code{method = "src"}. Default FALSE.
+#' @param shapEngine Which SHAP implementation to use:
+#'   \describe{
+#'     \item{"auto"}{(default) Use the first of \pkg{treeshap},
+#'       \pkg{kernelshap}, \pkg{fastshap} that is installed. The engine
+#'       actually selected is reported in a message.}
+#'     \item{"treeshap"}{Exact TreeSHAP for the ranger surrogate. Fastest and
+#'       exact rather than approximate, so \code{shapNsim} is ignored. On CRAN.}
+#'     \item{"kernelshap"}{Model-agnostic Kernel SHAP. Exact for small
+#'       parameter counts, otherwise iterates to a standard-error target.
+#'       On CRAN.}
+#'     \item{"fastshap"}{Monte Carlo Shapley sampling. NOTE: fastshap was
+#'       archived from CRAN on 2026-05-27. It still works, but must be
+#'       installed from r-universe:
+#'       \code{install.packages("fastshap",
+#'       repos = c("https://bgreenwell.r-universe.dev",
+#'       "https://cloud.r-project.org"))}}
+#'   }
+#' @param shapNsim Number of Monte Carlo repetitions used to approximate the
+#'   Shapley values. Applies to \code{shapEngine = "fastshap"} only; treeshap
+#'   is exact and kernelshap manages its own iteration. Higher is more
+#'   accurate but slower; cost scales as nsim x nParameters x nSamples.
+#'   Default 100.
+#' @param shapBgN Background sample size for \code{shapEngine = "kernelshap"}.
+#'   Default 200.
+#' @param shapNtree Number of trees in the random forest surrogate model fitted
+#'   before the SHAP computation. Default 500.
+#' @param shapOutputFile Path for the per-sample SHAP value CSV.
+#' @param shapSummaryFile Path for the mean absolute SHAP importance CSV.
+#' @param shapPlotName Path for the SHAP beeswarm summary plot PNG.
+#' @param shapImpPlotName Path for the mean absolute SHAP bar chart PNG.
+#' @param shapTopN Show only the \code{shapTopN} most important parameters in
+#'   the plots. NULL (default) shows all of them.
+#' @param shapSeed Random seed for the surrogate forest and the SHAP sampling,
+#'   for reproducibility. NULL disables seeding.
+#' @param rfTune Controls the automatic random forest hyperparameter advisor
+#'   (see \code{\link{musoRFTune}}), which scales \code{num.trees},
+#'   \code{mtry} and \code{min.node.size} to the size of the Monte Carlo
+#'   design. One of:
+#'   \describe{
+#'     \item{"ask"}{(default) Print a recommendation and prompt for
+#'       confirmation in interactive sessions; apply automatically under
+#'       Rscript or inside parallel workers so batch runs never block.}
+#'     \item{"auto"}{Apply the recommendation silently.}
+#'     \item{"off"}{Keep the ranger/Boruta defaults.}
+#'   }
+#'   Ignored when \code{method = "src"}.
+#' @param rfRefine If TRUE (default) the advisor refines its heuristic seed
+#'   with a small out-of-bag grid search on the actual Monte Carlo data.
+#' @param mtry Explicit mtry for the forests. Overrides the advisor when set.
+#' @param minNodeSize Explicit min.node.size. Overrides the advisor when set.
+#' @return For \code{method = "src"} a named numeric vector of percentage
+#'   variance contributions. For \code{method = "boruta"} the Boruta object
+#'   (invisibly). When \code{shap = TRUE} a list is returned invisibly with
+#'   elements \code{boruta}, \code{borutaImportance} and \code{shap}; the
+#'   latter holds \code{shapValues} (per-sample SHAP matrix),
+#'   \code{importance} (mean |SHAP| table), \code{surrogateR2} and the two
+#'   ggplot objects.
+#' @importFrom ggplot2 geom_bar ggplot aes theme element_text xlab ylab ggtitle ggsave scale_y_continuous scale_fill_manual geom_hline geom_jitter coord_flip scale_colour_gradient
 #' @importFrom scales percent
+#' @importFrom stats lm var predict reformulate
 #' @export
 
 musoSensi <- function(monteCarloFile = NULL,
@@ -73,9 +134,36 @@ musoSensi <- function(monteCarloFile = NULL,
                      nCores = NULL,
                      sampling = "auto",
                      borutaMaxRuns = 100,
-                     borutaDoTrace = 0){
+                     borutaDoTrace = 0,
+                     shap = FALSE,
+                     shapEngine = "auto",
+                     shapNsim = 100,
+                     shapBgN = 200,
+                     shapNtree = 500,
+                     shapOutputFile = "shap_values.csv",
+                     shapSummaryFile = "shap_importance.csv",
+                     shapPlotName = "shap_beeswarm.png",
+                     shapImpPlotName = "shap_importance.png",
+                     shapTopN = NULL,
+                     shapSeed = NULL,
+                     rfTune = "ask",
+                     rfRefine = TRUE,
+                     mtry = NULL,
+                     minNodeSize = NULL){
 
-    method <- match.arg(method, c("src", "boruta"))
+    method     <- match.arg(method, c("src", "boruta"))
+    rfTune     <- match.arg(rfTune, c("ask", "auto", "off"))
+    shapEngine <- match.arg(shapEngine,
+                            c("auto", "treeshap", "kernelshap", "fastshap"))
+
+    # Captured here because missing() only works on the formals of the
+    # function it is called in, not from inside the nested doShap closure.
+    shapNtreeUserSet <- !missing(shapNtree)
+
+    if(shap && method == "src"){
+        warning("shap = TRUE is only supported for method = 'boruta'; ignoring.")
+        shap <- FALSE
+    }
 
     if(is.null(parameters)){
         parameters <- tryCatch(read.csv("parameters.csv",stringsAsFactor=FALSE), error = function (e) {
@@ -88,6 +176,274 @@ musoSensi <- function(monteCarloFile = NULL,
                                      })
         }}
     parameters[,1] <- gsub("([\\s]|\\-epc)","",parameters[,1],perl=TRUE)
+
+    # -------------------------------------------------------------------------
+    # SHAP (SHapley Additive exPlanations)
+    #
+    # Boruta answers "does this parameter matter at all?" with a yes/no/maybe
+    # decision. SHAP answers the complementary questions: how much does each
+    # parameter contribute to each individual model run, and in which
+    # direction. A random forest surrogate is fitted on the Monte Carlo cloud
+    # and Shapley values are approximated with fastshap's Monte Carlo sampler.
+    #
+    # Returns a list with the raw SHAP matrix, the mean |SHAP| importance
+    # table and both ggplot objects.
+    # -------------------------------------------------------------------------
+    doShap <- function(M_df, y, varNames, rfSet = NULL){
+
+        has <- function(p) requireNamespace(p, quietly = TRUE)
+
+        if(!has("ranger")){
+            stop("Package 'ranger' is required for shap = TRUE.\n",
+                 "Install with: install.packages('ranger')")
+        }
+
+        # ------------------------------------------------------------------
+        # Resolve the SHAP engine.
+        #
+        # fastshap was archived from CRAN on 2026-05-27, so it can no longer
+        # be relied on as a default. treeshap and kernelshap are both on CRAN
+        # and both support ranger; treeshap is preferred because TreeSHAP is
+        # exact for tree ensembles, removing the nsim accuracy/speed
+        # tradeoff entirely. fastshap is still honoured when explicitly
+        # requested or when it is the only engine present.
+        # ------------------------------------------------------------------
+        engineOrder <- c("treeshap", "kernelshap", "fastshap")
+        engine <- if(shapEngine == "auto"){
+            avail <- engineOrder[vapply(engineOrder, has, logical(1))]
+            if(length(avail) == 0) NA_character_ else avail[1]
+        } else {
+            if(!has(shapEngine)) NA_character_ else shapEngine
+        }
+
+        if(is.na(engine)){
+            fastshapHint <- paste0(
+                "  fastshap   (archived from CRAN 2026-05-27, still maintained):\n",
+                "    install.packages(\"fastshap\", repos = c(\n",
+                "      \"https://bgreenwell.r-universe.dev\",\n",
+                "      \"https://cloud.r-project.org\"))\n",
+                "    # or: remotes::install_github(\"bgreenwell/fastshap\", ref = \"devel\")\n",
+                "    # (the GitHub route compiles C++, so it needs Rtools on Windows;\n",
+                "    #  r-universe ships prebuilt binaries and does not)")
+            if(shapEngine == "auto"){
+                stop("shap = TRUE needs a SHAP engine, but none of ",
+                     "'treeshap', 'kernelshap' or 'fastshap' is installed.\n\n",
+                     "Recommended (CRAN, exact for tree models):\n",
+                     "    install.packages(\"treeshap\")\n\n",
+                     "Alternative (CRAN, model-agnostic):\n",
+                     "    install.packages(\"kernelshap\")\n\n",
+                     fastshapHint)
+            } else if(shapEngine == "fastshap"){
+                stop("shapEngine = \"fastshap\" was requested but the package is not installed.\n\n",
+                     fastshapHint)
+            } else {
+                stop(sprintf("shapEngine = \"%s\" was requested but the package is not installed.\n",
+                             shapEngine),
+                     sprintf("    install.packages(\"%s\")", shapEngine))
+            }
+        }
+        message(sprintf("SHAP engine: %s", engine))
+
+        if(!is.null(shapSeed)){
+            set.seed(shapSeed)
+        }
+
+        # ranger needs syntactically valid column names; keep a map back to the
+        # original parameter names for the output files and plots.
+        safeNames <- make.names(varNames, unique = TRUE)
+        trainDf   <- as.data.frame(M_df)
+        colnames(trainDf) <- safeNames
+
+        # Response column name must not collide with any parameter name.
+        yName <- "musoTargetY"
+        while(yName %in% safeNames){
+            yName <- paste0(yName, ".")
+        }
+        trainDf[[yName]] <- y
+
+        # Advisor values when available, otherwise the explicit shapNtree /
+        # ranger defaults. rfSet is expressed in the real p-column space here,
+        # so no shadow rescaling is applied.
+        rfArgs <- list(
+            formula    = stats::reformulate(safeNames, response = yName),
+            data       = trainDf,
+            num.trees  = shapNtree,
+            importance = "none"
+        )
+        if(!is.null(rfSet)){
+            if(!shapNtreeUserSet) rfArgs$num.trees <- rfSet$num.trees
+            rfArgs$mtry          <- max(1L, min(length(safeNames),
+                                                as.integer(rfSet$mtry)))
+            rfArgs$min.node.size <- rfSet$min.node.size
+            message(sprintf("SHAP surrogate: num.trees = %d, mtry = %d (of %d), min.node.size = %d",
+                            rfArgs$num.trees, rfArgs$mtry, length(safeNames),
+                            rfArgs$min.node.size))
+        }
+
+        message("Fitting random forest surrogate for SHAP ...")
+        rf <- do.call(ranger::ranger, rfArgs)
+
+        # Explained R^2 of the surrogate. SHAP values are only as meaningful as
+        # the surrogate that produced them, so this is reported to the user.
+        oobPred <- rf$predictions
+        surrR2  <- if(!is.null(oobPred)){
+            1 - sum((y - oobPred)^2, na.rm = TRUE) /
+                sum((y - mean(y, na.rm = TRUE))^2, na.rm = TRUE)
+        } else NA_real_
+        message(sprintf("Surrogate random forest OOB R2: %.3f", surrR2))
+        if(!is.na(surrR2) && surrR2 < 0.5){
+            warning(sprintf(paste0("The random forest surrogate explains only %.1f%% of the ",
+                                   "output variance (OOB R2). SHAP values may be unreliable; ",
+                                   "consider increasing the number of Monte Carlo iterations."),
+                            surrR2 * 100))
+        }
+
+        featureDf <- trainDf[, safeNames, drop = FALSE]
+
+        # ------------------------------------------------------------------
+        # Engine dispatch. Each branch must return a plain numeric matrix of
+        # dimension nrow(featureDf) x length(safeNames), in column order.
+        # ------------------------------------------------------------------
+        shapMat <- switch(engine,
+
+            "treeshap" = {
+                message(sprintf("Computing exact TreeSHAP values (%d parameters, %d samples) ...",
+                                length(safeNames), nrow(featureDf)))
+                unified <- treeshap::ranger.unify(rf, featureDf)
+                ts      <- treeshap::treeshap(unified, featureDf, verbose = FALSE)
+                as.matrix(as.data.frame(ts$shaps))
+            },
+
+            "kernelshap" = {
+                message(sprintf("Computing Kernel SHAP values (%d parameters, %d samples) ...",
+                                length(safeNames), nrow(featureDf)))
+                bgN <- min(shapBgN, nrow(featureDf))
+                ks  <- kernelshap::kernelshap(
+                    rf,
+                    X        = featureDf,
+                    bg_X     = featureDf[sample(nrow(featureDf), bgN), , drop = FALSE],
+                    pred_fun = function(object, X, ...) predict(object, X, ...)$predictions,
+                    verbose  = FALSE
+                )
+                as.matrix(ks$S)
+            },
+
+            "fastshap" = {
+                message(sprintf("Computing SHAP values (nsim = %d, %d parameters, %d samples) ...",
+                                shapNsim, length(safeNames), nrow(featureDf)))
+                fs <- fastshap::explain(
+                    rf,
+                    X            = featureDf,
+                    pred_wrapper = function(object, newdata){
+                        predict(object, data = newdata)$predictions
+                    },
+                    nsim         = shapNsim
+                )
+                as.matrix(as.data.frame(fs))
+            }
+        )
+
+        if(is.null(dim(shapMat)) || ncol(shapMat) != length(varNames) ||
+           nrow(shapMat) != nrow(featureDf)){
+            stop(sprintf(paste0("SHAP engine '%s' returned a %s result; expected a %d x %d matrix. ",
+                                "This usually means the engine's API has changed."),
+                         engine, paste(dim(shapMat), collapse = " x "),
+                         nrow(featureDf), length(varNames)))
+        }
+
+        # Engines may reorder or rename columns; realign to the training
+        # feature order before restoring the original parameter names.
+        if(!is.null(colnames(shapMat)) && all(safeNames %in% colnames(shapMat))){
+            shapMat <- shapMat[, safeNames, drop = FALSE]
+        }
+        colnames(shapMat) <- varNames
+        storage.mode(shapMat) <- "double"
+
+        # ---- global importance: mean absolute SHAP value per parameter ------
+        meanAbsShap <- colMeans(abs(shapMat), na.rm = TRUE)
+        meanShap    <- colMeans(shapMat, na.rm = TRUE)
+        shapImp <- data.frame(
+            parameter       = varNames,
+            meanAbsShap     = as.numeric(meanAbsShap),
+            meanShap        = as.numeric(meanShap),
+            relImportance   = if(sum(meanAbsShap, na.rm = TRUE) > 0){
+                                  as.numeric(meanAbsShap / sum(meanAbsShap, na.rm = TRUE)) * 100
+                              } else rep(0, length(varNames)),
+            row.names       = NULL,
+            stringsAsFactors = FALSE
+        )
+        shapImp <- shapImp[order(-shapImp$meanAbsShap), ]
+        rownames(shapImp) <- NULL
+
+        shapOut <- as.data.frame(shapMat)
+        colnames(shapOut) <- varNames
+        write.csv(shapOut, file = shapOutputFile, row.names = FALSE)
+        write.csv(shapImp, file = shapSummaryFile, row.names = FALSE)
+
+        # ---- which parameters end up in the figures -------------------------
+        plotVars <- shapImp$parameter
+        if(!is.null(shapTopN) && is.finite(shapTopN) && shapTopN < length(plotVars)){
+            plotVars <- plotVars[seq_len(shapTopN)]
+        }
+        varOrder <- rev(plotVars)   # most important on top after coord_flip
+
+        # ---- long-format data for the beeswarm ------------------------------
+        longList <- lapply(plotVars, function(v){
+            featVal <- M_df[[match(v, varNames)]]
+            rng     <- range(featVal, na.rm = TRUE)
+            scaled  <- if(diff(rng) > 0) (featVal - rng[1]) / diff(rng) else rep(0.5, length(featVal))
+            data.frame(parameter  = v,
+                       shapValue  = shapMat[, v],
+                       featScaled = scaled,
+                       stringsAsFactors = FALSE)
+        })
+        shapLong <- do.call(rbind, longList)
+        shapLong$parameter <- factor(shapLong$parameter, levels = varOrder)
+
+        # ---- beeswarm summary plot ------------------------------------------
+        # geom_jitter is used rather than ggbeeswarm to avoid an extra
+        # dependency; the vertical jitter reproduces the familiar SHAP
+        # "violin of points" look closely enough.
+        beePlot <- ggplot(shapLong,
+                          aes(x = parameter, y = shapValue, colour = featScaled)) +
+            geom_hline(yintercept = 0, colour = "grey50") +
+            ggplot2::geom_jitter(width = 0.22, height = 0, alpha = 0.6, size = 1.4) +
+            scale_colour_gradient(low = "#2c7fb8", high = "#e6550d",
+                                  breaks = c(0, 1), labels = c("low", "high"),
+                                  name = "Parameter\nvalue") +
+            coord_flip() +
+            xlab(NULL) +
+            ylab("SHAP value (impact on model output)") +
+            ggtitle(paste0(plotTitle, " - SHAP summary")) +
+            theme(axis.text.y = element_text(size = 8))
+
+        # ---- mean |SHAP| bar chart ------------------------------------------
+        impPlotData <- shapImp[shapImp$parameter %in% plotVars, , drop = FALSE]
+        impPlotData$parameter <- factor(impPlotData$parameter, levels = varOrder)
+
+        impPlot <- ggplot(impPlotData, aes(x = parameter, y = meanAbsShap)) +
+            geom_bar(stat = "identity", fill = "steelblue") +
+            coord_flip() +
+            xlab(NULL) +
+            ylab("mean(|SHAP value|)") +
+            ggtitle(paste0(plotTitle, " - SHAP importance")) +
+            theme(axis.text.y = element_text(size = 8))
+
+        print(beePlot)
+        ggsave(shapPlotName, plot = beePlot, dpi = dpi)
+        print(impPlot)
+        ggsave(shapImpPlotName, plot = impPlot, dpi = dpi)
+
+        message(sprintf("SHAP results written to '%s' and '%s'; figures: '%s', '%s'.",
+                        shapOutputFile, shapSummaryFile, shapPlotName, shapImpPlotName))
+
+        list(shapValues     = shapOut,
+             importance     = shapImp,
+             surrogateR2    = surrR2,
+             engine         = engine,
+             beeswarmPlot   = beePlot,
+             importancePlot = impPlot)
+    }
 
     # -------------------------------------------------------------------------
     # Inner analysis function: receives assembled Monte Carlo matrix M where
@@ -141,13 +497,69 @@ musoSensi <- function(monteCarloFile = NULL,
             }
 
             M_df <- as.data.frame(M)
-            bor <- Boruta::Boruta(M_df, y,
-                                  maxRuns = borutaMaxRuns,
-                                  doTrace = borutaDoTrace)
+
+            # ------------------------------------------------------------------
+            # Random forest hyperparameter advisor.
+            #
+            # Run once on the real Monte Carlo data (forBoruta = FALSE) and
+            # reuse the result for both forests. Boruta appends one shadow
+            # copy per parameter, so its feature space is 2p wide and mtry has
+            # to be rescaled accordingly - otherwise a value chosen for p
+            # columns silently becomes twice as restrictive there.
+            #
+            # The obvious worry is that a large mtry lets real parameters win
+            # every split, deflating the shadow-importance threshold and
+            # inflating false positives. Simulation (n = 60, p = 15, three
+            # informative parameters) says otherwise: as mtry/2p went from
+            # 0.13 to 1.0 the false positive rate on inert parameters fell
+            # slightly (0.067 -> 0.054) while the detection rate rose
+            # (0.87 -> 0.98). The scaling is therefore applied in full rather
+            # than capped.
+            # ------------------------------------------------------------------
+            rfSet <- NULL
+            if(rfTune != "off" || !is.null(mtry) || !is.null(minNodeSize)){
+                # No point paying for an OOB search whose result will be
+                # discarded because tuning is off.
+                rfRec <- musoRFTune(n = nrow(M_df), p = ncol(M_df),
+                                    X = M_df, y = y,
+                                    refine = rfRefine && rfTune != "off",
+                                    forBoruta = FALSE,
+                                    quiet = (rfTune == "off"))
+                rfSet <- musoRFTuneApply(
+                    rfRec,
+                    mode = rfTune,
+                    userValues = list(mtry = mtry, min.node.size = minNodeSize)
+                )
+            }
+
+            borutaArgs <- list(x = M_df, y = y,
+                               maxRuns = borutaMaxRuns,
+                               doTrace = borutaDoTrace)
+            if(!is.null(rfSet)){
+                borutaArgs$num.trees     <- rfSet$num.trees
+                borutaArgs$min.node.size <- rfSet$min.node.size
+                borutaArgs$mtry          <- max(1L, min(2L * ncol(M_df),
+                                                as.integer(round(rfSet$mtry * 2))))
+                message(sprintf("Boruta forest: num.trees = %d, mtry = %d (of %d incl. shadows), min.node.size = %d",
+                                borutaArgs$num.trees, borutaArgs$mtry,
+                                2 * ncol(M_df), borutaArgs$min.node.size))
+            }
+
+            bor <- do.call(Boruta::Boruta, borutaArgs)
             imp <- Boruta::attStats(bor)
 
-            # Align importance table rows with varNames
-            imp <- imp[varNames, , drop = FALSE]
+            # Align importance table rows with varNames. as.data.frame() may
+            # have sanitised the "-epc" suffix back to ".epc", in which case
+            # name-based indexing would silently produce a table of NAs, so
+            # fall back to positional alignment (attStats rows follow the
+            # column order of M_df).
+            if(all(varNames %in% rownames(imp))){
+                imp <- imp[varNames, , drop = FALSE]
+            } else if(nrow(imp) == length(varNames)){
+                rownames(imp) <- varNames
+            } else {
+                stop("Could not align the Boruta importance table with the parameter names.")
+            }
 
             result <- data.frame(
                 parameter  = varNames,
@@ -184,7 +596,15 @@ musoSensi <- function(monteCarloFile = NULL,
                 ylab("Relative importance") +
                 ggtitle(plotTitle)
             print(sensiPlot)
-            ggsave(plotName, dpi = dpi)
+            ggsave(plotName, plot = sensiPlot, dpi = dpi)
+
+            if(shap){
+                shapRes <- doShap(M_df, y, varNames, rfSet)
+                return(invisible(list(boruta = bor,
+                                      borutaImportance = result,
+                                      shap = shapRes,
+                                      rfSettings = rfSet)))
+            }
 
             return(invisible(bor))
         }
