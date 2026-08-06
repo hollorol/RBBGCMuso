@@ -592,23 +592,55 @@ musoSensi <- function(monteCarloFile = NULL,
                 borutaMtry <- max(1L, min(2L * ncol(M_df),
                                           as.integer(round(rfSet$mtry * 2))))
 
+                # --------------------------------------------------------------
+                # mtry/tries must be passed through a wrapper rather than as a
+                # fixed value, because Boruta's feature space SHRINKS as the
+                # run progresses. Its inner loop is
+                #
+                #     xSha <- x[, decReg != "Rejected", drop = F]
+                #     getImp(cbind(x[, decReg != "Rejected"], xSha), y, ...)
+                #
+                # so once enough parameters are rejected the matrix handed to
+                # the importance adapter can have fewer columns than the mtry
+                # we chose up front - at which point both fru ("tries ... not
+                # larger than the number of columns in x") and ranger error
+                # out mid-run. With 40 parameters that happens as soon as more
+                # than 20 are rejected, which is the normal outcome of a
+                # sensitivity analysis. Clamping per call fixes it.
+                # --------------------------------------------------------------
+                nTreesB <- rfSet$num.trees
+                nNodeB  <- rfSet$min.node.size
+                force(borutaMtry); force(nTreesB); force(nNodeB)
+
                 if(bEngine == "fru"){
-                    borutaArgs$getImp <- Boruta::getImpFruZ
-                    borutaArgs$trees  <- rfSet$num.trees
-                    borutaArgs$tries  <- borutaMtry
+                    baseImp <- Boruta::getImpFruZ
+                    wrappedImp <- function(x, y, ...){
+                        baseImp(x, y,
+                                trees = nTreesB,
+                                tries = min(borutaMtry, ncol(x)),
+                                ...)
+                    }
                     message(sprintf(
-                        "Boruta forest (fru): trees = %d, tries = %d (of %d incl. shadows); min.node.size not supported by fru",
-                        borutaArgs$trees, borutaArgs$tries, 2 * ncol(M_df)))
+                        "Boruta forest (fru): trees = %d, tries = %d (of %d incl. shadows, clamped as attributes are dropped); min.node.size not supported by fru",
+                        nTreesB, borutaMtry, 2 * ncol(M_df)))
                 } else {
-                    borutaArgs$getImp        <- Boruta::getImpRfZ
-                    borutaArgs$num.trees     <- rfSet$num.trees
-                    borutaArgs$mtry          <- borutaMtry
-                    borutaArgs$min.node.size <- rfSet$min.node.size
+                    baseImp <- Boruta::getImpRfZ
+                    wrappedImp <- function(x, y, ...){
+                        baseImp(x, y,
+                                num.trees     = nTreesB,
+                                mtry          = min(borutaMtry, ncol(x)),
+                                min.node.size = nNodeB,
+                                ...)
+                    }
                     message(sprintf(
-                        "Boruta forest (ranger): num.trees = %d, mtry = %d (of %d incl. shadows), min.node.size = %d",
-                        borutaArgs$num.trees, borutaArgs$mtry,
-                        2 * ncol(M_df), borutaArgs$min.node.size))
+                        "Boruta forest (ranger): num.trees = %d, mtry = %d (of %d incl. shadows, clamped as attributes are dropped), min.node.size = %d",
+                        nTreesB, borutaMtry, 2 * ncol(M_df), nNodeB))
                 }
+
+                # Boruta stores comment(getImp) as the result's impSource
+                # field; carry it across so the wrapper stays self-describing.
+                comment(wrappedImp) <- comment(baseImp)
+                borutaArgs$getImp   <- wrappedImp
             }
 
             bor <- do.call(Boruta::Boruta, borutaArgs)
