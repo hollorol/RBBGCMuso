@@ -24,6 +24,9 @@ musoMonte(
   skipZero = TRUE,
   postProcString = NULL,
   modifyOut = TRUE,
+  parallel = FALSE,
+  nCores = NULL,
+  sampling = "auto",
   ...
 )
 }
@@ -47,6 +50,17 @@ musoMonte(
 \item{debugging}{If you set this parameter, you can save every logfile, and RBBGCMuso will select those which contains errors. This is useful to study why the model crashes with a given parameter set.}
 
 \item{keepEpc}{If you set keepEpc as TRUE, it will save every selected EPC file, and move the wrong ones into the WRONGEPC directory.}
+
+\item{parallel}{If TRUE, model runs are distributed across multiple cores using doParallel and foreach. Each worker gets its own copy of the input directory to avoid file conflicts. Default is FALSE.}
+
+\item{nCores}{Number of parallel workers. If NULL (default), uses detectCores() - 1.}
+
+\item{sampling}{Sampling strategy for parameter space exploration. \code{"auto"}
+(default) detects whether any selected parameter has group constraints: if
+none are found it uses Latin Hypercube Sampling (fast, better space coverage);
+if constraints are present it falls back to the MCMC hit-and-run sampler via
+\code{musoRand}. \code{"lhs"} forces LHS regardless of constraints (requires
+the \pkg{lhs} package). \code{"mcmc"} forces the MCMC sampler.}
 
 \item{calibrationPar}{You might want to change some parameters in your EPC file before you run the modell. You have to select the appropirate model parameters here. You can refer to the parameters by the number of the line in the EPC file where the variables are defined. The indexing of the lines starts at 1, and each line matters (like in any simple text file). You should use a vector for this selection like c(1,5,8)}
 }

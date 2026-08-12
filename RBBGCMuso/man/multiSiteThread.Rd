@@ -25,7 +25,9 @@ multiSiteThread(
   postProcString = NULL,
   threadNumber,
   constraints = NULL,
-  th = 10
+  th = 10,
+  fileToModify = NULL,
+  fileToChange = "epc"
 )
 }
 \description{

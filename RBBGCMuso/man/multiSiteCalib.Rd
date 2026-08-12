@@ -20,7 +20,9 @@ multiSiteCalib(
   copyThread = TRUE,
   constraints = NULL,
   th = 10,
-  treeControl = rpart.control()
+  treeControl = rpart.control(),
+  fileToModify = NULL,
+  fileToChange = "epc"
 )
 }
 \arguments{
